@@ -106,7 +106,7 @@ static void buffer(const std::string &name, unsigned bytes, bool sine)
 }
 int main(int argc, char **argv)
 {
-    assert(argc == 4);
+    assert(argc == 5);
     const char *kind = argv[3];
     const char *variable = getenv("NEO98_TEST_MICROPHONE");
     assert(variable && !strcmp(variable, kind));
@@ -138,10 +138,10 @@ int main(int argc, char **argv)
     {
         // No wave input device. DSOUND still names its primary capture
         // driver, the entry without a GUID, but the create of the default
-        // device finds no driver behind it (DSERR_NODRIVER).
+        // device fails with the error of the installed original DLL version.
         expect("devices", 1);
         expect("first_null", 1);
-        expect("create", 0x88780078);
+        expect("create", unsigned(strtoul(argv[4], nullptr, 0)));
         expect("object", 0);
     }
     else

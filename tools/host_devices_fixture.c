@@ -32,7 +32,7 @@ static void capture(void)
     DESC describe=(DESC)GetProcAddress(avicap,"capGetDriverDescriptionA");CREATE create=(CREATE)GetProcAddress(avicap,"capCreateCaptureWindowA");
     expect(describe&&create);
     char name[80],version[80];name[0]=version[0]=0;expect(describe(0,name,sizeof name,version,sizeof version));
-    expect(name[0]=='A'&&name[6]=='C'); /* "NEO98 Camera" from the version of NEO98CAP.DRV */
+    expect(name[0]=='N'&&name[6]=='C'); /* "NEO98 Camera" from the version of NEO98CAP.DRV */
     H window=create("capture",0,0,0,160,120,0,0);expect(window!=0);
     expect(SendMessageA(window,0x40a,0,0)); /* WM_CAP_DRIVER_CONNECT */
     U format[10];expect(SendMessageA(window,0x42c,sizeof format,(I)format)==40); /* WM_CAP_GET_VIDEOFORMAT */

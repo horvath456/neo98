@@ -39,6 +39,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import neo98  # noqa: E402
+from test_support import write_plain_desktop_registry  # noqa: E402
 from native_app import ROOT, build_host  # noqa: E402
 import win98_c  # noqa: E402
 win98_c.use_pristine()  # tests start from setup's C:, never the user's
@@ -118,6 +119,8 @@ def main():
     drive_c = out / 'drive-c'
     shutil.rmtree(drive_c, ignore_errors=True)
     subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    registry = out / 'plain-desktop.registry'
+    write_plain_desktop_registry(registry)
     for name in ('menu.ppm', 'dialog.ppm', 'cancel.ppm'):
         (out / name).unlink(missing_ok=True)
     binary = ROOT / 'build/native-app/neo98-host'
@@ -132,13 +135,12 @@ def main():
              '3.3:up=95,557', '3.3:wait=#32770|Shut Down Windows', '3.3:idle=1000',
              f'5:shot={out / "dialog.ppm"}', '6:move=423,310', '7:down=423,310',
              '7.3:up=423,310', '7.3:idle=1500', f'8:shot={out / "cancel.ppm"}', '9:menu=quit']
-    env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='disk',
-               SDL_DISKAUDIOFILE=str(out / 'audio.raw'),
+    env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
                NEO98_HOST_INPUT=';'.join(steps))
     env.pop('NEO98_HOST_ATTACHED', None)
     command = [str(binary), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
                '--system-tree', '--exe', 'C:\\WINDOWS\\EXPLORER.EXE', '--quiet',
-               '--drive-c', str(drive_c), '--no-registry-file',
+               '--drive-c', str(drive_c), '--registry', str(registry),
                '--crash-report-dir', str(out / 'reports')]
     log_path = out / 'host.log'
     with log_path.open('w') as log:

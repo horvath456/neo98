@@ -286,9 +286,9 @@ int main(void)
         SetLastError(0);
         ++checks; if (SetGraphicsMode(0, 1) != 1 || GetLastError()) { ++bad; mask |= 1u << (checks - 1); }
         ++checks; if (SetGraphicsMode(0, 2) || GetLastError() != 87) { ++bad; mask |= 1u << (checks - 1); }
-        /* The colour management pair of GDI 40. A handle that is no device
-         * context never reaches the worker, and the worker answers out of the
-         * ICM state GDI is in: none. */
+        /* The full Win98 SE installation has ICM profile lookup. Invalid
+         * handles fail before the worker; the screen reports its default
+         * profile and the required buffer size. */
         {
             U size = 260, screen = GetDC(0);
             char profile[260];
@@ -297,9 +297,10 @@ int main(void)
             ++checks; if (ColorMatchToTarget(0, 0, 1) || GetLastError() != 6) { ++bad; mask |= 1u << (checks - 1); }
             ++checks; if (!screen) { ++bad; mask |= 1u << (checks - 1); }
             SetLastError(0);
-            ++checks; if (GetICMProfileA(screen, &size, profile) || GetLastError() != 87) { ++bad; mask |= 1u << (checks - 1); }
+            ++checks; if (!GetICMProfileA(screen, &size, profile) || GetLastError()) { ++bad; mask |= 1u << (checks - 1); }
             ++checks; if (ColorMatchToTarget(screen, screen, 1) || GetLastError() != 8) { ++bad; mask |= 1u << (checks - 1); }
-            ++checks; if (size != 260) { ++bad; mask |= 1u << (checks - 1); }       /* nothing was written back */
+            const char expected_profile[] = "C:\\WINDOWS\\SYSTEM\\COLOR\\sRGB Color Space Profile.icm";
+            ++checks; if (size != sizeof expected_profile || !same(profile, expected_profile)) { ++bad; mask |= 1u << (checks - 1); }
             ++checks; if (!ReleaseDC(0, screen)) { ++bad; mask |= 1u << (checks - 1); }
             /* GetRasterizerCaps, GDI. Size six, TT_AVAILABLE |
              * TT_ENABLED because the Win98 folder installs TrueType files and

@@ -6,6 +6,7 @@ Supply an installed game folder containing hl.exe. Runs on a disposable
 pristine Windows clone; no product key is supplied or read from the user hive.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -20,7 +21,7 @@ import win98_c
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ExternalInputParser()
     parser.add_argument('game', type=Path)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     args = parser.parse_args()

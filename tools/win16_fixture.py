@@ -1035,7 +1035,9 @@ def mci_segment():
         body.extend(b'\xb8' + struct.pack('<H', value) + b'\x50')
 
     def open_call():
-        push(0); push(0x803); push(0); push(0x1200)
+        # TYPE_ID interprets the type value only when OPEN_TYPE is also set.
+        # Include OPEN_ELEMENT for the missing/present wave file checks.
+        push(0); push(0x803); push(0); push(0x3200)
         body.extend(b'\x1e'); push(MCI_OPEN); farcall(3, 701)
 
     farcall(1, 91)

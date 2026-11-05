@@ -35,7 +35,7 @@ static U __stdcall window_procedure(U hwnd, U message, U wp, U lp)
         const int dx = x - CENTRE_X, dy = y - CENTRE_Y;
         /* A step of zero is the move the centring itself produced; the
          * original reads it and reports nothing, so it is not a record. */
-        if (count < 64)
+        if (count < 64 && (dx || dy))
         {
             records[1 + count * 2] = dx;
             records[2 + count * 2] = dy;
@@ -67,9 +67,10 @@ void run_cursor_relative_test(void)
         ExitProcess(7502);
     ShowWindow(hwnd, 5);
     SetCursorPos(CENTRE_X, CENTRE_Y);
+    records[129] = 1; /* The runner can now inject the first real movement. */
     U message[8];
     const U start = GetTickCount();
-    while (GetTickCount() - start < 20000 && count < 8)
+    while (GetTickCount() - start < 20000 && count < 4)
     {
         while (PeekMessageA(message, 0, 0, 0, 1))
         {

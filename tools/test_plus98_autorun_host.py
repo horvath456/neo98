@@ -68,7 +68,10 @@ def run(binary, out, name, cd):
     x, y = ORIGIN[name]
     dx, dy = DRAG[name]
     install, browse = (x + 13, y + 297), (x + 13, y + 375)
-    steps = ['wait=Shell_TrayWnd', 'idle=3000', f'open={cd}/autorun.exe', f'wait=|{AUTORUN}', 'pause=2',
+    # The Welcome window refreshes on a timer; three seconds of global idle
+    # are not a readiness condition for Explorer. The autorun and wizard
+    # waits below still require the actual target windows.
+    steps = ['wait=Shell_TrayWnd', 'idle=200', f'open={cd}/autorun.exe', f'wait=|{AUTORUN}', 'pause=2',
              f'click={x + 260},{y + 297}', f'wait=|{WIZARD}', 'pause=5', 'windows=1',
              f'move={install[0] - 4},{install[1]}', f'move={install[0]},{install[1] + 1}', 'pause=1',
              f'move={browse[0]},{browse[1]}', f'move={browse[0] + 2},{browse[1] + 1}', 'pause=1', 'windows=1',
@@ -135,7 +138,8 @@ def scenario(binary, out, name, cd):
 
     checks = {
         'host ended by its menu': code == 0,
-        'every wait reached': bool(waits) and all(state == 'reached' for _, state in waits),
+        'every wait reached': bool(waits) and all(state == 'reached' for _, state in waits)
+                              and 'timed out after' not in text,
         'no crash report': not reports,
         'the wizard is in front after "Install Plus!"': front(0),
         'it stays in front while the pointer moves over the buttons of the autorun window': front(1),
@@ -157,7 +161,7 @@ def scenario(binary, out, name, cd):
 def main():
     if not ISO.exists():
         print(f'PLUS98 AUTORUN SKIP: {ISO} is not there')
-        return 0
+        raise SystemExit(77)
     out = neo98.output_directory('plus98-autorun-host')
     cd = out / 'cd'
     if not (cd / 'autorun.exe').exists():

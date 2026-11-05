@@ -17,6 +17,8 @@ def main():
     out = ROOT / 'build/release-content-host'
     out.mkdir(exist_ok=True)
     binary = ROOT / 'build/Neo98.app/Contents/MacOS/Neo98'
+    from test_support import require_file
+    require_file(binary)
     wizard_settings = out / 'wizard-settings'
     shutil.rmtree(wizard_settings, ignore_errors=True)
     wizard_env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',

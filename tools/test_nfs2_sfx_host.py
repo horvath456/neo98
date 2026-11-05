@@ -6,6 +6,7 @@ The installer is supplied by the caller, never downloaded or bundled here.
 Extraction runs on a disposable clone of setup's pristine Windows tree.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -21,7 +22,7 @@ import win98_c
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ExternalInputParser()
     parser.add_argument('installer', type=Path)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     args = parser.parse_args()

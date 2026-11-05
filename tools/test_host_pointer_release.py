@@ -120,7 +120,7 @@ def main():
     if not GAME.is_file():
         print(f'SKIP {GAME} is not there')
         return 0
-    tree = dx9_tree.tree()  # Kroko-Mania needs DINPUT8.DLL
+    tree = dx9_tree.require_tree()  # Kroko-Mania needs DINPUT8.DLL
     if tree is None:
         print('SKIP no DirectX 9 tree')
         return 0

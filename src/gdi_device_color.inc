@@ -17,7 +17,8 @@ bool RealizeDeviceColor(const Object &object,COLORREF color,unsigned &physical,c
     struct PaletteProvider {
         const Object &object;
         unsigned Count(){return object.dib?object.dib->format.colors:2;}
-        unsigned Palette(unsigned index){return Read32(index*4);}
+        unsigned Palette(unsigned index){return Read32(index*4)|
+            ((object.dib&&object.dib->colours_only&&object.bitmap.depth==8&&index>=8&&index<248)?0x80000000u:0);}
         unsigned Read32(unsigned address){return object.dib?
             object.dib->format.Read32(0x100+object.dib->format.palette+address):address?0xffffff:0;}
     } palette{object};

@@ -38,6 +38,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import neo98  # noqa: E402
 from native_app import ROOT, build_host  # noqa: E402
+from test_support import active_caption_pair  # noqa: E402
 import win98_c  # noqa: E402
 win98_c.use_pristine()  # tests start from setup's C:, never the user's
 
@@ -76,18 +77,20 @@ def main():
         binary = build_host()
     # Explorer needs up to a minute on the first start of a fresh C:, and a
     # busy machine a few seconds more before the tray takes a drag. The
-    # grip of the task band stands at x 141, "Shut Down..." at 95,557, the
+    # grip of the task band stands at x 145, "Shut Down..." at 95,557, the
     # clock at 757,587, Cancel of the Shut Down dialog at 423,310.
     # The script waits for the guest, not for the clock (NEO98_HOST_INPUT of
     # tools/neo98_host.cpp), so a loaded machine only makes it slower.
-    steps = ['0:wait=Shell_TrayWnd', '0:wait=|Welcome to Windows 98', '0:idle=2000',
+    # Welcome and timedate.cpl have periodic timers. Wait for a short idle
+    # interval; their visible windows and the screenshots remain the oracle.
+    steps = ['0:wait=Shell_TrayWnd', '0:wait=|Welcome to Windows 98', '0:idle=200',
              f'1:shot={shots["before"]}',
-             '2:move=141,587', '2.5:down=141,587', '3:move=160,587', '3.5:move=200,587',
+             '2:move=145,587', '2.5:down=145,587', '3:move=160,587', '3.5:move=200,587',
              '4:move=250,587', '4.5:up=250,587', '4.5:idle=1000', f'6:shot={shots["band"]}',
              '7:click=25,587', '7:idle=500', '10:move=95,557', '10:idle=500', '10.5:click=95,557',
              '10.5:wait=#32770|Shut Down Windows', '10.5:idle=1000', f'14:shot={shots["dialog"]}',
              '15:move=423,310', '15.5:click=423,310', '15.5:idle=1000',
-             '18:dblclick=757,587', '18:wait=#32770|Date/Time Properties', '18:idle=2000',
+             '18:dblclick=757,587', '18:wait=#32770|Date/Time Properties', '18:idle=200',
              f'20:shot={shots["clock"]}', '21:menu=quit']
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
                NEO98_HOST_INPUT=';'.join(steps))
@@ -101,6 +104,7 @@ def main():
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
                                 stdin=subprocess.DEVNULL, timeout=300)
     text = log_path.read_text(errors='replace')
+    check('every scripted wait reached', 'timed out after' not in text)
     present = all(path.exists() for path in shots.values())
     check('screenshots written', present)
     if present:
@@ -112,10 +116,10 @@ def main():
               black(band, 165, 245) == 0 and black(band, 280, 400) > 0)
         dialog = pixels(shots['dialog'])
         check('fast click opens Shut Down',
-              at(dialog, 300, 166) == '000080' and at(dialog, 245, 166) == '000080')
+              active_caption_pair(at(dialog, 245, 166), at(dialog, 300, 166)))
         clock = pixels(shots['clock'])
         check('clock double click shows Date/Time',
-              at(clock, 300, 67) == '000080' and at(clock, 400, 67) == '000080')
+              active_caption_pair(at(clock, 300, 67), at(clock, 400, 67)))
     check('Explorer starts timedate.cpl', 'Control_RunDLL timedate.cpl' in text)
     check('host ended', result.returncode == 0)
     report = {'log': str(log_path), 'exit_code': result.returncode, 'steps': steps, 'checks': checks}

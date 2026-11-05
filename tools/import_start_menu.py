@@ -50,7 +50,7 @@ def listing(folder, root):
         for name in subdirectories:
             entries.append(((here / name).as_posix(), True))
         for name in sorted(names):
-            if not name.startswith('.neo98-'):
+            if not win98_c.metadata_name(name):
                 entries.append(((here / name).as_posix(), False))
     entries.sort(key=lambda entry: (entry[0].count('/'), entry[0]))
     return entries

@@ -6,6 +6,7 @@ The caller supplies nfs2demo.exe. Its ZIP payload is unpacked independently;
 test_nfs2_sfx_host.py covers execution of the original Win16 extractor.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -22,7 +23,7 @@ import win98_c
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ExternalInputParser()
     parser.add_argument('installer', type=Path)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     args = parser.parse_args()

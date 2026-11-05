@@ -22,7 +22,7 @@ def main():
     source = win98_c.use_pristine()
     binary = ROOT / 'build/native-app/neo98-host'
 
-    def run(name, readonly, actions, code="b8004ccd21", open_settings=True, failure_action="", missing_core=False, expect_sheet=True):
+    def run(name, readonly, actions, code="b8004ccd21", open_settings=True, failure_action="", missing_core=False, expect_sheet=True, live_dos=False):
         case = out / name
         shutil.rmtree(case, ignore_errors=True)
         case.mkdir()
@@ -49,7 +49,14 @@ def main():
         assert result.returncode == 0, result.stdout[-2500:]
         if expect_sheet:
             assert 'PIFPAGES file=E:\\TEST.COM pages=' in result.stdout, result.stdout[-2500:]
-            assert 'HOST DOS SETTINGS E:\\TEST.COM result=0' in result.stdout or 'HOST DOS SETTINGS E:\\TEST.COM result=1' in result.stdout, result.stdout[-2500:]
+            if live_dos:
+                # The active DOS window owns this sheet on its own fiber;
+                # RequestDosSettings does not enqueue the host-side request.
+                assert 'DOSVM toolbar button=Properties' in result.stdout, result.stdout[-2500:]
+                assert 'title=TEST Properties' in result.stdout, result.stdout[-2500:]
+                assert 'modal dialog end result=0' in result.stdout, result.stdout[-2500:]
+            else:
+                assert 'HOST DOS SETTINGS E:\\TEST.COM result=0' in result.stdout or 'HOST DOS SETTINGS E:\\TEST.COM result=1' in result.stdout, result.stdout[-2500:]
         return case, result.stdout, list(programs.glob('*.PIF')) + list(programs.glob('*.pif'))
 
     case, log, pifs = run('cancel', False, '2:windows=1;3:button=Cancel')
@@ -65,7 +72,7 @@ def main():
     assert 'HOST DOS SETTINGS E:\\TEST.COM result=0' in log, 'Failed save closed the sheet as successful'
     case, log, pifs = run('active', False,
                           '1:guestopen=E:\\TEST.COM;3:menu=dos-settings;4:windows=1;5:button=Cancel',
-                          code='ebfe', open_settings=False)
+                          code='ebfe', open_settings=False, live_dos=True)
     assert 'DOSVM' in log and not pifs, log[-2500:]
     case, log, pifs = run('failed', False,
                           '1:guestopen=E:\\TEST.COM;5:windows=1;6:button=Cancel',

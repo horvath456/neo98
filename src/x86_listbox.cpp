@@ -275,6 +275,10 @@ unsigned Application::ListBoxMessage(unsigned hwnd, unsigned message, unsigned w
     auto draw_item = [&](unsigned item, unsigned action, bool focus)
     {
         if(!b.hwnd||item>=b.count||!User::IsVisible(hwnd))return;
+        if(User::ScreenLockedElsewhere(process_id,ThreadId())){
+            refresh();
+            return;
+        }
         Gdi::RECT client{},row{};User::GetClientRect(hwnd,&client);
         Win98ListBox::Rectangle(b.Layout(),item,row);
         if(row.bottom<=0||row.right<=0||row.top>=client.bottom||row.left>=client.right)return;

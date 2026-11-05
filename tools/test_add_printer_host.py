@@ -37,6 +37,7 @@ from native_app import ROOT, build_host  # noqa: E402
 import win98_c  # noqa: E402
 from test_device_manager_host import failures, host  # noqa: E402
 from test_wheel_host import Steps  # noqa: E402
+from test_support import active_caption_pair  # noqa: E402
 
 # Next and Finish of the wizard at 64,55 on the 800 by 600 canvas.
 NEXT = 'click=360,352'
@@ -44,6 +45,7 @@ NEXT = 'click=360,352'
 # right of the wizard, where the desktop lies under it. Apple in the list of
 # manufacturers at 98,203, its row selected at 180,203 right of the pointer.
 CAPTION, INSIDE, APPLE, ROW = (500, 241), (515, 300), (98, 203), (180, 203)
+CAPTION_LEFT = (480, 241)
 NAVY, FACE = (0, 0, 128), (192, 192, 192)
 FRAMES = 20
 
@@ -106,7 +108,8 @@ def main():
                            steps.steps, int(steps.time) + 30, pristine, journal, prepare=without_database)
     shots = [run / f'f{i:02d}.ppm' for i in range(FRAMES)]
     have = all(p.is_file() for p in shots) and (run / 'apple.ppm').is_file()
-    shown = [p for p in shots if have and pixel(p, CAPTION) == NAVY]
+    shown = [p for p in shots if have and active_caption_pair(
+        bytes(pixel(p, CAPTION_LEFT)).hex(), bytes(pixel(p, CAPTION)).hex())]
     bare = [p.stem for p in shown if pixel(p, INSIDE) != FACE]
     check('the database dialog has its background from its first picture on', have and shown and not bare)
     check('Apple lists its printers and the wizard stays', have and pixel(run / 'apple.ppm', ROW) == NAVY)

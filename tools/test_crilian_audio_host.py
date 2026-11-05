@@ -7,6 +7,7 @@ queue must stay bounded even then. coreaudio checks the real macOS device.
 The measured queue excludes the sound card's own output latency.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -21,7 +22,7 @@ import first_logon
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = ExternalInputParser(description=__doc__)
     parser.add_argument('--game', type=Path, required=True)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--out', type=Path, default=ROOT / 'build/crilian-audio-host')

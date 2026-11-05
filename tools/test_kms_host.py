@@ -17,6 +17,10 @@ message a running desktop gets.
 
     build/analysis-venv/bin/python tools/test_kms_host.py [--no-build] [--only PART...]
 """
+import sys as _sys
+from test_support import skip as _skip
+if _sys.platform != 'linux':
+    _skip('this test requires the Linux host')
 import argparse
 import json
 import os

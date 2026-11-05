@@ -66,7 +66,7 @@ def registered_key(journal):
     if not journal.is_file():
         return None
     data = journal.read_bytes()
-    if not data.startswith(b'NEO98REG1'):
+    if not data.startswith((b'NEO98REG1', bytes([65, 82, 77, 57, 56]) + b'REG1')):
         return None
     offset, value = 9, None
     target = r'hkey_local_machine\software\microsoft\plus!98'
@@ -279,7 +279,7 @@ def main():
     medium = os.environ.get('NEO98_PLUS98_MEDIA')
     if not medium:
         print('PLUS98 SETUP SKIP: set NEO98_PLUS98_MEDIA to the unpacked original CD directory')
-        return 0
+        raise SystemExit(77)
     media = Path(medium).expanduser().resolve()
     for name in ('setup.exe', 'plus98/setup.exe', 'plus98/PLUS98.CAB'):
         if not (media / name).is_file():
@@ -289,7 +289,7 @@ def main():
            registered_key(win98_c.journal(win98_c.live_folder())))
     if not key:
         print('PLUS98 SETUP SKIP: no existing Plus! registration; set NEO98_PLUS98_KEY_FILE to the original CD key file')
-        return 0
+        raise SystemExit(77)
     if not re.fullmatch(r'[0-9]{10}', key):
         raise SystemExit('PLUS98 SETUP FAIL: the private key file must contain ten digits')
     source = (args.source or win98_c.pristine_folder()).resolve()

@@ -10,6 +10,20 @@ void run_combobox_test(void){U instance=GetModuleHandleA(0);U wc[10]={0,(U)proc,
  check(SendMessageA(c,0x151,0,0x12345678)==1&&SendMessageA(c,0x150,0,0)==0x12345678,15511);check(SendMessageA(c,0x15f,0,0)==150&&SendMessageA(c,0x160,210,0)==210,15512);check(SendMessageA(c,0x155,1,0)==0&&SendMessageA(c,0x156,0,0)==1,15513);check(SendMessageA(c,0x14f,1,0)==1&&SendMessageA(c,0x157,0,0)==1,15514);check(SendMessageA(c,0x14f,0,0)==1&&SendMessageA(c,0x157,0,0)==0,15515);check(SendMessageA(c,0x153,0xffffffff,18)==0&&SendMessageA(c,0x154,0xffffffff,0)==18,15516);check(SendMessageA(c,0x14b,0,0)==1&&SendMessageA(c,0x146,0,0)==0&&GetWindowTextA(c,out,sizeof out)==0,15517);
  check(SendMessageA(c,0x141,3,0)==0,15524);U edit=GetDlgItem(c,1001);check(SendMessageA(edit,0xd5,0,0)==3,15525);SendMessageA(edit,0x102,'A',0);SendMessageA(edit,0x102,'B',0);SendMessageA(edit,0x102,'C',0);SendMessageA(edit,0x102,'D',0);check(GetWindowTextA(c,out,sizeof out)==3&&same(out,"ABC"),15526);
  U owner=CreateWindowExA(0,"COMBOBOX","",0x50000313,10,60,150,120,p,78,instance,0);check(owner&&measured>=2&&!GetDlgItem(owner,1001),15518);check(SendMessageA(owner,0x143,0,(U)"Owner item")==0&&SendMessageA(owner,0x14e,0,0)==0,15519);check(draw_state&0x1000,15527);check(SendMessageA(owner,0x140,0,0)==0xffffffff,15520);int origin[2]={0,0};check(ScreenToClient(owner,origin),15521);UpdateWindow(owner);U dc=GetDC(0);check(dc&&GetPixel(dc,-origin[0]+5,-origin[1]+5)==0x00ff00&&drawn,15522);ReleaseDC(0,dc);
+ /* A simple combo's persistent list must not take dialog Enter or Escape. */
+ U simple=CreateWindowExA(0,"COMBOBOX","",0x50000301,180,10,150,120,p,79,instance,0);
+ check(simple,15528);
+ U simple_edit=GetDlgItem(simple,1001);check(simple_edit,15529);
+ for(U key=13;key<=27;key+=14){
+  U msg[7]={simple_edit,0x100,key,0,0,0,0};
+  check(SendMessageA(simple_edit,0x87,key,(U)msg)==0x89,15530);
+  msg[0]=edit;
+  SendMessageA(c,0x14f,1,0);
+  check(SendMessageA(edit,0x87,key,(U)msg)==0x8d,15531);
+  SendMessageA(c,0x14f,0,0);
+  check(SendMessageA(edit,0x87,key,(U)msg)==0x89,15532);
+ }
+ check(DestroyWindow(simple),15533);
  check(DestroyWindow(c)&&DestroyWindow(owner)&&DestroyWindow(p),15523);
 }
 #ifdef COMBOBOX_STANDALONE

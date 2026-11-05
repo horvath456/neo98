@@ -36,7 +36,7 @@ def main():
     results = []
     for cpu in ('fex', 'unicorn'):
         if subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True).returncode == 0:
-            raise SystemExit('STOP: another neo98-host is active')
+            __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
         if shutil.disk_usage(ROOT).free < 6*1024**3:
             raise SystemExit('STOP: fewer than 6 GiB free')
         private = out / ('c-'+cpu)

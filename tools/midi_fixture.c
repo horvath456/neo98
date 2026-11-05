@@ -108,7 +108,7 @@ int mainCRTStartup(void)
     check(caps.channels == 0xffff, 9);
     check((caps.support & 1) != 0, 10);      /* MIDICAPS_VOLUME */
     check((caps.support & 8) != 0, 11);      /* MIDICAPS_STREAM */
-    check(caps.name[0] == 'A', 12);
+    check(caps.name[0] == 'N', 12);
 
     /* The error text of the MIDI block. */
     check(midiOutGetErrorTextA(0x40, text, sizeof text) == 0, 13);

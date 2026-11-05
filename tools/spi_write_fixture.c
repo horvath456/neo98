@@ -6,7 +6,7 @@
 typedef unsigned U;
 struct WndClass{U style,proc,cbcls,cbwin,instance,icon,cursor,brush,menu,name;};
 struct Rect{int left,top,right,bottom;};
-API void S ExitProcess(U);API U S GetLastError(void);
+API void S ExitProcess(U);API U S GetLastError(void);API void S SetLastError(U);
 API U S RegisterClassA(struct WndClass*);API U S UnregisterClassA(const char*,U);
 API U S CreateWindowExA(U,const char*,const char*,U,int,int,int,int,U,U,U,void*);
 API U S DestroyWindow(U);API U S DefWindowProcA(U,U,U,U);API U S SendMessageA(U,U,U,U);
@@ -19,7 +19,7 @@ static U main_window,setting_changes,setting_action,minmax_seen,setting_name_see
 
 static U S wndproc(U h,U m,U w,U l)
 {
- if(m==0x1a){++setting_changes;setting_action=w;if(l&&*(const char*)l)++setting_name_seen;return 0;}
+ if(m==0x1a||m==0x8055){++setting_changes;setting_action=w;if(l&&*(const char*)l)++setting_name_seen;return 0;}
  if(m==0x24){++minmax_seen;return DefWindowProcA(h,m,w,l);}
  // WM_WINDOWPOSCHANGING: hwnd, after, x, y, cx, cy, flags. A maximize asks
  // here too (USER places through DeferWindowPos).
@@ -136,7 +136,13 @@ U run_spi_write_test(void)
  check(SendMessageA(0xffffu,0x1a,4243,0)!=0,30239);
  check(setting_changes==1&&setting_action==4243,30240);
  {U msg[7];setting_changes=0;setting_action=0;
-  check(PostMessageA(0xffffu,0x1a,4244,0)!=0,30241);
+  // USER rejects pointer-bearing system messages even with a null lParam.
+  SetLastError(0x1234);
+  check(!PostMessageA(0xffffu,0x1a,4244,0)&&GetLastError()==0x1234,30241);
+  while(PeekMessageA(msg,0,0,0,1))DispatchMessageA(msg);
+  check(!setting_changes,30243);
+  // A pointer-free application message still exercises the broadcast path.
+  check(PostMessageA(0xffffu,0x8055,4244,0)!=0,30244);
   while(PeekMessageA(msg,0,0,0,1))DispatchMessageA(msg);
   check(setting_changes==1&&setting_action==4244,30242);}
 

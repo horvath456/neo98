@@ -382,6 +382,7 @@ bool BlitDib(Context &context, DibFormat &format, const DibEng::Bitmap &source,
   // The target's colour table, read once, and a small cache of resolved
   // colours: a strip of icons repeats a few dozen colours thousands of times.
   unsigned table[256], table_entries = 0;
+  const bool reserved_colors = palettised_target && object->dib->colours_only && target.depth == 8;
   // A direct-mapped cache over the full colour: gradients and photos would
   // exhaust a small list and fall back to the linear search per pixel.
   static unsigned cache_color[4096], cache_index[4096];
@@ -392,7 +393,7 @@ bool BlitDib(Context &context, DibFormat &format, const DibEng::Bitmap &source,
     auto &f = object->dib->format;
     table_entries = f.colors ? f.colors : 1u << target.depth;
     if (table_entries > 256) table_entries = 256;
-    unsigned signature = table_entries;
+    unsigned signature = table_entries + (reserved_colors ? 256 : 0);
     for (unsigned i = 0; i < table_entries; ++i) {
       table[i] = Win98DibColor::ToColor(f, 0x100 + f.palette, f.depth, f.rgb565, i) & 0xffffff;
       signature = signature * 31 + table[i];
@@ -427,6 +428,10 @@ bool BlitDib(Context &context, DibFormat &format, const DibEng::Bitmap &source,
     if (cache_valid[slot] && cache_color[slot] == color) return cache_index[slot];
     unsigned best = ~0u, index = 0;
     for (unsigned i = 0; i < table_entries; ++i) {
+      // Untagged RGB excludes the palette-managed middle of a device table.
+      // Explicit palette translations above retain their physical slots.
+      if (reserved_colors && i == 8) i = 248;
+      if (i >= table_entries) break;
       const unsigned c = table[i];
       if (c == color) { index = i; break; }
       const int dr = int(c & 255) - int(color & 255), dg = int((c >> 8) & 255) - int((color >> 8) & 255),

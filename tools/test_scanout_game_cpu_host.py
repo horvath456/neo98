@@ -2,16 +2,18 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """getrusage for the original Animal Crossing workload. Use serial.py."""
-import argparse,hashlib,json,os,re,resource,shutil,subprocess,sys,time
+import argparse
+import hashlib,json,os,re,resource,shutil,subprocess,sys,time
+from test_support import require_file
 from pathlib import Path
 sys.path[:0]=[str(Path(__file__).resolve().parent),str(Path(__file__).resolve().parents[1])]
 import neo98
 from native_app import ROOT
 
 def main():
- p=argparse.ArgumentParser();p.add_argument('--host',type=Path,required=True);p.add_argument('--name',required=True);a=p.parse_args()
+ p=argparse.ArgumentParser();p.add_argument('--host',type=Path,default=ROOT/'build/native-app/neo98-host');p.add_argument('--name',default='current');a=p.parse_args()
  source=Path(os.environ.get('NEO98_AC_HOME', ROOT / 'build/external/set-NEO98_AC_HOME')) / 'build/win32'
- assert (source/'ACWIN.EXE').is_file() and (source/'ROM/MAIN.DOL').is_file()
+ require_file(source/'ACWIN.EXE');require_file(source/'ROM/MAIN.DOL')
  out=ROOT/'build/scanout-game-cpu-host'/a.name;out.mkdir(parents=True,exist_ok=True)
  private=out/'c'
  if private.exists():shutil.rmtree(private)
@@ -19,7 +21,7 @@ def main():
  subprocess.run(['cp','-cR',str(source),str(private/'AC')],check=True)
  (private/'AC/settings.ini').write_text('[Audio]\nmaster_volume = 0\n')
  try:
-  if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:raise RuntimeError('another neo98-host is active')
+  if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:__import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
   env=dict(neo98.tool_environment(),SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',NEO98_CPU='fex',NEO98_HOST_STATS='1',NEO98_HOST_INPUT=f'28:shot={out}/frame.ppm;30:menu=quit',NEO98_HOST_DEADLINE='50',NEO98_SETTINGS_DIR=str(out/'settings'),NEO98_LOG_DIR=str(out/'logs'))
   with (out/'host.log').open('w') as log:
    before=resource.getrusage(resource.RUSAGE_CHILDREN);started=time.monotonic()

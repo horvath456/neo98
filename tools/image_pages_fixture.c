@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
-/* Guest for the page rights of a mapped image,
-   Win98 keeps an image as a copy-on-write view of its file, so every page of
-   it is writable; VirtualProtect cannot change its head, but the sections of
-   a private module change (Quake II's ref_soft). Exit code zero means
-   every check held; codes 4700 to 4799. */
+/* Guest for Win98 image page rights and headers. The measured reference in
+   docs/benchmarks/win98-image-protection-2026-10-23.json supersedes the old
+   assumption that private image pages are always writable. Headers and
+   read-only sections start protected and can be changed by VirtualProtect.
+   Exit code zero means every check held; codes 4700 to 4799. */
 typedef unsigned U;
 #define API __declspec(dllimport) __stdcall
 API void ExitProcess(U);
@@ -26,8 +26,7 @@ static void check(int ok, U code)
     if (!ok && !failure)
         failure = code;
 }
-/* A const array lands in a section without the write flag. Under Win98 that
-   flag never reaches the page table. */
+/* A const array lands in a section without the write flag. */
 static volatile const U constants[4] = {0x11223344u, 0x55667788u, 0x99aabbccu, 0xddeeff00u};
 
 void mainCRTStartup(void)
@@ -51,60 +50,52 @@ void mainCRTStartup(void)
     check(first_rva >= 4096u, 4705);
     check(headers != 0, 4706);
 
-    /* Writing into the header region. */
-    U *const stamp = (U *)(self + 8);
+    /* Header writes require an explicit protection change. Use volatile so
+       the compiler cannot remove the write/read/restore sequence. */
+    volatile U *const stamp = (volatile U *)(self + 8);
     const U saved = *stamp;
-    *stamp = 0xa5a5a5a5u;
-    check(*stamp == 0xa5a5a5a5u, 4707);
-    *stamp = saved;
-    check(*stamp == saved, 4708);
-
-    /* Writing into a section without the write flag. The reads go through a
-       volatile pointer, otherwise the compiler answers them from the constant
-       itself and the check would say nothing about the page. */
-    volatile U *const constant = (volatile U *)constants;
-    check(constant[0] == 0x11223344u, 4709);
-    constant[0] = 0x0f0f0f0fu;
-    check(constant[0] == 0x0f0f0f0fu, 4710);
-    constant[0] = 0x11223344u;
-    check(constant[0] == 0x11223344u, 4711);
-
-    /* VirtualProtect cannot change the page rights of the head. */
     U previous = 0;
-    SetLastError(0);
-    check(VirtualProtect(self, 4096, PAGE_READONLY, &previous) == 0, 4712);
-    check(GetLastError() == 487, 4713);
-    /* And the page stays writable, which is what the packers rely on. */
-    *stamp = 0x5a5a5a5au;
-    check(*stamp == 0x5a5a5a5au, 4714);
+    check(IsBadWritePtr((U)stamp, 4) != 0, 4707);
+    check(VirtualProtect(self, 4096, PAGE_READWRITE, &previous) != 0 &&
+          previous == PAGE_READONLY, 4708);
+    *stamp = 0xa5a5a5a5u;
+    check(*stamp == 0xa5a5a5a5u, 4709);
     *stamp = saved;
+    check(*stamp == saved, 4710);
+    check(VirtualProtect(self, 4096, PAGE_READONLY, &previous) != 0 &&
+          previous == PAGE_READWRITE, 4711);
+    check(IsBadWritePtr((U)stamp, 4) != 0, 4712);
 
-    /* Negative probe: on a private reservation VirtualProtect still works and
-       still takes the write right away. */
+    /* The read-only section follows the same protection contract. */
+    volatile U *const constant = (volatile U *)constants;
+    check(constant[0] == 0x11223344u && IsBadWritePtr((U)constant, 4), 4713);
+    check(VirtualProtect((U)constant & ~4095u, 4096, PAGE_READWRITE, &previous) != 0 &&
+          previous == PAGE_READONLY, 4714);
+    constant[0] = 0x0f0f0f0fu;
+    check(constant[0] == 0x0f0f0f0fu, 4715);
+    constant[0] = 0x11223344u;
+    check(constant[0] == 0x11223344u, 4716);
+    check(VirtualProtect((U)constant & ~4095u, 4096, PAGE_READONLY, &previous) != 0 &&
+          previous == PAGE_READWRITE, 4717);
+    check(IsBadWritePtr((U)constant, 4) != 0, 4718);
+
+    /* A private reservation is writable initially. Protecting its first page
+       must leave the second page writable. */
     const U block = VirtualAlloc(0, 8192, MEM_COMMIT, PAGE_READWRITE);
-    check(block != 0, 4715);
+    check(block != 0, 4720);
     if (block)
     {
-        *(U *)block = 0x12345678u;
-        check(IsBadWritePtr(block, 4) == 0, 4716);
-        previous = 0;
-        check(VirtualProtect(block, 4096, PAGE_READONLY, &previous) != 0, 4717);
-        check(previous == PAGE_READWRITE, 4718);
-        check(*(const U *)block == 0x12345678u, 4719);
-        check(IsBadWritePtr(block, 4) != 0, 4720);
-        check(VirtualProtect(block, 4096, PAGE_READWRITE, &previous) != 0, 4721);
-        check(previous == PAGE_READONLY, 4722);
-        check(IsBadWritePtr(block, 4) == 0, 4723);
-        check(VirtualFree(block, 0, MEM_RELEASE) != 0, 4724);
+        *(volatile U *)block = 0x12345678u;
+        check(IsBadWritePtr(block, 4) == 0, 4721);
+        check(VirtualProtect(block, 4096, PAGE_READONLY, &previous) != 0, 4722);
+        check(previous == PAGE_READWRITE, 4723);
+        check(*(volatile U *)block == 0x12345678u, 4724);
+        check(IsBadWritePtr(block, 4) != 0, 4725);
+        check(IsBadWritePtr(block + 4096, 4) == 0, 4726);
+        check(VirtualProtect(block, 4096, PAGE_READWRITE, &previous) != 0, 4727);
+        check(previous == PAGE_READONLY, 4728);
+        check(IsBadWritePtr(block, 4) == 0, 4729);
+        check(VirtualFree(block, 0, MEM_RELEASE) != 0, 4730);
     }
-
-    /* A section of the private module: VirtualProtect takes it and names the
-       rights the loader gave, read and write. */
-    previous = 0;
-    check(VirtualProtect((U)constants & ~4095u, 4096, PAGE_READWRITE, &previous) != 0, 4725);
-    check(previous == PAGE_READWRITE, 4726);
-    constant[0] = 0x0f0f0f0fu;
-    check(constant[0] == 0x0f0f0f0fu, 4727);
-    constant[0] = 0x11223344u;
     ExitProcess(failure);
 }

@@ -240,7 +240,11 @@ unsigned Application::GdiIcmApi(ApiName name, const unsigned *a)
         if (!h) last_error = 87;
         return h;
     }
-    if (API_IS(name, "DeleteColorSpace")) return Gdi::DeleteColorSpace(a[0]);
+    if (API_IS(name, "DeleteColorSpace"))
+    {
+        if (!a[0]) { last_error = 87; return 0; }
+        return Gdi::DeleteColorSpace(a[0]);
+    }
     if (API_IS(name, "GetLogColorSpaceA"))
     {
         unsigned char logical[328];
@@ -254,6 +258,7 @@ unsigned Application::GdiIcmApi(ApiName name, const unsigned *a)
         return 0;
     }
     if (API_IS(name, "SetICMMode")) return Gdi::ColorMode(a[0], a[1]);
+    if (API_IS(name, "SetColorSpace") && !a[1]) { last_error = 87; return 0; }
     char profile[260] = {};
     const char *selected = Gdi::ColorProfile(a[0]);
     if (selected && *selected) strcpy(profile, selected);

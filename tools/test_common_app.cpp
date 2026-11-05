@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+#define private public
 #include "../src/x86_app.h"
+#undef private
 #include "fixture_native_modules.h"
 #include "host_volume.h"
 #include "input_contract_driver.h"
@@ -62,6 +64,33 @@ static bool drawn(unsigned window)
             return false;
     return true;
 }
+static void locale_arena_failure(const std::vector<unsigned char> &exe,
+                                 const std::vector<unsigned char> &font)
+{
+    // Public LocalAlloc uses the process heap. Exhaust the actual allocator
+    // of the deferred CRT locale buffer to retain the allocation-failure check.
+    auto *app = new X86::Application(nullptr);
+    assert(FixtureModules::KeepNative(*app));
+    assert(app->Start(exe.data(), exe.size(), font.data(), font.size(), "COMMON.EXE"));
+    std::vector<unsigned> blocks;
+    for (unsigned size : {1024u * 1024u, 8192u})
+        while (unsigned block = app->Allocate(size)) {
+            blocks.push_back(block);
+            assert(blocks.size() < 1024);
+        }
+    assert(!app->LocaleApi("localeconv", nullptr));
+    const unsigned lower[] = {'a'}, upper[] = {'Z'}, type[] = {'a', 2};
+    assert(app->LocaleApi("toupper", lower) == 'A');
+    assert(app->LocaleApi("tolower", upper) == 'z');
+    assert(app->LocaleApi("_isctype", type) == 2);
+    for (unsigned block : blocks) app->Free(block);
+    const unsigned conv = app->LocaleApi("localeconv", nullptr);
+    assert(conv && !strcmp(app->ReadString(app->Read32(conv)), "."));
+    assert(!*app->ReadString(app->Read32(conv + 16)));
+    assert(app->Status() != X86::Application::Failed);
+    delete app;
+    puts("COMMON LOCALE ARENA PASS: failed publication, value calls and retry");
+}
 int main(int argc,char **argv){
     assert(argc >= 5);
     // The same contract runs on either volume provider: without --drive-c on
@@ -74,6 +103,7 @@ int main(int argc,char **argv){
         if (!drives.ram) printf("COMMON DRIVE C %s\n", drives.drive_c);
     }
     auto exe = load(argv[1]), font = load(argv[2]);
+    locale_arena_failure(exe, font);
     auto *app = new X86::Application(log);
     // COMMON.EXE is the fixture of our own implementations, so this run keeps
     // the five DLLs of PLAN.md step 7 on their native providers; every other

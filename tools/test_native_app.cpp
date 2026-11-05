@@ -124,6 +124,17 @@ int main(int argc, char **argv)
     const unsigned calls = app->ApiCalls(), callbacks = app->Callbacks();
     delete app;
     assert(User::LiveWindows() == 0);
+    if (Gdi::LiveObjects())
+    {
+        fprintf(stderr, "GDI teardown retains %u objects\n", Gdi::LiveObjects());
+        for (unsigned word = 1; word <= Gdi::ObjectCapacity(); ++word)
+            if (const unsigned handle = Gdi::FullHandle(word | 0x8000u)) {
+                int width = 0, height = 0;
+                Gdi::BitmapDimensions(handle, width, height);
+                fprintf(stderr, "GDI retained handle=%x type=%u owner=%u bitmap=%dx%d\n", handle,
+                        Gdi::GetObjectType(handle), Gdi::GetObjectOwner(handle), width, height);
+            }
+    }
     assert(Gdi::LiveObjects() == 0);
     printf("NATIVE APP PASS title=%s calls=%u callbacks=%u edit=%u text=%s exit=0 windows=0 gdi_objects=0\n",
            title, calls, callbacks, edit, content);

@@ -181,8 +181,12 @@ unsigned Application::ListMessage(unsigned hwnd, unsigned message, unsigned wp, 
     auto *list = FindList(hwnd, message == 0x81 || message == 1);
     if (!list)
     {
-        Fail("Missing native list control");
-        return 0;
+        if (message == 0x81 || message == 1) {
+            Fail("Cannot allocate native list control");
+            return 0;
+        }
+        // Sizing messages can precede the creation of the control state.
+        return DefaultWindowMessage(hwnd, message, wp, lp);
     }
     List::Hold hold(*list);
     // The rows of one page, below the header.

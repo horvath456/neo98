@@ -173,7 +173,7 @@ def main():
             try:
                 first.wait(timeout=20)
             except subprocess.TimeoutExpired:
-                first.kill()
+                first.terminate()
     log = first_log.read_text(errors='replace')
     waits = re.findall(r'^NEO98 HOST input wait=(.*) (reached|timed out)', log, re.M)
     check('every wait was reached', len(waits) == 6 and all(state == 'reached' for _, state in waits))

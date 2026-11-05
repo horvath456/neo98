@@ -149,7 +149,7 @@ def main():
     tool = ffmpeg()
     if not tool:
         print('ARM64 PLAYER SKIP: ffmpeg is not installed, no test films')
-        return 0
+        raise SystemExit(77)
     out = neo98.output_directory('arm64-player-host')
     for name in ('drive-c', 'reports', 'films', 'settings'):
         shutil.rmtree(out / name, ignore_errors=True)

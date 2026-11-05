@@ -1760,10 +1760,9 @@ bool Application::DosVmService(bool modal)
                     snprintf(text, sizeof text, "DOSVM audio catch-up queued=%llu incoming=%u", queued / 4, got);
                     log(text);
                 }
-                Sound::Shared().Reset(d.sound);
-                d.sound_submitted = 0;
             }
-            if (Sound::Shared().Submit(d.sound, (const unsigned char *)samples, got * 4, 1, 0, 0)) break;
+            if (Sound::Shared().SubmitLive(d.sound, (const unsigned char *)samples, got * 4,
+                                          1, DosVm::AudioQueueFrames)) break;
             d.sound_submitted += got * 4;
         }
         unsigned tag;

@@ -54,6 +54,13 @@ static U modes = 0, mode_width = 0, mode_height = 0;
 static U __stdcall enumerated_mode(U *description, void *context)
 {
     ++modes;
+    if (description)
+    {
+        number("DIRECTX_MODE width", description[3]);
+        number("DIRECTX_MODE height", description[2]);
+        /* DDPIXELFORMAT begins at 0x48; dwRGBBitCount is its fourth DWORD. */
+        number("DIRECTX_MODE depth", description[21]);
+    }
     if (description && description[3] > mode_width)
     {
         mode_width = description[3];

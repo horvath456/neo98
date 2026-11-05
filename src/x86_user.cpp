@@ -447,6 +447,9 @@ void Application::RedrawImmediate(unsigned hwnd, unsigned kind, unsigned paramet
 {
     if (!User::IsWindow(hwnd))
         return;
+    // Keep the update region and internal-paint flag until the lock releases.
+    if (User::ScreenLockedElsewhere(process_id, ThreadId()))
+        return;
     // USER checks before entering its erase walk. The pending
     // child erase survives until its ancestor's painting has been handled.
     if (kind == 2 && !descendant && User::AncestorNeedsPaint(hwnd))

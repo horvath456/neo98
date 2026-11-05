@@ -56,14 +56,14 @@ elif {'--dx7', '--dx8', '--dx81'} & set(sys.argv):
     _OTHER = dx_sound_tree.select(sys.argv)[1]
     if _OTHER is None:
         print('SKIP: no DirectSound tree of that DirectX')
-        raise SystemExit(0)
+        raise SystemExit(77)
     os.environ['NEO98_WIN98_ROOT'] = str(_OTHER)
 else:
     import dx9_tree  # noqa: E402
-    _DX9 = dx9_tree.tree()
+    _DX9 = dx9_tree.require_tree()
     if _DX9 is None:
         print('SKIP: no DirectX 9 tree')
-        raise SystemExit(0)
+        raise SystemExit(77)
     os.environ['NEO98_WIN98_ROOT'] = str(_DX9)
 
 parser = argparse.ArgumentParser()

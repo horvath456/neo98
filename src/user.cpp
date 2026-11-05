@@ -1680,7 +1680,6 @@ void PaintWindow(HWND h, Window &w)
     // speaker icon can overlap its balance slider. A subclassed STATIC
     // likewise retains its custom WM_PAINT output until invalidation or a
     // state change.
-    if(ControlContent(w)&&!w.label&&w.painted_generation!=dirty.generation&&!SharesPixels(h,w))w.needs_paint=true;
     // A child without WS_CLIPSIBLINGS shares pixels with overlapping
     // siblings. Repaint only invalid regions so it does not cover siblings
     // painted later. Changes to text, selection, scrollbars, or frame
@@ -1693,7 +1692,10 @@ void PaintWindow(HWND h, Window &w)
     // that paint, preserving ordering with overlapping siblings. Drawing it
     // here could cover a sibling label, as with the etched field in Add Web
     // Folder.
-    if (ControlContent(w) && (due || !w.drawn)) { w.frame_owed = true; w.needs_paint = true; }
+    // Composition may redraw a frame without invalidating the control's
+    // already painted client pixels, including after a same-size move.
+    if (ControlContent(w) && (w.native_invalid || signature != w.native_signature || !w.drawn))
+    { w.frame_owed = true; w.needs_paint = true; }
     w.native_invalid = false;
     w.native_signature = signature;
     auto *visible = new RectList;
@@ -1892,6 +1894,10 @@ void Shutdown()
     DropWindowUpdateLock();
     if (screen) Gdi::DeleteDC(screen); screen = 0;
     if (published_dc) Gdi::DeleteDC(published_dc); published_dc = 0;
+    // Wallpaper survives individual tasks, but belongs to this USER session.
+    if (settings.wallpaper_bitmap) Gdi::SysDeleteObject(settings.wallpaper_bitmap);
+    settings.wallpaper_bitmap = settings.wallpaper_style = 0;
+    settings.wallpaper_checked = false;
     ResetPointerOverlay();
     if (system_font) Gdi::DeleteObject(system_font); system_font = 0;
     delete[] published_frame; published_frame = nullptr;

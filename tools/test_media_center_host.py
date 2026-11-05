@@ -155,10 +155,17 @@ def host(out, name, steps, program, kodi, drive=None, command=None, seconds=40, 
         env['NEO98_KODI_HELPER_PORT'] = str(server.helper)
     # Nothing of the user's Kodi: no folder to put the add-on in.
     env['NEO98_KODI_HOME'] = str(run / 'no-kodi-home')
-    line = [str(ROOT / 'build/native-app/neo98-host'), '--exe', program, '--time-limit', str(seconds)]
     # A C: of its own: a host on build/win98-c would hand the program to the
     # user's running NEO98 instead of starting.
     drive = drive or OWN_C
+    line = [str(ROOT / 'build/native-app/neo98-host')]
+    if sys.platform == 'darwin':
+        # Positional arguments select the development CLI instead of the app wizard.
+        line += ['-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree', str(drive)]
+        env.update(NEO98_HOST_DEADLINE=str(seconds), NEO98_SETTINGS_DIR=str(run / 'settings'))
+    else:
+        line += ['--time-limit', str(seconds)]
+    line += ['--exe', program]
     line += ['--drive-c', str(drive), '--registry', str(drive) + '.registry']
     if command:
         line += ['--command', command]
@@ -321,7 +328,7 @@ def main():
     OWN_C = out / 'own-c'
     shutil.rmtree(OWN_C, ignore_errors=True)
     subprocess.run(['cp', '-c', '-R', str(pristine), str(OWN_C)] if mac else ['cp', '-a', '--reflink=auto', str(pristine), str(OWN_C)], check=True)
-    shutil.copy(pristine.parent / (pristine.name.removesuffix('.setup') + '.registry'), str(OWN_C) + '.registry')
+    shutil.copy(win98_c.journal(pristine), str(OWN_C) + '.registry')
     results, failed = {}, []
 
     def check(name, condition):
@@ -383,7 +390,7 @@ def main():
             drive = out / 'shortcut-c'
             shutil.rmtree(drive, ignore_errors=True)
             subprocess.run(['cp', '-c', '-R', str(pristine), str(drive)] if mac else ['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
-            shutil.copy(pristine.parent / (pristine.name.removesuffix('.setup') + '.registry'), str(drive) + '.registry')
+            shutil.copy(win98_c.journal(pristine), str(drive) + '.registry')
             # What an earlier build left: NETFLIX.EXE.
             (drive / 'WINDOWS/NETFLIX.EXE').write_bytes(b'MZ')
             code, text, calls, run = host(out, part, [wait, '5:menu=quit'], r'C:\WINDOWS\COMMAND\START.EXE', 'netflix',
@@ -414,8 +421,8 @@ def main():
                      '26:shot={out}/full.png', '27:key=1b', '29:shot={out}/back.png', '29.5:click=684,534', '30.5:click=725,534',
                      '32:shot={out}/volume.png', '33:click=172,252', '38:shot={out}/browse.png', '39:click=140,108',
                      '41:shot={out}/nowplaying.png', '42:menu=quit']
-            # Kodi's first picture comes 5 s after the start.
-            code, text, calls, run = host(out, part, steps, r'C:\WINDOWS\MEDIACTR.EXE', 'netflix', window=True, start_delay=5)
+            # Kodi's first picture comes 5 s after the start; the last action is at 42 s.
+            code, text, calls, run = host(out, part, steps, r'C:\WINDOWS\MEDIACTR.EXE', 'netflix', window=True, start_delay=5, seconds=60)
             if 'NEO98 HOST media screen window' not in text and 'NEO98 HOST media screen kodi' in text:
                 print('SKIP window: macOS does not let this process record the screen', flush=True)
                 continue

@@ -45,6 +45,8 @@ void run_window_parent_test(void){
  reset(a,1);check(BringWindowToTop(a),10516);int r[4];check(GetWindowRect(a,r)&&r[0]==44&&r[1]==55&&r[2]-r[0]==120&&r[3]-r[1]==70,10517);
  reset(a,4);check(BringWindowToTop(a)&&GetActiveWindow()==a&&changed==1,10518);
  child=window(0x40000000,a,9,10);sibling=window(0x40000000,a,20,30);check(child&&sibling,10519);
+ // Creation can leave the first child on top. Make this a real Z-order change.
+ check(SetWindowPos(child,1,0,0,0,0,0x13)&&GetTopWindow(a)==sibling,10558);
  reset(child,0);check(BringWindowToTop(child)&&GetTopWindow(a)==child&&childactive==1&&changed==1,10520);
  reset(child,0);check(SetParent(child,b)==a&&GetParent(child)==b&&GetTopWindow(b)==child,10521);check(!(GetWindowLongA(child,-16)&0x10000000)&&!hide_count&&!show_count,10522);
  check(GetWindowRect(child,r)&&ScreenToClient(b,r)&&r[0]==9&&r[1]==10,10523);

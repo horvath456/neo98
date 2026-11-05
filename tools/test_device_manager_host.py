@@ -602,6 +602,8 @@ def print_report(binary, out, pristine, rows, check, hardware):
     import print_pdf
 
     def prepare(run):
+        from test_support import require_printer_inputs
+        require_printer_inputs()
         subprocess.run([sys.executable, str(ROOT / 'tools/install_printer.py'), '--drive-c', str(run / 'c'),
                         '--registry', str(run / 'c.registry'), '--tree', str(run / 'c')], check=True,
                        stdout=subprocess.DEVNULL)
@@ -681,6 +683,10 @@ def main():
                         choices=['names', 'tree', 'pages', 'display', 'sheets', 'computer', 'remove', 'disable', 'profiles',
                                  'midi', 'print', 'elsewhere'])
     arguments = parser.parse_args()
+    from test_support import printer_inputs_reason, require_printer_inputs
+    printer_reason = printer_inputs_reason()
+    if not arguments.user_clone and set(arguments.only) == {'print'}:
+        require_printer_inputs()
     live = win98_c.live_folder()
     pristine = win98_c.use_pristine()
     out = neo98.output_directory('device-manager-host')
@@ -858,7 +864,11 @@ def main():
     if not arguments.user_clone and wanted('midi'):
         midi(binary, out, pristine, check, hardware)
     if not arguments.user_clone and wanted('print') and rows:
-        print_report(binary, out, pristine, rows, check, hardware)
+        if printer_reason:
+            print('SKIP print: ' + printer_reason, flush=True)
+            report.setdefault('skipped', {})['print'] = printer_reason
+        else:
+            print_report(binary, out, pristine, rows, check, hardware)
 
     if wanted('elsewhere'):
         # Part 7: the same devices outside the Device Manager.

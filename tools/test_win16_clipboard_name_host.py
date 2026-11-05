@@ -51,7 +51,7 @@ def main():
     shutil.rmtree(drive, ignore_errors=True)
     checks = {
         'the program wrote its results': len(data) == 34,
-        'a buffer of 5 gets 4 characters and the end': data[:1] == b'E' and data[2:18] == b'ARM9\0' + b'.' * 11,
+        'a buffer of 5 gets 4 characters and the end': data[:1] == b'E' and data[2:18] == b'NEO9\0' + b'.' * 11,
         'a buffer of 32 gets the whole name': data[1:2] == b'L' and data[18:30] == b'NEO98FORMAT\0',
     }
     for name, passed in checks.items():

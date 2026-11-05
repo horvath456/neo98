@@ -160,8 +160,7 @@ static void enum_objects(void)
     ok(DeleteObject(palettized) && DeleteObject(plain) && DeleteDC(memory), 9241);
 }
 
-/* The font resources and the colour space family: what Windows 98 answers
- * without a font the engine will take and without colour management. */
+/* Font failures and the colour space family with the Win98 SE ICM module. */
 static void fonts_and_colour(void)
 {
     U dc = CreateCompatibleDC(0);
@@ -192,7 +191,7 @@ static void fonts_and_colour(void)
     SetLastError(0);
     ok(!GetColorSpace(0) && GetLastError() == 6, 9315);
     SetLastError(0);
-    ok(!GetColorSpace(dc) && GetLastError() == 87, 9316);
+    ok(GetColorSpace(dc) != 0 && GetLastError() == 0, 9316);
 
     /* SetICMProfileA does not ask about colour management. It wants a name it
      * can read and a file that is there; a bare name is looked for in the
@@ -322,7 +321,7 @@ static void scroll_dc(void)
     paint();
     scroll.left = 4; scroll.top = 4; scroll.right = 20; scroll.bottom = 20;
     update.left = update.top = update.right = update.bottom = -1;
-    ok(ScrollDC(dc, 0, 4, &scroll, 0, region, &update) == 2, 9010);
+    ok(ScrollDC(dc, 0, 4, &scroll, 0, region, &update) == 1, 9010);
     ok(same(&update, 4, 4, 20, 8), 9011);
     ok(GetRgnBox(region, &box) == 2 && same(&box, 4, 4, 20, 8), 9012);
     blit.left = 4; blit.top = 8; blit.right = 20; blit.bottom = 24;
@@ -330,15 +329,15 @@ static void scroll_dc(void)
 
     /* Straight right. */
     paint();
-    ok(ScrollDC(dc, 3, 0, &scroll, 0, region, &update) == 2, 9020);
+    ok(ScrollDC(dc, 3, 0, &scroll, 0, region, &update) == 1, 9020);
     ok(same(&update, 4, 4, 7, 20), 9021);
     blit.left = 7; blit.top = 4; blit.right = 23; blit.bottom = 20;
     copied(blit, 3, 0, 9022);
 
-    /* Diagonal: the uncovered area is an L, so the worker leaves the rectangle
-     * arithmetic and answers out of a region. */
+    /* Diagonal: the update region is complex, but the public ScrollDC
+     * return value is still BOOL. */
     paint();
-    ok(ScrollDC(dc, 3, 4, &scroll, 0, region, &update) == 3, 9030);
+    ok(ScrollDC(dc, 3, 4, &scroll, 0, region, &update) == 1, 9030);
     ok(same(&update, 4, 4, 20, 20), 9031);
     ok(GetRgnBox(region, &box) == 3 && same(&box, 4, 4, 20, 20), 9032);
     blit.left = 7; blit.top = 8; blit.right = 23; blit.bottom = 24;
@@ -348,7 +347,7 @@ static void scroll_dc(void)
      * rectangle is owed. */
     paint();
     scroll.right = 12; scroll.bottom = 12;
-    ok(ScrollDC(dc, 0, 20, &scroll, 0, region, &update) == 2, 9040);
+    ok(ScrollDC(dc, 0, 20, &scroll, 0, region, &update) == 1, 9040);
     ok(same(&update, 4, 4, 12, 12), 9041);
     blit.left = 4; blit.top = 24; blit.right = 12; blit.bottom = 32;
     copied(blit, 0, 20, 9042);
@@ -358,7 +357,7 @@ static void scroll_dc(void)
     paint();
     scroll.right = 20; scroll.bottom = 20;
     clip.left = 0; clip.top = 0; clip.right = 32; clip.bottom = 16;
-    ok(ScrollDC(dc, 0, 4, &scroll, &clip, region, &update) == 2, 9050);
+    ok(ScrollDC(dc, 0, 4, &scroll, &clip, region, &update) == 1, 9050);
     ok(same(&update, 4, 4, 20, 8), 9051);
     blit.left = 4; blit.top = 8; blit.right = 20; blit.bottom = 16;
     copied(blit, 0, 4, 9052);
@@ -375,7 +374,7 @@ static void scroll_dc(void)
 
     /* Without a scroll rectangle the clip box is the scrolled area. */
     paint();
-    ok(ScrollDC(dc, 0, 4, 0, 0, region, &update) == 2, 9070);
+    ok(ScrollDC(dc, 0, 4, 0, 0, region, &update) == 1, 9070);
     ok(same(&update, 0, 0, 32, 4), 9071);
     blit.left = 0; blit.top = 4; blit.right = 32; blit.bottom = 32;
     copied(blit, 0, 4, 9072);
@@ -385,7 +384,7 @@ static void scroll_dc(void)
     paint();
     ok(SetViewportOrgEx(dc, 2, 3, 0), 9080);
     scroll.left = 2; scroll.top = 1; scroll.right = 18; scroll.bottom = 17;
-    ok(ScrollDC(dc, 0, 4, &scroll, 0, region, &update) == 2, 9081);
+    ok(ScrollDC(dc, 0, 4, &scroll, 0, region, &update) == 1, 9081);
     ok(same(&update, 2, 1, 18, 5), 9082);
     blit.left = 4; blit.top = 8; blit.right = 20; blit.bottom = 24;
     copied(blit, 0, 4, 9083);
@@ -400,7 +399,7 @@ static void scroll_dc(void)
     ok(GetClipBox(dc, &box) == 3 && same(&box, 0, 0, 32, 32), 9092);
     paint();
     scroll.left = 4; scroll.top = 4; scroll.right = 28; scroll.bottom = 28;
-    ok(ScrollDC(dc, 0, 4, &scroll, 0, region, &update) == 3, 9093);
+    ok(ScrollDC(dc, 0, 4, &scroll, 0, region, &update) == 1, 9093);
     ok(same(&update, 4, 4, 28, 24), 9094);
     ok(GetRgnBox(region, &box) == 3 && same(&box, 4, 4, 28, 24), 9095);
     {

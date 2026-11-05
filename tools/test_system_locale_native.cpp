@@ -141,12 +141,17 @@ int main(int argc, char **argv)
         assert(app->DefaultLocaleApi("GetSystemDefaultLCID") == 0x409);
         const U buffer = app->Allocate(32);
         U info[] = {0x400, 1, buffer, 32};
-        assert(!app->LocaleInfo(info) && app->last_error == 87);
+        char name[5];
+        // Both user-default aliases resolve to the newly selected German locale.
+        assert(app->LocaleInfo(info) == 5);
+        assert(app->Read(buffer, name, sizeof name) && !strcmp(name, "0407"));
         info[0] = 0;
-        assert(!app->LocaleInfo(info));
+        assert(app->LocaleInfo(info) == 5);
+        assert(app->Read(buffer, name, sizeof name) && !strcmp(name, "0407"));
+        info[0] = 0xdeadbeef;
+        assert(!app->LocaleInfo(info) && app->last_error == 87);
         info[0] = 0x800;
         assert(app->LocaleInfo(info) == 5);
-        char name[5];
         assert(app->Read(buffer, name, sizeof name) && !strcmp(name, "0409"));
         info[0] = 9;
         assert(app->LocaleInfo(info) == 5);

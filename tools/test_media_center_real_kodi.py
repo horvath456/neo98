@@ -163,8 +163,12 @@ def main():
         pristine = win98_c.use_pristine()
         own = run / 'c'
         subprocess.run(['cp', '-c', '-R', str(pristine), str(own)] if sys.platform == 'darwin' else ['cp', '-a', '--reflink=auto', str(pristine), str(own)], check=True)
-        shutil.copy(pristine.parent / (pristine.name.removesuffix('.setup') + '.registry'), str(own) + '.registry')
-        line = [str(ROOT / 'build/native-app/neo98-host'), '--exe', r'C:\WINDOWS\MEDIACTR.EXE', '--drive-c', str(own), '--registry', str(own) + '.registry']
+        shutil.copy(win98_c.journal(pristine), str(own) + '.registry')
+        line = [str(ROOT / 'build/native-app/neo98-host')]
+        if sys.platform == 'darwin':
+            line += ['-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree', str(own)]
+            env.update(NEO98_HOST_DEADLINE='150', NEO98_SETTINGS_DIR=str(run / 'settings'))
+        line += ['--exe', r'C:\WINDOWS\MEDIACTR.EXE', '--drive-c', str(own), '--registry', str(own) + '.registry']
         with (run / 'log.txt').open('w') as log:
             try:
                 code = subprocess.run(line, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=180).returncode

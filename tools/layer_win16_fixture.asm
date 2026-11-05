@@ -1,7 +1,6 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
-; The 16-bit Windows guest of the write layer (tools/test_game_machine_host.py,
-): the file calls of a Win16 program on C:\GM, where
-; the normal machine has left files for it.
+; The Win16 guest of tools/test_game_machine_files_host.py makes file calls
+; on C:\GMBASE, where the normal machine supplies the initial files.
 ;
 ; a _lcreat W16NEW.TXT, _lwrite, _lclose (KERNEL.83, 86, 81)
 ; b _lopen W16.TXT of the drive below, _llseek to its

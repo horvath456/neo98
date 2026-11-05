@@ -236,7 +236,7 @@ void run_advapi_registry_test(void)
     size = sizeof name;
     type = 0;
     check(!RegQueryValueExA(written, "Name", 0, &type, name, &size), 489);
-    check(type == 1 && size == 15 && name[0] == 'A' && name[13] == 'r' && !name[14], 490);
+    check(type == 1 && size == 15 && name[0] == 'N' && name[13] == 'r' && !name[14], 490);
     size = sizeof name;
     check(CryptGetDefaultProviderA(99, 0, 2, name, &size) && size == 15, 491);
     check(!RegCloseKey(written), 492);

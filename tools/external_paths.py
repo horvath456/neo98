@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-def external_path(variable):
+def external_path(variable, *, required=True):
     options = {'NEO98_COLLECTION': ('--collection', '--drive-d'),
                'NEO98_GAME_CORPUS': ('--home',)}
     for option in options.get(variable, ()):
@@ -16,5 +16,8 @@ def external_path(variable):
                 return Path(sys.argv[index + 1]).expanduser()
     value = os.environ.get(variable)
     if not value:
-        raise RuntimeError(f'Set {variable} to the directory containing your external test inputs')
+        if not required:
+            return None
+        print(f'SKIP: set {variable} to the directory containing your external test inputs', flush=True)
+        raise SystemExit(77)
     return Path(value).expanduser()

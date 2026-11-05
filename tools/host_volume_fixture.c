@@ -116,7 +116,8 @@ static void second_run(void)
     handle = CreateFileA("C:\\Programme dieser Maschine\\Erste Datei.txt", 0x80000000, 1, 0, 3, 0, 0);
     check(handle != ~0u, 39430);
     check(GetFileSize(handle, 0) == 5, 39431);
-    check(ReadFile(handle, text, 5, &done, 0) && done == 5 && text[0] == 'a' && text[4] == '8', 39432);
+    check(ReadFile(handle, text, 5, &done, 0) && done == 5 && text[0] == 'n' && text[1] == 'e' &&
+              text[2] == 'o' && text[3] == '9' && text[4] == '8', 39432);
     /* Three timestamps come back; the creation time is not zero. */
     check(GetFileTime(handle, data, data + 2, data + 4) && (data[0] || data[1]), 39433);
     check(CloseHandle(handle), 39434);
@@ -171,10 +172,13 @@ static void second_run(void)
     {
         U sectors = 0, bytes = 0, free_units = 0, total_units = 0;
         check(GetDiskFreeSpaceA("C:\\", &sectors, &bytes, &free_units, &total_units), 39457);
-        /* The old query stops counting where FAT32 does, so a host volume over
-           two gigabytes reports the cap for both figures. */
-        check(sectors * bytes == 4096 && free_units > 0 && total_units >= free_units &&
-                  total_units <= 0x7ffff000u / 4096u,
+        /* DOS reports WORD cluster counts. Win98 increases the allocation
+           unit by powers of two to keep the capped volume representable. */
+        U unit = sectors * bytes;
+        check(bytes == 512 && unit >= 4096 && !(unit & (unit - 1)) &&
+                  free_units > 0 && total_units >= free_units && total_units <= 65535 &&
+                  (unit == 4096 || total_units > 32767) &&
+                  (unsigned long long)total_units * unit <= 0x7ffff000u,
               39458);
     }
     /* A file larger than the RAM volume's per-file limit. */

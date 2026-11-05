@@ -3,6 +3,7 @@
 # Copyright (C) 2026 Andreas Horvath
 """Original class algorithms through Application, USER and real x86 calls."""
 from pathlib import Path
+from test_support import compile_native
 import argparse,ast,hashlib,json,re,shutil,subprocess,sys
 
 def _engine_link_extra():
@@ -30,7 +31,7 @@ def test(source_root=ROOT):
  if (source_root/'native-sources.json').exists():sources=json.loads((source_root/'native-sources.json').read_text())
  # Native runner links canonical USER as a separate translation unit.
  package=Path(subprocess.check_output([str(neo98.analysis_python()),'-c','import unicorn;print(unicorn.__file__)'],text=True).strip()).parent;library=package/'lib'/('libunicorn.2.dylib'if sys.platform=='darwin'else'libunicorn.so.2');binary=OUT/'test-toolbar-layout-native'
- compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(source),str(source_root/'src/fiber_aarch64.S'),*[str(source_root/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
+ compiled=compile_native(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(source),str(source_root/'src/fiber_aarch64.S'),*[str(source_root/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
  if compiled.returncode:print(compiled.stdout+compiled.stderr)
  compiled.check_returncode();run=subprocess.run([str(binary),str(exe),str(ROOT/'build/generated/notepad-fixedsys.fnt')],env=env,capture_output=True,text=True);(OUT/'native.log').write_text(run.stdout+run.stderr);print(run.stdout+run.stderr,end='');run.check_returncode();report={'status':'PASS','asan_ubsan':'PASS','guest_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'runner_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'api_calls':int(re.search(r'GUEST PASS calls=(\d+)',run.stdout)[1]),'callbacks':int(re.search(r'callbacks=(\d+)',run.stdout)[1]),'checks':['original button dimensions and lazy item rectangles through x86 imports','wrapped separators and hidden-button geometry','real monochrome GDI backing growth, reuse and destruction','actual GDI object exhaustion, preserved failed resize and free/retry']};(OUT/'native-results.json').write_text(json.dumps(report,indent=2)+'\n');return report
 if __name__=='__main__':

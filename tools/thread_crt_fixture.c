@@ -166,15 +166,16 @@ void run_thread_crt_test(void)
      * independent 64-event table. Failed CreateThread must publish no worker. */
     for (U round = 0; round < 2; ++round)
     {
-        U events[128], count = 0;
-        while (count < 128)
+        static U events[1024];
+        U count = 0;
+        while (count < 1024)
         {
             const U event = CreateEventA(0, 1, 0, "NEO98-CRT-HANDLE-LIMIT");
             if (!event)
                 break;
             events[count++] = event;
         }
-        check(count > 0, 5350);
+        check(count > 128 && count < 1024, 5350);
         *main_error = 77;
         check(!_beginthreadex(0, 0, forbidden, 0, 0, &untouched), 5351);
         check(GetLastError() == 8 && *main_error == 12 && main_data[3] == 8 && untouched == 0x12349876,

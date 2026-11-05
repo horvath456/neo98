@@ -4824,6 +4824,16 @@ void Application::RunEnd()
 }
 unsigned Application::ButtonProcedure(unsigned h, unsigned m, unsigned wp, unsigned lp)
 {
+    const bool fresh = threads[current_thread].tail == TailFresh;
+    const unsigned tail = TakeTail();
+    // Only the parent notification is resumable. State changes and capture
+    // release must finish before recording the button's zero return value.
+    auto notify = [&](unsigned parent, unsigned command) {
+        const bool kept = (fresh || tail) && PushHostFrame(HostButtonCommand);
+        if (kept) GiveTail(TailRecord);
+        Send(parent, 0x111, command, h);
+        if (kept) { GiveTail(TailNone); PopHostFrame(); }
+    };
     // The BUTTON class procedure behind token 0x71000030. The pushed state
     // travels as BM_SETSTATE through the window's own procedure chain, the way
     // USER's button does it: Explorer's Start button subclass intercepts that
@@ -4835,6 +4845,10 @@ unsigned Application::ButtonProcedure(unsigned h, unsigned m, unsigned wp, unsig
         User::SetStyle(h,User::Style(h)&~8u);
     auto paint_now=[&]{
         if(!User::IsWindow(h)||!User::IsVisible(h))return;
+        if(User::ScreenLockedElsewhere(process_id,ThreadId())){
+            User::InvalidateRect(h,nullptr,false);
+            return;
+        }
         if(const auto dc=User::GetDC(h)){
             User::PaintButton(h,dc);
             User::DrawingChanged(dc);
@@ -4896,7 +4910,7 @@ unsigned Application::ButtonProcedure(unsigned h, unsigned m, unsigned wp, unsig
         User::CaptureOperation(9, h);
         if (inside && User::IsWindow(h) && User::IsEnabled(h)) {
             const unsigned parent=User::Parent(h);
-            if(parent)Send(parent,0x111,User::ControlID(h)&65535,h);
+            if(parent)notify(parent,User::ControlID(h)&65535);
         }
         return 0;
     }
@@ -4941,6 +4955,14 @@ unsigned Application::ButtonProcedure(unsigned h, unsigned m, unsigned wp, unsig
         const unsigned parent = User::Parent(h);
         if (parent && User::IsWindow(h) && state != Failed && state != Exited)
             Send(parent, 0x111, User::ControlID(h) & 0xffffu, h);
+        return 0;
+    }
+    if (m == 0xf5 || (m == 0x102 && wp == ' '))
+    {
+        const bool kept = (fresh || tail) && PushHostFrame(HostButtonCommand);
+        if (kept) GiveTail(TailRecord);
+        User::ControlMessage(h, m, wp, lp);
+        if (kept) { GiveTail(TailNone); PopHostFrame(); }
         return 0;
     }
     if (m == 0x30 || m == 0x31 || m == 0x87 || (m >= 0xf0 && m <= 0xf7) || (m == 0x102 && wp == ' '))
@@ -5240,7 +5262,7 @@ unsigned Application::CallWindow(unsigned hwnd, unsigned message, unsigned wp, u
         GiveTail(tail);
         return DialogProcedure(hwnd, message, wp, lp);
     }
-    if (procedure == 0x71000030 || ((!procedure || procedure == 0x71000020) && User::IsButton(hwnd))) return ButtonProcedure(hwnd,message,wp,lp);
+    if (procedure == 0x71000030 || ((!procedure || procedure == 0x71000020) && User::IsButton(hwnd))) { GiveTail(tail); return ButtonProcedure(hwnd,message,wp,lp); }
     if (procedure == 0x71000031) { User::AdoptLabel(hwnd); return StaticProcedure(hwnd,message,wp,lp); }
     if (procedure == 0x71000020) return User::IsLabel(hwnd) ? StaticProcedure(hwnd,message,wp,lp) : DefaultWindowMessage(hwnd,message,wp,lp);
     if(procedure==0x71000021)return Edit(hwnd,message,wp,lp);
@@ -6417,7 +6439,7 @@ unsigned Application::Edit(unsigned hwnd, unsigned message, unsigned wp, unsigne
         // WM_GETDLGCODE, single-line body USER: DLGC_WANTCHARS,
         // DLGC_HASSETSEL and DLGC_WANTARROWS (89h). With the MSG of
         // IsDialogMessage it adds DLGC_WANTALLKEYS (4) for Enter and Esc while
-        // the list of its combo box is down and for
+        // the popup of its dropdown combo box is down and for
         // ALT+Backspace, which undoes. The multiline body
         // answers 8Dh always; asked with a MSG it marks itself as standing in
         // a dialog and then handles Tab, Enter and Esc of the
@@ -6435,7 +6457,8 @@ unsigned Application::Edit(unsigned hwnd, unsigned message, unsigned wp, unsigne
             {
                 const unsigned parent = User::Parent(hwnd);
                 char klass[16]{};
-                if (parent && User::GetClassName(parent, klass, sizeof klass) && !strcasecmp(klass, "COMBOBOX") &&
+                if (parent && (User::Style(parent) & 2u) &&
+                    User::GetClassName(parent, klass, sizeof klass) && !strcasecmp(klass, "COMBOBOX") &&
                     Send(parent, 0x157, 0, 0))
                     code = 0x8d;
             }

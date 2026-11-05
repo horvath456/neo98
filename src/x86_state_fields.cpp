@@ -4,6 +4,7 @@
 #include "x86_state_fields.h"
 #include "dos_vm.h"
 #include "x86_state_dos_ui.h"
+#include "gdi_state.h"
 #include <stdio.h>
 #include <string.h>
 #if defined(__APPLE__) || defined(__linux__)
@@ -595,7 +596,7 @@ struct Writer
         const uint32_t kind = l.types[pointee].kind;
         int known = FindObject(value);
         if (known >= 0 && value == objects[known].address + objects[known].bytes && objects[known].bytes &&
-            malloc_size(reinterpret_cast<const void *>(value)))
+            (RegionAt(value) || malloc_size(reinterpret_cast<const void *>(value))))
             known = -1;
         if (known >= 0)
         {
@@ -895,6 +896,9 @@ struct Writer
             return true;
         }
         int object = FindObject(value);
+        // Named regions, including reserved address windows, own their start
+        // even when an allocator block ends there. Explicit end fields still
+        // refer to the preceding object.
         // The end of an object where another block of the allocator begins is that block, and not this object.
         // The end of one block is the start of the next when the allocator
         // put one there, and nothing in the two addresses tells them apart.
@@ -909,7 +913,7 @@ struct Writer
         {
             if (field_end)
                 object = before;
-            else if (object == before && malloc_size(reinterpret_cast<const void *>(value)))
+            else if (object == before && (RegionAt(value) || malloc_size(reinterpret_cast<const void *>(value))))
                 object = -1;
         }
         if (object >= 0)
@@ -2186,6 +2190,43 @@ struct FieldReader
             return false;
         auto &t = types[id];
         const bool write = here >= 0 && to;
+        if (t.kind == Array)
+        {
+            // Older GDI states kept object slots, saved DC levels and region
+            // records inline. Restore those arrays into their current owned
+            // storage instead of silently leaving startup objects in place.
+            const std::string target = write ? l.Text(l.types[here].name) : "";
+            const bool objects = target == "Gdi::(anonymous namespace)::ObjectStore@gdi.cpp";
+            const bool saved = write && l.types[here].kind == Pointer &&
+                std::string(l.Text(l.types[l.types[here].a].name)) == "Gdi::(anonymous namespace)::SavedState@gdi.cpp";
+            const bool regions = write && l.types[here].kind == Pointer &&
+                std::string(l.Text(l.types[l.types[here].a].name)) == "Gdi::(anonymous namespace)::RegionStore::Block@gdi.cpp";
+            const bool ranges = write && l.types[here].kind == Pointer &&
+                std::string(l.Text(l.types[l.types[here].a].name)) == "Gdi::(anonymous namespace)::BitmapStore::Range@gdi.cpp";
+            if (objects || saved || regions || ranges)
+            {
+                const auto &element = types[t.a];
+                const char *expected = objects ? "Gdi::(anonymous namespace)::Object@gdi.cpp" :
+                    saved ? "Gdi::(anonymous namespace)::State@gdi.cpp" :
+                    regions ? "Gdi::(anonymous namespace)::RegionStore::Block@gdi.cpp" : "Gdi::(anonymous namespace)::BitmapStore::Range@gdi.cpp";
+                if (element.name != expected || element.here < 0 ||
+                    (objects && !Gdi::PrepareLegacyObjects(t.b)) || (saved && t.b != 8))
+                    return Fail("the legacy GDI array has an unsupported layout");
+                void *blocks = regions ? Gdi::PrepareLegacyRegions(t.b) : ranges ? Gdi::PrepareLegacyBitmapRanges(t.b) : nullptr;
+                if ((regions || ranges) && !blocks) return Fail("the legacy GDI records cannot be allocated");
+                if (regions || ranges) Word(to) = reinterpret_cast<uint64_t>(blocks);
+                if (saved) Word(to) = 0;
+                for (uint32_t i = 0; i < t.b; ++i)
+                {
+                    void *destination = objects ? Gdi::LegacyObject(i) :
+                        saved ? Gdi::LegacySavedState(reinterpret_cast<void *>(to)) :
+                        static_cast<unsigned char *>(blocks) + uint64_t(i) * l.types[element.here].size;
+                    if (!destination || !Get(in, t.a, element.here, reinterpret_cast<uint64_t>(destination)))
+                        return Fail("the legacy GDI array cannot be restored");
+                }
+                return true;
+            }
+        }
         if (t.flat)
         {
             const auto *from = in.Take(t.size);
@@ -2316,6 +2357,11 @@ struct FieldReader
                             t.matched[k] = &l.fields[l.types[here].field_begin + i];
                 t.matched_for = here;
             }
+            bool legacy_bitmap_ranges = false;
+            if (record && t.name == "Gdi::(anonymous namespace)::BitmapStore@gdi.cpp")
+                for (const auto &f : t.fields)
+                    if (f.name == "ranges" && types[f.type].kind == Array) legacy_bitmap_ranges = true;
+            unsigned legacy_saved_count = ~0u;
             for (size_t k = 0; k < t.fields.size(); ++k)
             {
                 const auto &sf = t.fields[k];
@@ -2325,6 +2371,9 @@ struct FieldReader
                 // A field this program gives to its host, or no longer has: read over.
                 if (hf && (hf->rule == OfHost || hf->rule == Skip || hf->rule == Custom || hf->rule == Bind))
                     hf = nullptr;
+                // Legacy cache pointers name inline array fields. The mapping
+                // migration clears them so the first access rebuilds them.
+                if (legacy_bitmap_ranges && (sf.name == "read_cache" || sf.name == "write_cache")) hf = nullptr;
                 path.push_back(&sf.name);
                 bool okay = true;
                 if (sf.bit_size)
@@ -2340,13 +2389,29 @@ struct FieldReader
                     if (validating && (count > types[sf.type].b || count > in.size))
                         return Fail("a counted array exceeds its declared capacity");
                     const bool array = hf && l.types[hf->type].kind == Array;
+                    const bool saved = hf && l.types[hf->type].kind == Pointer &&
+                        t.name == "Gdi::(anonymous namespace)::Context@gdi.cpp" && sf.name == "saved" &&
+                        types[element].name == "Gdi::(anonymous namespace)::State@gdi.cpp" && types[element].here >= 0;
+                    if (saved)
+                    {
+                        if (count > types[sf.type].b) return Fail("the legacy DC saved levels exceed their array");
+                        Word(to + hf->offset) = 0;
+                        legacy_saved_count = count;
+                    }
                     for (uint32_t i = 0; okay && i < count; ++i)
                     {
                         const std::string index = std::to_string(i);
                         if (observing) path.push_back(&index);
                         const bool into = array && i < l.types[hf->type].b;
-                        okay = Get(in, element, into ? (int)l.types[hf->type].a : -1,
-                                   into ? to + hf->offset + (uint64_t)i * l.types[l.types[hf->type].a].size : 0);
+                        if (saved)
+                        {
+                            void *destination = Gdi::LegacySavedState(reinterpret_cast<void *>(to + hf->offset));
+                            okay = destination && Get(in, element, types[element].here, reinterpret_cast<uint64_t>(destination));
+                            if (!okay && failure.empty()) Fail("the legacy DC saved level cannot be allocated");
+                        }
+                        else
+                            okay = Get(in, element, into ? (int)l.types[hf->type].a : -1,
+                                       into ? to + hf->offset + (uint64_t)i * l.types[l.types[hf->type].a].size : 0);
                         if (observing) path.pop_back();
                     }
                 }
@@ -2373,6 +2438,12 @@ struct FieldReader
                         return Fail(std::string("the rule binds a field to a variable this NEO98 does not have: ") + l.Text(f.argument));
                     Word(to + f.offset) = Word(named->address + l.slide);
                 }
+            if (record && t.name == "Gdi::(anonymous namespace)::Context@gdi.cpp")
+                for (const auto &f : t.fields)
+                    if (f.name == "saved" && types[f.type].kind == Array &&
+                        !Gdi::FinishLegacyContext(reinterpret_cast<void *>(to),
+                            legacy_saved_count != ~0u ? legacy_saved_count : types[f.type].b))
+                        return Fail("the legacy DC has more saved levels than its array");
             return !in.bad || Fail("the stream ends inside a structure");
         }
         return Fail("the stream holds a value of a kind that cannot be read: " + t.name);

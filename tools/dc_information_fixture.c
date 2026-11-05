@@ -31,7 +31,7 @@ void run_dc_information_test(void){
     which this provider does not implement. How many contexts fit depends on
     what the rest of this program still holds, so only the exhaustion itself and
     the usability of every context created before it are part of the contract. */
- enum { HoldLimit = 2049 }; /* Exceeds the native 2048-object table. */
+ enum { HoldLimit = 65536 }; /* Exceeds the complete WORD object-index space. */
  static U held[HoldLimit];U count=0;while(count<HoldLimit&&(held[count]=CreateICA("DISPLAY",0,0,0)))++count;
  check(count>0&&count<HoldLimit,9925);for(U i=0;i<count;++i)check(GetDeviceCaps(held[i],8)==800&&DeleteDC(held[i]),9926);
  for(U i=0;i<260;++i){ic=CreateICA("DISPLAY",0,0,0);check(ic&&GetDeviceCaps(ic,8)==800&&DeleteDC(ic),9923);}

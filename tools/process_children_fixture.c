@@ -19,9 +19,8 @@ void mainCRTStartup(void){char*line=GetCommandLineA();char text[260];U si[17]={6
   secret=(volatile U*)VirtualAlloc(0x18000000,4096,0x3000,4);check((U)secret==0x18000000,16304);*secret=0x11112222;
   check(SetEnvironmentVariableA("PARENT","inherited"),16305);
   char command[]="C:\\CHILD DIR\\CHILD.EXE payload";char env[]="CHILD=explicit\0PATH=C:\\WINDOWS\0";char title[]="child title";si[3]=(U)title;si[11]=1;si[12]=7;
-  // DETACHED_PROCESS still needs a console service; CREATE_SUSPENDED is
-  // supported (tools/test_create_suspended_host.py).
-  check(!CreateProcessA("C:\\CHILD DIR\\CHILD.EXE",command,0,0,0,8,env,"C:\\WINDOWS\\TEMP",si,pi)&&GetLastError()==50,16306);
+  // DETACHED_PROCESS is supported, so a missing image reaches file lookup.
+  check(!CreateProcessA("C:\\ABSENT.EXE",command,0,0,0,8,env,"C:\\WINDOWS\\TEMP",si,pi)&&GetLastError()==2,16306);
   // An inheritable handle to a named kernel object no longer stops the
   // launch: Windows 98 copies those entries into the child. The call therefore
   // has to get past the flag check and fail on the absent program instead.

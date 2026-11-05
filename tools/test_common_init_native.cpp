@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include <cassert>
+#include <memory>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -16,7 +17,8 @@ static std::vector<unsigned char> Load(const char *name){
 int main(int argc,char**argv){
     assert(argc==3);auto exe=Load(argv[1]),font=Load(argv[2]);
     for(unsigned cycle=0;cycle<3;++cycle){
-        X86::Application app(nullptr);
+        auto app_storage=std::make_unique<X86::Application>(nullptr);
+        auto &app=*app_storage;
         assert(FixtureModules::KeepNative(app));
         assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"COMMONINIT.EXE"));
         for(unsigned n=0;n<10000&&app.Status()!=X86::Application::Exited&&app.Status()!=X86::Application::Failed;++n)app.Pump(32);
@@ -26,7 +28,8 @@ int main(int argc,char**argv){
         std::printf("COMMON INIT GUEST PASS cycle=%u calls=%u callbacks=%u\n",cycle,app.ApiCalls(),app.Callbacks());
     }
     for(unsigned profile=0;profile<2;++profile){
-        X86::Application app(nullptr);
+        auto app_storage=std::make_unique<X86::Application>(nullptr);
+        auto &app=*app_storage;
         assert(FixtureModules::KeepNative(app));
         assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"COMMONINIT.EXE"));
         app.threads[0].suspended=1;

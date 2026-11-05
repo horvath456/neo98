@@ -22,7 +22,7 @@ void mainCRTStartup(void){
  sa[2]=0;h=CreateFileA("C:\\SECURITY.TXT",0,1,sa,3,0,0);check(h!=~0u,36003);
  done=99;check(!ReadFile(h,bytes,5,&done,overlapped)&&GetLastError()==87&&!done&&!bytes[0],36023);
  check(overlapped[0]==0x13579bdf&&overlapped[1]==0x22222222&&overlapped[2]==3,36024);
- check(ReadFile(h,bytes,5,&done,0)&&done==5&&bytes[0]=='A'&&bytes[4]=='8',36004);check(CloseHandle(h),36005);
+ check(ReadFile(h,bytes,5,&done,0)&&done==5&&bytes[0]=='N'&&bytes[1]=='E'&&bytes[2]=='O'&&bytes[3]=='9'&&bytes[4]=='8',36004);check(CloseHandle(h),36005);
  sa[0]=16;check(CreateFileA("C:\\BAD.TXT",0x40000000,0,sa,2,0,0)==~0u&&GetLastError()==13,36006);
  sa[0]=12;check(CreateFileA("C:\\BAD.TXT",1,0,sa,2,0,0)==~0u&&GetLastError()==87,36007);
  check(CreateFileA("C:\\BAD.TXT",0x40000000,4,sa,2,0,0)==~0u&&GetLastError()==87,36008);
@@ -30,7 +30,7 @@ void mainCRTStartup(void){
  h=CreateFileA("C:\\THROUGH.TXT",0xc0000000,1,0,4,0x80000080,0);check(h!=~0u,36009);
  check(WriteFile(h,"NEO98",5,&done,0)&&done==5,36010);check(CloseHandle(h),36011);
  h=CreateFileA("C:\\THROUGH.TXT",0x80000000,1,0,3,0x28000000,0);check(h!=~0u,36012);
- check(ReadFile(h,bytes,5,&done,0)&&done==5&&bytes[0]=='A',36013);check(CloseHandle(h),36014);
+ check(ReadFile(h,bytes,5,&done,0)&&done==5&&bytes[0]=='N'&&bytes[1]=='E'&&bytes[2]=='O'&&bytes[3]=='9'&&bytes[4]=='8',36013);check(CloseHandle(h),36014);
  /* FILE_ATTRIBUTE_NORMAL alone becomes zero; otherwise retain mask 0x67, then add FILE_ATTRIBUTE_ARCHIVE. */
  check(GetFileAttributesA("C:\\THROUGH.TXT")==0x20,36015);
  h=CreateFileA("C:\\HIDDEN.TXT",0xc0000000,0,0,2,0x80000002,0);check(h!=~0u,36016);

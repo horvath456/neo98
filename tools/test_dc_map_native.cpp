@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+// This fixture uses raster fonts only. An unexpected TrueType request must fail.
+#include "../src/gdi_truetype.h"
+#include <cstdlib>
+namespace GdiTrueType {
+bool AbcWidths(const Font &, unsigned, unsigned, int *) { std::abort(); }
+}
 #include "../src/gdi.h"
 #include "../src/user.h"
 #include <cassert>
@@ -34,10 +40,24 @@ int main()
     for(U y=0;y<64;++y)for(U x=0;x<64;++x)
         assert(pixels[y*64+x]==(x>=2 && x<8 && y>=3 && y<9 ? 0x563412u : 0u));
     assert(Gdi::GetPixel(dc,2,2)==0x123456);
-    assert(!Gdi::TextOutA(dc,1,1,"scaled font is outside this port",30));
-    Gdi::SIZE text_size;Gdi::TEXTMETRICA metrics;int widths[1];
-    assert(!Gdi::GetTextExtentPoint32A(dc,"A",1,&text_size) && !Gdi::GetTextMetricsA(dc,&metrics) &&
-           !Gdi::GetCharWidth32A(dc,'A','A',widths));
+    // GDI receives an already realized physical font. Mapping changes the
+    // text origin and converts measurements back into logical coordinates.
+    unsigned saved_pixels[64*64], reference_pixels[64*64];
+    memcpy(saved_pixels,pixels,sizeof pixels);memcpy(reference_pixels,pixels,sizeof pixels);
+    U reference=Gdi::CreateSurfaceDC({reinterpret_cast<unsigned char *>(reference_pixels),64,64,256,32});assert(reference);
+    assert(Gdi::TextOutA(dc,1,1,"A",1) && Gdi::TextOutA(reference,2,3,"A",1));
+    assert(!memcmp(pixels,reference_pixels,sizeof pixels));
+    assert(memcmp(pixels,saved_pixels,sizeof pixels));
+    memcpy(pixels,saved_pixels,sizeof pixels);
+    Gdi::SIZE text_size,physical_size;Gdi::TEXTMETRICA metrics,physical_metrics;int widths[1];
+    assert(Gdi::GetTextExtentPoint32A(reference,"A",1,&physical_size));
+    assert(Gdi::GetTextExtentPoint32A(dc,"A",1,&text_size));
+    assert(text_size.cx==(physical_size.cx+1)/2 && text_size.cy==(physical_size.cy+1)/3);
+    assert(Gdi::GetTextMetricsA(reference,&physical_metrics) && Gdi::GetTextMetricsA(dc,&metrics));
+    assert(metrics.tmHeight==(physical_metrics.tmHeight+1)/3 &&
+           metrics.tmAveCharWidth==(physical_metrics.tmAveCharWidth+1)/2);
+    assert(!Gdi::GetCharWidth32A(dc,'A','A',widths));
+    assert(Gdi::DeleteDC(reference));
     unsigned source_pixels[64*64]={};
     U source=Gdi::CreateSurfaceDC({reinterpret_cast<unsigned char *>(source_pixels),64,64,256,32});assert(source);
     assert(!Gdi::BitBlt(dc,0,0,4,4,source,0,0,Gdi::SRCCOPY));

@@ -66,7 +66,7 @@ def at(image, x, y):
 def main():
     if not (SOURCE / 'MJ_LUX11.EXE').exists():
         print(f'SKIP {SOURCE} is not there')
-        return 0
+        raise SystemExit(77)
     out = neo98.output_directory('mahjong2000-host')
     drive_d = out / 'drive-d'
     shutil.rmtree(drive_d, ignore_errors=True)

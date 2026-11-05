@@ -80,12 +80,12 @@ static void __cdecl cleanup_callback(void)
 }
 void run_crt_locale_heap_test(void)
 {
-    /* The arena grows up to 256 MiB, so the array holds more than
-       fit before the second pass runs dry. */
+    /* The process heap has a finite quota. Leave room for both passes. */
     static U blocks[1024];
     U count = 0;
-    /* Called first, before any guest locale table has been published. Fill the
-       arena in two passes without relying on its exact available capacity. */
+    /* Called before any locale table is published. Exhaust the public
+       process heap; CRT publication uses a separate internal arena. Its
+       allocation-failure path is checked by the native runner. */
     for (U phase = 0; phase < 2; ++phase)
     {
         while (count < 1024)
@@ -97,7 +97,8 @@ void run_crt_locale_heap_test(void)
         }
         check(count < 1024, 3470);
     }
-    check(!localeconv(), 3471);
+    Conv *initial = localeconv();
+    check(initial && equal(initial->decimal, ".") && !*initial->currency, 3471);
     check(toupper('a') == 'A', 3472);
     check(tolower('Z') == 'z', 3473);
     check(_isctype('a', 2) == 2, 3474);

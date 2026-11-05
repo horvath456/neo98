@@ -33,6 +33,11 @@ struct Application::ToolbarMemory {
  unsigned AllocateLocal(unsigned flags,unsigned n){unsigned a[]={flags,n};return app.Api("LocalAlloc",a);}
  unsigned ReallocateLocal(unsigned p,unsigned n,unsigned flags){unsigned a[]={p,n,flags};return app.Api("LocalReAlloc",a);}
  void FreeLocal(unsigned p){app.Api("LocalFree",&p);}
+ unsigned SizeLocal(unsigned p){
+  // Toolbar buffers are fixed pointers, not movable LocalAlloc handles.
+  if(!p||(p&3))return 0;
+  return app.LocalMemoryApi("LocalSize",&p);
+ }
  unsigned SetString(unsigned field,unsigned text){unsigned a[]={field,text};return app.CommonControlApi(236,a);}
  void ConvertAtoW(unsigned source,unsigned out,unsigned count){unsigned a[]={0,0,source,0xffffffff,out,count};app.NlsApi(594,a);}
  void ConvertWtoA(unsigned source,unsigned out,unsigned count){unsigned a[]={0,0,source,0xffffffff,out,count,0,0};app.NlsApi(811,a);}
@@ -141,7 +146,7 @@ void Application::LayoutToolbar(Toolbar&t){
  if(flags&0x800){Write32(o+0xec,flags|0x2000);t.layout_pending=true;return;}
  unsigned width=Read32(o+0x68);Write32(o+0x88,0);
  const unsigned count=Read32(o+0x84),buttons=Read32(o+0x30);
- if(count>AllocationSize(buttons)/28){last_error=87;return;}
+ if(count>e.SizeLocal(buttons)/28){last_error=87;return;}
  if(Read32(o+0x60)&&(Read32(o+0x5c)||(flags&8))){
   Gdi::TEXTMETRICA metrics{};unsigned dc=ToolbarFontDC(Read32(o+0x4c));const bool measured=dc&&Gdi::GetTextMetricsA(dc,&metrics);ToolbarFontRelease();if(!measured)return;
   Write32(o+0x88,metrics.tmHeight);
@@ -172,7 +177,7 @@ void Application::DrawToolbar(unsigned hwnd,Gdi::HDC dc,const Gdi::RECT&bounds){
  Toolbar*t=nullptr;for(auto&candidate:toolbars)if(candidate.hwnd==hwnd&&candidate.object){t=&candidate;break;}
  if(!t||!dc)return;ToolbarMemory e(*this,*t);unsigned o=t->object;
  if(Read32(o+0xec)&0x800)return;if(t->layout_pending)LayoutToolbar(*t);
- unsigned count=Read32(o+0x84),buttons=Read32(o+0x30);if(count>AllocationSize(buttons)/28){last_error=87;return;}
+ unsigned count=Read32(o+0x84),buttons=Read32(o+0x30);if(count>e.SizeLocal(buttons)/28){last_error=87;return;}
  auto color=[&](unsigned index){return Api("GetSysColor",&index);};
  const unsigned face=color(15),text_color=color(18),gray=color(17),highlight=color(20),shadow=color(16);
  auto fill=[&](const Gdi::RECT&r,unsigned color){unsigned brush=Gdi::CreateSolidBrush(color);if(brush){Gdi::FillRect(dc,&r,brush);Gdi::DeleteObject(brush);}};
@@ -212,9 +217,9 @@ void Application::DrawToolbar(unsigned hwnd,Gdi::HDC dc,const Gdi::RECT&bounds){
 void Application::ReleaseToolbar(Toolbar&t){
  if(!t.object)return;
  ToolbarMemory e(*this,t);unsigned p=Read32(t.object+0x30),n=Read32(t.object+0x84);
- if(n>AllocationSize(p)/28)n=AllocationSize(p)/28;
+ if(n>e.SizeLocal(p)/28)n=e.SizeLocal(p)/28;
  for(unsigned i=0;i<n;++i){unsigned text=Read32(p+i*28+16);if(text!=0xffffffff&&(text&0xffff0000))e.SetString(p+i*28+16,0);}
- if(p)Free(p);if(unsigned strips=Read32(t.object+0x54))Free(strips);if(t.strip_images)ImageApi("ImageList_Destroy",&t.strip_images);if(unsigned groups=Read32(t.object+0xc4))Free(groups);if(unsigned bitmap=Read32(t.object+0x2c))e.DeleteBitmap(bitmap);Free(t.object);t={};
+ if(p)e.FreeLocal(p);if(unsigned strips=Read32(t.object+0x54))e.FreeLocal(strips);if(t.strip_images)ImageApi("ImageList_Destroy",&t.strip_images);if(unsigned groups=Read32(t.object+0xc4))e.FreeLocal(groups);if(unsigned bitmap=Read32(t.object+0x2c))e.DeleteBitmap(bitmap);e.FreeLocal(t.object);t={};
 }
 // The shared measurement DC is created on first use and selects the caller's
 // font, which is also the original object's font field at +0x4C. Like the
@@ -326,18 +331,19 @@ unsigned Application::ToolbarMessage(unsigned hwnd,unsigned message,unsigned wp,
   return Win98ToolbarBitmap::Add(e,object,wp,add[0],add[1]);
  }
  if(message==0x41d||message==0x433||message==0x41f||message==0x43a){
-  unsigned object=t->object,count=Read32(object+0x84);if(count>AllocationSize(Read32(object+0x30))/28){last_error=87;return 0;}
   ToolbarMemory e(*this,*t);
+  unsigned object=t->object,count=Read32(object+0x84);if(count>e.SizeLocal(Read32(object+0x30))/28){last_error=87;return 0;}
   if(message==0x43a)return (Read32(object+0x70)&65535)|((Read32(object+0x74)&65535)<<16);
   if(message==0x41f){if(t->active){last_error=170;return 0;}return Win98ToolbarLayout::SetSize(e,object,unsigned(short(lp&65535)),unsigned(short(lp>>16)),0);}
   if(!lp)return 0;unsigned index=message==0x433?Win98Toolbar::CommandIndex(e,object,wp):wp;return Win98ToolbarLayout::Rect(e,object,index,lp);
  }
  if(Win98Toolbar::ObjectMessage(message)){
+  ToolbarMemory e(*this,*t);
   const bool read_only=(message>=0x409&&message<=0x40e)||message==0x412||message==0x417||message==0x418||message==0x419||message==0x43f||message==0x441||message==0x44a;
   // Native allocation guards around original unchecked arithmetic/write paths.
   if(t->active&&!read_only){last_error=170;return 0;}
   unsigned object=t->object,count=Read32(object+0x84),size=Read32(object+0x64);
-  if(count>AllocationSize(Read32(object+0x30))/28){last_error=87;return 0;}
+  if(count>e.SizeLocal(Read32(object+0x30))/28){last_error=87;return 0;}
   if(message==0x41e&&wp!=12&&wp!=20){last_error=87;return 0;}
   if(message==0x414||message==0x444||message==0x415||message==0x443){
    unsigned add=(message==0x414||message==0x444)?wp:1;
@@ -346,7 +352,7 @@ unsigned Application::ToolbarMessage(unsigned hwnd,unsigned message,unsigned wp,
   }
   if((message==0x440||message==0x442)&&Read32(lp)==32&&(Read32(lp+4)&0x80000000)&&wp>=count){last_error=87;return 0;}
   if(message==0x442&&(Read32(lp+4)&2)){unsigned a[]={0,0,Read32(lp+24),0xffffffff,0,0};unsigned n=NlsApi(594,a);if(!n||n>256){last_error=87;return 0;}}
-  ToolbarMemory e(*this,*t);++t->active;unsigned result=Win98Toolbar::Message(e,object,message,wp,lp);--t->active;
+  ++t->active;unsigned result=Win98Toolbar::Message(e,object,message,wp,lp);--t->active;
   if(t->destroy_pending&&!t->active)ReleaseToolbar(*t);return result;
  }
  // The base registry record is one command
@@ -357,11 +363,11 @@ unsigned Application::ToolbarMessage(unsigned hwnd,unsigned message,unsigned wp,
   unsigned key=0,node=0;bool created=false;unsigned error=registry.Open(p[0],path,wp!=0,key,created);if(error)return 0;
   error=registry.Key(key,node);if(error){registry.Close(key);return 0;}
   ToolbarMemory e(*this,*t);unsigned object=t->object,old_count=Read32(object+0x84),buttons=Read32(object+0x30);
-  if(old_count>AllocationSize(buttons)/28){registry.Close(key);last_error=87;return 0;}
+  if(old_count>e.SizeLocal(buttons)/28){registry.Close(key);last_error=87;return 0;}
   ++t->active;
   if(wp){
    unsigned data=0,current=0,capacity=old_count*4;
-   auto valid=[&](){return (!capacity&&!data&&!current)||(data&&current>=data&&current<=data+capacity&&data+capacity>=data&&capacity<=AllocationSize(data));};
+   auto valid=[&](){return (!capacity&&!data&&!current)||(data&&current>=data&&current<=data+capacity&&data+capacity>=data&&capacity<=e.SizeLocal(data));};
    {ToolbarMemory::Scratch note(e,60);for(unsigned i=0;i<60;i+=4)e.Write32(note.address+i,0);
     e.Write32(note.address+20,capacity);e.Write32(note.address+24,~0u);e.Write32(note.address+28,old_count);e.Notify(object,0xfffffd2e,note.address);
     data=e.Read32(note.address+12);current=e.Read32(note.address+16);capacity=e.Read32(note.address+20);}

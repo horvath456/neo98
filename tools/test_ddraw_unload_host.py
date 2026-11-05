@@ -38,7 +38,7 @@ def main():
     source = args.system_tree
     if source is None:
         import dx9_tree
-        source = dx9_tree.tree()
+        source = dx9_tree.require_tree()
         if source is None:
             print('DDRAW UNLOAD SKIP: no DirectX 9 system tree')
             return

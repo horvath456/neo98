@@ -12,6 +12,7 @@ def main():
     if runtime.exists():shutil.rmtree(runtime)
     runtime.mkdir(parents=True)
     shutil.copytree(ROOT/'src',runtime/'src',ignore=shutil.ignore_patterns('*.o','*.d','*.img','*.elf','*.map','*.lst'))
+    (runtime/'sdk').symlink_to(ROOT/'sdk',target_is_directory=True)
     (runtime/'build').symlink_to(ROOT/'build',target_is_directory=True)
     if args.patch:
         subprocess.run(['git','init','-q'],cwd=runtime,check=True)

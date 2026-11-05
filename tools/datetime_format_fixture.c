@@ -25,7 +25,8 @@ void run_datetime_format_test(void){
  check(GetTimeFormatA(0x409,0,t,0,0,0)==11,20707);
  check(!GetTimeFormatA(0x409,0x80000000,t,"h",out,128)&&GetLastError()==1004,20708);
  check(!GetDateFormatA(0x409,3,t,0,out,128)&&GetLastError()==1004,20709);
- check(!GetDateFormatA(0x410,0,t,0,out,128)&&GetLastError()==87,20710);
+ /* The complete runtime NLS data includes Italian (0x410). Use an invalid LCID. */
+ check(!GetDateFormatA(0xdeadbeef,0,t,0,out,128)&&GetLastError()==87,20710);
  t[3]=0;check(GetDateFormatA(0x409,0,t,"dddd d",out,128)&&same(out,"Sunday 0"),20711);t[3]=25;
  t[4]=99;check(GetDateFormatA(0x409,0,t,0,out,128)==8,20712);check(!GetTimeFormatA(0x409,0,t,0,out,128)&&GetLastError()==87,20713);t[4]=13;
  t[1]=99;check(GetTimeFormatA(0x409,0,t,0,out,128)==11,20714);t[1]=6;

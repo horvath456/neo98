@@ -40,7 +40,7 @@ struct BitmapProviderSnapshot
     unsigned objects=LiveObjects(), bytes=bitmap_store.allocated, ranges=0, globals=0, locals=0, locks=0;
     BitmapProviderSnapshot()
     {
-        for(const auto &r:bitmap_store.ranges) ranges+=r.base!=0;
+        for(unsigned i=0;i<bitmap_store.range_capacity;++i) ranges+=bitmap_store.ranges[i].base!=0;
         for(const auto &g:bitmap_store.globals) { globals+=g.range!=0; locks+=g.locks; }
         for(const auto &l:bitmap_store.locals) locals+=l.native!=0;
     }
@@ -134,19 +134,17 @@ int main()
     m.readable=sizeof m.data;bitmap_store.failed=false;bitmap_store.Unmap(external);
     CHECK(BitmapProviderSnapshot()==one);
 
-    // The provider's 400 mappings are independent from its native GDI handles.
-    // Exercise failure before storage publication, then reuse of the freed
-    // slot. Since c8cffa0 a new range goes behind the last one while the
-    // address space has room there, and only a full address space searches
-    // the first gap (BitmapStore::Map); the addresses are the provider's own
-    // and no guest sees them, so the slot must come back and the new range
-    // must not overlap a live one, but it need not sit where the old one did
-
+    // Descriptors grow beyond the former 400-slot limit. A mapping larger
+    // than the provider address space must fail without changing live ranges.
     std::vector<unsigned> mappings;
     unsigned char byte=0;
-    while(const auto range=bitmap_store.Map(&byte,1)) mappings.push_back(range);
+    for(unsigned i=0;i<1024;++i) {
+        const auto range=bitmap_store.Map(&byte,1);
+        CHECK(range);
+        mappings.push_back(range);
+    }
     const BitmapProviderSnapshot mapped_full;
-    CHECK(!m.Call("CreateBitmap",8,8,1,1,0) && BitmapProviderSnapshot()==mapped_full);
+    CHECK(!bitmap_store.Map(&byte,0xffffffffu) && BitmapProviderSnapshot()==mapped_full);
     const auto hole=mappings[mappings.size()/2];
     bitmap_store.Unmap(hole);
     const auto reused=bitmap_store.Map(&byte,1);
@@ -154,7 +152,7 @@ int main()
     {
         const auto &fresh=bitmap_store.ranges[reused-1];
         bool overlap=false;
-        for(unsigned i=0;i<BitmapStore::RangeCount;++i)
+        for(unsigned i=0;i<bitmap_store.range_capacity;++i)
         {
             const auto &r=bitmap_store.ranges[i];
             if(i!=reused-1 && r.base && fresh.base<r.base+r.size && r.base<fresh.base+fresh.size) overlap=true;
@@ -162,6 +160,19 @@ int main()
         CHECK(!overlap);
     }
     for(auto range:mappings) bitmap_store.Unmap(range);
+    CHECK(BitmapProviderSnapshot()==one);
+
+    // Fill a fresh provider's address space exactly, without backing allocation.
+    // Unlike the old fixed descriptor limit, this is a real mapping limit.
+    {
+        BitmapStore space;
+        const auto whole=space.Map(&byte,0xfffffff0u-0x10000u);
+        CHECK(whole && !space.Map(&byte,1));
+        space.Unmap(whole);
+        const auto small=space.Map(&byte,1);
+        CHECK(small==whole && space.Read8(space.ranges[small-1].base)==byte);
+        space.Unmap(small);
+    }
     CHECK(BitmapProviderSnapshot()==one);
 
     // Consume the actual backing budget. No giant bitmap transfer is needed;

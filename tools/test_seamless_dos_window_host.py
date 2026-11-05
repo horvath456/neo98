@@ -54,7 +54,7 @@ SCREEN = (1100, 700)
 def main():
     if not (GAME / 'LOEWE.PIF').is_file():
         print(f'SKIP {GAME} is not there')
-        return 0
+        raise SystemExit(77)
     out = neo98.output_directory('seamless-dos-window-host')
     for old in list(out.glob('*.pgm')) + list(out.glob('*.log')):
         old.unlink()

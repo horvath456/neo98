@@ -29,7 +29,11 @@ void run_gdi_wide_text_test(void){
  // Exact first RichEdit operation: no text/dx, ETO_OPAQUE rectangle.
  clear(bits);SetBkColor(dc,0xffffff);struct Rect opaque={0,0,128,13};check(ExtTextOutW(dc,0,0,2,&opaque,0,0,0),30012);for(U y=0;y<64;++y)for(U x=0;x<128;++x)check((bits[y*128+x]&0xffffff)==(y<13?0xffffff:0),30013);
  wide.x=wide.y=-1;check(GetTextExtentPoint32W(dc,0,0,&wide)&&!wide.x&&!wide.y,30014);wide.x=wide.y=-1;check(GetTextExtentPointW(dc,0,65536,&wide)&&!wide.x&&!wide.y,30015);
- SetLastError(0);check(!ExtTextOutW(dc,0,0,16,0,unicode,7,0)&&GetLastError()==50,30016);
+ // Win98's installed raster fonts use byte character codes as glyph indices.
+ // The original System/Symbol comparison is recorded in win98-glyph-raster-2026-10-22.json.
+ const W glyphs[]={'W','i','n',0xb7,0x1f,0,'A'};
+ clear(bits);check(ExtTextOutA(dc,5,5,0,0,bytes,7,0),30016);save(bits);clear(bits);
+ check(ExtTextOutW(dc,5,5,16,0,glyphs,7,0),30016);compare(bits,30019);
  check(SelectObject(dc,old)==bitmap&&DeleteObject(bitmap)&&DeleteDC(dc),30017);
 }
 #ifdef GDI_WIDE_TEXT_STANDALONE

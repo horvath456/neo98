@@ -1,3 +1,9 @@
+// This fixture uses raster fonts only. An unexpected TrueType request must fail.
+#include "../src/gdi_truetype.h"
+#include <cstdlib>
+namespace GdiTrueType {
+bool AbcWidths(const Font &, unsigned, unsigned, int *) { std::abort(); }
+}
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "user.h"
 #include "gdi.h"

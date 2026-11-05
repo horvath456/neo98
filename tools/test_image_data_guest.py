@@ -13,6 +13,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
 import neo98
 import arm64_run
 import pefile
+import win98_c
 from native_app import build_host
 
 out = ROOT / 'build/image-data-guest'
@@ -38,9 +39,10 @@ assert not sections['.rdata']['flags'] & 0xa0000000
 (out / 'layout.json').write_text(json.dumps(sections, indent=2) + '\n')
 host = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else build_host()
 baseline = '--baseline' in sys.argv
+system_tree = win98_c.use_pristine()
 for mode in range(8):
     command = [str(host), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
-        '--exe', str(exe), '--command', str(mode), '--system-tree', str(ROOT / 'build/dx9-tree/win98-c'),
+        '--exe', str(exe), '--command', str(mode), '--system-tree', str(system_tree),
         '--ram-drive', '--no-registry-file', '--quiet']
     result = arm64_run.run(command, timeout=60, cwd=ROOT,
         env=dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_DEADLINE='8',

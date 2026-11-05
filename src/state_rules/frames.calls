@@ -46,7 +46,7 @@ entry      X86::Application::StartWin16::lambda::__invoke sites=1  # starts Run 
 resumable  X86::Application::FaultBox sites=1  # final exception UI recorded separately; after load Close terminates the process
 resumable  X86::Application::Api sites=16  # callback/modal gates preserve their stated tail; GetMessage/PeekMessage record only a requested native settings section and its original arguments
 resumable  X86::Application::BuildMessageBox sites=2  # record HostMessageBox, when it is the handler of its gate (TakeFresh); FinishMessageBox is the rest
-resumable  X86::Application::CallWindow sites=5  # hands the tail on to the procedure of the window and to DialogProcedure, on the straight way only
+resumable  X86::Application::CallWindow sites=6  # hands the tail on to the procedure of the window and to DialogProcedure, on the straight way only
 resumable  X86::Application::SendDispatch sites=3  # passes the tail on the straight window path and both synchronous cross paths
 resumable  X86::Application::DialogMessage sites=3  # out of the modal loop: Enter, Escape and the final button mnemonic command keep their continuation
 resumable  X86::Application::DialogProcedure sites=3  # record HostDialogProcedure around the procedure of the program; entered again, it does not reset the result
@@ -353,3 +353,6 @@ resumable  X86::Application::Win16OpenDialog::WorkScope::~WorkScope sites=1  # c
 transient  X86::Application::DebugApi sites=1  # waits for a debuggee lifecycle event
 transient  X86::Application::HalDrawPrimitives2 sites=1  # DDRAW RVA 1B178..1B1F4 parses one opaque token without calls/waits; cursor, output allocation and remaining DP2 commands must finish before saving
 transient  X86::Application::ServeHostDesktopIcons sites=1  # original ImageList_GetIcon while refreshing the host's desktop mask; no save inside the temporary snapshot
+
+resumable  X86::Application::ButtonProcedure sites=3  # records only final parent notifications and the zero return
+resumable  X86::Application::ButtonProcedure::lambda::call sites=3  # parent notification after capture and check-state work

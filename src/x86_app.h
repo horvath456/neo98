@@ -2750,6 +2750,7 @@ private:
         HostWin16FileOutput = 95, // output fields already written; consume FileOK and end once
         HostWin16FileSelect = 96, // selection fields already set; return after registered hook
         HostWin16FileDrive = 97, // failed drive warning; rebuild original combo on return
+        HostButtonCommand = 99, // return zero after the parent notification
         HostDispatchPaint = 98, // a window, b/c paint parameters, d prior posted-message flag
     };
     bool PushHostFrame(unsigned kind, unsigned a = 0, unsigned b = 0, unsigned c = 0, unsigned d = 0);

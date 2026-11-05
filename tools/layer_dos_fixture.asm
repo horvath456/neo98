@@ -1,7 +1,6 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
-; The DOS guest of the write layer (tools/test_game_machine_host.py,
-): the file calls of INT 21h on C:\GM, where the
-; normal machine has left files and a directory for it.
+; The DOS guest of tools/test_game_machine_files_host.py uses INT 21h on
+; C:\GMBASE, where the normal machine supplies files and directories.
 ;
 ; a create DOSNEW.TXT and write it (3Ch, 40h, 3Eh)
 ; b open DOS.TXT of the drive below, append (3Dh, 42h, 40h)

@@ -127,7 +127,7 @@ void mainCRTStartup(void){
  /* The device and the mapper both answer; a second device does not exist and
     is MMSYSERR_BADDEVICEID. wMid is 1 for MM_MICROSOFT and szPname at +8 is
     the name of this driver. */
- CHECK(waveOutGetDevCapsA(0,P(caps),52)==0&&caps[0]==1&&caps[8]=='A');
+ CHECK(waveOutGetDevCapsA(0,P(caps),52)==0&&caps[0]==1&&caps[8]=='N');
  CHECK(waveOutGetDevCapsA(~0u,P(caps),52)==0&&waveOutGetDevCapsA(1,P(caps),52)==2);
  /* The shared open worker probes the format over 0Eh bytes before
     anything else, so a null format is MMSYSERR_INVALPARAM even for

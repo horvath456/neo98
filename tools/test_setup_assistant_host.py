@@ -87,7 +87,7 @@ def main():
     check('missing tools are named with the brew line',
           sum(line.startswith('tools missing: qemu-system-i386 mformat mcopy mdel mmd mdir cabextract tesseract; '
                               'brew install qemu mtools cabextract tesseract') for line in lines) >= 3)
-    check('Installieren refused without the tools', 'install refused: tools' in lines)
+    check('Install refused without the tools', 'install refused: tools' in lines)
     check('nothing created, nothing started',
           not target.exists() and not (settings / 'settings.ini').exists() and 'NEO98 HOST drive C:' not in log
           and code == 0 and lines[-1] == 'quit')
@@ -121,14 +121,14 @@ def main():
           and 'NEO98 HOST input wait=Progman reached' in log and code == 0)
     check('a program double clicked during the assistant starts with the machine',
           f'open {program} kept' in lines and f'NEO98 HOST open {program} -> C:\\WINDOWS\\NOTEPAD.EXE' in log)
-    check('Settings shows the machine', f'NEO98 HOST preferences Maschinenordner: {machine}' in log
-          and f'NEO98 HOST preferences Laufwerk C: {machine / "C"}' in log)
+    check('Settings shows the machine', f'NEO98 HOST preferences Machine folder: {machine}' in log
+          and f'NEO98 HOST preferences Drive C: {machine / "C"}' in log)
     check('another machine folder chosen in Settings is kept for the next start',
           f'NEO98 HOST machine {other} ready=0 restart=0' in log
           and f'machine = {other}\n' in (settings / 'settings.ini').read_text())
     shutil.rmtree(machine, ignore_errors=True)
 
-    # --- 3. and 4. Installieren with a finished disk image -----------------
+    # --- 3. and 4. Install with a finished disk image -----------------
     iso = Path(os.environ.get('NEO98_WIN98_ISO') or Path.home() / 'Downloads/Windows 98 Second Edition.iso')
     record = win98_c.record(pristine)
     installed = win98_c.live_folder().parent / 'setup-win98' / record['iso']['sha256'][:16]

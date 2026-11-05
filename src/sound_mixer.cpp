@@ -353,7 +353,7 @@ unsigned Mixer::Submit(unsigned source, const unsigned char *data, unsigned byte
 }
 
 unsigned Mixer::Submit(unsigned source, unsigned bytes, unsigned tag, unsigned flags,
-                       unsigned loops, Fill fill, void *owner)
+                       unsigned loops, Fill fill, void *owner, unsigned max_frames)
 {
     if (!Valid(source) || !tag) return 1;
     Lock();
@@ -393,10 +393,41 @@ unsigned Mixer::Submit(unsigned source, unsigned bytes, unsigned tag, unsigned f
             Block &block = s.queue[s.tail % s.queue.size()];
             block = Block{offset, bytes, tag, flags, loops};
             ++s.tail;
+            if (max_frames)
+            {
+                const unsigned frame_bytes = s.format.channels * (s.format.bits / 8);
+                unsigned long long queued = 0;
+                for (unsigned i = s.cursor; i != s.tail; ++i)
+                    queued += s.queue[i % s.queue.size()].bytes / frame_bytes;
+                queued -= s.frame;
+                unsigned long long excess = queued > max_frames ? queued - max_frames : 0;
+                while (excess)
+                {
+                    const auto &front = s.queue[s.cursor % s.queue.size()];
+                    const unsigned available = front.bytes / frame_bytes - s.frame;
+                    const unsigned drop = excess < available ? unsigned(excess) : available;
+                    s.frame += drop;
+                    s.played += drop * frame_bytes;
+                    excess -= drop;
+                    if (s.frame == front.bytes / frame_bytes)
+                    {
+                        Retire(s, s.cursor++);
+                        s.frame = s.fraction = 0;
+                    }
+                }
+            }
         }
     }
     Unlock();
     return result;
+}
+
+unsigned Mixer::SubmitLive(unsigned source, const unsigned char *data, unsigned bytes,
+                           unsigned tag, unsigned max_frames)
+{
+    if (!Valid(source) || !max_frames) return 1;
+    Copy copy{data};
+    return Submit(source, bytes, tag, 0, 0, CopyFill, &copy, max_frames);
 }
 
 unsigned Mixer::Complete(unsigned source)

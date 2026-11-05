@@ -19,6 +19,7 @@
 #include "host_volume.h"
 #include "system_tree_host.h"
 #include <atomic>
+#include <cassert>
 #include <cmath>
 #include <vector>
 #include <chrono>
@@ -640,14 +641,18 @@ static bool scenario(Session &s, const Scenario &sc, const char *out)
     {
         // The clipboard of the session holds "a"; the Paste button types it.
         const unsigned open[] = {0};
-        s.app->Api("OpenClipboard", open);
-        s.app->Api("EmptyClipboard", open);
+        assert(s.app->Api("OpenClipboard", open));
+        assert(s.app->Api("EmptyClipboard", open));
         const unsigned alloc[] = {0x2042, 2};
         const unsigned handle = s.app->Api("GlobalAlloc", alloc);
-        s.app->Store(handle, "a", 2);
+        assert(handle);
+        const unsigned lock[] = {handle};
+        const unsigned pointer = s.app->Api("GlobalLock", lock);
+        assert(pointer && s.app->Store(pointer, "a", 2));
+        s.app->Api("GlobalUnlock", lock);
         const unsigned set[] = {1, handle};
-        s.app->Api("SetClipboardData", set);
-        s.app->Api("CloseClipboard", open);
+        assert(s.app->Api("SetClipboardData", set) == handle);
+        assert(s.app->Api("CloseClipboard", open));
         const int bx = client.left + 4 + 62 + 8 + 2 * 23 + 11, by = client.top + 3 + 11;
         s.app->MouseButtons(bx, by, 0);
         s.app->MouseButtons(bx, by, 1);

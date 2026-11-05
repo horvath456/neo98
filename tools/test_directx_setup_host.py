@@ -5,6 +5,7 @@
 Stops at the requested restart; does not install into the user's machine.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -19,7 +20,7 @@ import win98_c
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ExternalInputParser()
     parser.add_argument('iso', type=Path)
     parser.add_argument('--host', type=Path, default=ROOT/'build/native-app/neo98-host')
     args = parser.parse_args()

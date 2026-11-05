@@ -26,6 +26,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import d3d_demo  # noqa: E402
+from test_support import write_plain_desktop_registry  # noqa: E402
 
 # DirectX 6.1 of the ISO installation is not what this test measures; it runs on
 # the DirectX 9 copy of the Win98 folder (tools/dx9_tree.py) and skips without it.
@@ -35,7 +36,7 @@ parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
 parser.add_argument('--runner', type=Path)
 parser.add_argument('--system-tree', type=Path)
 args = parser.parse_args()
-_DX9 = args.system_tree or dx9_tree.tree()
+_DX9 = args.system_tree or dx9_tree.require_tree()
 if _DX9 is None:
     print('SKIP: no DirectX 9 tree')
     raise SystemExit(0)
@@ -51,6 +52,9 @@ def frame():
 
 
 def run(*arguments):
+    # A setup import may contain a wallpaper or pattern. The clipping check
+    # below needs a known desktop, including on repeated test invocations.
+    write_plain_desktop_registry(d3d_demo.OUT / 'demo.bin')
     d3d_demo.measure(exe, list(arguments), 10, runner=args.runner, system_tree=_DX9)
     log = (d3d_demo.OUT / 'demo.log').read_text()
     return frame(), log

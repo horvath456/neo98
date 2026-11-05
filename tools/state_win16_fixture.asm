@@ -1,7 +1,6 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
-; The 16-bit Windows guest of the saved states (tools/test_state_host.py,
-): a window with a counter on a timer, and the
-; places a 16-bit program can stand in when a state is taken.
+; The Win16 guest shared by the state and bar-menu tests has a timer counter
+; and exercises the places a Win16 program can stand when a state is taken.
 ;
 ; M a message box, opened inside the window procedure
 ; D a dialog with two buttons, opened inside the window procedure; its

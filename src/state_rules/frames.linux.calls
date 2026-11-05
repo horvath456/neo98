@@ -9,7 +9,7 @@ resumable  X86::Application::Api sites=13  # callback/modal gates preserve their
 resumable  X86::Application::BuildFileDialog sites=3  # heap FileDialogFrame plus HostFileDialog; the loaded loop runs the same cleanup
 resumable  X86::Application::BuildMessageBox sites=2  # record HostMessageBox, when it is the handler of its gate (TakeFresh); FinishMessageBox is the rest
 loop       X86::Application::Call sites=4  # a callback of the flat side; its mark keeps the registers below and what the caller has left (call_marks, ResumeCall)
-resumable  X86::Application::CallWindow sites=4  # hands the tail on to the procedure of the window and to DialogProcedure, on the straight way only
+resumable  X86::Application::CallWindow sites=5  # hands the tail on to the procedure of the window and to DialogProcedure, on the straight way only
 resumable  X86::Application::CbtDestroyEnvironment::Send sites=2  # only recorded sheet or RemovePage WM_NCDESTROY retains USER disposal after the callback
 transient  X86::Application::CensusImportApi sites=2  # one callback inside a call
 resumable  X86::Application::CloseProgramDialog sites=2  # only the actual CAD system thread records modal presentation and its later focus/flag/shutdown completion
@@ -257,3 +257,6 @@ resumable  X86::Application::WindowApi sites=4  # SendMessageTimeout records its
 transient  X86::Application::WinmmCompletionApi sites=1  # one callback inside a call
 transient  X86::Application::Wsock2Echo sites=1  # ICMP echo: waits for the answer or its timeout
 transient  X86::Application::DebugApi sites=1  # waits for a debuggee lifecycle event
+
+resumable  X86::Application::ButtonProcedure sites=3  # records only final parent notifications and the zero return
+resumable  X86::Application::ButtonProcedure::lambda::call sites=3  # parent notification after capture and check-state work

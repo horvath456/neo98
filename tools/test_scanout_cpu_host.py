@@ -24,7 +24,7 @@ def main():
  subprocess.run(['cp','-cR',str((ROOT/'build/win98-c').resolve()),str(private)],check=True)
  shutil.copyfile(exe,private/'SCANCPU.EXE')
  try:
-  if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:raise RuntimeError('another neo98-host is active')
+  if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:__import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
   samples=[]
   for n in range(3):
    log=out/f'{a.name}-{n}.log'

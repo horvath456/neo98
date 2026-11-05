@@ -220,6 +220,9 @@ unsigned Application::DxD3dRun(unsigned handle, unsigned commands, unsigned byte
             for (unsigned i = 0; i + 2 <= words; i += 2)
             {
                 const unsigned state = word(body + i * 4);
+                // Direct3D 7 has no color-write mask. Its reserved state
+                // slots must not override the backend's all-channel default.
+                if (state == 168) continue;
                 if (state < Gpu::State::RenderStates) c.state.render[state] = word(body + i * 4 + 4);
             }
             break;

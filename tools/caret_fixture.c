@@ -23,7 +23,11 @@ void run_caret_test(void){
  check(CreateCaret(window,0,0,0)&&SetCaretPos(6,7)&&ShowCaret(window)&&pixel(16,17)==0&&pixel(17,17)==0xffffff,12726);
  check(SetCaretBlinkTime(20),12727);U initial=pixel(16,17),start=GetTickCount();int changed=0;for(U i=0;i<100&&GetTickCount()-start<1000;++i){Sleep(5);if(pixel(16,17)!=initial){changed=1;break;}}check(changed,12728);U message[7];check(!PeekMessageA(message,0,0x113,0x113,1),12729);check(SetCaretBlinkTime(60000)&&DestroyCaret(),12730);
  /* Single-line EDIT uses its one-pixel inset, not the multiline border inset. */
- U edit=CreateWindowExA(0,"EDIT","",0x50000000,5,25,65,20,window,44,0,0);check(edit&&SetFocus(edit)!=0xffffffff&&GetCaretPos(p)&&p[0]==1&&p[1]==1,12731);SendMessageA(edit,0x102,'A',1);pixel(16,17);check(GetCaretPos(p)&&p[0]>1&&p[1]==1,12732);SetFocus(window);check(!DestroyCaret(),12733);
+ // A borderless Win98 EDIT starts its formatting area and caret at (0,0).
+ U edit=CreateWindowExA(0,"EDIT","",0x50000000,5,25,65,20,window,44,0,0);int format[4]={-1,-1,-1,-1};
+ check(edit&&SetFocus(edit)!=0xffffffff,12731);SendMessageA(edit,0xb2,0,(U)format);
+ check(format[0]==0&&format[1]==0&&GetCaretPos(p)&&p[0]==format[0]&&p[1]==format[1],12731);
+ SendMessageA(edit,0x102,'A',1);pixel(16,17);check(GetCaretPos(p)&&p[0]>format[0]&&p[1]==format[1],12732);SetFocus(window);check(!DestroyCaret(),12733);
  check(CreateCaret(window,0,1,4)&&ShowCaret(window),12734);worker_bitmap=CreateBitmap(2,2,1,1,bits);check(worker_bitmap,12741);U id=0,thread=CreateThread(0,0,(void*)worker,0,0,&id);check(thread&&WaitForSingleObject(thread,1000)==0&&CloseHandle(thread),12735);check(!DestroyCaret()&&DeleteObject(worker_bitmap)&&!GetObjectA(worker_bitmap,24,object),12736);
  check(CreateCaret(window,0,1,4)&&DestroyWindow(window)&&!ShowCaret(window)&&!DestroyCaret(),12737);check(DestroyWindow(other)&&DeleteObject(brush),12738);
  U module=GetModuleHandleA("USER32.DLL");typedef U(__stdcall*Blink)(void);Blink get=(Blink)GetProcAddress(module,(const char*)224);check(get&&get()==60000,12739);

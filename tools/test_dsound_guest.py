@@ -40,7 +40,7 @@ import neo98  # noqa: E402
 # the DirectX 9 copy of the Win98 folder (tools/dx9_tree.py) and skips without it.
 import dx9_tree  # noqa: E402
 import os  # noqa: E402
-_DX9 = dx9_tree.tree()
+_DX9 = dx9_tree.require_tree()
 if _DX9 is None:
     print('SKIP: no DirectX 9 tree')
     raise SystemExit(0)

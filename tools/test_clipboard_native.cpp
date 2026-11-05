@@ -38,7 +38,7 @@ int main(int argc,char**argv){
             assert(api(*app,"OpenClipboard"));unsigned view=api(*app,"GetClipboardData",format);assert(view);
             char text[64];assert(app->Read(view,text,sizeof text));assert(!strcmp(text,"survives complete source-process teardown"));
             // Free/reuse of an app alias must not return unrelated reused bytes.
-            assert(!api(*app,"GlobalFree",view));unsigned reused=api(*app,"GlobalAlloc",0x40,64);assert(reused==view);
+            assert(!api(*app,"GlobalFree",view));unsigned reused=app->Allocate(64);assert(reused==view);
             assert(app->Store(reused,"unrelated",10));unsigned refreshed=api(*app,"GetClipboardData",format);assert(refreshed && refreshed!=reused);
             assert(app->Read(refreshed,text,sizeof text) && !strcmp(text,"survives complete source-process teardown"));
             assert(api(*app,"CloseClipboard"));

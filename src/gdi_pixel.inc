@@ -18,7 +18,7 @@ unsigned PixelAccess(unsigned op,HDC h,int x,int y,unsigned color,BitmapIO*io){
   unsigned ManagedColor(unsigned v,unsigned&p){return ColorInfo(v,p,true);}
   unsigned PrepareDevice(){return 1;}void RestoreDevice(){}
   unsigned Count(){return o.dib?o.dib->format.colors:2;}
-  unsigned Palette(unsigned i){if(o.dib)return o.dib->format.Read32(0x100+o.dib->format.palette+i*4);return i?0xffffff:0;}
+  unsigned Palette(unsigned i){if(o.dib){unsigned v=o.dib->format.Read32(0x100+o.dib->format.palette+i*4);return v|((o.dib->colours_only&&o.bitmap.depth==8&&i>=8&&i<248)?0x80000000u:0);}return i?0xffffff:0;}
   unsigned Read32(unsigned address){return Palette(address/4);}
   unsigned ColorInfo(unsigned value,unsigned&physical,bool write){return Win98GdiPixel::DriverColor(*this,!Win98DcInformation::DrawingAllowed(c.signature)?32:o.bitmap.depth,o.dib&&o.dib->format.rgb565,value,physical,write,!o.dib&&o.bitmap.depth==1);}
   unsigned SystemColor(unsigned){return 0;}unsigned PaletteColor(unsigned){return 0;}bool LogicalColor(unsigned,unsigned&){return false;}

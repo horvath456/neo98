@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include <cassert>
+#include <memory>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -26,18 +27,23 @@ static std::vector<unsigned char> load(const char*p){FILE*f=fopen(p,"rb");assert
 static unsigned image_count(const X86::Application&a){unsigned n=0;for(unsigned slot=0;slot<1023;++slot){const auto&i=X86::Application::SharedIcons()[slot];n+=i.data&&i.owner==&a;}return n;}
 int main(int argc,char**argv){assert(argc==4);auto exe=load(argv[1]),font=load(argv[2]),dll=load(argv[3]);
  {
- X86::Application app(nullptr);assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"IMAGES.EXE"));assert(!app.files.store.Seed("C:\\IMAGERES.DLL",dll.data(),dll.size()));assert(!app.files.store.Seed("C:\\IMAGE.ICO",image_ico,sizeof image_ico));assert(!app.files.store.Seed("C:\\IMAGE.CUR",image_cur,sizeof image_cur));assert(!app.files.store.Seed("C:\\IMAGE.BMP",image_bmp,sizeof image_bmp));
+ auto app_storage=std::make_unique<X86::Application>(nullptr);
+        auto &app=*app_storage;assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"IMAGES.EXE"));assert(!app.files.store.Seed("C:\\IMAGERES.DLL",dll.data(),dll.size()));assert(!app.files.store.Seed("C:\\IMAGE.ICO",image_ico,sizeof image_ico));assert(!app.files.store.Seed("C:\\IMAGE.CUR",image_cur,sizeof image_cur));assert(!app.files.store.Seed("C:\\IMAGE.BMP",image_bmp,sizeof image_bmp));
  for(unsigned i=0;i<10000&&app.Status()!=X86::Application::Exited&&app.Status()!=X86::Application::Failed;++i)app.Pump(32);
  if(app.Status()!=X86::Application::Exited||app.ExitCode())fprintf(stderr,"images: state=%u exit=%u error=%s calls=%u\n",app.Status(),app.ExitCode(),app.Error(),app.ApiCalls());assert(app.Status()==X86::Application::Exited&&!app.ExitCode());printf("IMAGE RESOURCE GUEST PASS calls=%u callbacks=%u\n",app.ApiCalls(),app.Callbacks());
  }assert(!image_live);
  // The first allocation creates the system-image context; following failures hit
- // icon objects and both pixel buffers. Every failed startup can be retried.
+ // icon objects and both pixel buffers. Start may already initialize images;
+ // release those before injecting failures. Every failed startup can be retried.
  for(unsigned failure=1;failure<=8;++failure){
- X86::Application app(nullptr);assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"IMAGES.EXE"));app.threads[0].suspended=1;fail_at=failure;alloc_count=0;const unsigned a[]={0,32512};assert(!app.ImageApi("LoadIconA",a));fail_at=0;assert(!app.image_resources&&!image_count(app)&&!image_live);assert(app.last_error==8);assert(app.ImageApi("LoadIconA",a)&&image_count(app)==22);app.FreeImageResources();assert(!image_count(app)&&!image_live);
+ auto app_storage=std::make_unique<X86::Application>(nullptr);
+        auto &app=*app_storage;assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"IMAGES.EXE"));app.threads[0].suspended=1;app.FreeImageResources();assert(!app.image_resources&&!image_count(app)&&!image_live);fail_at=failure;alloc_count=0;const unsigned a[]={0,32512};assert(!app.ImageApi("LoadIconA",a));fail_at=0;assert(!app.image_resources&&!image_count(app)&&!image_live);assert(app.last_error==8);assert(app.ImageApi("LoadIconA",a)&&image_count(app)==22);app.FreeImageResources();assert(!image_count(app)&&!image_live);
  }
  {
- X86::Application observer(nullptr);
- X86::Application app(nullptr);assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"IMAGES.EXE"));app.threads[0].suspended=1;assert(app.InitializeImageResources());const unsigned baseline=image_live;
+ auto observer_storage=std::make_unique<X86::Application>(nullptr);
+        auto &observer=*observer_storage;
+ auto app_storage=std::make_unique<X86::Application>(nullptr);
+        auto &app=*app_storage;assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"IMAGES.EXE"));app.threads[0].suspended=1;assert(app.InitializeImageResources());const unsigned baseline=image_live;
  app.win16.state=new X86::Application::Win16Machine;
  unsigned aliased=app.CreateResourceIcon(image_icon,sizeof image_icon,true,0x30000,2,2,0);assert(aliased);
  const unsigned word=app.Win16ImageAlias(aliased,0x1234,false,101,nullptr);

@@ -25,6 +25,7 @@ def digest(path):
 
 
 from external_paths import external_path
+from test_support import require_file
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--host', type=Path, default=ROOT/'build/native-app/neo98-host')
@@ -39,6 +40,8 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     assert shutil.disk_usage(ROOT).free >= 8*1024**3, 'Need at least 8 GiB free'
     source, registry, settings = args.source.resolve(), args.registry.resolve(), args.settings.resolve()
+    for path in (source, registry, settings, args.drive_d):
+        require_file(path)
     inputs = [registry, settings, source/'WINDOWS/ShellIconCache']
     before = {str(f): digest(f) for f in inputs if f.exists()}
     drive = out/'c'

@@ -14,7 +14,9 @@ static int draw(U h){U dc=CreateCompatibleDC(0),bm=CreateBitmap(4,4,1,32,0),old=
 static int seed(const char*name,const void*p,U n){U h=CreateFileA(name,0x40000000,0,0,2,0,0),done=0;if(h==~0u)return 0;U ok=WriteFile(h,p,n,&done,0)&&done==n;return CloseHandle(h)&&ok;}
 int run_image_resource_test(void){
  CHECK(seed("C:\\IMAGERES.DLL",image_dll,sizeof image_dll)&&seed("C:\\IMAGE.ICO",image_ico,sizeof image_ico)&&seed("C:\\IMAGE.CUR",image_cur,sizeof image_cur)&&seed("C:\\IMAGE.BMP",image_bmp,sizeof image_bmp),8337);
- U mod=GetModuleHandleA(0),h=LoadImageA(mod,ID(101),1,2,2,0);CHECK(h&&draw(h),8300);CHECK(DestroyIcon(h),8301);CHECK(!DestroyIcon(h),8302);
+ U mod=GetModuleHandleA(0),h=LoadImageA(mod,ID(101),1,2,2,0);CHECK(h&&draw(h),8300);CHECK(DestroyIcon(h),8301);/* USER Destroy with flags 4 reports success even after FreeImage finds no object.
+    The retired handle must still be unusable for drawing. */
+ CHECK(DestroyIcon(h)&&!draw(h),8302);
  U shared=LoadImageA(mod,"NAMED_ICON",1,16,16,0x8000);CHECK(shared,8303);CHECK(LoadImageA(mod,"NAMED_ICON",1,32,32,0x8040)==shared,8304);CHECK(DestroyIcon(shared)&&draw(shared),8305);CHECK(LoadIconA(mod,"NAMED_ICON")==shared,8306);
  U sys=LoadIconA(0,ID(32512));CHECK(sys&&LoadIconA(0,ID(32512))==sys,8307);CHECK(!DestroyIcon(sys),8308);U cursor=LoadCursorA(0,ID(32512));CHECK(cursor&&LoadCursorA(0,ID(32512))==cursor,8309);CHECK(!DestroyCursor(cursor),8310);
  U owncur=LoadImageA(mod,ID(201),2,2,2,0);CHECK(owncur&&DestroyCursor(owncur),8311);CHECK(LoadCursorA(mod,"NAMED_CURSOR"),8312);

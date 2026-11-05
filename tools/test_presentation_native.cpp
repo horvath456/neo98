@@ -19,6 +19,9 @@ static void fill(User::HWND h,int width,int height,unsigned colour)
     assert(Gdi::FillRect(dc,&area,brush));Gdi::DeleteObject(brush);
     User::DrawingChanged(dc);
     assert(User::ReleaseDC(h,dc));
+    // GetDC drawing leaves the update region intact. This fixture has now
+    // painted the entire client and must validate it before children paint.
+    assert(User::ValidateRect(h,nullptr));
 }
 static void draw(void*,unsigned,unsigned,Gdi::HDC dc,const Gdi::RECT&r,unsigned)
 {
@@ -51,6 +54,7 @@ int main()
     User::MoveWindow(h,30,30,100,40);
     assert(!User::PendingControlPaint());
     assert(User::Render());
+    assert(!User::PendingControlPaint());
     previous.assign(User::Pixels(),User::Pixels()+previous.size());
     // Invalidation requests a paint serviced only by the owning thread.
     User::InvalidateRect(h,nullptr,true);
@@ -84,11 +88,29 @@ int main()
     assert(parent);User::CompleteCreation(parent);
     group=User::CreateWindow("BUTTON","Schemes",0x50000007,10,10,140,70,parent,0,0);
     assert(group);User::CompleteCreation(group);
-    assert(User::Render());assert(User::ServeControlPaints()>=1);assert(User::Render());
+    assert(User::Render());
+    // The fixture deliberately defers this parent's background drawing.
+    // Remove its queued paint so the child can paint first.
+    assert(User::ValidateRect(parent,nullptr));
+    assert(User::ServeControlPaints()>=1);assert(User::Render());
     assert(pixel(450,150)==0x008080);
     fill(parent,180,100,Gdi::RGB(255,0,0));
     assert(User::Render());
     assert(pixel(450,150)==0xff0000);
+    assert(User::DestroyWindow(parent));
+    // A child also retains its painted client across a same-size move and
+    // subsequent composition, with no unrelated repaint demand.
+    parent=User::CreateWindow("ParentSurface","",0x90000000,600,100,180,100,0,0,0);
+    assert(parent);User::CompleteCreation(parent);fill(parent,180,100,Gdi::RGB(0,0,255));
+    auto child=User::CreateWindow("BUTTON","Move",0x50000000,10,10,80,30,parent,0,0);
+    assert(child);User::CompleteCreation(child);
+    assert(User::Render());
+    fill(parent,180,100,Gdi::RGB(0,0,255));
+    assert(User::ServeControlPaints()>=1);assert(User::Render());
+    assert(!User::PendingControlPaint());
+    assert(User::MoveWindow(child,20,20,80,30));
+    assert(!User::PendingControlPaint());
+    assert(User::Render());assert(!User::PendingControlPaint());
     assert(User::DestroyWindow(parent));
     User::Paint paint{};
     User::InvalidateRect(h,nullptr,true);

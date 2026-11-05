@@ -6,6 +6,7 @@ Run through serial.py; requires an explicitly selected private Windows tree
 and POSWORD.TXT from the unchanged fixture on Win98. No live C: is used.
 """
 import argparse
+from test_support import ExternalInputParser
 import hashlib
 import json
 import os
@@ -18,11 +19,12 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT/'tools')]
 import neo98
+import win98_c
 from game_repertoire import wait_host
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = ExternalInputParser(description=__doc__)
     parser.add_argument('--system-root', required=True, type=Path)
     parser.add_argument('--reference', required=True, type=Path)
     parser.add_argument('--label', default='after', choices=['before','after'])
@@ -30,9 +32,9 @@ def main():
     args = parser.parse_args()
     source = args.system_root.resolve()
     assert source != (ROOT/'build/win98-c').resolve() and not args.system_root.is_symlink()
-    assert (source/'.neo98-index').is_file()
+    assert win98_c.legacy_read(source/'.neo98-index').is_file()
     if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode == 0:
-        raise RuntimeError('STOP: another neo98-host is active')
+        __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
     assert shutil.disk_usage('/System/Volumes/Data').free >= 8 * 1024**3
     out = ROOT/'build/position-words'
     out.mkdir(exist_ok=True)

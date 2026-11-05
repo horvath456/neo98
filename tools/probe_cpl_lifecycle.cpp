@@ -254,11 +254,17 @@ int main(int argc, char **argv)
         unsigned list = 0, nodes[192], count = 0;
         User::WindowSnapshot(0, nodes, 192, count);
         for (unsigned i = 0; i < count; ++i)
-            if (User::Owner(nodes[i]) == combo && User::IsVisible(nodes[i])) { list = nodes[i]; break; }
+            if (a->ComboOfList(nodes[i]) == combo && User::IsVisible(nodes[i])) { list = nodes[i]; break; }
         if (!list) { printf("CPL_RESULT FAIL no-dropdown combo=%u\n", combo); return 4; }
+        // Windows 98 resolves a popup's child owner to its top-level ancestor.
+        if (User::Owner(list) != frame || User::Parent(list)) {
+            printf("CPL_RESULT FAIL dropdown-owner list=%u owner=%u frame=%u\n",
+                   list, User::Owner(list), frame);
+            return 4;
+        }
         run(*a, 24); // let the drop-down paint before the capture
         {
-            // The open list is a real top-level window owned by the ComboBox. The
+            // The open list is a real top-level window belonging to this sheet. The
             // capture below has to show it, and the sibling order has to keep it
             // in front of the sheet it belongs to.
             Gdi::RECT area{};

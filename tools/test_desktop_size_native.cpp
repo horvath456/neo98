@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// the desktop runs in 1024 by 768 (tools/desktop_size_fixture.c).
+// the desktop runs in 1024 by 768 (tools/desktop_size_native_fixture.c).
 // The shell composes in the new size, the host frame has that size too (the
 // host window follows it), and the pointer reaches a window beyond the old edge.
 #include "../src/x86_app.h"

@@ -14,7 +14,29 @@ void run_device_color_test(void){U dc=CreateCompatibleDC(0),white=CreateSolidBru
   if(depth>=16){U red=CreateSolidBrush(0xff);check(red&&FillRect(dc,r,red),14711);U physical=depth==16?(n==6?0xf800:0x7c00):0xff0000;check(pixel(raw,depth,9,7)==physical&&GetPixel(dc,9,7)==0xff,14712);check(DeleteObject(red),14713);}
   SelectObject(dc,ob);SelectObject(dc,op);SelectObject(dc,old);check(DeleteObject(bitmap),14714);
  }
- unsigned char source[]={0x12,0x34,0x56,0x78},result[4]={0};U src=CreateBitmap(4,2,1,4,source),dst=CreateBitmap(4,2,1,4,0),other=CreateCompatibleDC(0);check(src&&dst&&other,14716);U os=SelectObject(dc,src),od=SelectObject(other,dst);check(os&&od&&BitBlt(other,0,0,4,2,dc,0,0,0xcc0020),14717);check(GetBitmapBits(dst,4,result)==4,14718);for(U i=0;i<4;++i)check(result[i]==source[i],14719);SelectObject(dc,os);SelectObject(other,od);check(DeleteObject(src)&&DeleteObject(dst)&&DeleteDC(other),14720);
+ // Win98 rejects a colour DDB whose depth differs from the display's 32 bpp.
+ unsigned char source[]={0x12,0x34,0x56,0x78},result[4]={0};
+ U src=CreateBitmap(4,2,1,4,source),dst=CreateBitmap(4,2,1,4,0),other=CreateCompatibleDC(0);
+ check(src&&dst&&other,14716);
+ check(!SelectObject(dc,src)&&!SelectObject(other,dst),14717);
+ check(GetBitmapBits(src,4,result)==4,14718);
+ for(U i=0;i<4;++i)check(result[i]==source[i],14719);
+ check(DeleteObject(src)&&DeleteObject(dst),14720);
+ // Four-bit DIB sections are selectable independently of the device depth.
+ // Distinct palette entries make a wrong index conversion visible in BitBlt.
+ U indexed[26]={40,4,(U)-2,(4<<16)|1,0,0,0,0,16,0};
+ for(U i=0;i<16;++i)indexed[10+i]=i*0x111111;
+ unsigned char *from=0,*to=0;
+ src=CreateDIBSection(0,indexed,0,(void**)&from,0,0);
+ dst=CreateDIBSection(0,indexed,0,(void**)&to,0,0);
+ check(src&&dst&&from&&to,14721);
+ for(U i=0;i<8;++i){from[i]=0;to[i]=0;}
+ from[0]=source[0];from[1]=source[1];from[4]=source[2];from[5]=source[3];
+ U os=SelectObject(dc,src),od=SelectObject(other,dst);
+ check(os&&od&&BitBlt(other,0,0,4,2,dc,0,0,0xcc0020),14722);
+ for(U y=0;y<2;++y)for(U x=0;x<2;++x)check(to[y*4+x]==source[y*2+x],14723);
+ SelectObject(dc,os);SelectObject(other,od);
+ check(DeleteObject(src)&&DeleteObject(dst)&&DeleteDC(other),14724);
  check(DeleteObject(white)&&DeleteObject(black)&&DeleteObject(pen)&&DeleteDC(dc),14715);
 }
 #ifdef DEVICE_COLOR_STANDALONE

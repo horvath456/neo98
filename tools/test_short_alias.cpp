@@ -9,6 +9,7 @@
 // separately: their tail says in which order that directory was once filled,
 // which a finished installation cannot tell us.
 #include "../src/win98_short_alias.h"
+#include "legacy_data.h"
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -48,7 +49,7 @@ std::vector<std::pair<std::string, std::string>> entries;   // guest path, store
 
 bool Walk(const std::string &host, const std::string &guest)
 {
-    FILE *file = fopen((host + "/.neo98-index").c_str(), "r");
+    FILE *file = fopen(LegacyData::ReadPath(host + "/.neo98-index").c_str(), "r");
     if (!file)
         return false;
     std::vector<std::string> directories;

@@ -23,7 +23,7 @@ def main():
  subprocess.run(['cp','-cR',str((ROOT/'build/win98-c').resolve()),str(private)],check=True)
  shutil.copyfile(exe,private/'SBADC.COM')
  try:
-  if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:raise RuntimeError('another neo98-host is active')
+  if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:__import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
   with (out/'host.log').open('w') as log:
    child=subprocess.Popen([a.host,'-',ROOT/'build/generated/notepad-fixedsys.fnt','--exe','C:\\SBADC.COM','--drive-c',private,'--system-tree',private,'--no-registry-file','--quiet'],env=env,stdout=log,stderr=subprocess.STDOUT)
    try:code=child.wait(timeout=60)

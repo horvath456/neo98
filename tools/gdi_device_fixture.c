@@ -147,10 +147,14 @@ void run_gdi_device_test(void) {
     check(GetDeviceGammaRamp(dc, 0) == 0 && GetLastError() == 87, 18034);
     check(GetDeviceGammaRamp(dc, ramp) == 1 && ramp[255] >= ramp[0], 18035);
     check(SetDeviceGammaRamp(dc, ramp) == 1, 18036);
+    /* Windows 98 answers an unknown mode with FALSE, without calling
+       SetLastError when the ICM module is present. */
+    SetLastError(0x1234);
+    check(SetICMMode(dc, 9) == 0 && GetLastError() == 0x1234, 18037);
     SetLastError(0);
-    check(SetICMMode(dc, 9) == 0 && GetLastError() == 87, 18037);
-    SetLastError(0);
-    check(SetICMMode(dc, 1) == 0 && GetLastError() == 8, 18038);
+    /* The full Win98 SE reference has ICM; query the mode after setting it. */
+    check(SetICMMode(dc, 1) != 0 && GetLastError() == 0, 18038);
+    check(SetICMMode(dc, 3) == 1, 18068);
   }
 
   /* GetTextExtentExPointA measures prefixes, so alpDx is cumulative. */

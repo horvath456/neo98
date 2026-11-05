@@ -10,6 +10,15 @@ static U length(const char*s){U n=0;while(s[n])++n;return n;}
 static void __stdcall apc(U data){apc_value=apc_value*10+data;}
 static void __stdcall complete(U error,U bytes,U overlapped){CHECK(overlapped);io_error=error;io_bytes=bytes;++io_count;}
 static U __stdcall enumerate(U text){CHECK(*(char*)text);++enum_count;return 1;}
+static U codepage_mask;
+static U __stdcall enumerate_codepage(U text){
+ const char*pages[]={"437","850","866","1252","65000","65001"};
+ for(U i=0;i<6;++i)if(length((char*)text)==length(pages[i])&&equal((char*)text,pages[i],length(pages[i]))){
+  CHECK(!(codepage_mask&(1u<<i)));CHECK(IsValidCodePage((U)(i==0?437:i==1?850:i==2?866:i==3?1252:i==4?65000:65001)));
+  codepage_mask|=1u<<i;++enum_count;return 1;
+ }
+ CHECK(0);return 0;
+}
 static U __stdcall enumerate_ex(U text,U calendar){CHECK(*(char*)text&&calendar==1);++enum_count;return 1;}
 static U __stdcall control(U code){CHECK(code==0);++ctrl_count;return 1;}
 static U __stdcall worker(U event){WaitForSingleObject(event,~0u);return 27;}
@@ -138,7 +147,7 @@ static void locale_test(void){
  U info[80];char text[256];CHECK(GetCPInfoExA(1252,0,P(info))&&info[0]==1&&info[5]==1252);
  CHECK(IsValidCodePage(437)&&IsValidCodePage(65001)&&!IsValidCodePage(123456));
  CHECK(IsValidLocale(0x409,1)&&!IsValidLocale(0x409,0));CHECK(ConvertDefaultLocale(9)==0x409);
- enum_count=0;CHECK(EnumSystemCodePagesA(P(enumerate),1)&&enum_count==5);
+ enum_count=0;codepage_mask=0;CHECK(EnumSystemCodePagesA(P(enumerate_codepage),1)&&enum_count==6&&codepage_mask==63);
  enum_count=0;CHECK(EnumSystemLocalesA(P(enumerate),1)&&enum_count==1);
  CHECK(VerLanguageNameA(0x409,P(text),sizeof text)==23&&equal(text,"English (United States)",24));
  enum_count=0;CHECK(EnumCalendarInfoA(P(enumerate),0x409,1,5)&&enum_count==7);

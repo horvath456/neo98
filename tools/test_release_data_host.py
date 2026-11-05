@@ -4,9 +4,9 @@
 import argparse
 import os
 from pathlib import Path
-import shutil
 import sys
 import subprocess
+import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ui_clipboard_test_support import ROOT, fixture
 from test_release_smoke import run
@@ -30,11 +30,10 @@ def main():
                   defines=['-DRELEASE_DATA_SKIP_SERIALUI'] if args.skip_serialui else [])
     for engine in (args.engine or ('fex', 'unicorn')):
         case = out / engine; case.mkdir(exist_ok=True)
-        drive = case / 'c'
-        if drive.exists(): raise RuntimeError('Private test drive already exists')
-        subprocess.run(['cp', '-c', '-R', str(args.source.resolve()), str(drive)], check=True)
-        assert not drive.is_symlink()
-        try:
+        with tempfile.TemporaryDirectory(prefix='machine-', dir=case) as temporary:
+            drive = Path(temporary) / 'c'
+            subprocess.run(['cp', '-c', '-R', str(args.source.resolve()), str(drive)], check=True)
+            assert not drive.is_symlink()
             env = dict(os.environ, NEO98_CPU=engine, SDL_AUDIODRIVER='dummy', SDL_VIDEODRIVER='dummy',
                        NEO98_HOST_PASTEBOARD='unique', NEO98_SETTINGS_DIR=str(case/'settings'),
                        NEO98_LOG_DIR=str(case/'logs'), NEO98_LOG_TO_FILE='0', NEO98_HOST_DEADLINE='90',
@@ -45,6 +44,5 @@ def main():
             assert 'NEO98 HOST exited code=0' in text, text[-1200:]
             suffix = '' if args.skip_serialui else ', SERIALUI'
             print(f'PASS {engine}: FormatMessage, CP1252, cursor, icon, system menu, clipboard{suffix}', flush=True)
-        finally: shutil.rmtree(drive)
 
 if __name__ == '__main__': main()

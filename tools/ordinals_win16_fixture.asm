@@ -1,7 +1,7 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
 ; A sample of the gates of the pass over the whole export tables
 ;
-// one 16-bit program that calls them and writes
+; one 16-bit program that calls them and writes
 ; down what came back. tools/test_win16_ordinals_host.py reads the words.
 ;
 ; KERNEL.79 [AnsiUpper] the unnamed string helper

@@ -158,8 +158,9 @@ void run_gdi_region_brush_test(void) {
   check(UnrealizeObject(red) == 1 && UnrealizeObject(hatch) == 1, 16044);
   SetLastError(0);
   check(!UnrealizeObject(square) && GetLastError() == 6, 16045);
-  SetLastError(0);
-  check(!UnrealizeObject(0) && GetLastError() == 6, 16046);
+  /* Windows 98 returns FALSE for NULL without setting LastError. */
+  SetLastError(0x1234);
+  check(!UnrealizeObject(0) && GetLastError() == 0x1234, 16046);
 
   /* The dimension pair is a WORD pair; Set answers the previous one. */
   U ddb = CreateBitmap(4, 4, 1, 1, 0);

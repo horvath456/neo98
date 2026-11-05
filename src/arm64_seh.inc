@@ -625,10 +625,11 @@ unsigned Raise(const Unwind::ExceptionRecord &record, bool at_call, unsigned run
     w.record = record;
     Capture(w.exception, at_call);
     if (!w.record.address) w.record.address = w.exception.pc;
-    w.current = w.exception;
     // Behind a call the pc is a return address; the frame it belongs to is
-    // the one of the instruction before.
-    if (at_call) w.current.flags |= Unwind::ContextUnwoundToCall;
+    // the one of the instruction before. Preserve that fact in the saved
+    // exception context too, since unwinding resumes there after dispatch.
+    if (at_call) w.exception.flags |= Unwind::ContextUnwoundToCall;
+    w.current = w.exception;
     w.stack = registers.sp;
     unsigned error = 0;
     const WalkResult result = Dispatch(w, error);

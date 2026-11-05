@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "gdi.h"
 #include <new>
+#include "gdi_state.h"
 #include "gdi_truetype.h"
 #include <stdint.h>
 #include "win98_gdi_object_type.h"
@@ -66,7 +67,8 @@ namespace {
 // Native slots grow without relocating objects. A WORD retains fifteen index
 // bits and one generation bit; GDI's original local/32-bit heap handles are
 // even WORDs, so this covers their entire nonzero handle count.
-constexpr unsigned IndexBits = 15, IndexMask = (1u << IndexBits) - 1, ClipCapacity = 64;
+constexpr unsigned MaxIndexMask = (1u << 15) - 1, ClipCapacity = 64;
+unsigned IndexBits = 15, IndexMask = MaxIndexMask;
 unsigned Capacity=0, free_object_hint=0;
 enum Kind { Empty, BitmapObject, BrushObject, FontObject, DCObject, RegionObject, PenObject, PaletteObject, ColorSpaceObject };
 struct ClipSnapshot {unsigned references,raw,count;RECT* rectangles;};
@@ -174,6 +176,7 @@ struct Object {
     bool object_private = false;
     bool hollow_brush = false;
     unsigned original_bitmap = 0;
+    bool display_compatible = false;
     // The host copy of a segmented DDB matches guest memory; see
     // BitmapStore::Sync.
     bool host_copy_current = false;
@@ -197,7 +200,7 @@ struct Object {
 };
 struct ObjectPage {Object entries[64];};
 struct ObjectStore {
-    ObjectPage *pages[(IndexMask+63)/64]{};
+    ObjectPage *pages[(MaxIndexMask+63)/64]{};
     ~ObjectStore(){for(auto *page:pages)delete page;}
     Object &operator[](unsigned i){return pages[i/64]->entries[i%64];}
     bool Grow(){
@@ -211,7 +214,7 @@ struct ObjectStore {
 // A 16-bit gate returns handles in AX. While such a gate runs, Allocate
 // must assign handles that fit in one word.
 unsigned narrow_handles = 0;
-constexpr unsigned NarrowGenerations = (0x10000u >> IndexBits) - 1;
+unsigned NarrowGenerations = 1;
 // A Win16 caller retains the low WORD. Its generation bit and index must
 // name the same object even when a Win32 caller holds the full generation.
 bool Names(const Object &o, unsigned handle)
@@ -1190,6 +1193,14 @@ void SetDisplayCaps(int width,int height,int depth)
 {
     if(width<=0||height<=0||depth<=0)return;
     const int previous=display_depth;
+    // A mode switch preserves the display association of existing DDBs.
+    // Their stored pixel format stays unchanged, and even a new memory DC
+    // can select them. A bitmap created with an incompatible depth still
+    // fails selection until it belongs to a matching display mode.
+    if(depth!=previous)
+        for(unsigned i=0;i<Capacity;++i)
+            if(auto &o=objects[i];o.kind==BitmapObject&&o.original_bitmap&&o.bitmap.depth==previous)
+                o.display_compatible=true;
     display_width=width;display_height=height;display_depth=depth;
     // Initialize the device color table with the fixed display colors. All
     // remaining slots are free, and no palette has been realized yet.
@@ -1621,10 +1632,10 @@ HGDIOBJ SelectObject(HDC handle, HGDIOBJ object)
     if (!o) { kind = FontObject; o = Find(object, kind); }
     if (!o) { kind = PenObject; o = Find(object, kind); }
     if (!c->memory_dc && kind == BitmapObject) return 0;
-    // A device-dependent colour bitmap must match the DC's device depth.
-    // DIB sections carry their own format and are converted when drawn.
+    // An unrelated DDB must match the display depth. Bitmaps retained across
+    // a display change, and DIB sections, keep their own pixel format.
     if (o && kind == BitmapObject && o->original_bitmap &&
-        o->bitmap.depth != 1 && o->bitmap.depth != display_depth) return 0;
+        !o->display_compatible && o->bitmap.depth != 1 && o->bitmap.depth != display_depth) return 0;
     // Win98 gives every memory DC the same stock bitmap, 1 by 1 and
     // monochrome, and SelectObject skips the rule that a bitmap
     // lives in one DC only for it. So the bitmap one
@@ -2476,4 +2487,62 @@ bool ExtTextOutGlyphs(HDC handle,int x,int y,unsigned options,const RECT *rect,c
 unsigned LiveObjects() { unsigned n = 0; for(unsigned i=0;i<Capacity;++i)n+=objects[i].kind!=Empty; return n; }
 unsigned ObjectCapacity() { return IndexMask; }
 void NarrowHandles(bool on) { if (on) ++narrow_handles; else if (narrow_handles) --narrow_handles; }
+bool PrepareLegacyObjects(unsigned count)
+{
+    if (count != 2048) return false;
+    for (auto *&page : objects.pages) { delete page; page = nullptr; }
+    Capacity = free_object_hint = 0;
+    IndexBits = 12;
+    IndexMask = (1u << IndexBits) - 1;
+    NarrowGenerations = (0x10000u >> IndexBits) - 1;
+    while (Capacity < count) if (!objects.Grow()) return false;
+    return true;
+}
+void *LegacyObject(unsigned index) { return index < Capacity ? &objects[index] : nullptr; }
+void *LegacySavedState(void *link)
+{
+    auto *&head = *static_cast<SavedState **>(link);
+    auto *saved = new(std::nothrow) SavedState{{}, head};
+    if (!saved) return nullptr;
+    head = saved;
+    return &saved->state;
+}
+bool FinishLegacyContext(void *context, unsigned count)
+{
+    auto &c = *static_cast<Context *>(context);
+    if (c.saves > count) return false;
+    // Unused array entries held no references. Discard their copied values
+    // without releasing objects that belong to the live saved levels.
+    while (count > c.saves) {
+        --count;
+        auto *unused = c.saved;
+        if (!unused) return false;
+        c.saved = unused->previous;
+        delete unused;
+    }
+    return true;
+}
+void *PrepareLegacyRegions(unsigned count)
+{
+    if (count != 384) return nullptr;
+    auto *blocks = new(std::nothrow) RegionStore::Block[count];
+    if (!blocks) return nullptr;
+    delete[] region_store.blocks;
+    region_store.blocks = blocks;
+    region_store.capacity = count;
+    return blocks;
+}
+void *PrepareLegacyBitmapRanges(unsigned count)
+{
+    if (count != 8192) return nullptr;
+    auto *ranges = new(std::nothrow) BitmapStore::Range[count];
+    if (!ranges) return nullptr;
+    delete[] bitmap_store.ranges;
+    bitmap_store.ranges = ranges;
+    bitmap_store.range_capacity = count;
+    bitmap_store.read_cache = bitmap_store.write_cache = nullptr;
+    for (auto *&entry : bitmap_store.recent) entry = nullptr;
+    bitmap_store.next_recent = 0;
+    return ranges;
+}
 }

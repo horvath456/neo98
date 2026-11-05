@@ -25,8 +25,11 @@ from external_paths import external_path
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
-    parser.add_argument('--film', type=Path, default=external_path('NEO98_GAME_CORPUS') / 'prepared/virtualchess/VCWIN95/AVI/TITUS.AVI')
+    parser.add_argument('--film', type=Path)
     args = parser.parse_args()
+    args.film = args.film or external_path('NEO98_GAME_CORPUS') / 'prepared/virtualchess/VCWIN95/AVI/TITUS.AVI'
+    from test_support import require_file
+    require_file(args.film)
     out = ROOT / 'build/mci-aflc'
     out.mkdir(exist_ok=True)
     film_hash = hashlib.sha256(args.film.read_bytes()).hexdigest()

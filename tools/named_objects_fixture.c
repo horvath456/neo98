@@ -38,7 +38,9 @@ void mainCRTStartup(void)
     {
         // The child. Its argument is the value of an inherited handle, which
         // puts at the same table index as in the parent.
-        U inherited=hex(line+2);
+        while (*line && *line != ' ') ++line;
+        check(line[0]==' ' && line[1]=='C' && line[2]==' ',17438);
+        U inherited=hex(line+3);
         check(WaitForSingleObject(inherited,0)==258,17400);
         // Every name of the parent is visible here.
         U e=OpenEventA(0x1f0003,0,event_name);check(e,17401);
@@ -142,8 +144,8 @@ void mainCRTStartup(void)
     // a rejected flag would be error 50 rather than the absent program.
     SetLastError(0);check(!CreateProcessA("C:\\ABSENT.EXE",command,0,0,0,0x20,0,0,si,pi)&&GetLastError()==2,17322);
     SetLastError(0);check(!CreateProcessA("C:\\ABSENT.EXE",command,0,0,0,0x60,0,0,si,pi)&&GetLastError()==2,17323);
-    // An unsupported flag is still ERROR_NOT_SUPPORTED, before the lookup.
-    SetLastError(0);check(!CreateProcessA("C:\\ABSENT.EXE",command,0,0,0,0x4,0,0,si,pi)&&GetLastError()==50,17324);
+    // CREATE_SUSPENDED is supported; an absent program still fails its lookup.
+    SetLastError(0);check(!CreateProcessA("C:\\ABSENT.EXE",command,0,0,0,0x4,0,0,si,pi)&&GetLastError()==2,17324);
     check(CreateProcessA("C:\\NAMED.EXE",command,0,0,1,0x20,0,0,si,pi),17325);
     // The child signals the parent's event across the process boundary.
     check(WaitForSingleObject(e,~0u)==0,17326);

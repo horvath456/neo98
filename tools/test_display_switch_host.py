@@ -51,10 +51,12 @@ def main():
         after = pixels(shots[name])
         expected = before
         if name == 'indexed':
-            # COLOR_3DDKSHADOW is nearest black in Win98's fixed palette;
-            # the other system colours in these crops are exact.
+            # Win98 snaps the two gray edge colors in the indexed mode.
+            # The display-bitmap fixture also checks COLOR_3DLIGHT and its
+            # actual device-pixel conversion against the original system.
             body, width = before
-            converted = b''.join(b'\0\0\0' if body[i:i+3] == b'@@@' else body[i:i+3]
+            converted = b''.join(b'\0\0\0' if body[i:i+3] == b'@@@' else
+                                 b'\xc0\xc0\xc0' if body[i:i+3] == b'\xdf\xdf\xdf' else body[i:i+3]
                                  for i in range(0, len(body), 3))
             expected = converted, width
         # The screen-area group and the transparent interior below the colour

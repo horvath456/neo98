@@ -224,7 +224,7 @@ unsigned Application::PropertySheetEnvironment::ContinueAdd(PropertyWork*w,bool 
  struct Buffers{PropertySheetEnvironment&e;PropertyWork*w;~Buffers(){e.Free(w->value[3]);e.Free(w->value[4]);}}buffers{*this,w};
  if(resumed){if(w->phase==2)goto created;goto inserted;}
  w->value[1]=Read(s+0x1c);
- if(!w->value[0]||w->value[1]>=99||!app.AllocationSize(w->value[0]-24))return 0;
+ if(!w->value[0]||w->value[1]>=99||!LocalSize(w->value[0]-24))return 0;
  w->value[2]=Read(w->value[0]-8);Write(Read(s+0x24)+w->value[1]*4,w->value[2]);f->children[w->value[1]]=0;Write(s+0x1c,w->value[1]+1);
  w->value[3]=Allocate(0x1c8);w->value[4]=Allocate(32);
  if(!w->value[3]||!w->value[4]||!Win98PropertySheet::PageInfo(*this,w->value[2],w->value[3],0x409,7))goto failed;

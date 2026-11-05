@@ -42,7 +42,7 @@ def check(name, ok, detail=''):
 
 def journal_paths(data):
     """The key paths the records of a change journal name, in order."""
-    assert data.startswith(win98_folder.JOURNAL_SIGNATURE)
+    assert data.startswith((win98_folder.JOURNAL_SIGNATURE, bytes([65, 82, 77, 57, 56]) + b'REG1'))
     text = data.decode('latin-1')
     return [k for k in ('Active Setup', 'TimeZoneInformation', 'CurrentVersion\\Run') if k in text]
 

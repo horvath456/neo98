@@ -8,6 +8,7 @@ alone cannot pass. Every changed host frame is captured to detect stalls that
 average progress misses. License values are neither inspected nor printed.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -73,7 +74,7 @@ def check_pacing(pacing):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = ExternalInputParser(description=__doc__)
     parser.add_argument('--drive-c', required=True, type=Path)
     parser.add_argument('--registry', required=True, type=Path)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')

@@ -240,8 +240,13 @@ unsigned Application::CommonMessage(unsigned hwnd, unsigned message,
     }
   auto *tree = FindTree(hwnd, message == 0x81 || message == 1);
   if (!tree) {
-    Fail("Missing native tree control");
-    return 0;
+    if (message == 0x81 || message == 1) {
+      Fail("Cannot allocate native tree control");
+      return 0;
+    }
+    // Creation can send sizing messages before WM_NCCREATE installs state.
+    // The default procedure also handles messages after the tree is released.
+    return DefaultWindowMessage(hwnd, message, wp, lp);
   }
   struct Active {
     Tree *tree;

@@ -43,6 +43,7 @@ var MachineState::Machine::last_save host                        # numbers of th
 var MachineState::(anonymous namespace)::layout host             # the layout table of this very program
 var MachineState::(anonymous namespace)::last_writer host        # the last save of this process
 var MachineState::(anonymous namespace)::last_numbers host       # numbers of the last save of this process
+var MachineState::(anonymous namespace)::last_end_pointers host # diagnostics of the last load in this process
 var MachineState::(anonymous namespace)::Regions()::regions host # where this process reserved its regions
 var MachineState::(anonymous namespace)::Interned()::strings host # strings a load copied into this process
 

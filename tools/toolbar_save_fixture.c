@@ -20,6 +20,7 @@ __declspec(dllimport) U __stdcall RegCreateKeyA(U,const char*,U*);
 __declspec(dllimport) U __stdcall RegSetValueExA(U,const char*,U,U,const void*,U);
 __declspec(dllimport) U __stdcall RegQueryValueExA(U,const char*,U*,U*,void*,U*);
 __declspec(dllimport) U __stdcall RegCloseKey(U);
+static U invalid_handle;
 static U bar,registry_key,save_notes,restore_notes,restore_item,callback_error,save_mode,restore_mode,in_restore;
 static char borrowed_text[]="Borrowed restore text";
 static void check(int ok,U code){if(!ok)ExitProcess(code);}
@@ -38,7 +39,7 @@ static U __stdcall parent_proc(U h,U m,U w,U l){
 #ifdef NATIVE_NEGATIVE
     if(SendMessageA(bar,0x416,0,0)||SendMessageA(bar,0x418,0,0)!=4)callback_error=6;
 #endif
-    *(U*)(l+12)=1;*(U*)(l+16)=1;*(U*)(l+20)=16;}
+    U invalid=save_mode==2?invalid_handle:1;*(U*)(l+12)=invalid;*(U*)(l+16)=invalid;*(U*)(l+20)=16;}
    else if(item<0){U data=(U)LocalAlloc(0,36);if(!data)ExitProcess(8625);*(U*)(l+12)=data;*(U*)(l+16)=data+4;*(U*)(l+20)=36;*(U*)data=0x12345678;}
    else {U current=*(U*)(l+16);if(!current)callback_error=3;else {*(U*)current=0xabc00000+(U)item;*(U*)(l+16)=current+4;}}
    ++save_notes;}
@@ -75,6 +76,9 @@ int run_toolbar_save_test(void){
  check(SendMessageA(bar,0x41a,1,(U)&saved),8626);U before_abort=get(0).command;restore_mode=1;check(!SendMessageA(bar,0x41a,0,(U)&saved)&&get(0).command==before_abort,8627);restore_mode=0;
 #ifdef NATIVE_NEGATIVE
  SAVE invalid_save={saved.root,saved.key,"invalid-save"};save_mode=1;check(!SendMessageA(bar,0x41a,1,(U)&invalid_save)&&get(0).command==before_abort,8628);save_mode=0;
+ invalid_handle=(U)LocalAlloc(2,36);check(invalid_handle!=0,8635);save_mode=2;
+ check(!SendMessageA(bar,0x41a,1,(U)&invalid_save)&&get(0).command==before_abort,8636);
+ check(!LocalFree((void*)invalid_handle),8637);save_mode=0;
 #endif
  U before=get(0).command;check(!RegSetValueExA(key,"bad-type",0,1,"x",2),8618);SAVE bad={saved.root,saved.key,"bad-type"};check(!SendMessageA(bar,0x41a,0,(U)&bad)&&get(0).command==before,8619);
  check(!RegSetValueExA(key,"bad-size",0,3,"xyz",3),8620);bad.value="bad-size";check(!SendMessageA(bar,0x41a,0,(U)&bad)&&get(0).command==before,8621);

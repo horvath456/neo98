@@ -181,7 +181,7 @@ void run_windows_test(U module)
               GetClassLongA(a, -26) == 8,
           2064);
     char canonical[64];
-    check(GetClassNameA(a, canonical, 64) == 19 && canonical[0] == 'A' && canonical[5] == 'W', 2065);
+    check(GetClassNameA(a, canonical, 64) == 19 && canonical[0] == 'N' && canonical[5] == 'W', 2065);
     U message_result = 0;
     check(SendMessageTimeoutA(a, 0x890, 0x1234, 0xabcd, 2, 0, &message_result) &&
               message_result == 0x8000b9f9,

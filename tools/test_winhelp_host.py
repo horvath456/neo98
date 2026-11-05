@@ -79,8 +79,9 @@ def main():
     steps.add('key=57', 1.0).add('wait=MS_WINNOTE', 2.0).add('tops=4')
     code, text, run = host(binary, out, 'whats-this', 'C:\\WINDOWS\\NOTEPAD.EXE', 'NOTEPAD.EXE',
                            steps.steps, int(steps.time) + 25, pristine, journal, environment={'NEO98_TRACE_TEXT': '1'})
+    # Win98 menu measurement gives 108 by 21; popup creation adds WS_CLIPSIBLINGS.
     check('a right click in a dialog shows the menu "What\'s This?" at the pointer',
-          'frame=426,287,540,310 style=90000000 process=1 props=0 class=#32768' in text)
+          'visible=1 frame=426,287,534,308 style=94000000 process=1 props=0 class=#32768' in text)
     check('What\'s This? shows the popup of Cancel from WINDOWS.HLP',
           'wait=MS_WINNOTE reached' in text and 'Closes the dialog box without saving' in text)
     check('What\'s This?: no crash or call the host does not carry',

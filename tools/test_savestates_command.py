@@ -204,8 +204,8 @@ def run(out, build=True):
     code, text = host('--game-machine-states', 'Zustandsspiel', NEO98_DOS_CORE_ID='kern-b')
     listed = {entry['id']: entry for entry in states(text)}
     check('another DOS machine: refused, with both engines in the reason',
-          listed['gemacht']['usable'] == '0' and 'dos-1-kern-a' in listed['gemacht']['reason'] and 'dos-1-kern-b' in listed['gemacht']['reason']
-          and 'DOS-Maschine' in listed['gemacht']['reason'])
+          listed['gemacht']['usable'] == '0' and 'dos-1-kern-a' in listed['gemacht']['reason'] and 'dos-3-kern-b' in listed['gemacht']['reason']
+          and 'the DOS machine' in listed['gemacht']['reason'])
     check('the states of the files alone still fit', listed[first]['usable'] == '1')
     layer_now = checksums(layer)
     count = len(listed)

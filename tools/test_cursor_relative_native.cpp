@@ -17,8 +17,10 @@
 #undef private
 #include "system_tree_host.h"
 #include <cassert>
+#include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <thread>
 #include <vector>
 
 static std::vector<unsigned char> load(const char *p)
@@ -61,8 +63,10 @@ static Run once(const std::vector<unsigned char> &exe, const std::vector<unsigne
     for (unsigned n = 0; n < 4000; ++n)
     {
         app.Pump(8);
-        unsigned count = 0;
-        if (app.Read(Records, &count, 4) && app.Callbacks() > 8) break;
+        unsigned ready = 0;
+        if (app.Read(Records + 129 * 4, &ready, 4) && ready) break;
+        if (app.Status() == X86::Application::Idle)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     // Four movements of ten pixels to the right, the way a user drags the
     // mouse. The runner keeps its own schedule: feed one movement, wait until
@@ -83,6 +87,8 @@ static Run once(const std::vector<unsigned char> &exe, const std::vector<unsigne
             unsigned now = before;
             if (!read && app.Read(Records, &now, 4) && now != before) read = 1;
             if (read) ++settle;
+            if (app.Status() == X86::Application::Idle)
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         if (app.Status() == X86::Application::Failed) break;
     }
@@ -134,10 +140,10 @@ int main(int argc, char **argv)
     printf("\nCURSOR far");
     for (int d : far.dx) printf(" %d", d);
     printf("\n");
-    // Both runs read the same movements, and at least three of the four fed
-    // ones arrive; the last can still be in the queue when the run ends.
-    assert(following.dx.size() >= 3 && following.dx.size() == standing.dx.size());
-    assert(far.dx.size() >= 3);
+    // All four injected movements must arrive, independently of the number
+    // of synthetic zero movements produced by SetCursorPos.
+    assert(following.dx.size() == 4 && standing.dx.size() == 4);
+    assert(far.dx.size() == 4);
     {
         int sum = 0;
         for (int d : far.dx) sum += d;

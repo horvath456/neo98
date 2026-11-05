@@ -36,10 +36,12 @@ void mainCRTStartup(void)
     U mode = (U)(*GetCommandLineA() - '0'), old = 0;
     if (mode == 0)
     {
+        /* Win98 protects .rdata initially; grant access before writing it. */
+        check(VirtualProtect(ro, 4096, 4, &old) && old == 2, 6025);
+        query(ro, 4); query(rw, 4);
         *(volatile U *)(ro + 16) = 0x12345678;
         check(*(volatile U *)(ro + 16) == 0x12345678, 6024);
-        query(ro, 2); query(rw, 4);
-        check(VirtualProtect(ro, 4096, 2, &old) && old == 2, 6025);
+        check(VirtualProtect(ro, 4096, 2, &old) && old == 4, 6025);
         for (U i = 0; i < 256; ++i) *(volatile U *)(rw + 16) = i;
         query(ro, 2); query(rw, 4);
         ExitProcess(0);

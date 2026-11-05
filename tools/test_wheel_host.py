@@ -97,6 +97,22 @@ def boxes(text):
     return out
 
 
+def prepare_retrozilla_profile(run):
+    # A previous user's browser crash must not prompt before the test page.
+    # Session Manager removes this flag on an ordinary browser shutdown.
+    profiles = win98_c.path(r'C:\WINDOWS\Application Data\RetroZilla\Profiles', run / 'c')
+    if profiles:
+        for prefs in profiles.rglob('prefs.js'):
+            lines = prefs.read_bytes().splitlines(keepends=True)
+            prefs.write_bytes(b''.join(line for line in lines if not re.match(
+                rb'\s*user_pref\("extensions\.sessionmanager\._running",', line)))
+            # Crash Recovery also stores its shutdown state outside prefs.js.
+            recovery = prefs.parent / 'crashrecovery.dat'
+            if recovery.is_file():
+                recovery.write_bytes(re.sub(rb'(?m)^state=(?:running|crashed)(\r?)$',
+                                            rb'stopped\1', recovery.read_bytes(), count=1))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n', 1)[0])
     parser.add_argument('--no-build', action='store_true')
@@ -191,7 +207,8 @@ def main():
 
     # 2. A list box under the wheel, in a 16-bit program: File Manager.
     steps = Steps('WFS_Frame', 6.0)
-    steps.add('lists=1', 0.5).add('move=100,250', 0.5)        # over the tree of directories
+    # Reset only the viewport; keep the selected directory's file columns.
+    steps.add('move=100,250', 0.5).add('wheel=100', 1.0).add('lists=1', 0.5)
     steps.add('scroll=-13.4,0,begin', 1.0).add('lists=1', 0.5)
     steps.add('scroll=-26.8,0,begin', 1.0).add('lists=1', 0.5)
     steps.add('wheel=-1', 1.0).add('lists=1', 0.5)
@@ -199,8 +216,14 @@ def main():
     steps.add('move=400,250', 0.5)                            # over the files, columns side by side
     steps.add('scroll=0,53.6,begin', 1.0).add('lists=1', 0.5)
     steps.add('scroll=0,-53.6,begin', 1.0).add('lists=1', 0.5).add('shot={out}/winfile.ppm')
+    def winfile_tree(run):
+        # Keep six rows of scrolling available regardless of the imported C:.
+        for index in range(32):
+            (run / 'c' / f'WHEEL{index:03d}').mkdir(exist_ok=True)
+
     code, text, run = host(binary, out, 'winfile', 'C:\\WINDOWS\\WINFILE.EXE', 'WINFILE.EXE',
-                           steps.steps, int(steps.time) + 25, pristine, win98_c.journal(pristine))
+                           steps.steps, int(steps.time) + 25, pristine, win98_c.journal(pristine),
+                           prepare=winfile_tree)
     firsts = boxes(text)
     report['winfile'] = firsts
     columns = list(zip(*firsts)) if len(firsts) == 7 and len({len(row) for row in firsts}) == 1 else []
@@ -272,7 +295,8 @@ def main():
         staged.mkdir(exist_ok=True)
         (staged / 'WHEEL.HTM').write_text(PAGE)
         code, text, run = host(binary, out, 'retrozilla', program, f'"{program}" file:///E:/WHEEL.HTM', steps, 110,
-                               live, win98_c.journal(live), drives=(f'E={staged}',))
+                               live, win98_c.journal(live), drives=(f'E={staged}',),
+                               prepare=prepare_retrozilla_profile)
         names = ('top', 'notch', 'line', 'lines', 'trackpad', 'back')
         if all((run / f'{name}.ppm').is_file() for name in names):
             shots = {name: picture(run, name, (0, 120, 1000, 740)) for name in names}

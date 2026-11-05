@@ -68,6 +68,8 @@ def main():
         print(('ok  ' if condition else 'FAIL'), name, flush=True)
 
     def prepare(run):
+        from test_support import require_printer_inputs
+        require_printer_inputs()
         subprocess.run([sys.executable, str(ROOT / 'tools/install_printer.py'), '--drive-c', str(run / 'c'),
                         '--registry', str(run / 'c.registry'), '--tree', str(run / 'c')], check=True,
                        stdout=subprocess.DEVNULL)

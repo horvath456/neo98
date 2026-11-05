@@ -44,8 +44,9 @@ int main(int argc, char **argv)
         if (scenario) block_extension(app);
         if (scenario < 2)
         {
-            const unsigned args[] = {0, 32 * MiB};
-            const unsigned large = app.Api("GlobalAlloc", args);
+            // The forced mapping above fragments Application's internal arena.
+            // Fixed GlobalAlloc now uses the separate Windows process heap.
+            const unsigned large = app.Allocate(32 * MiB);
             assert(large && app.AllocationSize(large) == 32 * MiB);
             app.Write32(large, 0xaabbccdd);
             app.Write32(large + 32 * MiB - 4, 0x11223344);
@@ -89,6 +90,14 @@ int main(int argc, char **argv)
                 assert(app.Read32(old) == 0x12345678);
             }
         }
+        // Exercise the public allocation route independently of the internal arena.
+        const unsigned global_args[] = {0x40, 32 * MiB};
+        const unsigned global = app.Api("GlobalAlloc", global_args);
+        assert(global);
+        assert(app.Api("GlobalSize", &global) >= 32 * MiB);
+        app.Write32(global + 32 * MiB - 4, 0x1234abcd);
+        assert(app.Read32(global + 32 * MiB - 4) == 0x1234abcd);
+        assert(!app.Api("GlobalFree", &global));
         assert(app.Status() != X86::Application::Failed);
     }
     puts("HEAP GROWTH PASS: contiguous, fragmented, tail reuse, fixed/movable realloc, quota failure");

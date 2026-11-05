@@ -6,6 +6,7 @@ Supply an initialized C: tree and its registry journal. Their private clones
 are used without printing or inspecting license values. No key is entered.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -17,7 +18,7 @@ import arm64_run
 ROOT = Path(__file__).resolve().parents[1]
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ExternalInputParser()
     parser.add_argument('--drive-c', required=True, type=Path)
     parser.add_argument('--registry', required=True, type=Path)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')

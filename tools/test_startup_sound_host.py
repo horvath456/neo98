@@ -15,8 +15,8 @@ NEO98_AUDIO_TAP:
 - `start`: the machine starts with Explorer over the first logon, and the
   scheme names `C:\\WINDOWS\\media\\The Microsoft Sound.wav` for SystemStart.
   The device plays the samples of that file, as long as the file lasts.
-- `start-none`: the same with the scheme as setup left it (no `.Current`
-  value, the state of a fresh install, see ). Nothing sounds.
+- `start-none`: the same with the default value of the scheme's `.Current`
+  key explicitly removed from the private registry. Nothing sounds.
 - `exit`: a program alone (no Windows start, so no startup sound) calls
   ExitWindowsEx(EWX_SHUTDOWN) with `LOGOFF.WAV` for SystemExit. The whole
   file is played before the host ends.
@@ -44,6 +44,7 @@ sys.path.insert(0, str(ROOT / 'tools'))
 import neo98  # noqa: E402
 import first_logon  # noqa: E402
 import win98_c  # noqa: E402
+from win98_folder import journal_record  # noqa: E402
 from native_app import build_host  # noqa: E402
 
 SCHEME = 'HKEY_USERS\\.Default\\AppEvents\\Schemes\\Apps\\.Default\\%s\\.Current'
@@ -213,7 +214,7 @@ def main():
     program = exit_program(out, env) if any(name.startswith('exit') for name in only) else None
     cases = {
         'start': (True, [set_value(SCHEME % 'SystemStart', '', START_WAV)], START_WAV),
-        'start-none': (True, [], None),
+        'start-none': (True, [journal_record(4, SCHEME % 'SystemStart', '')], None),
         'exit': (False, [set_value(SCHEME % 'SystemExit', '', EXIT_WAV)], EXIT_WAV),
         'exit-empty': (False, [set_value(SCHEME % 'SystemExit', '', '')], None),
     }

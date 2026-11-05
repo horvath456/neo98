@@ -11,6 +11,9 @@ from test_device_manager_host import host
 
 from external_paths import external_path
 def main():
+ from test_support import require_file
+ from external_paths import external_path
+ require_file(external_path('NEO98_COLLECTION') / 'GAMES/ALTEPC/Spiele/Moorhuhn21')
  out=ROOT/'build/program-focus-host';out.mkdir(parents=True,exist_ok=True)
  games=external_path('NEO98_COLLECTION')
  imports={'KERNEL32':{'ExitProcess':4,'Sleep':4,'CreateProcessA':40,'CloseHandle':4,'CreateFileA':28,'WriteFile':20},

@@ -51,6 +51,9 @@ def loud_seconds(tap):
 
 
 def main():
+    from test_support import require_file
+    from external_paths import external_path
+    require_file(external_path('NEO98_COLLECTION') / 'GAMES/SHANGHAI')
     out = neo98.output_directory('win16-shanghai-host')
     drive_c, drive_d = out / 'drive-c', out / 'drive-d'
     for folder in (drive_c, drive_d):
@@ -62,8 +65,9 @@ def main():
     # intro its configuration ships with.
     game = drive_d / 'GAMES' / 'SHANGHAI'
     shutil.copytree(GAMES / 'SHANGHAI', game)
-    for name in ('.neo98-index', '.neo98-volume'):
-        (game / name).unlink(missing_ok=True)
+    for entry in game.iterdir():
+        if win98_c.metadata_name(entry.name):
+            entry.unlink()
     ini = game / 'DEWIN.INI'
     ini.write_bytes(ini.read_bytes().replace(b'title=0', b'title=1'))
     shots = {name: out / f'{name}.ppm' for name in ('title', 'title-late', 'menu', 'dialog', 'board', 'late')}

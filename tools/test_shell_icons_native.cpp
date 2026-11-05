@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include <cassert>
+#include <memory>
 #include <cstdio>
 #include <cstring>
 #include <vector>
@@ -20,14 +21,14 @@ static unsigned owned(const X86::Application &app) {
 int main(int argc,char **argv) {
     assert(argc==4);auto exe=load(argv[1]),font=load(argv[2]),pe=load(argv[3]);
     {
-        X86::Application app(nullptr);assert(FixtureModules::KeepNative(app));assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"SHELLICONS.EXE"));
+        auto app_owner=std::make_unique<X86::Application>(nullptr);auto &app=*app_owner;assert(FixtureModules::KeepNative(app));assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"SHELLICONS.EXE"));
         for(unsigned i=0;i<10000 && app.Status()!=X86::Application::Exited && app.Status()!=X86::Application::Failed;++i)app.Pump(32);
         if(app.Status()!=X86::Application::Exited || app.ExitCode())fprintf(stderr,"shell icons: state=%u code=%u error=%s\n",app.Status(),app.ExitCode(),app.Error());
         assert(app.Status()==X86::Application::Exited && !app.ExitCode());assert(!owned(app));
         printf("SHELL ICONS GUEST PASS: calls=%u callbacks=%u owned_icons=0\n",app.ApiCalls(),app.Callbacks());
     }
     for(unsigned profile=0;profile<6;++profile) {
-        X86::Application app(nullptr);assert(FixtureModules::KeepNative(app));assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"SHELLICONS.EXE"));app.threads[0].suspended=1;
+        auto app_owner=std::make_unique<X86::Application>(nullptr);auto &app=*app_owner;assert(FixtureModules::KeepNative(app));assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"SHELLICONS.EXE"));app.threads[0].suspended=1;
         auto file=pe;
         if(profile==1) { unsigned offset=unsigned(file.size()-1);memcpy(file.data()+0x3c,&offset,4); }
         assert(!app.files.store.Seed("C:\\SHELL-HOST.BIN",file.data(),file.size()));

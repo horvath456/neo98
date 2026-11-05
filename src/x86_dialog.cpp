@@ -611,6 +611,11 @@ unsigned Application::ResumeHostCall()
         PopHostFrame();
         return FinishCommConfigDialog(result, frame.a);
     }
+    case HostButtonCommand:
+        ++t.host_resume_at;
+        ResumeInner();
+        PopHostFrame();
+        return 0;
     case HostSerialMessage:
         ++t.host_resume_at;
         ResumeInner();

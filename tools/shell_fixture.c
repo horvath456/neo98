@@ -115,8 +115,13 @@ void run_shell_test(U instance)
     expect(listener, message, 1, target);
     expect(listener, message, 4, target);
     empty(listener);
-    check(DestroyWindow(target) && !IsWindow(child) && !IsWindow(owned) && DestroyWindow(tool), 1914);
+    check(DestroyWindow(target) && !IsWindow(child) && !IsWindow(owned), 1914);
     expect(listener, message, 2, target);
+    // USER activates the remaining tool window. HSHELL_WINDOWACTIVATED
+    // carries HWND zero so the taskbar releases its active button.
+    expect(listener, message, 4, 0);
+    empty(listener);
+    check(DestroyWindow(tool), 1914);
     empty(listener);
     target = window(0, 0, 0, instance);
     empty(listener);

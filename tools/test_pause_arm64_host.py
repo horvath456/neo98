@@ -44,9 +44,9 @@ def main():
         binary = build_host()
     others = subprocess.run(['pgrep', '-f', 'neo98-host|Neo98.app/Contents/MacOS'], capture_output=True, text=True).stdout.split()
     if others:
-        print(f'PAUSE ARM64 NOT RUN: another NEO98 host is alive (pid {", ".join(others)}); two hosts with a '
+        print(f'PAUSE ARM64 SKIP: another NEO98 host is alive (pid {", ".join(others)}); two hosts with a '
               'virtual processor at once are not started')
-        return 2
+        return 77
     signature = subprocess.run(['codesign', '-d', '--entitlements', '-', str(binary)], capture_output=True, text=True)
     if 'com.apple.security.hypervisor' not in signature.stdout + signature.stderr:
         print('PAUSE ARM64 NOT RUN: the host binary has no hypervisor entitlement')

@@ -297,7 +297,8 @@ static U __stdcall Proc(U hwnd, U message, U wparam, U lparam)
         }
         if (wparam == 'L') { Loop(); return 0; }
 #ifdef STATE_CRT_THREADS
-        if (wparam == 'V') {
+        /* V opens the paint dialog; C completes the CRT thread callbacks. */
+        if (wparam == 'C') {
             U code = 0, ignored = 0;
             crt_finish = 1; SetEvent(wake_event);
             U waited = WaitForSingleObject(crt_ex, 3000);

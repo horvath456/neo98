@@ -36,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import neo98  # noqa: E402
 from native_app import ROOT, build_host  # noqa: E402
+from test_support import active_caption_pair  # noqa: E402
 import win98_c  # noqa: E402
 win98_c.use_pristine()  # tests start from setup's C:, never the user's
 
@@ -108,7 +109,7 @@ def main():
         while time.time() < deadline and not (drive_d / 'BBRESULT.TXT').exists():
             time.sleep(0.5)
         time.sleep(8)
-        host.send_signal(signal.SIGKILL)
+        host.terminate()
         host.wait()
     result_text = (drive_d / 'BBRESULT.TXT').read_text() if (drive_d / 'BBRESULT.TXT').exists() else ''
     check('file deleted into the bin', 'op=0' in result_text and 'items=1' in result_text)
@@ -116,20 +117,23 @@ def main():
     # Second session: Explorer, Recycle Bin, the link of the web view.
     # The script waits for the guest, not for the clock (NEO98_HOST_INPUT of
     # tools/neo98_host.cpp), so a loaded machine only makes it slower.
-    steps = ['0:wait=Shell_TrayWnd', '0:idle=2000', '1:dblclick=37,245', '1:wait=CabinetWClass',
-             '1:idle=3000', '2:move=130,451', '3:click=130,451', '3:wait=#32770|Confirm File Delete',
-             '3:idle=1000', f'5:shot={shot}', '6:menu=quit']
+    # Periodic Welcome timers do not permit several seconds of global idle.
+    # Window waits and the final dialog pixels establish readiness instead.
+    steps = ['0:wait=Shell_TrayWnd', '0:idle=200', '1:dblclick=37,245', '1:wait=CabinetWClass',
+             '1:idle=200', '2:move=130,451', '3:click=130,451', '3:wait=#32770|Confirm File Delete',
+             '3:idle=200', f'5:shot={shot}', '6:menu=quit']
     env2 = dict(env, NEO98_HOST_INPUT=';'.join(steps))
     with (out / 'explorer.log').open('w') as log:
         result = subprocess.run([*base, '--exe', 'C:\\WINDOWS\\EXPLORER.EXE'], cwd=ROOT, env=env2, stdout=log,
                                 stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, timeout=300)
+    check('every scripted wait reached', 'timed out after' not in (out / 'explorer.log').read_text(errors='replace'))
     check('screenshot written', shot.exists())
     if shot.exists():
         image = pixels(shot)
         # "Confirm File Delete" over the folder window: its caption row at
         # y 209..222 runs from x 192 to 607.
         check('confirmation of Empty Recycle Bin shown',
-              at(image, 250, 215) == '000080' and at(image, 550, 215) == '000080')
+              active_caption_pair(at(image, 250, 215), at(image, 550, 215)))
     check('host ended', result.returncode == 0)
     report = {'checks': checks, 'delete_result': result_text.strip(), 'exit_code': result.returncode}
     (out / 'results.json').write_text(json.dumps(report, indent=2) + '\n')

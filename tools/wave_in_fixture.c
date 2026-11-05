@@ -267,7 +267,7 @@ int mainCRTStartup(void)
     check(waveInGetDevCapsA(1, caps, sizeof caps) == 2, 45013);
     for (i = 0; i < sizeof caps; ++i) caps[i] = 0xcc;
     check(waveInGetDevCapsA(0, caps, sizeof caps) == 0, 45014);
-    check(caps[8] == 'A' && caps[14] == 'W' && caps[19] == 'I' && caps[20] == 'n' && caps[21] == 0, 45015);
+    check(caps[8] == 'N' && caps[14] == 'W' && caps[19] == 'I' && caps[20] == 'n' && caps[21] == 0, 45015);
     check(*(U *)(caps + 0x28) == 0xfff, 45016);
     check(*(unsigned short *)(caps + 0x2c) == 2, 45017);
     check(*(unsigned short *)(caps + 0x2e) == 0, 45018);
@@ -422,7 +422,7 @@ int mainCRTStartup(void)
         check(mixerGetLineInfoA(mixer, line, 0) == 0, 45204);
         check(line[6] == 7 && line[8] == 1, 45205);                     /* DST_WAVEIN, one source */
         check(line[0x78 / 4] == 2, 45206);                              /* TARGETTYPE_WAVEIN */
-        check(((char *)line)[0x88] == 'A' && ((char *)line)[0x88 + 6] == 'W' && ((char *)line)[0x88 + 11] == 'I',
+        check(((char *)line)[0x88] == 'N' && ((char *)line)[0x88 + 6] == 'W' && ((char *)line)[0x88 + 11] == 'I',
               45207);
         for (i = 0; i < 42; ++i) line[i] = 0;
         line[0] = 0xa8;

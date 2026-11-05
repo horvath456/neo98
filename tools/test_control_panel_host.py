@@ -41,6 +41,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import neo98  # noqa: E402
 from native_app import ROOT, build_host  # noqa: E402
+from test_support import active_caption_pair  # noqa: E402
 import win98_c  # noqa: E402
 win98_c.use_pristine()  # tests start from setup's C:, never the user's
 
@@ -72,15 +73,15 @@ def main():
     binary = ROOT / 'build/native-app/neo98-host'
     if '--no-build' not in sys.argv:
         binary = build_host()
-    # Explorer needs up to a minute on the first start of a fresh C:, more
-    # on a loaded machine, so the script waits for the taskbar and a quiet
-    # guest instead of a fixed time (tools/neo98_host.cpp, NEO98_HOST_INPUT).
+    # Wait for each window and a brief idle interval before using it. Explorer
+    # can keep threads runnable after the window is ready. A longer idle wait
+    # may use its whole limit of 240 seconds.
     # The Start menu item "Settings" is at y 421, its submenu opens to the
     # right with "Control Panel" first.
-    steps = ['0:wait=Shell_TrayWnd', '0:idle=2000', '1:click=25,587', '1:idle=500',
+    steps = ['0:wait=Shell_TrayWnd', '0:idle=500', '1:click=25,587', '1:idle=500',
              '2:move=95,421', '2.5:move=96,421', '2.5:idle=500', '5:move=200,421',
              '6:move=230,423', '6:idle=500', '7:down=230,423', '7.3:up=230,423',
-             '8:wait=CabinetWClass', '8:idle=2000', f'9:shot={shot}', '10:menu=quit']
+             '8:wait=CabinetWClass', '8:idle=500', f'9:shot={shot}', '10:menu=quit']
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
                NEO98_HOST_INPUT=';'.join(steps))
     env.pop('NEO98_HOST_ATTACHED', None)
@@ -104,8 +105,9 @@ def main():
     if shot.exists():
         image = pixels(shot)
         # The folder window opens at the top left of the work area over the
-        # desktop icons; its active caption is navy from x 70 on.
-        caption = [y for y in range(40, 120) if at(image, 300, y) == '000080' and at(image, 400, y) == '000080']
+        # desktop icons. Win98 may use a solid or a gradient active caption.
+        caption = [y for y in range(40, 120)
+                   if active_caption_pair(at(image, 300, y), at(image, 400, y))]
         check('folder caption on the screen', caption)
         # the 16-bit applets show their own icons, not the generic
         # one of ten colours. SHELL32 names their file through Shl3216 index

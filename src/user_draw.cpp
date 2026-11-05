@@ -454,13 +454,15 @@ bool requested_ready=false, palette_display=false;
 void RequestedReady(){if(!requested_ready){for(unsigned i=0;i<ColorCount;++i)RequestedColors[i]=ClassicColors[i];requested_ready=true;}}
 // 1, 10, 11, 12 and 24 keep their colour and may dither.
 bool Snapped(unsigned index){return index!=1&&index!=24&&(index<10||index>12);}
-// GetNearestColor on the display with its default palette: the nearest of
-// the twenty static colours, the first on a tie.
+// Plain RGB on the palette display uses the sixteen unreserved colours.
+// The four extra default-palette entries require a palette-tagged colour.
 unsigned NearestStatic(unsigned colour)
 {
 
     unsigned best=~0u,found=0;
-    for(unsigned bgr:Win98GdiPalette::DefaultColors){
+    for(unsigned i=0;i<20;++i){
+        if(i==8)i=12;
+        const unsigned bgr=Win98GdiPalette::DefaultColors[i];
         unsigned c=((bgr&255)<<16)|(bgr&0xff00)|((bgr>>16)&255);
         const int r=int(c>>16)-int(colour>>16&255),g=int(c>>8&255)-int(colour>>8&255),b=int(c&255)-int(colour&255);
         const unsigned d=unsigned(r*r+g*g+b*b);

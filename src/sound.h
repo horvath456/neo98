@@ -119,13 +119,17 @@ class Mixer
     // Answers 0 on success, 1 for an invalid source/tag and 2 for no memory.
     unsigned Submit(unsigned source, const unsigned char *data, unsigned bytes,
                     unsigned tag, unsigned flags, unsigned loops);
+    // Queue live PCM while retaining only the newest max_frames. Discarding
+    // excess old frames keeps latency bounded without emptying the queue.
+    unsigned SubmitLive(unsigned source, const unsigned char *data, unsigned bytes,
+                        unsigned tag, unsigned max_frames);
     // The same, for a caller whose bytes are not reachable as a pointer. The
     // wave API is one: guest memory is only readable through a copy, and the
     // copy may as well land in the pool directly. `fill` runs while the mixer
     // is locked and must not call back into it.
     using Fill = bool (*)(void *owner, unsigned char *into, unsigned bytes);
     unsigned Submit(unsigned source, unsigned bytes, unsigned tag, unsigned flags,
-                    unsigned loops, Fill fill, void *owner);
+                    unsigned loops, Fill fill, void *owner, unsigned max_frames = 0);
     // The tag of the oldest block that has finished playing, or zero. Every
     // block is handed back exactly once, in the order it was submitted.
     unsigned Complete(unsigned source);

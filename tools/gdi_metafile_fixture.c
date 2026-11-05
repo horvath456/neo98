@@ -367,7 +367,7 @@ void run_gdi_metafile_test(void) {
   static char text[64];
   U described = GetEnhMetaFileDescriptionA(emf, sizeof text, text);
   check(described >= 6, 16515);
-  check(text[0] == 'A' && text[4] == '8' && text[5] == 0, 16516);
+  check(text[0] == 'N' && text[1] == 'E' && text[2] == 'O' && text[3] == '9' && text[4] == '8' && text[5] == 0, 16516);
   check(GetEnhMetaFilePaletteEntries(emf, 0, 0) == 0, 16517);
 
   /* Record chain from header to end record. */

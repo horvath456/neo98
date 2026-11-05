@@ -8,7 +8,14 @@
 static int checks, failures, order[32], used, continued;
 static void Check(int id, int ok) { ++checks; if (!ok) { ++failures; if (failures < 5) printf("FAIL %d\n", id); } }
 static void Mark(int n) { if (used < 32) order[used++] = n; }
-static int Filter(int result) { Mark(1); return result; }
+static int Filter(int result, EXCEPTION_POINTERS *exception)
+{
+    /* RaiseException saves a return PC. Keep its call-site flag when the
+       dispatcher saves the context for the later unwind or continuation. */
+    Check(32, (exception->ContextRecord->ContextFlags & CONTEXT_UNWOUND_TO_CALL) != 0);
+    Mark(1);
+    return result;
+}
 static LRESULT CALLBACK Procedure(HWND window, UINT message, WPARAM w, LPARAM l)
 {
     if (message == WM_USER + 1) {
@@ -23,7 +30,7 @@ static LRESULT CALLBACK Procedure(HWND window, UINT message, WPARAM w, LPARAM l)
     }
     if (message == WM_USER + 3) {
         __try { SendMessageA(window, WM_USER + 2, 0, 0); }
-        __except (Filter(EXCEPTION_EXECUTE_HANDLER)) { Mark(4); }
+        __except (Filter(EXCEPTION_EXECUTE_HANDLER, GetExceptionInformation())) { Mark(4); }
         return 73;
     }
     return DefWindowProcA(window, message, w, l);
@@ -34,7 +41,7 @@ __declspec(noinline) static int Across(HWND window, int resume)
     volatile double real = 3.141592653589793;
     int result = 0;
     __try { result = (int)SendMessageA(window, WM_USER + (resume ? 1 : 2), 0, 0); }
-    __except (Filter(resume ? EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_EXECUTE_HANDLER)) { result = 93; Mark(4); }
+    __except (Filter(resume ? EXCEPTION_CONTINUE_EXECUTION : EXCEPTION_EXECUTE_HANDLER, GetExceptionInformation())) { result = 93; Mark(4); }
     Check(10, integer == 0x123456789abcdef0ull && real == 3.141592653589793);
     return result;
 }
@@ -74,7 +81,7 @@ int main(void)
     }
     used = 0;
     __try { EnumWindows(Enumerate, 0); Mark(9); }
-    __except (Filter(EXCEPTION_EXECUTE_HANDLER)) { Mark(4); }
+    __except (Filter(EXCEPTION_EXECUTE_HANDLER, GetExceptionInformation())) { Mark(4); }
     Check(30, used == 3 && order[0] == 1 && order[1] == 2 && order[2] == 4);
     DestroyWindow(window);
     Check(31, UnregisterClassA(c.lpszClassName, c.hInstance));

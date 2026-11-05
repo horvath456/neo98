@@ -6,6 +6,7 @@ The source Windows tree and registry journal are only read. Audio uses SDL's
 dummy output; this verifies drawing during playback, not audible sound.
 """
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -17,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ExternalInputParser()
     parser.add_argument('iso', type=Path)
     parser.add_argument('--windows', type=Path, required=True)
     parser.add_argument('--registry', type=Path, required=True)

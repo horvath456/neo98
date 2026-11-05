@@ -23,8 +23,12 @@ unsigned Application::StatusMessage(unsigned hwnd, unsigned message, unsigned wp
             }
     if (!bar)
     {
-        Fail("Missing native status bar");
-        return 0;
+        if (message == 0x81 || message == 1) {
+            Fail("Cannot allocate native status bar");
+            return 0;
+        }
+        // Sizing messages can precede the creation of the control state.
+        return DefaultWindowMessage(hwnd, message, wp, lp);
     }
     auto refresh = [&]() { User::InvalidateRect(hwnd, nullptr, false); };
     switch (message)

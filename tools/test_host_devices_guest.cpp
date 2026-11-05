@@ -122,7 +122,9 @@ int main(int argc,char **argv)
             {
                 // The Game Controllers panel (JOY.CPL of DirectX 8 calls itself
                 // Gaming Options) lists the virtual SDL controllers.
-                const auto panel=User::FindWindow("#32770","Gaming Options");if(!panel||!User::IsVisible(panel))continue;
+                auto panel=User::FindWindow("#32770","Game Controllers");
+                if(!panel)panel=User::FindWindow("#32770","Gaming Options");
+                if(!panel||!User::IsVisible(panel))continue;
                 session.Screenshot(std::string(argv[2])+"/controllers.png");
                 User::PostMessage(panel,0x10,0,0);stage=21;next=now+std::chrono::seconds(1);
             }

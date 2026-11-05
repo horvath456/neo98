@@ -57,7 +57,7 @@ void run_dib_api_test(void) {
   bits[3] = 0x00aabbcc;
   MemoryInfo query;
   check(VirtualQuery(raw, &query, sizeof query) == sizeof query &&
-            query.state == 0x1000 && query.type == 0x40000 &&
+            query.state == 0x1000 && query.type == 0x20000 &&
             query.protection == 4,
         8401);
   U dc = CreateCompatibleDC(0), old = SelectObject(dc, bitmap);
@@ -67,11 +67,11 @@ void run_dib_api_test(void) {
   check(SelectObject(dc, old) == bitmap && !DeleteObject(bitmap), 8405);
   check(RestoreDC(dc, -1) && SelectObject(dc, old) == bitmap, 8406);
   U copy[4] = {0};
-  check(GetDIBits(0, bitmap, 0, 2, copy, &h, 0) == 2 && copy[0] == bits[0] &&
+  check(GetDIBits(dc, bitmap, 0, 2, copy, &h, 0) == 2 && copy[0] == bits[0] &&
             copy[3] == bits[3],
         8407);
   U bottom[] = {0xaaff0000, 0xaa00ff00};
-  check(SetDIBits(0, bitmap, 0, 1, bottom, &h, 0) == 1 &&
+  check(SetDIBits(dc, bitmap, 0, 1, bottom, &h, 0) == 1 &&
             bits[0] == bottom[0] && bits[1] == bottom[1] &&
             bits[2] == 0x00778899,
         8408);
@@ -83,19 +83,28 @@ void run_dib_api_test(void) {
   SetLastError(0);
   check(!GetObjectA(bitmap, 0, object) && GetLastError() == 87, 8411);
   check(DeleteObject(bitmap), 8412);
+  SetLastError(0);
+  check(!GetObjectA(bitmap, sizeof object, object) && GetLastError() == 87, 8494);
+  // Session DIB mappings are released on the next section allocation.
+  // That allocation may reuse the released range.
+  void *next_raw = 0;
+  U next_bitmap = CreateDIBSection(0, &h, 0, &next_raw, 0, 0);
+  check(next_bitmap && next_raw, 8495);
   check(VirtualQuery(raw, &query, sizeof query) == sizeof query &&
-            query.state == 0x10000,
+            (next_raw == raw ? query.state == 0x1000 && query.allocation == (U)next_raw
+                             : query.state == 0x10000),
         8413);
-  check(DeleteDC(dc), 8414);
+  check(DeleteObject(next_bitmap), 8496);
   // CBM_CREATEDIB reuses the original public section constructor.
   U input[] = {0x01020304, 0x05060708, 0x09101112, 0x13141516};
-  bitmap = CreateDIBitmap(0, &h, 6, input, &h, 0);
+  bitmap = CreateDIBitmap(dc, &h, 6, input, &h, 0);
   check(bitmap, 8415);
-  check(GetDIBits(0, bitmap, 0, 2, copy, &h, 0) == 2 && copy[3] == input[3],
+  check(GetDIBits(dc, bitmap, 0, 2, copy, &h, 0) == 2 && copy[3] == input[3],
         8416);
   check(DeleteObject(bitmap), 8417);
-  bitmap = CreateDIBitmap(0, &h, 6, 0, &h, 0);
+  bitmap = CreateDIBitmap(dc, &h, 6, 0, &h, 0);
   check(bitmap && DeleteObject(bitmap), 8418);
+  check(DeleteDC(dc), 8414);
   // A palettized, top-down DIBSection can be selected and converted by BitBlt.
   struct {
     DibHeader header;
@@ -144,8 +153,8 @@ void run_dib_api_test(void) {
         8429);
   // A palettized DIB section is a destination the DIB engine can serve: its
   // colour table names the index every source colour becomes. COMCTL32 fills
-  // its 4-bit image strip this way. A 4-bit DDB has no table in this
-  // store and keeps failing with ERROR_INVALID_PARAMETER.
+  // its 4-bit image strip this way. A 4-bit DDB cannot be selected into a
+  // DC of the 32-bit display; the DIB section is independent of that depth.
   struct {
     DibHeader header;
     U colors[16];
@@ -167,17 +176,10 @@ void run_dib_api_test(void) {
             GetPixel(indexed_dc, 0, 1) == 0x000000ff &&
             GetPixel(indexed_dc, 1, 1) == 0x0000ff00,
         8442);
-  U palettized_ddb = CreateBitmap(2, 2, 1, 4, 0), ddb_dc = CreateCompatibleDC(0),
-    ddb_old = SelectObject(ddb_dc, palettized_ddb);
-  check(palettized_ddb && ddb_dc && ddb_old, 8443);
-  SetLastError(0);
-  check(!StretchDIBits(ddb_dc, 0, 0, 2, 2, 0, 0, 2, 2, direct, &h, 0,
-                       0xcc0020) &&
-            GetLastError() == 50,
-        8444);
-  check(SelectObject(ddb_dc, ddb_old) == palettized_ddb &&
-            DeleteObject(palettized_ddb) && DeleteDC(ddb_dc),
-        8445);
+  U palettized_ddb = CreateBitmap(2, 2, 1, 4, 0), ddb_dc = CreateCompatibleDC(0);
+  check(palettized_ddb && ddb_dc, 8443);
+  check(!SelectObject(ddb_dc, palettized_ddb), 8444);
+  check(DeleteObject(palettized_ddb) && DeleteDC(ddb_dc), 8445);
   // A monochrome DDB into the same palettized section: DIBENG expands the mask
   // with the destination's text and background colour, and the palettized
   // surface keeps the two nearest colour-table indices.
@@ -322,18 +324,31 @@ void run_dib_rle_test(void) {
   check(!GetDIBits(dc, target, 0, 3, 0, &info, 0) && GetLastError() == 50, 8474);
   check(SelectObject(dc, old) == target && DeleteObject(target) && DeleteDC(dc),
         8475);
-  /* The header query of a 16-bit bitmap answers BI_BITFIELDS and the second
-     call fills in the masks: how SDL 1.2 tells a 555 display from a 565 one. */
+  /* A descriptor query works for any DDB. A second query with a depth
+     requires a display-compatible DDB; a DIB section supplies its own format. */
   {
+    dc = CreateCompatibleDC(0);
+    check(dc, 8493);
     U query[13] = {40};
-    const U high = CreateBitmap(1, 1, 1, 16, 0);
-    check(high && GetDIBits(0, high, 0, 1, 0, query, 0) == 1 && query[1] == 1 &&
+    U high = CreateBitmap(1, 1, 1, 16, 0);
+    check(high && GetDIBits(dc, high, 0, 1, 0, query, 0) == 1 && query[1] == 1 &&
               query[2] == 1 && query[3] >> 16 == 16 && query[4] == 3,
           8476);
-    check(GetDIBits(0, high, 0, 1, 0, query, 0) == 1 && query[4] == 3 &&
+    check(!GetDIBits(dc, high, 0, 1, 0, query, 0) && !query[10] &&
+              !query[11] && !query[12], 8497);
+    check(DeleteObject(high), 8498);
+    DibHeader high_header = {40, 1, 1, 1, 16, 0, 0, 0, 0, 0, 0};
+    void *high_bits = 0;
+    high = CreateDIBSection(0, &high_header, 0, &high_bits, 0, 0);
+    for (U i = 0; i < 13; ++i) query[i] = 0;
+    query[0] = 40;
+    check(high && high_bits && GetDIBits(dc, high, 0, 1, 0, query, 0) == 1 &&
+              query[1] == 1 && query[2] == 1 && query[3] >> 16 == 16 &&
+              query[4] == 3, 8499);
+    check(GetDIBits(dc, high, 0, 1, 0, query, 0) == 1 && query[4] == 3 &&
               query[10] == 0x7c00 && query[11] == 0x3e0 && query[12] == 0x1f,
           8477);
-    check(DeleteObject(high), 8478);
+    check(DeleteObject(high) && DeleteDC(dc), 8478);
   }
   /* An operation without a pattern does not ask for the brush: SRCINVERT
      from a 32-bit bitmap into a 24-bit section whose DC holds the hollow

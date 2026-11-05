@@ -65,7 +65,7 @@ def differing(first, second, box):
 def main():
     if not (SOURCE / 'WLOADER.EXE').is_file():
         print(f'SKIP: {SOURCE} is not there (program collection)')
-        return 0
+        raise SystemExit(77)
     out = neo98.output_directory('foreign-owner-box-host')
     shutil.rmtree(out / 'drive-d', ignore_errors=True)
     drive_c, registry = first_logon.clone(out)

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Original Doom 3 CD's DemoShield launcher: startup, Extras, clean Quit."""
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -14,7 +15,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
 import win98_c
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = ExternalInputParser()
     parser.add_argument('iso', type=Path)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--out', type=Path, default=ROOT / 'build/doom3-launcher-test')

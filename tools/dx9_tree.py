@@ -113,3 +113,12 @@ def tree():
 
 if __name__ == "__main__":
     sys.exit(0 if tree() else 1)
+
+
+def require_tree():
+    """Require the optional original runtime for a comparison test."""
+    result = tree()
+    if result is None:
+        from test_support import skip
+        skip(skip_reason())
+    return result

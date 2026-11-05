@@ -57,7 +57,9 @@ void mainCRTStartup(void)
 
     if (GetDriveTypeA("D:\\") != 5) fail(1);
     if (!GetVolumeInformationA("D:\\", label, sizeof label, &serial, &length, &flags, 0, 0)) fail(2);
-    if (label[0] != 'A' || label[1] != 'R' || label[5] != 'C' || label[6] != 'D' || label[7]) fail(3);
+    const char expected_label[] = "NEO98CD";
+    for (UINT i = 0; i < sizeof expected_label; ++i)
+        if (label[i] != expected_label[i]) fail(3);
     file = CreateFileA("D:\\README.TXT", 0x80000000, 1, 0, 3, 0, 0);
     if (file == (HANDLE)-1) fail(4);
     if (!ReadFile(file, text, sizeof text - 1, &got, 0) || got != 8) fail(5);

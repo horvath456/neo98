@@ -49,5 +49,33 @@ int main()
     for (unsigned i = 1; i <= 129; ++i) assert(mixer.Complete(source) == i);
     assert(!mixer.Complete(source) && !mixer.Busy(source));
     mixer.Close(source);
+    // DOS produces 630-frame blocks while the device consumes 1024. A
+    // bounded catch-up must retain enough old PCM to fill the next callback.
+    const unsigned live = mixer.Open({Sound::OutputRate, 2, 16});
+    assert(live);
+    std::vector<short> samples(2520 * 2);
+    for (unsigned i = 0; i < 2520; ++i) samples[i * 2] = samples[i * 2 + 1] = short(i + 1);
+    for (unsigned i = 0; i < 4; ++i)
+        assert(!mixer.SubmitLive(live, reinterpret_cast<const unsigned char *>(samples.data() + i * 1260),
+                                 630 * 4, i + 1, 2205));
+    assert(mixer.Played(live) == 315 * 4);
+    out.resize(1024 * 2);
+    mixer.Render(out.data(), 1024);
+    for (unsigned i = 0; i < 1024; ++i)
+        assert(out[i * 2] == short(316 + i) && out[i * 2 + 1] == out[i * 2]);
+    assert(mixer.Complete(live) == 1 && mixer.Complete(live) == 2 && !mixer.Complete(live));
+    // A producer burst larger than the limit discards complete old blocks
+    // and only the excess prefix of the newest block. Tags stay ordered.
+    assert(!mixer.SubmitLive(live, reinterpret_cast<const unsigned char *>(samples.data()),
+                             unsigned(samples.size() * sizeof(short)), 5, 2205));
+    assert(mixer.Complete(live) == 3 && mixer.Complete(live) == 4 && !mixer.Complete(live));
+    out.resize(2206 * 2);
+    mixer.Render(out.data(), 2206);
+    for (unsigned i = 0; i < 2205; ++i)
+        assert(out[i * 2] == short(316 + i) && out[i * 2 + 1] == out[i * 2]);
+    assert(!out[4410] && !out[4411]);
+    assert(mixer.Complete(live) == 5 && !mixer.Complete(live) && !mixer.Busy(live));
+    mixer.Close(live);
     puts("PASS wave queue PCM, 2050 ordered completions, wrapped loop reuse");
+    puts("PASS bounded live PCM retains the newest frames without a callback gap");
 }

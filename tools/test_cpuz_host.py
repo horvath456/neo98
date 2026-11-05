@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """CPU-Z 1.57 on a private Windows clone: VIA probe, tabs and normal exit."""
 import argparse
+from test_support import ExternalInputParser
 import json
 import os
 from pathlib import Path
@@ -14,7 +15,7 @@ sys.path[:0]=[str(ROOT),str(ROOT/'tools')]
 import first_logon
 
 def main():
-    p=argparse.ArgumentParser()
+    p=ExternalInputParser()
     p.add_argument('folder',type=Path)
     p.add_argument('--host',type=Path,default=ROOT/'build/native-app/neo98-host')
     args=p.parse_args()

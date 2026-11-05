@@ -29,6 +29,9 @@ public:
  struct {U ansi=1252,oem=437;}system_locale;
  // The adapter saves and restores the calling thread's file-API mode.
  struct {U file_api_flags=0;}threads[1];U current_thread=0;
+ struct Memory {bool Access(U p,U n,bool) const {
+  return p>=0x10000&&p-0x10000<=4096&&n<=4096-(p-0x10000);
+ }} virtual_memory;
  unsigned char guest[4096]{};unsigned depths[2]{},maximum_depth=0;
  // The adapter reads the running module's own path and writes the file part back.
  struct Module{char path[260]={};}modules[1];

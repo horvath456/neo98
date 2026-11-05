@@ -100,11 +100,24 @@ binary = OUT / 'test-dsound-capture'
 run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_dsound_capture_guest.cpp', *objects, *_engine_link_extra(), library,
                    '-Wl,-rpath,' + str(library.parent), '-o', binary])
 font = ROOT / 'build/generated/notepad-fixedsys.fnt'
+import pefile
+import win98_c
+win98_c.use_pristine()
+sound_dll = win98_c.path(r'C:\WINDOWS\SYSTEM\DSOUND.DLL')
+info = pefile.PE(str(sound_dll)).VS_FIXEDFILEINFO[0]
+version = (info.FileVersionMS >> 16, info.FileVersionMS & 65535,
+           info.FileVersionLS >> 16, info.FileVersionLS & 65535)
+# The 6.1 DLL translates MMSYSERR_NODRIVER twice in its preferred-device
+# query, producing E_FAIL. The 9.0c DLL returns NODRIVER.
+# Both are original DLL results; never accept either result indiscriminately.
+no_device_results = {(4, 6, 3, 518): 0x80004005, (4, 9, 0, 904): 0x88780078}
+assert version in no_device_results, f'Unqualified DSOUND.DLL version: {version}'
 results = {}
 for kind in ('sine', 'denied', 'none'):
     env['NEO98_TEST_MICROPHONE'] = kind
-    results[kind] = run('guest-' + kind, [binary, exe, font, kind])
+    results[kind] = run('guest-' + kind, [binary, exe, font, kind, hex(no_device_results[version])])
     print(results[kind])
 (OUT / 'results.json').write_text(json.dumps({
     'status': 'PASS', 'results': results, 'runner_sha256': sha(binary), 'guest_sha256': sha(exe),
+    'dsound_version': version, 'dsound_sha256': sha(sound_dll),
 }, indent=2) + '\n')

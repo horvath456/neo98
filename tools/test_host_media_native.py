@@ -31,6 +31,10 @@ headless runner. No run uses a real Kodi or Netflix, and none plays sound.
 
 
 """
+import sys as _sys
+from test_support import skip as _skip
+if _sys.platform != 'linux':
+    _skip('this test requires the Linux host')
 import argparse
 import json
 import os
