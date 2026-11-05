@@ -3,6 +3,7 @@
   "linux-x64": {
     "known_failures": {
       "test_3dmark2000_host.py": "Pillow is not in tools/requirements.txt",
+      "test_accelerator_module_native.py": "calls lld-link directly; not on PATH on Ubuntu 24.04 (ignores NEO98_LLVM_BIN)",
       "test_address_space.py": "test build fails on Linux x64",
       "test_app_import_inventory.py": "assertion fails on Linux x64",
       "test_arm64_critical_leaf.py": "uses the Homebrew clang path",
@@ -21,6 +22,7 @@
       "test_cpu_segment_load.py": "test build fails on Linux x64",
       "test_cpu_self_patch.py": "test build fails on Linux x64",
       "test_cpuz_host.py": "Pillow is not in tools/requirements.txt",
+      "test_create_suspended_host.py": "calls lld-link directly; not on PATH on Ubuntu 24.04 (ignores NEO98_LLVM_BIN)",
       "test_crt_multibyte_guest.py": "guest test helper finds no matching entry on Linux (StopIteration)",
       "test_d3d_alpha_boundary_host.py": "macOS path /System/Volumes/Data in a test helper",
       "test_d3d_alpha_test_metal.py": "macOS only (FEX, Unicorn, Metal or codesign)",
@@ -188,6 +190,7 @@
       "test_half_life_wav_host.py": "Pillow is not in tools/requirements.txt",
       "test_host_devices_dbus.py": "test build fails on macOS 15 CI",
       "test_host_menu_guest.py": "fails on macOS 15 CI: HOST MENU FAIL: 30 of 32 checks; see \u2026/host.log",
+      "test_host_test_process.py": "flaky on macOS CI: killpg(group, 0) raises PermissionError while the group exits",
       "test_indeo_thread.py": "copies a drive C: that does not exist without Windows (cp -c)",
       "test_interrupts32_native.py": "test build fails on macOS 15 CI",
       "test_kernel_99_native.py": "test build fails on macOS 15 CI",

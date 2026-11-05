@@ -71,7 +71,8 @@ class ReleaseBundleTest(unittest.TestCase):
                      patch.object(mac_app, 'build_app', side_effect=build), \
                      patch.object(mac_app, 'build_dmg', return_value=dmg) as disk_image, \
                      patch('check_release_embedded.check_dependencies', return_value=[]), \
-                     patch.object(assets, 'source_assets'):
+                     patch.object(assets, 'source_assets'), \
+                     patch('setup_toolkit.build'), patch('setup_toolkit.check'):
                     if contaminated:
                         with self.assertRaisesRegex(RuntimeError, 'host-media code in release'):
                             assets.main()
