@@ -36,6 +36,25 @@ Media Center is only included in builds made with `NEO98_WITH_HOST_MEDIA=1`,
 not in releases. It plays music and videos through [Kodi](https://kodi.tv)
 when Kodi is installed on the Mac. Kodi itself isn't part of Neo98.
 
+## Setup toolkit
+
+To install Windows from your own ISO without installing anything, the Mac app
+(`Contents/Resources/toolkit`) and the Linux package (`usr/lib/neo98/toolkit`)
+carry a few separate programs. Neo98 starts them as programs; they are not
+linked into Neo98 and keep their own licenses (copies in `toolkit/licenses`).
+`tools/setup_toolkit.json` pins their versions and checksums.
+
+| Project | What Neo98 uses it for | License |
+| --- | --- | --- |
+| [QEMU](https://www.qemu.org) `qemu-system-i386`, with [SeaBIOS](https://www.seabios.org) and the VGA BIOS | Running Windows 98 Setup once | GPL-2.0; BIOS images LGPL-3.0 and LGPL-2.1 |
+| [mtools](https://www.gnu.org/software/mtools/) | Writing the FAT disk and boot floppy of Setup | GPL-3.0-or-later |
+| [cabextract](https://www.cabextract.org.uk) with libmspack | Unpacking boot files from the CAB archives on your CD | GPL-3.0-or-later, libmspack LGPL-2.1 |
+| [Tesseract](https://github.com/tesseract-ocr/tesseract) with [Leptonica](https://github.com/DanBloomberg/leptonica) and the English model | Reading Setup's dialogs to answer them | Apache-2.0, Leptonica BSD-2-Clause |
+| [Python](https://www.python.org) ([python-build-standalone](https://github.com/astral-sh/python-build-standalone)) | Running the setup assistant | PSF-2.0 |
+
+The libraries these programs need (GLib, pixman, and on Linux the libraries
+of Tesseract) are copied from the build machine with their licenses.
+
 ## Source code for the GPL parts
 
 Unicorn, DOSBox Pure and the FreeDOS boot sector are licensed under the GPL,
@@ -43,7 +62,8 @@ like Neo98 itself. That's why every release on GitHub comes with their
 complete source code, at exactly the versions used for that release and
 including Neo98's changes: `unicorn-source.tar.gz`,
 `dosbox-pure-source.tar.gz` and `freedos-boot-source.tar.gz`, next to
-`Neo98-source.tar.gz`.
+`Neo98-source.tar.gz`. The unchanged source archives of QEMU, mtools and
+cabextract from the setup toolkit are attached as well.
 
 ## In the Linux version
 

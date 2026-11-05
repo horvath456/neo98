@@ -21,6 +21,13 @@ neo98_bundle=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 export NEO98_APP_MODE=1
 export NEO98_DOSBOX_CORE="$neo98_bundle/usr/lib/neo98/libdosbox-pure.so"
 export NEO98_SETUP_SCRIPT="$neo98_bundle/usr/share/neo98/setup/tools/linux_setup.py"
+# The setup toolkit (tools/setup_toolkit.py): QEMU, mtools, cabextract,
+# tesseract and Python, so installing from an ISO needs nothing installed.
+if [ -d "$neo98_bundle/usr/lib/neo98/toolkit/bin" ]; then
+    export NEO98_TOOLKIT="$neo98_bundle/usr/lib/neo98/toolkit"
+    export PATH="$NEO98_TOOLKIT/bin:$NEO98_TOOLKIT/python/bin:$PATH"
+    export PYTHONDONTWRITEBYTECODE=1
+fi
 if [ "${1-}" = --install-launcher ]; then
     exec python3 "$neo98_bundle/usr/share/neo98/linux_desktop_install.py" "$neo98_bundle"
 fi
@@ -52,6 +59,49 @@ ICON = '''<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewB
 <text x="128" y="168" text-anchor="middle" font-family="sans-serif" font-size="66" font-weight="bold" fill="#222">98</text>
 </svg>
 '''
+
+
+# Libraries every desktop Linux provides. Bundling them would tie the package to
+# the build machine's graphics stack (libstdc++ and the Mesa drivers, for one).
+DESKTOP_LIBRARIES = (
+    'linux-vdso', 'ld-linux', 'libc.so', 'libm.so', 'libdl.so', 'libpthread.so', 'librt.so', 'libresolv.so',
+    'libutil.so', 'libstdc++', 'libgcc_s', 'libatomic', 'libgtk-3', 'libgdk', 'libatk', 'libatspi', 'libcairo',
+    'libpango', 'libharfbuzz', 'libfontconfig', 'libfreetype', 'libglib-2', 'libgobject', 'libgio', 'libgmodule',
+    'libX', 'libxcb', 'libxkbcommon', 'libwayland', 'libdbus', 'libsystemd', 'libGL', 'libEGL', 'libOpenGL',
+    'libvulkan', 'libdrm', 'libgbm', 'libasound', 'libpulse', 'libepoxy', 'libfribidi', 'libthai', 'libdatrie',
+    'libgraphite2', 'libpng16', 'libz.so', 'libexpat', 'libffi', 'libpcre2', 'libmount', 'libblkid',
+    'libselinux', 'libbrotli', 'libbz2', 'liblcms2', 'libpixman', 'libglycin', 'libseccomp', 'libuuid',
+    'libudev', 'libinput', 'libgudev', 'libevdev', 'libmtdev', 'libwacom', 'libmvec')
+
+
+def bundle_libraries(binaries, libraries):
+    """Copy what the programs link beyond the desktop (SDL 2, for one) into
+    usr/lib/neo98 and let them find it there."""
+    pending, done = list(binaries), set()
+    while pending:
+        binary = pending.pop()
+        if binary in done: continue
+        done.add(binary)
+        listing = subprocess.run(['ldd', str(binary)], capture_output=True, text=True).stdout
+        located = {}
+        for line in listing.splitlines():
+            name, arrow, location = line.strip().partition(' => ')
+            if arrow: located[name] = location.split(' (')[0].strip()
+        # Only what this file names itself: what a desktop library needs comes
+        # with the desktop.
+        needed = subprocess.run(['patchelf', '--print-needed', str(binary)], capture_output=True, text=True,
+                                check=True).stdout.split()
+        for name in needed:
+            if name.startswith(DESKTOP_LIBRARIES): continue
+            location = located.get(name, 'not found')
+            if location == 'not found': raise RuntimeError(f'{binary.name}: {name} not found')
+            target = libraries / name
+            if not target.exists():
+                shutil.copy2(Path(location).resolve(), target); target.chmod(0o755)
+                pending.append(target)
+    for binary in done:
+        rpath = '$ORIGIN' if binary.parent == libraries else '$ORIGIN/../lib/neo98'
+        subprocess.run(['patchelf', '--set-rpath', rpath, str(binary)], check=True)
 
 
 def package(no_build=False, *, release=False):
@@ -88,6 +138,13 @@ def package(no_build=False, *, release=False):
     else:
         print(f'warning: {layout} is missing; this app saves no states of Windows programs', file=sys.stderr)
     shutil.copy2(core_dylib(), libraries / 'libdosbox-pure.so')
+    bundle_libraries([binaries / 'neo98-host', binaries / 'neo98-cli', libraries / 'libdosbox-pure.so'], libraries)
+    toolkit = ROOT / 'build/setup-toolkit'
+    if not (toolkit / 'manifest.json').is_file():
+        if release: raise RuntimeError('build/setup-toolkit is missing; run python3 tools/setup_toolkit.py')
+        print('warning: no setup toolkit (tools/setup_toolkit.py); ISO setup needs the tools installed', file=sys.stderr)
+    else:
+        shutil.copytree(toolkit, libraries / 'toolkit', symlinks=True)
     # The Vulkan renderer loads shaderc by name while a game runs. The package
     # carries it when the build machine has it. Nothing in the package is
     # GPLv2-only (there is no Unicorn on Linux), so the package as a whole is
@@ -118,12 +175,11 @@ def package(no_build=False, *, release=False):
         'This package is distributed under the GNU GPL version 3 (LICENSES/GPL-3.0.txt),\n'
         'because it includes shaderc (Apache 2.0). Neo98 itself is licensed under the\n'
         'GPL version 2 or later (COPYING). THIRD_PARTY.md lists all components.\n\n'
-        'The graphical host requires GTK 3, SDL 2, X11 or XWayland, and a Vulkan driver for 3D.\n'
+        'The graphical host needs a desktop with GTK 3 and X11 or XWayland, and a Vulkan driver for 3D.\n'
         'Wayland sessions use XWayland by default.\n'
         'The legacy native Wayland output requires SDL_VIDEODRIVER=wayland.\n'
-        'Ubuntu: sudo apt install libgtk-3-0 libsdl2-2.0-0 libvulkan1 mesa-vulkan-drivers xwayland\n'
-        'ISO installation requires Python 3, qemu-system-x86, mtools, cabextract and tesseract-ocr.\n'
-        'ZIP import requires only Python 3.\n'
+        'Everything else is in this package: SDL 2, and for installing Windows from your ISO\n'
+        'QEMU, mtools, cabextract, tesseract and Python (usr/lib/neo98/toolkit).\n'
         'Binaries require the glibc version used by the build machine.\n')
     shutil.copy2(ROOT / 'COPYING', staging / 'COPYING')
     shutil.copy2(ROOT / 'THIRD_PARTY.md', staging / 'THIRD_PARTY.md')

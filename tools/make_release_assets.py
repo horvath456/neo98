@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""Build local macOS release assets and complete pinned GPL source archives.
+"""Build local release assets (macOS: Neo98.dmg, Linux: Neo98-linux-x64.tar.gz)
+and complete pinned GPL source archives.
 
 Run from the release checkout. No upload or GitHub operation is performed.
 """
@@ -71,6 +72,13 @@ def source_assets(output):
                 f'release and run python3 neo98.py app. {builder} applies the changes and\n'
                 'sets the build flags. docs/BUILDING.md lists what you need to install.\n')
             add_bytes(archive, name + '/BUILD.txt', instructions.encode())
+    # The setup toolkit's programs, built unchanged from these archives
+    # (tools/setup_toolkit.py, tools/setup_toolkit.json).
+    from setup_toolkit import fetch, PINS as TOOLKIT
+    for name in ('qemu', 'mtools', 'cabextract'):
+        archive = fetch(name)
+        suffix = ''.join(archive.suffixes[-2:])
+        shutil.copy2(archive, output / f'{name}-{TOOLKIT[name]["version"]}-source{suffix}')
     # FreeDOS boot sources, macros, license and build recipe are also in Neo98-source.
     with tarfile.open(output / 'freedos-boot-source.tar.gz', 'w:gz') as archive:
         for path in sorted((ROOT / 'tools/freedos_boot').rglob('*')):
@@ -108,6 +116,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, default=ROOT / 'build/release-assets')
     parser.add_argument('--sources-only', action='store_true')
+    parser.add_argument('--no-sources', action='store_true', help='only the package (the other platform publishes the sources)')
     parser.add_argument('--checksums-only', action='store_true', help='Refresh after notarization/stapling')
     parser.add_argument('--notarize', metavar='PROFILE',
                         help='notarize the app and the disk image with this notarytool keychain profile; '
@@ -121,7 +130,20 @@ def main():
     if not args.sources_only:
         # Releases never inherit the builder's optional Media Center setting.
         os.environ['NEO98_WITH_HOST_MEDIA'] = '0'
-        if sys.platform != 'darwin': parser.error('Binary packaging currently requires macOS arm64')
+        import setup_toolkit
+        if not (setup_toolkit.OUT / 'manifest.json').is_file():
+            setup_toolkit.build()
+        else:
+            setup_toolkit.check(setup_toolkit.OUT)
+    if not args.sources_only and sys.platform.startswith('linux'):
+        from linux_app import package
+        from check_release_bundle import check as check_bundle
+        appdir = package(release=True)
+        violations = check_bundle(appdir)
+        if violations: raise RuntimeError('Release bundle check failed: ' + ', '.join(violations))
+        shutil.copy2(ROOT / 'build/Neo98-linux-x64.tar.gz', args.output / 'Neo98-linux-x64.tar.gz')
+    elif not args.sources_only:
+        if sys.platform != 'darwin': parser.error('Binary packaging requires macOS arm64 or Linux x64')
         from mac_app import build_app, build_dmg, signing_identity
         if args.notarize and signing_identity() == '-':
             parser.error('--notarize needs NEO98_SIGN_IDENTITY set to a Developer ID Application certificate')
@@ -144,7 +166,8 @@ def main():
             subprocess.run(['codesign', '--force', '--sign', signing_identity(), '--timestamp', str(dmg)], check=True)
             notarize(dmg, args.notarize)
         shutil.copy2(dmg, args.output / 'Neo98.dmg')
-    source_assets(args.output)
+    if not args.no_sources:
+        source_assets(args.output)
     checksums(args.output)
     print('Release assets: ' + str(args.output))
 

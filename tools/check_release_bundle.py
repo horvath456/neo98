@@ -5,11 +5,16 @@ from pathlib import Path
 import argparse
 import re
 
-PATTERNS = [re.compile(pattern, re.I) for pattern in (
+PATTERNS = [re.compile(pattern) for pattern in (
     rb'/Use[r]s/[^/\x00\n]+/', rb'(?<![:/])/ho[m]e/[^/\x00\n]+/',
-    rb'\b[A-Z0-9]{5}(?:-[A-Z0-9]{5}){4}\b')]
+    # Product keys use only this alphabet; Unicode character names in bundled
+    # libraries (1DOTS-2DOTS-...) do not.
+    rb'\b[BCDFGHJKMPQRTVWXY2346789]{5}(?:-[BCDFGHJKMPQRTVWXY2346789]{5}){4}\b')]
 
 
+# Fixed example text inside bundled third-party code, not a path of a machine:
+# the docstring of ntpath.splitroot in Python's standard library.
+HARMLESS = (b"/User" b"s/Barney') == ('C:', '/', 'User" b"s/Barney')",)
 MEDIA_FILES = {'mediactr.exe', 'mediactr.lnk', 'service.neo98'}
 # Runtime log text from host_media/service.h, compiled only with host media.
 # Unlike symbols, this string survives stripping on macOS and Linux.
@@ -32,6 +37,8 @@ def check(bundle):
     for path in sorted(bundle.rglob('*')):
         if path.is_file():
             data = path.read_bytes()
+            for text in HARMLESS:
+                data = data.replace(text, b'')
             if any(pattern.search(data) for pattern in PATTERNS):
                 errors.append(path.relative_to(bundle).as_posix() + ': private path or key pattern')
     return errors

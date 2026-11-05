@@ -56,6 +56,7 @@ MILESTONES = {
 
 
 def require_commands():
+    use_toolkit()
     missing = [name for name in TOOLS if not shutil.which(name)]
     if missing:
         install = "sudo apt install qemu-system-x86 mtools cabextract tesseract-ocr" if sys.platform.startswith("linux") else BREW_LINE
@@ -287,7 +288,8 @@ RUNDLL32.EXE USER.EXE,ExitWindows
 
 
 def qemu_args(iso, disk, floppy, serial, monitor):
-    args = ["qemu-system-i386", "-M", "pc", "-accel", "tcg", "-cpu", "pentium2",
+    firmware = toolkit() / "share/qemu" if toolkit() else None
+    args = ["qemu-system-i386", *(["-L", str(firmware)] if firmware and firmware.is_dir() else []), "-M", "pc", "-accel", "tcg", "-cpu", "pentium2",
             "-m", "128", "-smp", "1", "-vga", "cirrus", "-nic", "none",
             "-display", "none", "-no-reboot", "-serial", f"file:{serial}",
             "-monitor", f"unix:{monitor},server=on,wait=off",
@@ -949,6 +951,22 @@ def _setup_iso(iso=None, timeout=7200, reset=False, folder=None, work_root=None,
 # Where Homebrew puts QEMU, mtools, cabextract and tesseract. The assistant of
 # the app starts us without the PATH of a login shell.
 TOOL_DIRECTORIES = ("/opt/homebrew/bin", "/usr/local/bin")
+
+
+def toolkit():
+    """The setup toolkit a release carries (tools/setup_toolkit.py), or None."""
+    path = os.environ.get("NEO98_TOOLKIT")
+    return Path(path) if path and (Path(path) / "bin").is_dir() else None
+
+
+def use_toolkit():
+    """Put the bundled tools first, so a release needs nothing installed."""
+    kit = toolkit()
+    if kit is None:
+        return
+    os.environ["PATH"] = os.pathsep.join([str(kit / "bin"), os.environ.get("PATH", "")])
+    if (kit / "share/tessdata").is_dir():
+        os.environ["TESSDATA_PREFIX"] = str(kit / "share/tessdata")
 TOOLS = ("qemu-system-i386", "mformat", "mcopy", "mdel", "mmd", "mdir", "cabextract", "tesseract")
 BREW_LINE = "brew install qemu mtools cabextract tesseract"
 
@@ -982,6 +1000,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.user:
         os.environ["PATH"] = os.pathsep.join([*TOOL_DIRECTORIES, "/usr/bin", "/bin", "/usr/sbin", "/sbin"])
+    use_toolkit()
     if args.check_tools:
         missing = [name for name in TOOLS if not shutil.which(name)]
         print("missing: " + " ".join(missing) if missing else "tools: ok")

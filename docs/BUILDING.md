@@ -146,7 +146,16 @@ of the GPL components in the app (Unicorn, DOSBox Pure and the FreeDOS boot
 sector) and `SHA256SUMS`. The GitHub workflow in `.github/workflows` does
 the same when a `v*` tag is pushed.
 
-For a Linux release, run `python3 tools/linux_app.py --release`. Both release
+Releases carry a setup toolkit, built by `python3 tools/setup_toolkit.py`:
+QEMU (only `qemu-system-i386`), mtools, cabextract, Tesseract and Python,
+with every library they need. With it a downloaded release installs Windows
+from an ISO without Homebrew, apt or the Xcode tools. Building the toolkit
+needs `ninja`, `pkg-config`, GLib, pixman and Tesseract (macOS: `brew install
+ninja pkg-config glib pixman tesseract`; Ubuntu: `sudo apt install ninja-build
+pkg-config libglib2.0-dev libpixman-1-dev tesseract-ocr patchelf`).
+
+For a Linux release, run `python3 tools/make_release_assets.py --no-sources`,
+or `python3 tools/linux_app.py --release` for the package alone. Both release
 scripts leave Media Center out, even when `NEO98_WITH_HOST_MEDIA=1` is set.
 
 Without further settings the app is signed ad hoc, which is enough on your

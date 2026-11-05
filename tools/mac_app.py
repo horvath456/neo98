@@ -20,7 +20,9 @@ Mac without this checkout, without Homebrew and without Python:
      at start, tools/host_registry.h)
     Contents/Resources/setup/tools/ the Python files of the setup assistant
                                        (tools/setup_win98.py and what it imports;
-                                       standard library only, run by /usr/bin/python3)
+                                       standard library only, run by the toolkit's Python)
+    Contents/Resources/toolkit/ QEMU, mtools, cabextract, tesseract and Python for setup
+                                       (tools/setup_toolkit.py)
     Contents/Resources/Neo98.icns the icon, drawn by this file
     Contents/Info.plist names the app as opener of.exe,.com,.bat,.pif,.lnk,.scr and viewer of.iso and.cue,
                                        and the service "Open as game machine" for.exe and.com in the Finder
@@ -415,6 +417,13 @@ def build_app(build=True, target=APP):
         shutil.copyfile(ROOT / 'tools' / name, resources / 'setup/tools' / name)
     for name in SETUP_DIRECTORIES:
         shutil.copytree(ROOT / 'tools' / name, resources / 'setup/tools' / name)
+    # The setup toolkit (tools/setup_toolkit.py): what installing Windows from
+    # the user's ISO needs, so the app needs no Homebrew and no Xcode tools.
+    toolkit = ROOT / 'build/setup-toolkit'
+    if (toolkit / 'manifest.json').is_file():
+        shutil.copytree(toolkit, resources / 'toolkit', symlinks=True)
+    else:
+        print('warning: no setup toolkit (tools/setup_toolkit.py); ISO setup needs Homebrew tools', file=sys.stderr)
     shutil.copyfile(ROOT / 'COPYING', resources / 'COPYING')
     shutil.copyfile(ROOT / 'THIRD_PARTY.md', resources / 'THIRD_PARTY.md')
     shutil.copytree(ROOT / 'LICENSES', resources / 'LICENSES')
@@ -431,6 +440,12 @@ def build_app(build=True, target=APP):
     (contents / 'PkgInfo').write_bytes(b'APPL????')
     for library in sorted(frameworks.iterdir()):
         subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, str(library)], check=True, capture_output=True)
+    # Every Mach-O file of the toolkit needs the app's signature for notarization.
+    for path in sorted((resources / 'toolkit').rglob('*')) if (resources / 'toolkit').is_dir() else ():
+        if path.is_file() and not path.is_symlink() and path.read_bytes()[:4] in (
+                b'\xcf\xfa\xed\xfe', b'\xca\xfe\xba\xbe', b'\xbe\xba\xfe\xca'):
+            subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, str(path)],
+                           check=True, capture_output=True)
     # The program carries the entitlement of Hypervisor.framework: ARM64
     # programs run in a machine of that framework (docs/ARM64-APPS.md).
     subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, '--entitlements',

@@ -25,10 +25,32 @@ bool Headless()
 }
 const char *const Tools[] = {"qemu-system-i386", "mformat", "mcopy", "mdel", "mmd", "mdir", "cabextract", "tesseract"};
 const char *const BrewLine = "brew install qemu mtools cabextract tesseract";
+// The setup toolkit of a release (tools/setup_toolkit.py): QEMU, mtools,
+// cabextract, tesseract and Python inside the bundle, so setup needs nothing
+// installed. Empty in a checkout without build/setup-toolkit.
+std::string Toolkit()
+{
+    const std::string contents = HostSettings::BundleContents();
+    const std::string bundled = contents.empty() ? "" : contents + "/Resources/toolkit";
+    if (!bundled.empty() && !access((bundled + "/bin/qemu-system-i386").c_str(), X_OK))
+        return bundled;
+    const std::string checkout = HostSettings::Parent(HostSettings::Parent(HostSettings::Parent(
+                                     HostSettings::Executable()))) + "/build/setup-toolkit";
+    if (contents.empty() && !access((checkout + "/bin/qemu-system-i386").c_str(), X_OK))
+        return checkout;
+    return "";
+}
+std::string SetupPython()
+{
+    const std::string toolkit = Toolkit();
+    return toolkit.empty() ? "/usr/bin/python3" : toolkit + "/python/bin/python3";
+}
 std::vector<std::string> ToolDirectories()
 {
     const char *other = getenv("NEO98_SETUP_TOOL_DIRS");
     std::string text = other ? other : "/opt/homebrew/bin:/usr/local/bin";
+    if (const std::string toolkit = Toolkit(); !toolkit.empty())
+        text = toolkit + "/bin:" + text;
     std::vector<std::string> out;
     size_t at = 0;
     while (at <= text.size())
@@ -492,7 +514,7 @@ void AssistantMenu()
     previewPath = [previewDirectory stringByAppendingPathComponent:@"live.png"];
     previewView.image = nil;
     task = [NSTask new];
-    task.executableURL = [NSURL fileURLWithPath:@"/usr/bin/python3"];
+    task.executableURL = [NSURL fileURLWithPath:Text(SetupPython())];
     // -B: no __pycache__ inside the signed bundle.
     task.arguments = @[
         @"-B", Text(SetupScript()), @"--user", @"--iso", Text(iso), @"--target", Text(folder + "/C"), @"--work",
@@ -507,6 +529,7 @@ void AssistantMenu()
         @"PYTHONDONTWRITEBYTECODE" : @"1",
         @"PYTHONUNBUFFERED" : @"1",
         @"LC_ALL" : @"en_US.UTF-8",
+        @"NEO98_TOOLKIT" : Text(Toolkit()),
     };
     NSPipe *input = [NSPipe pipe], *output = [NSPipe pipe];
     task.standardInput = input;

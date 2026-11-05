@@ -1,0 +1,37 @@
+{
+  "qemu": {
+    "version": "11.1.3",
+    "url": "https://download.qemu.org/qemu-11.1.3.tar.xz",
+    "sha256": "5a8289c7940dc77d3873c81a6c29ba3afe1446fc9d36e77fa1658cdbecb84b22",
+    "license": "GPL-2.0-only (COPYING); the BIOS images: SeaBIOS LGPL-3.0, VGA BIOS LGPL-2.1",
+    "use": "qemu-system-i386 with only the i386 target and no optional features; runs Windows 98 Setup from the user's ISO once"
+  },
+  "mtools": {
+    "version": "4.0.50",
+    "url": "https://ftp.gnu.org/gnu/mtools/mtools-4.0.50.tar.gz",
+    "sha256": "7f078accae7551c6b3a316ccd8296357329f7bbbc09583dcd1a2bbaeb081a7a4",
+    "license": "GPL-3.0-or-later (COPYING)",
+    "use": "mformat, mcopy, mdel, mmd and mdir: the FAT disk and boot floppy of Setup"
+  },
+  "cabextract": {
+    "version": "1.11",
+    "url": "https://www.cabextract.org.uk/cabextract-1.11.tar.gz",
+    "sha256": "b5546db1155e4c718ff3d4b278573604f30dd64c3c5bfd4657cd089b823a3ac6",
+    "license": "GPL-3.0-or-later (COPYING), with libmspack LGPL-2.1",
+    "use": "extracts the boot files from the CAB archives of the user's ISO"
+  },
+  "python-linux-x64": {
+    "version": "CPython 3.12.16 (python-build-standalone 20261026)",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.12.16%2B20261026-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+    "sha256": "ce4f6d0a6cfdb3bed6e44c2f9affd85943c76a42e25ad3a259002f31d6fb8a20",
+    "license": "PSF-2.0 (python/lib/python3.12/LICENSE.txt) and the licences of its bundled libraries",
+    "use": "runs the setup assistant (tools/setup_win98.py, standard library only)"
+  },
+  "python-macos-arm64": {
+    "version": "CPython 3.12.16 (python-build-standalone 20261026)",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261026/cpython-3.12.16%2B20261026-aarch64-apple-darwin-install_only_stripped.tar.gz",
+    "sha256": "353d5f1b4fd2715e7053f12f068435d5bbad16b91e057006b5d01e0925709a7e",
+    "license": "PSF-2.0 (python/lib/python3.12/LICENSE.txt) and the licences of its bundled libraries",
+    "use": "runs the setup assistant (tools/setup_win98.py, standard library only)"
+  }
+}

@@ -98,6 +98,9 @@ class ReleaseBundleTest(unittest.TestCase):
                 path = root / 'build/host-devices' / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(b'device')
+            toolkit = root / 'build/setup-toolkit'
+            (toolkit / 'bin').mkdir(parents=True)
+            (toolkit / 'manifest.json').write_text('{}')
             binaries = root / 'build/native-app'
             binaries.mkdir()
             for name in ('neo98-host', 'neo98-cli'):
