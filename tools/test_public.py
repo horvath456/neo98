@@ -96,17 +96,30 @@ def run(python, script, objects, out_root, timeout, no_windows):
     env.update(NEO98_WIN98_ROOT=str(no_windows), NEO98_SETTINGS_DIR=str(settings),
                NEO98_LOG_DIR=str(logs), SDL_AUDIODRIVER='dummy',
                SDL_VIDEODRIVER=os.environ.get('SDL_VIDEODRIVER', 'dummy'))
-    with subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                          text=True, errors='replace', start_new_session=True) as process:
+    process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                               text=True, errors='replace', start_new_session=True)
+    try:
+        output, _ = process.communicate(timeout=timeout)
+        code = process.returncode
+    except subprocess.TimeoutExpired:
+        # Only this test's process group. A test that ignores SIGTERM must not
+        # hold up the run: on Linux it is killed; on macOS, where an ARM64 host
+        # is never sent SIGKILL, it is left behind. A child that left the
+        # group may keep the pipe open, so reading stops after a minute too.
+        os.killpg(process.pid, signal.SIGTERM)
+        output = ''
         try:
-            output, _ = process.communicate(timeout=timeout)
-            code = process.returncode
+            output, _ = process.communicate(timeout=60)
         except subprocess.TimeoutExpired:
-            # Only this test's process group, and never SIGKILL a host.
-            os.killpg(process.pid, signal.SIGTERM)
-            output, _ = process.communicate()
-            output += f'\nTimed out after {timeout} s'
-            code = None
+            if sys.platform.startswith('linux'):
+                os.killpg(process.pid, signal.SIGKILL)
+                try:
+                    output, _ = process.communicate(timeout=30)
+                except subprocess.TimeoutExpired:
+                    pass
+            process.stdout.close()
+        output = (output or '') + f'\nTimed out after {timeout} s'
+        code = None
     shutil.rmtree(settings, ignore_errors=True)
     shutil.rmtree(logs, ignore_errors=True)
     log = out_root / (script.stem + '.log')
