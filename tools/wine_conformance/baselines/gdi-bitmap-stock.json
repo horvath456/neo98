@@ -1,0 +1,1054 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "ros_gdi32_AddFontResource": {
+      "advisory": {
+        "AddFontResource.c:100": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:107": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:49": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:54": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:55": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:61": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:62": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:70": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:76": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:82": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:91": {
+          "FAIL": 1
+        },
+        "AddFontResource.c:93": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "AddFontResource.c:105": {
+          "PASS": 1
+        },
+        "AddFontResource.c:30": {
+          "PASS": 1
+        },
+        "AddFontResource.c:31": {
+          "PASS": 1
+        },
+        "AddFontResource.c:36": {
+          "PASS": 1
+        },
+        "AddFontResource.c:37": {
+          "PASS": 1
+        },
+        "AddFontResource.c:42": {
+          "PASS": 1
+        },
+        "AddFontResource.c:43": {
+          "PASS": 1
+        },
+        "AddFontResource.c:48": {
+          "PASS": 1
+        },
+        "AddFontResource.c:69": {
+          "PASS": 1
+        },
+        "AddFontResource.c:75": {
+          "PASS": 1
+        },
+        "AddFontResource.c:81": {
+          "PASS": 1
+        },
+        "AddFontResource.c:98": {
+          "PASS": 1
+        }
+      },
+      "sha256": "a2487dd41fe6f73fd17ae1a62de171c3d549596dcb78e5a8720536853514753a",
+      "skips": {}
+    },
+    "ros_gdi32_GetCurrentObject": {
+      "advisory": {
+        "GetCurrentObject.c:100": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:105": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:110": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:117": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:175": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:28": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:59": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:60": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:65": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:70": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:75": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:80": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:85": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:90": {
+          "FAIL": 1
+        },
+        "GetCurrentObject.c:95": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetCurrentObject.c:104": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:111": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:116": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:118": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:123": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:124": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:130": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:131": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:136": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:137": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:142": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:143": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:149": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:150": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:155": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:156": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:161": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:162": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:168": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:169": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:176": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:27": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:32": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:34": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:36": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:38": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:40": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:42": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:43": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:48": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:49": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:53": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:54": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:64": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:69": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:74": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:79": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:84": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:89": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:94": {
+          "PASS": 1
+        },
+        "GetCurrentObject.c:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "b5edfda3cb05db187aa1614f9b4c7e9fedd86fb776fa6348fc0beb7f45124fde",
+      "skips": {}
+    },
+    "ros_gdi32_GetDIBColorTable": {
+      "advisory": {
+        "GetDIBColorTable.c:29": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:31": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:32": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:39": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:41": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:42": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:67": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:71": {
+          "FAIL": 1
+        },
+        "GetDIBColorTable.c:82": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetDIBColorTable.c:25": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:30": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:35": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:37": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:40": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:63": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:68": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:69": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:70": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:75": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:79": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:83": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:84": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:85": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:86": {
+          "PASS": 1
+        },
+        "GetDIBColorTable.c:97": {
+          "PASS": 1
+        }
+      },
+      "sha256": "772f95255ba11b01eb888f2a0f81c2a71db51793b571b9384c328f07f5de3bd2",
+      "skips": {}
+    },
+    "ros_gdi32_GetDIBits": {
+      "advisory": {
+        "GetDIBits.c:153": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:172": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:193": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:195": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:196": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:197": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:207": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:211": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:215": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:219": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:223": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:240": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:249": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:257": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:258": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:264": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:265": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:272": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:273": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:279": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:280": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:294": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:30": {
+          "FAIL": 6
+        },
+        "GetDIBits.c:302": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:309": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:314": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:341": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:342": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:343": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:347": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:348": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:35": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:355": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:36": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:360": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:361": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:367": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:37": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:38": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:39": {
+          "FAIL": 1,
+          "PASS": 5
+        },
+        "GetDIBits.c:394": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:401": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:411": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:417": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:422": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:43": {
+          "FAIL": 3,
+          "PASS": 3
+        },
+        "GetDIBits.c:44": {
+          "FAIL": 3,
+          "PASS": 3
+        },
+        "GetDIBits.c:442": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:443": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:444": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:445": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:446": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:454": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:462": {
+          "FAIL": 1
+        },
+        "GetDIBits.c:58": {
+          "FAIL": 6
+        },
+        "GetDIBits.c:59": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:60": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:61": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:62": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:63": {
+          "FAIL": 4,
+          "PASS": 2
+        },
+        "GetDIBits.c:66": {
+          "FAIL": 3,
+          "PASS": 3
+        },
+        "GetDIBits.c:67": {
+          "FAIL": 3,
+          "PASS": 3
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetDIBits.c:116": {
+          "PASS": 1
+        },
+        "GetDIBits.c:120": {
+          "PASS": 1
+        },
+        "GetDIBits.c:124": {
+          "PASS": 1
+        },
+        "GetDIBits.c:125": {
+          "PASS": 1
+        },
+        "GetDIBits.c:128": {
+          "PASS": 1
+        },
+        "GetDIBits.c:129": {
+          "PASS": 1
+        },
+        "GetDIBits.c:132": {
+          "PASS": 1
+        },
+        "GetDIBits.c:133": {
+          "PASS": 1
+        },
+        "GetDIBits.c:136": {
+          "PASS": 1
+        },
+        "GetDIBits.c:137": {
+          "PASS": 1
+        },
+        "GetDIBits.c:145": {
+          "PASS": 1
+        },
+        "GetDIBits.c:146": {
+          "PASS": 1
+        },
+        "GetDIBits.c:152": {
+          "PASS": 1
+        },
+        "GetDIBits.c:159": {
+          "PASS": 1
+        },
+        "GetDIBits.c:160": {
+          "PASS": 1
+        },
+        "GetDIBits.c:171": {
+          "PASS": 1
+        },
+        "GetDIBits.c:173": {
+          "PASS": 1
+        },
+        "GetDIBits.c:174": {
+          "PASS": 1
+        },
+        "GetDIBits.c:175": {
+          "PASS": 1
+        },
+        "GetDIBits.c:176": {
+          "PASS": 1
+        },
+        "GetDIBits.c:182": {
+          "PASS": 1
+        },
+        "GetDIBits.c:183": {
+          "PASS": 1
+        },
+        "GetDIBits.c:185": {
+          "PASS": 1
+        },
+        "GetDIBits.c:186": {
+          "PASS": 1
+        },
+        "GetDIBits.c:187": {
+          "PASS": 1
+        },
+        "GetDIBits.c:188": {
+          "PASS": 1
+        },
+        "GetDIBits.c:194": {
+          "PASS": 1
+        },
+        "GetDIBits.c:203": {
+          "PASS": 1
+        },
+        "GetDIBits.c:224": {
+          "PASS": 1
+        },
+        "GetDIBits.c:225": {
+          "PASS": 1
+        },
+        "GetDIBits.c:226": {
+          "PASS": 1
+        },
+        "GetDIBits.c:227": {
+          "PASS": 1
+        },
+        "GetDIBits.c:228": {
+          "PASS": 1
+        },
+        "GetDIBits.c:230": {
+          "PASS": 1
+        },
+        "GetDIBits.c:231": {
+          "PASS": 1
+        },
+        "GetDIBits.c:232": {
+          "PASS": 1
+        },
+        "GetDIBits.c:233": {
+          "PASS": 1
+        },
+        "GetDIBits.c:234": {
+          "PASS": 1
+        },
+        "GetDIBits.c:235": {
+          "PASS": 1
+        },
+        "GetDIBits.c:236": {
+          "PASS": 1
+        },
+        "GetDIBits.c:246": {
+          "PASS": 1
+        },
+        "GetDIBits.c:250": {
+          "PASS": 1
+        },
+        "GetDIBits.c:251": {
+          "PASS": 1
+        },
+        "GetDIBits.c:252": {
+          "PASS": 1
+        },
+        "GetDIBits.c:253": {
+          "PASS": 1
+        },
+        "GetDIBits.c:266": {
+          "PASS": 1
+        },
+        "GetDIBits.c:267": {
+          "PASS": 1
+        },
+        "GetDIBits.c:274": {
+          "PASS": 1
+        },
+        "GetDIBits.c:281": {
+          "PASS": 1
+        },
+        "GetDIBits.c:286": {
+          "PASS": 1
+        },
+        "GetDIBits.c:287": {
+          "PASS": 1
+        },
+        "GetDIBits.c:288": {
+          "PASS": 1
+        },
+        "GetDIBits.c:291": {
+          "PASS": 1
+        },
+        "GetDIBits.c:295": {
+          "PASS": 1
+        },
+        "GetDIBits.c:296": {
+          "PASS": 1
+        },
+        "GetDIBits.c:303": {
+          "PASS": 1
+        },
+        "GetDIBits.c:304": {
+          "PASS": 1
+        },
+        "GetDIBits.c:320": {
+          "PASS": 1
+        },
+        "GetDIBits.c:322": {
+          "PASS": 1
+        },
+        "GetDIBits.c:324": {
+          "PASS": 1
+        },
+        "GetDIBits.c:326": {
+          "PASS": 1
+        },
+        "GetDIBits.c:327": {
+          "PASS": 1
+        },
+        "GetDIBits.c:328": {
+          "PASS": 1
+        },
+        "GetDIBits.c:329": {
+          "PASS": 1
+        },
+        "GetDIBits.c:330": {
+          "PASS": 1
+        },
+        "GetDIBits.c:331": {
+          "PASS": 1
+        },
+        "GetDIBits.c:332": {
+          "PASS": 1
+        },
+        "GetDIBits.c:34": {
+          "PASS": 6
+        },
+        "GetDIBits.c:345": {
+          "PASS": 1
+        },
+        "GetDIBits.c:350": {
+          "PASS": 1
+        },
+        "GetDIBits.c:353": {
+          "PASS": 1
+        },
+        "GetDIBits.c:357": {
+          "PASS": 1
+        },
+        "GetDIBits.c:363": {
+          "PASS": 1
+        },
+        "GetDIBits.c:364": {
+          "PASS": 1
+        },
+        "GetDIBits.c:366": {
+          "PASS": 1
+        },
+        "GetDIBits.c:369": {
+          "PASS": 1
+        },
+        "GetDIBits.c:370": {
+          "PASS": 1
+        },
+        "GetDIBits.c:372": {
+          "PASS": 1
+        },
+        "GetDIBits.c:373": {
+          "PASS": 1
+        },
+        "GetDIBits.c:376": {
+          "PASS": 1
+        },
+        "GetDIBits.c:378": {
+          "PASS": 1
+        },
+        "GetDIBits.c:395": {
+          "PASS": 1
+        },
+        "GetDIBits.c:396": {
+          "PASS": 1
+        },
+        "GetDIBits.c:397": {
+          "PASS": 1
+        },
+        "GetDIBits.c:398": {
+          "PASS": 1
+        },
+        "GetDIBits.c:399": {
+          "PASS": 1
+        },
+        "GetDIBits.c:40": {
+          "PASS": 6
+        },
+        "GetDIBits.c:400": {
+          "PASS": 1
+        },
+        "GetDIBits.c:402": {
+          "PASS": 1
+        },
+        "GetDIBits.c:403": {
+          "PASS": 1
+        },
+        "GetDIBits.c:404": {
+          "PASS": 1
+        },
+        "GetDIBits.c:405": {
+          "PASS": 1
+        },
+        "GetDIBits.c:409": {
+          "PASS": 1
+        },
+        "GetDIBits.c:41": {
+          "PASS": 6
+        },
+        "GetDIBits.c:410": {
+          "PASS": 1
+        },
+        "GetDIBits.c:412": {
+          "PASS": 1
+        },
+        "GetDIBits.c:42": {
+          "PASS": 6
+        },
+        "GetDIBits.c:426": {
+          "PASS": 1
+        },
+        "GetDIBits.c:432": {
+          "PASS": 1
+        },
+        "GetDIBits.c:439": {
+          "PASS": 1
+        },
+        "GetDIBits.c:450": {
+          "PASS": 1
+        },
+        "GetDIBits.c:459": {
+          "PASS": 1
+        },
+        "GetDIBits.c:461": {
+          "PASS": 1
+        },
+        "GetDIBits.c:64": {
+          "PASS": 6
+        },
+        "GetDIBits.c:65": {
+          "PASS": 6
+        }
+      },
+      "sha256": "d169b4c431de39c5ff57a92a11c85bdc3913f090c109f04244258e3f0510654b",
+      "skips": {}
+    },
+    "ros_gdi32_GetStockObject": {
+      "advisory": {
+        "GetStockObject.c:15": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:16": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:18": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:26": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:27": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:28": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:29": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:30": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:31": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:32": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:33": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:34": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:35": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:36": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:37": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:38": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:39": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:40": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:41": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:42": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:43": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:44": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:45": {
+          "FAIL": 1
+        },
+        "GetStockObject.c:46": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetStockObject.c:14": {
+          "PASS": 1
+        },
+        "GetStockObject.c:17": {
+          "PASS": 1
+        },
+        "GetStockObject.c:19": {
+          "PASS": 1
+        },
+        "GetStockObject.c:20": {
+          "PASS": 1
+        },
+        "GetStockObject.c:23": {
+          "PASS": 1
+        }
+      },
+      "sha256": "bf5edb46b599a9367f0241da26a11f4f801d65aa3668e92faa9b85502db3e03f",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "37c64c5eb72825090a7c62821d8e7129cb5dc6a7c32a938331abc4d254532a8b",
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "fedc5536aaec9702bf5006f7784c6812f61bc035a78865357e85fac3e6408082",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

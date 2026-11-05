@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2026 Andreas Horvath
+# ADVAPI32: the registry.
+type REGSAM     u32    "unsigned long";
+type PHKEY      ptr    "HKEY *";
+const HKEY_CLASSES_ROOT ((HKEY)(ULONG_PTR)((LONG)0x80000000));
+const HKEY_CURRENT_USER ((HKEY)(ULONG_PTR)((LONG)0x80000001));
+const HKEY_LOCAL_MACHINE ((HKEY)(ULONG_PTR)((LONG)0x80000002));
+const HKEY_USERS ((HKEY)(ULONG_PTR)((LONG)0x80000003));
+const HKEY_CURRENT_CONFIG ((HKEY)(ULONG_PTR)((LONG)0x80000005));
+const HKEY_DYN_DATA ((HKEY)(ULONG_PTR)((LONG)0x80000006));
+const REG_NONE 0;
+const REG_SZ 1;
+const REG_EXPAND_SZ 2;
+const REG_BINARY 3;
+const REG_DWORD 4;
+const REG_MULTI_SZ 7;
+const KEY_QUERY_VALUE 0x0001;
+const KEY_SET_VALUE 0x0002;
+const KEY_CREATE_SUB_KEY 0x0004;
+const KEY_ENUMERATE_SUB_KEYS 0x0008;
+const KEY_READ 0x20019;
+const KEY_WRITE 0x20006;
+const KEY_ALL_ACCESS 0xF003F;
+const REG_OPTION_NON_VOLATILE 0;
+const REG_CREATED_NEW_KEY 1;
+const REG_OPENED_EXISTING_KEY 2;
+const ERROR_MORE_DATA 234;
+const ERROR_NO_MORE_ITEMS 259;
+
+dll ADVAPI32;
+LONG RegOpenKeyA(HKEY hKey, LPCSTR lpSubKey, out HKEY* phkResult);
+LONG RegOpenKeyExA(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, out HKEY* phkResult);
+LONG RegCreateKeyA(HKEY hKey, LPCSTR lpSubKey, out HKEY* phkResult);
+LONG RegCreateKeyExA(HKEY hKey, LPCSTR lpSubKey, DWORD Reserved, LPSTR lpClass, DWORD dwOptions, REGSAM samDesired, in SECURITY_ATTRIBUTES* lpSecurityAttributes, out HKEY* phkResult, LPDWORD lpdwDisposition);
+LONG RegCloseKey(HKEY hKey);
+LONG RegFlushKey(HKEY hKey);
+LONG RegDeleteKeyA(HKEY hKey, LPCSTR lpSubKey);
+LONG RegDeleteValueA(HKEY hKey, LPCSTR lpValueName);
+LONG RegQueryValueA(HKEY hKey, LPCSTR lpSubKey, LPSTR lpData, LPLONG lpcbData);
+LONG RegQueryValueExA(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+LONG RegSetValueA(HKEY hKey, LPCSTR lpSubKey, DWORD dwType, LPCSTR lpData, DWORD cbData);
+LONG RegSetValueExA(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, LPCVOID lpData, DWORD cbData);
+LONG RegEnumKeyA(HKEY hKey, DWORD dwIndex, LPSTR lpName, DWORD cchName);
+LONG RegEnumKeyExA(HKEY hKey, DWORD dwIndex, LPSTR lpName, LPDWORD lpcchName, LPDWORD lpReserved, LPSTR lpClass, LPDWORD lpcchClass, FILETIME* lpftLastWriteTime);
+LONG RegEnumValueA(HKEY hKey, DWORD dwIndex, LPSTR lpValueName, LPDWORD lpcchValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+LONG RegQueryInfoKeyA(HKEY hKey, LPSTR lpClass, LPDWORD lpcchClass, LPDWORD lpReserved, LPDWORD lpcSubKeys, LPDWORD lpcbMaxSubKeyLen, LPDWORD lpcbMaxClassLen, LPDWORD lpcValues, LPDWORD lpcbMaxValueNameLen, LPDWORD lpcbMaxValueLen, LPDWORD lpcbSecurityDescriptor, FILETIME* lpftLastWriteTime);
+BOOL GetUserNameA(LPSTR lpBuffer, LPDWORD pcbBuffer);

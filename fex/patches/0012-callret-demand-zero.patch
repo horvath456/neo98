@@ -1,0 +1,55 @@
+--- a/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
++++ b/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
+@@ -259,6 +259,21 @@
+ void SetupAllocatorHooks(void (*)(const char* name, const void* address, size_t size));
+ #endif
+ 
++// The embedder gives the call-return predictor a private, page-aligned RW
++// mapping. Replace only that mapping with demand-zero pages on Darwin.
++// MADV_DONTNEED retains bytes here; memset faults in every one of the 4 MiB.
++// Do not use this for the general discard API, which also sees JIT mappings.
++inline void VirtualResetCallRet(void* Ptr, size_t Size) {
++#ifdef __APPLE__
++  const size_t Page = static_cast<size_t>(getpagesize());
++  if (!(reinterpret_cast<uintptr_t>(Ptr) % Page) && !(Size % Page) && Size &&
++      ::mmap(Ptr, Size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0) == Ptr) {
++    return;
++  }
++#endif
++  VirtualDontNeed(Ptr, Size);
++}
++
+ struct FEXAllocOperators {
+   FEXAllocOperators() = default;
+ 
+--- a/FEXCore/Source/Interface/Core/Core.cpp
++++ b/FEXCore/Source/Interface/Core/Core.cpp
+@@ -506,7 +506,7 @@
+     auto lk = Thread->LookupCache->AcquireWriteLock();
+     Thread->LookupCache->ClearCache(lk);
+   }
+-  Allocator::VirtualDontNeed(Thread->CallRetStackBase, FEXCore::Core::InternalThreadState::CALLRET_STACK_SIZE);
++  Allocator::VirtualResetCallRet(Thread->CallRetStackBase, FEXCore::Core::InternalThreadState::CALLRET_STACK_SIZE);
+ }
+ 
+ static void IRDumper(FEXCore::Core::InternalThreadState* Thread, IR::IREmitter* IREmitter, uint64_t GuestRIP) {
+@@ -1181,7 +1181,7 @@
+     FEXCORE_PROFILE_SCOPED("InvalidateCallRet");
+ 
+     // This may cause access violations in the thread on Windows as zeroing is not atomic, this is handled by the frontend
+-    Allocator::VirtualDontNeed(Thread->CallRetStackBase, FEXCore::Core::InternalThreadState::CALLRET_STACK_SIZE);
++    Allocator::VirtualResetCallRet(Thread->CallRetStackBase, FEXCore::Core::InternalThreadState::CALLRET_STACK_SIZE);
+   }
+ }
+ 
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -887,7 +887,7 @@
+                                                                                                "doesn't match up!\n");
+   // Bring CodeBuffer up to date
+   if (auto Prev = CheckCodeBufferUpdate()) {
+-    Allocator::VirtualDontNeed(ThreadState->CallRetStackBase, FEXCore::Core::InternalThreadState::CALLRET_STACK_SIZE);
++    Allocator::VirtualResetCallRet(ThreadState->CallRetStackBase, FEXCore::Core::InternalThreadState::CALLRET_STACK_SIZE);
+     auto lk = ThreadState->LookupCache->AcquireWriteLock();
+     ThreadState->LookupCache->ChangeGuestToHostMapping(*Prev, *CurrentCodeBuffer->LookupCache, lk);
+   }

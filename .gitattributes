@@ -1,0 +1,6 @@
+# Preserve the pinned upstream FreeDOS files byte for byte.
+tools/freedos_boot/* -text
+tools/freedos_boot/oemboot.asm whitespace=-blank-at-eol,-blank-at-eof
+
+# Unified patch context keeps the original indentation and blank lines.
+platform/circle/newlib-conversions.patch whitespace=-blank-at-eol,-space-before-tab

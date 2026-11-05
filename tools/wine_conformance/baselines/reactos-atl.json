@@ -1,0 +1,2035 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "ros_shell32_CommandLineToArgvW": {
+      "reference_status": "TIMEOUT",
+      "sha256": "3fe6c8883bcb6565ff74dde9a5aab096bfe9454b245a8db1c22bc68305061e5b"
+    }
+  },
+  "groups": {
+    "ros_atl_CAtlArray": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "CAtlArray.cpp:100": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:101": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:102": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:103": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:104": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:106": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:107": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:108": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:109": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:110": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:115": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:116": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:117": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:118": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:119": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:124": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:125": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:126": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:127": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:128": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:139": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:140": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:141": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:142": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:143": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:64": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:65": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:66": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:67": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:68": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:72": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:73": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:74": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:75": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:76": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:80": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:81": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:82": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:83": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:84": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:88": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:89": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:90": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:91": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:92": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:94": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:95": {
+          "PASS": 1
+        },
+        "CAtlArray.cpp:96": {
+          "PASS": 1
+        }
+      },
+      "sha256": "8f6f5c981bdd7e2c02290939a73001f0a257be3985fa57b2516bb3ca3835c720",
+      "skips": {}
+    },
+    "ros_atl_CAtlList": {
+      "advisory": {
+        "CAtlList.cpp:103": {
+          "FAIL": 1
+        },
+        "CAtlList.cpp:108": {
+          "FAIL": 1
+        },
+        "CAtlList.cpp:113": {
+          "FAIL": 1
+        },
+        "CAtlList.cpp:89": {
+          "FAIL": 1
+        },
+        "CAtlList.cpp:95": {
+          "FAIL": 1
+        },
+        "CAtlList.cpp:98": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CAtlList.cpp:24": {
+          "PASS": 1
+        },
+        "CAtlList.cpp:26": {
+          "PASS": 1
+        },
+        "CAtlList.cpp:28": {
+          "PASS": 1
+        },
+        "CAtlList.cpp:30": {
+          "PASS": 1
+        },
+        "CAtlList.cpp:44": {
+          "PASS": 7
+        },
+        "CAtlList.cpp:48": {
+          "PASS": 7
+        },
+        "CAtlList.cpp:56": {
+          "PASS": 1
+        }
+      },
+      "sha256": "8b4848b5934f25c7335b94dcf9b951a75c0f2b929226a933d6f046081f699990",
+      "skips": {}
+    },
+    "ros_atl_CComBSTR": {
+      "advisory": {
+        "CComBSTR.cpp:134": {
+          "FAIL": 1
+        },
+        "CComBSTR.cpp:135": {
+          "FAIL": 1
+        },
+        "CComBSTR.cpp:138": {
+          "FAIL": 1
+        },
+        "CComBSTR.cpp:139": {
+          "FAIL": 1
+        },
+        "CComBSTR.cpp:60": {
+          "FAIL": 1
+        },
+        "CComBSTR.cpp:65": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CComBSTR.cpp:101": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:111": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:112": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:114": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:115": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:116": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:123": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:124": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:126": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:136": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:140": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:57": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:58": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:59": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:61": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:62": {
+          "PASS": 3
+        },
+        "CComBSTR.cpp:63": {
+          "PASS": 3
+        },
+        "CComBSTR.cpp:64": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:66": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:67": {
+          "PASS": 3
+        },
+        "CComBSTR.cpp:68": {
+          "PASS": 3
+        },
+        "CComBSTR.cpp:83": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:84": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:85": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:86": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:87": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:88": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:89": {
+          "PASS": 4
+        },
+        "CComBSTR.cpp:90": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:91": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:97": {
+          "PASS": 1
+        },
+        "CComBSTR.cpp:98": {
+          "PASS": 1
+        }
+      },
+      "sha256": "191288a33405d2208670aee0e1125eca8b8a97c548db046318a102808181edb8",
+      "skips": {}
+    },
+    "ros_atl_CPath": {
+      "advisory": {
+        "CPath.inl:10": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:103": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:113": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:121": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:125": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:130": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:138": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:14": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:146": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:15": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:157": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:165": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:173": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:177": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:183": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:187": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:191": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:195": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:209": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:214": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:218": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:222": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:233": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:237": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:241": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:253": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:254": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:256": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:26": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:270": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:271": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:275": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:281": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:36": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:40": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:71": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:79": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:87": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:9": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CPath.inl:95": {
+          "FAIL": 1,
+          "PASS": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CPath.inl:107": {
+          "PASS": 2
+        },
+        "CPath.inl:117": {
+          "PASS": 2
+        },
+        "CPath.inl:120": {
+          "PASS": 2
+        },
+        "CPath.inl:124": {
+          "PASS": 2
+        },
+        "CPath.inl:134": {
+          "PASS": 2
+        },
+        "CPath.inl:142": {
+          "PASS": 2
+        },
+        "CPath.inl:150": {
+          "PASS": 2
+        },
+        "CPath.inl:161": {
+          "PASS": 2
+        },
+        "CPath.inl:169": {
+          "PASS": 2
+        },
+        "CPath.inl:172": {
+          "PASS": 2
+        },
+        "CPath.inl:176": {
+          "PASS": 2
+        },
+        "CPath.inl:190": {
+          "PASS": 2
+        },
+        "CPath.inl:194": {
+          "PASS": 2
+        },
+        "CPath.inl:198": {
+          "PASS": 2
+        },
+        "CPath.inl:199": {
+          "PASS": 2
+        },
+        "CPath.inl:200": {
+          "PASS": 2
+        },
+        "CPath.inl:201": {
+          "PASS": 2
+        },
+        "CPath.inl:202": {
+          "PASS": 2
+        },
+        "CPath.inl:203": {
+          "PASS": 2
+        },
+        "CPath.inl:204": {
+          "PASS": 2
+        },
+        "CPath.inl:252": {
+          "PASS": 2
+        },
+        "CPath.inl:255": {
+          "PASS": 2
+        },
+        "CPath.inl:259": {
+          "PASS": 2
+        },
+        "CPath.inl:260": {
+          "PASS": 2
+        },
+        "CPath.inl:261": {
+          "PASS": 2
+        },
+        "CPath.inl:264": {
+          "PASS": 2
+        },
+        "CPath.inl:265": {
+          "PASS": 2
+        },
+        "CPath.inl:43": {
+          "PASS": 2
+        },
+        "CPath.inl:46": {
+          "PASS": 2
+        },
+        "CPath.inl:48": {
+          "PASS": 2
+        },
+        "CPath.inl:51": {
+          "PASS": 2
+        },
+        "CPath.inl:53": {
+          "PASS": 2
+        },
+        "CPath.inl:56": {
+          "PASS": 2
+        },
+        "CPath.inl:58": {
+          "PASS": 2
+        },
+        "CPath.inl:61": {
+          "PASS": 2
+        },
+        "CPath.inl:75": {
+          "PASS": 2
+        },
+        "CPath.inl:8": {
+          "PASS": 2
+        },
+        "CPath.inl:83": {
+          "PASS": 2
+        },
+        "CPath.inl:91": {
+          "PASS": 2
+        },
+        "CPath.inl:94": {
+          "PASS": 2
+        },
+        "CPath.inl:98": {
+          "PASS": 2
+        },
+        "CPath.inl:99": {
+          "PASS": 2
+        }
+      },
+      "sha256": "91460a60a80c6a3ea3dd20882358378a7a9a152921e6379a7787c6e473649af7",
+      "skips": {}
+    },
+    "ros_atl_CRegKey": {
+      "advisory": {
+        "CRegKey.cpp:100": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:104": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:105": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:108": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:112": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:113": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:117": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:121": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:130": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:131": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:132": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:135": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:140": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:141": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:142": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:145": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:151": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:154": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:155": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:160": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:161": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:163": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:167": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:172": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:173": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:175": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:180": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:181": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:182": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:185": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:188": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:37": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:38": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:49": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:52": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:56": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:64": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:65": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:66": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:67": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:74": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:75": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:76": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:77": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:83": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:89": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:92": {
+          "FAIL": 1
+        },
+        "CRegKey.cpp:96": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CRegKey.cpp:17": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:18": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:19": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:193": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:197": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:201": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:206": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:23": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:24": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:29": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:31": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:33": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:43": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:44": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:46": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:84": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:85": {
+          "PASS": 1
+        },
+        "CRegKey.cpp:97": {
+          "PASS": 1
+        }
+      },
+      "sha256": "722424cdd9a73c8f8780c06b5f069073ac79a96798340eef062d87b86f7a41a9",
+      "skips": {}
+    },
+    "ros_atl_CSimpleArray": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "CSimpleArray.cpp:100": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:102": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:103": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:107": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:108": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:111": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:112": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:115": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:116": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:119": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:120": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:123": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:124": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:127": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:128": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:131": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:132": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:134": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:135": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:138": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:139": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:142": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:147": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:150": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:153": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:154": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:157": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:159": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:160": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:48": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:52": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:53": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:54": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:58": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:59": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:60": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:61": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:62": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:65": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:73": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:76": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:79": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:81": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:82": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:83": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:84": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:86": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:87": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:93": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:94": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:96": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:97": {
+          "PASS": 1
+        },
+        "CSimpleArray.cpp:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "19bb88a938e82a39ab20ecef58588bf8f20fdf9001b4bc60e65f614da4ba0a04",
+      "skips": {}
+    },
+    "ros_atl_CSimpleMap": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "CSimpleMap.cpp:102": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:103": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:106": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:107": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:110": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:111": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:114": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:115": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:116": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:120": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:121": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:124": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:125": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:128": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:129": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:132": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:133": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:134": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:137": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:138": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:139": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:142": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:143": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:144": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:147": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:150": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:153": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:154": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:157": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:158": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:161": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:162": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:165": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:166": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:169": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:170": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:173": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:175": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:177": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:178": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:179": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:180": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:48": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:51": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:53": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:55": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:56": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:57": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:59": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:60": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:62": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:63": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:65": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:66": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:70": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:71": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:73": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:74": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:77": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:79": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:82": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:84": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:86": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:89": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:91": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:92": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:95": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:97": {
+          "PASS": 1
+        },
+        "CSimpleMap.cpp:98": {
+          "PASS": 1
+        }
+      },
+      "sha256": "5d005f10bdf50e5afab82738989f3687cabef37635485e3430b91b16adc3315c",
+      "skips": {}
+    },
+    "ros_atl_CString": {
+      "advisory": {
+        "CString.cpp:101": {
+          "FAIL": 6
+        },
+        "CString.cpp:102": {
+          "FAIL": 6
+        },
+        "CString.cpp:56": {
+          "FAIL": 6,
+          "PASS": 3
+        },
+        "CString.cpp:59": {
+          "FAIL": 4,
+          "PASS": 5
+        },
+        "CString.cpp:77": {
+          "FAIL": 6
+        },
+        "CString.cpp:78": {
+          "FAIL": 6
+        },
+        "CString.cpp:85": {
+          "FAIL": 6,
+          "PASS": 3
+        },
+        "CString.cpp:88": {
+          "FAIL": 4,
+          "PASS": 5
+        },
+        "CString.inl:121": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:124": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:126": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:398": {
+          "FAIL": 2
+        },
+        "CString.inl:399": {
+          "FAIL": 2
+        },
+        "CString.inl:400": {
+          "FAIL": 2
+        },
+        "CString.inl:408": {
+          "FAIL": 2
+        },
+        "CString.inl:409": {
+          "FAIL": 2
+        },
+        "CString.inl:410": {
+          "FAIL": 2
+        },
+        "CString.inl:424": {
+          "FAIL": 2
+        },
+        "CString.inl:425": {
+          "FAIL": 2
+        },
+        "CString.inl:427": {
+          "FAIL": 2
+        },
+        "CString.inl:428": {
+          "FAIL": 2
+        },
+        "CString.inl:431": {
+          "FAIL": 2
+        },
+        "CString.inl:442": {
+          "FAIL": 2
+        },
+        "CString.inl:445": {
+          "FAIL": 2
+        },
+        "CString.inl:448": {
+          "FAIL": 2
+        },
+        "CString.inl:451": {
+          "FAIL": 2
+        },
+        "CString.inl:464": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:70": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:71": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:75": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:76": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:80": {
+          "FAIL": 2
+        },
+        "CString.inl:81": {
+          "FAIL": 2
+        },
+        "CString.inl:86": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "CString.inl:87": {
+          "FAIL": 1,
+          "PASS": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CString.cpp:104": {
+          "PASS": 6
+        },
+        "CString.cpp:112": {
+          "PASS": 6
+        },
+        "CString.cpp:113": {
+          "PASS": 6
+        },
+        "CString.cpp:115": {
+          "PASS": 6
+        },
+        "CString.cpp:50": {
+          "PASS": 9
+        },
+        "CString.cpp:53": {
+          "PASS": 9
+        },
+        "CString.cpp:66": {
+          "PASS": 6
+        },
+        "CString.cpp:67": {
+          "PASS": 6
+        },
+        "CString.cpp:69": {
+          "PASS": 6
+        },
+        "CString.cpp:80": {
+          "PASS": 6
+        },
+        "CString.cpp:91": {
+          "PASS": 9
+        },
+        "CString.cpp:94": {
+          "PASS": 9
+        },
+        "CString.inl:101": {
+          "PASS": 2
+        },
+        "CString.inl:104": {
+          "PASS": 2
+        },
+        "CString.inl:107": {
+          "PASS": 2
+        },
+        "CString.inl:11": {
+          "PASS": 2
+        },
+        "CString.inl:110": {
+          "PASS": 2
+        },
+        "CString.inl:113": {
+          "PASS": 2
+        },
+        "CString.inl:116": {
+          "PASS": 2
+        },
+        "CString.inl:118": {
+          "PASS": 2
+        },
+        "CString.inl:122": {
+          "PASS": 2
+        },
+        "CString.inl:125": {
+          "PASS": 2
+        },
+        "CString.inl:129": {
+          "PASS": 2
+        },
+        "CString.inl:130": {
+          "PASS": 2
+        },
+        "CString.inl:131": {
+          "PASS": 2
+        },
+        "CString.inl:135": {
+          "PASS": 2
+        },
+        "CString.inl:136": {
+          "PASS": 2
+        },
+        "CString.inl:137": {
+          "PASS": 2
+        },
+        "CString.inl:14": {
+          "PASS": 2
+        },
+        "CString.inl:140": {
+          "PASS": 2
+        },
+        "CString.inl:141": {
+          "PASS": 2
+        },
+        "CString.inl:144": {
+          "PASS": 2
+        },
+        "CString.inl:145": {
+          "PASS": 2
+        },
+        "CString.inl:153": {
+          "PASS": 2
+        },
+        "CString.inl:155": {
+          "PASS": 2
+        },
+        "CString.inl:159": {
+          "PASS": 2
+        },
+        "CString.inl:161": {
+          "PASS": 2
+        },
+        "CString.inl:165": {
+          "PASS": 2
+        },
+        "CString.inl:167": {
+          "PASS": 2
+        },
+        "CString.inl:170": {
+          "PASS": 2
+        },
+        "CString.inl:173": {
+          "PASS": 2
+        },
+        "CString.inl:18": {
+          "PASS": 2
+        },
+        "CString.inl:187": {
+          "PASS": 2
+        },
+        "CString.inl:19": {
+          "PASS": 2
+        },
+        "CString.inl:193": {
+          "PASS": 2
+        },
+        "CString.inl:201": {
+          "PASS": 2
+        },
+        "CString.inl:204": {
+          "PASS": 2
+        },
+        "CString.inl:209": {
+          "PASS": 2
+        },
+        "CString.inl:218": {
+          "PASS": 2
+        },
+        "CString.inl:219": {
+          "PASS": 2
+        },
+        "CString.inl:222": {
+          "PASS": 2
+        },
+        "CString.inl:223": {
+          "PASS": 2
+        },
+        "CString.inl:226": {
+          "PASS": 2
+        },
+        "CString.inl:227": {
+          "PASS": 2
+        },
+        "CString.inl:23": {
+          "PASS": 2
+        },
+        "CString.inl:230": {
+          "PASS": 2
+        },
+        "CString.inl:231": {
+          "PASS": 2
+        },
+        "CString.inl:234": {
+          "PASS": 2
+        },
+        "CString.inl:235": {
+          "PASS": 2
+        },
+        "CString.inl:238": {
+          "PASS": 2
+        },
+        "CString.inl:239": {
+          "PASS": 2
+        },
+        "CString.inl:24": {
+          "PASS": 2
+        },
+        "CString.inl:242": {
+          "PASS": 2
+        },
+        "CString.inl:243": {
+          "PASS": 2
+        },
+        "CString.inl:246": {
+          "PASS": 2
+        },
+        "CString.inl:247": {
+          "PASS": 2
+        },
+        "CString.inl:250": {
+          "PASS": 2
+        },
+        "CString.inl:251": {
+          "PASS": 2
+        },
+        "CString.inl:254": {
+          "PASS": 2
+        },
+        "CString.inl:255": {
+          "PASS": 2
+        },
+        "CString.inl:258": {
+          "PASS": 2
+        },
+        "CString.inl:259": {
+          "PASS": 2
+        },
+        "CString.inl:262": {
+          "PASS": 2
+        },
+        "CString.inl:263": {
+          "PASS": 2
+        },
+        "CString.inl:266": {
+          "PASS": 2
+        },
+        "CString.inl:267": {
+          "PASS": 2
+        },
+        "CString.inl:275": {
+          "PASS": 2
+        },
+        "CString.inl:276": {
+          "PASS": 2
+        },
+        "CString.inl:277": {
+          "PASS": 2
+        },
+        "CString.inl:28": {
+          "PASS": 2
+        },
+        "CString.inl:282": {
+          "PASS": 2
+        },
+        "CString.inl:283": {
+          "PASS": 2
+        },
+        "CString.inl:285": {
+          "PASS": 2
+        },
+        "CString.inl:288": {
+          "PASS": 2
+        },
+        "CString.inl:289": {
+          "PASS": 2
+        },
+        "CString.inl:29": {
+          "PASS": 2
+        },
+        "CString.inl:291": {
+          "PASS": 2
+        },
+        "CString.inl:294": {
+          "PASS": 2
+        },
+        "CString.inl:295": {
+          "PASS": 2
+        },
+        "CString.inl:297": {
+          "PASS": 2
+        },
+        "CString.inl:300": {
+          "PASS": 2
+        },
+        "CString.inl:301": {
+          "PASS": 2
+        },
+        "CString.inl:303": {
+          "PASS": 2
+        },
+        "CString.inl:306": {
+          "PASS": 2
+        },
+        "CString.inl:307": {
+          "PASS": 2
+        },
+        "CString.inl:309": {
+          "PASS": 2
+        },
+        "CString.inl:312": {
+          "PASS": 2
+        },
+        "CString.inl:313": {
+          "PASS": 2
+        },
+        "CString.inl:315": {
+          "PASS": 2
+        },
+        "CString.inl:318": {
+          "PASS": 2
+        },
+        "CString.inl:319": {
+          "PASS": 2
+        },
+        "CString.inl:321": {
+          "PASS": 2
+        },
+        "CString.inl:324": {
+          "PASS": 2
+        },
+        "CString.inl:325": {
+          "PASS": 2
+        },
+        "CString.inl:327": {
+          "PASS": 2
+        },
+        "CString.inl:33": {
+          "PASS": 2
+        },
+        "CString.inl:330": {
+          "PASS": 2
+        },
+        "CString.inl:331": {
+          "PASS": 2
+        },
+        "CString.inl:333": {
+          "PASS": 2
+        },
+        "CString.inl:336": {
+          "PASS": 2
+        },
+        "CString.inl:337": {
+          "PASS": 2
+        },
+        "CString.inl:339": {
+          "PASS": 2
+        },
+        "CString.inl:34": {
+          "PASS": 2
+        },
+        "CString.inl:349": {
+          "PASS": 2
+        },
+        "CString.inl:350": {
+          "PASS": 2
+        },
+        "CString.inl:353": {
+          "PASS": 2
+        },
+        "CString.inl:354": {
+          "PASS": 2
+        },
+        "CString.inl:357": {
+          "PASS": 2
+        },
+        "CString.inl:358": {
+          "PASS": 2
+        },
+        "CString.inl:362": {
+          "PASS": 2
+        },
+        "CString.inl:363": {
+          "PASS": 2
+        },
+        "CString.inl:367": {
+          "PASS": 2
+        },
+        "CString.inl:368": {
+          "PASS": 2
+        },
+        "CString.inl:372": {
+          "PASS": 2
+        },
+        "CString.inl:373": {
+          "PASS": 2
+        },
+        "CString.inl:377": {
+          "PASS": 2
+        },
+        "CString.inl:378": {
+          "PASS": 2
+        },
+        "CString.inl:38": {
+          "PASS": 2
+        },
+        "CString.inl:382": {
+          "PASS": 2
+        },
+        "CString.inl:383": {
+          "PASS": 2
+        },
+        "CString.inl:39": {
+          "PASS": 2
+        },
+        "CString.inl:390": {
+          "PASS": 2
+        },
+        "CString.inl:391": {
+          "PASS": 2
+        },
+        "CString.inl:392": {
+          "PASS": 2
+        },
+        "CString.inl:413": {
+          "PASS": 2
+        },
+        "CString.inl:414": {
+          "PASS": 2
+        },
+        "CString.inl:415": {
+          "PASS": 2
+        },
+        "CString.inl:422": {
+          "PASS": 2
+        },
+        "CString.inl:43": {
+          "PASS": 2
+        },
+        "CString.inl:430": {
+          "PASS": 2
+        },
+        "CString.inl:435": {
+          "PASS": 2
+        },
+        "CString.inl:439": {
+          "PASS": 2
+        },
+        "CString.inl:44": {
+          "PASS": 2
+        },
+        "CString.inl:461": {
+          "PASS": 2
+        },
+        "CString.inl:479": {
+          "PASS": 2
+        },
+        "CString.inl:48": {
+          "PASS": 2
+        },
+        "CString.inl:480": {
+          "PASS": 2
+        },
+        "CString.inl:483": {
+          "PASS": 2
+        },
+        "CString.inl:484": {
+          "PASS": 2
+        },
+        "CString.inl:487": {
+          "PASS": 2
+        },
+        "CString.inl:488": {
+          "PASS": 2
+        },
+        "CString.inl:49": {
+          "PASS": 2
+        },
+        "CString.inl:493": {
+          "PASS": 2
+        },
+        "CString.inl:494": {
+          "PASS": 2
+        },
+        "CString.inl:5": {
+          "PASS": 2
+        },
+        "CString.inl:500": {
+          "PASS": 2
+        },
+        "CString.inl:501": {
+          "PASS": 2
+        },
+        "CString.inl:505": {
+          "PASS": 2
+        },
+        "CString.inl:506": {
+          "PASS": 2
+        },
+        "CString.inl:514": {
+          "PASS": 2
+        },
+        "CString.inl:515": {
+          "PASS": 2
+        },
+        "CString.inl:522": {
+          "PASS": 2
+        },
+        "CString.inl:523": {
+          "PASS": 2
+        },
+        "CString.inl:53": {
+          "PASS": 2
+        },
+        "CString.inl:531": {
+          "PASS": 2
+        },
+        "CString.inl:532": {
+          "PASS": 2
+        },
+        "CString.inl:537": {
+          "PASS": 2
+        },
+        "CString.inl:538": {
+          "PASS": 2
+        },
+        "CString.inl:54": {
+          "PASS": 2
+        },
+        "CString.inl:544": {
+          "PASS": 2
+        },
+        "CString.inl:545": {
+          "PASS": 2
+        },
+        "CString.inl:551": {
+          "PASS": 2
+        },
+        "CString.inl:552": {
+          "PASS": 2
+        },
+        "CString.inl:58": {
+          "PASS": 2
+        },
+        "CString.inl:59": {
+          "PASS": 2
+        },
+        "CString.inl:6": {
+          "PASS": 2
+        },
+        "CString.inl:64": {
+          "PASS": 2
+        },
+        "CString.inl:65": {
+          "PASS": 2
+        },
+        "CString.inl:7": {
+          "PASS": 2
+        },
+        "CString.inl:98": {
+          "PASS": 2
+        }
+      },
+      "sha256": "ad2c4f7843d9bc5b768bdc15c6fd54fa29feecf9219167f2a35eb54f5a573eb2",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "977694d1ba0b719a946092dec4a16f19048fec6f9de3cac443462a3256fc4021",
+  "reference_selection": {
+    "excluded": {
+      "ros_shell32_CommandLineToArgvW": "TIMEOUT"
+    },
+    "selected": [
+      "ros_atl_CAtlArray",
+      "ros_atl_CAtlList",
+      "ros_atl_CComBSTR",
+      "ros_atl_CPath",
+      "ros_atl_CRegKey",
+      "ros_atl_CSimpleArray",
+      "ros_atl_CSimpleMap",
+      "ros_atl_CString"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "7eb1dd73cd560d5221e9ac98d05e2034571b64c2c5375471723d358a3211866b",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "ATL.DLL": {
+      "sha256": "e911ff1063d16348f353ee9001fbd43e04a3c8514028d964967d32dd87d83cca",
+      "version": [
+        3,
+        0,
+        8449,
+        0
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "OLEAUT32.DLL": {
+      "sha256": "baeb2f7c1b8be56738d34e1d1ddf8e0eebd3a633215dc1575e14656be38b939d",
+      "version": [
+        2,
+        40,
+        4275,
+        1
+      ]
+    },
+    "SHELL32.DLL": {
+      "sha256": "533c5809a9b6bdb236cce17a14c03ff251c4ca4d00790ea8e8034ee5d14d7f61",
+      "version": [
+        4,
+        72,
+        3612,
+        1700
+      ]
+    },
+    "SHLWAPI.DLL": {
+      "sha256": "731b1ffdcb821a87e8ef1aa92fc956a0c385eaa6b8f4ad20c89db8b923f1aeae",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

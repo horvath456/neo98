@@ -1,0 +1,264 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+#pragma once
+#include "host_savestate.h"
+#include "host_state_window_linux.h"
+#include "host_machine_state.h"
+#include "linux_session.h"
+#include <filesystem>
+namespace LinuxHost
+{
+class States
+{
+    std::string folder, restart_id, then_load, kind, name;
+    std::vector<unsigned char> pending;
+    HostSaveState::Entry loaded;
+    std::vector<std::pair<std::string, std::string>> machine;
+    bool saving = false, loading = false;
+    std::chrono::steady_clock::time_point since;
+    std::function<void(bool)> pause;
+    std::function<void(const std::string &)> restart;
+    X86::Application *app = nullptr;
+    const HostMachineState::Supplier *job_supplier = nullptr, *load_supplier = nullptr;
+    bool rebuilt = false;
+    const HostMachineState::Supplier *Supplier() const
+    {
+        return app && app->DosVmProcess() ? (X86::Application::DosSettingsStateOpen() ? HostMachineState::DosUi() : HostMachineState::Dos())
+                                          : HostMachineState::Windows();
+    }
+    static std::string Revision() { const char *v = getenv("NEO98_REVISION"); return v && *v ? v : "linux-x64"; }
+    HostSaveState::Context Context() const
+    {
+        HostSaveState::Context context;
+        HostSaveState::ContextOf(folder, Revision(), context);
+        context.engines = HostMachineState::Engines();
+        if (app) { context.game = Supplier()->kind; std::string reason; Supplier()->Ready(reason, &context.machine); }
+        return context;
+    }
+    void Notice(const std::string &message, bool failed = false)
+    {
+        printf("NEO98 Linux state %s: %s\n", failed ? "refused" : "notice", message.c_str()); fflush(stdout);
+        if (failed) HostMenu::Notice("States", message.c_str());
+    }
+    bool Find(const std::string &id, HostSaveState::Entry &wanted, std::string &error) const
+    {
+        for (const auto &state : HostSaveState::List(Context())) if (state.id == id) wanted = state;
+        if (wanted.id.empty()) error = "This state is missing.";
+        else if (!wanted.usable) error = wanted.reason;
+        else if (wanted.game != "off")
+        {
+            unsigned long long size = 0;
+            if (HostSaveState::FileSum(HostSaveState::MachineFile(wanted.folder), size) != wanted.machine_sum || size != wanted.machine_size)
+                error = "The state file is damaged.";
+        }
+        return error.empty();
+    }
+    bool Write(const std::string &type, const std::string &title, const std::vector<unsigned char> *bytes,
+               std::string &id, std::string &error)
+    {
+        if (app) { Files::System().Flush(); Registry::Flush(); }
+        HostSaveState::Request request;
+        request.kind = type; request.name = title; request.revision = Revision();
+        const auto *supplier = job_supplier ? job_supplier : Supplier();
+        request.game = bytes ? supplier->kind : "off"; request.engine = bytes ? supplier->Engine() : "";
+        request.machine = bytes; request.machine_info = machine;
+        if (bytes && app && app->DosVmProcess()) request.view.emplace_back("dos-vollbild", app->DosVmFullscreenNow() ? "1" : "0");
+        for (char letter = 'C'; letter <= 'Z'; ++letter)
+            if (auto *layer = HostVolume::Layer(letter))
+                for (const auto &file : layer->BelowFiles())
+                    if (bytes && (supplier == HostMachineState::Windows() || file.foreign)) request.files.push_back({letter, file.path, file.size, file.seconds, file.nanoseconds});
+        std::vector<unsigned> picture; unsigned width = 0, height = 0;
+        if (bytes)
+        {
+            if (!supplier->Picture || !supplier->Picture(picture,width,height))
+            {
+                int w = 0, h = 0; User::PixelsSize(w,h);
+                if (w > 0 && h > 0 && User::Pixels()) { width = w; height = h;
+                    const auto *pixels = reinterpret_cast<const unsigned *>(User::Pixels()); picture.assign(pixels,pixels+size_t(w)*h); }
+            }
+            if (!picture.empty()) { request.picture = picture.data(); request.picture_width = width; request.picture_height = height; }
+        }
+        const bool okay = HostSaveState::Save(folder, request, id, error);
+        if (okay) { printf("NEO98 Linux state saved id=%s kind=%s game=%s machine=%zu\n", id.c_str(), type.c_str(), request.game.c_str(), bytes ? bytes->size() : 0); fflush(stdout); }
+        return okay;
+    }
+    HostStateWindow::Model Model() const
+    {
+        HostStateWindow::Model model;
+        model.game = std::filesystem::path(folder).filename().string(); model.save_reason = Blocked(); model.can_save = model.save_reason.empty();
+        for (const auto &state : HostSaveState::List(Context()))
+        {
+            HostStateWindow::Row row;
+            row.id = state.id; row.name = state.name; row.parent = state.parent; row.kind = state.kind; row.game = state.game;
+            row.time = state.time; row.usable = state.usable; row.damaged = state.damaged; row.current = state.current;
+            row.reason = state.reason; row.revision = state.revision;
+            if (state.has_picture) row.picture = HostSaveState::PictureFile(state.folder);
+            model.rows.push_back(std::move(row));
+        }
+        return model;
+    }
+  public:
+    explicit States(std::string game) : folder(std::move(game)) {}
+    ~States() { HostStateWindow::Close(); }
+    bool Prepare(const std::string &id)
+    {
+        if (folder.empty())
+        {
+            if (!id.empty()) fprintf(stderr, "States are available only in a game machine.\n");
+            return id.empty();
+        }
+        HostSaveState::Recover(folder);
+        if (id.empty()) return true;
+        std::string error;
+        if (!Find(id, loaded, error)) { fprintf(stderr, "State not loaded: %s\n", error.c_str()); return false; }
+        if (loaded.game != "off")
+        {
+            std::string bytes;
+            if (!HostSaveState::ReadFile(HostSaveState::MachineFile(loaded.folder), bytes)) return false;
+            pending.assign(bytes.begin(), bytes.end());
+        }
+        const char *kept = getenv("NEO98_STATE_KEPT");
+        const bool already_kept = kept && HostSaveState::IsDirectory(HostSaveState::StateFolder(folder, kept));
+        unsetenv("NEO98_STATE_KEPT");
+        std::string made;
+        if ((!already_kept && !Write("auto", "", nullptr, made, error)) || !HostSaveState::Restore(folder, id, error))
+        { fprintf(stderr, "State not loaded: %s\n", error.c_str()); return false; }
+        HostSaveState::Prune(folder, id); return true;
+    }
+    int BeforeStart(X86::Application &process, const unsigned short *clock)
+    {
+        app = &process; HostWindowsState::first = &process;
+        if (pending.empty()) return 0;
+        for (char letter = 'C'; letter <= 'Z'; ++letter)
+            if (auto *layer = HostVolume::Layer(letter))
+            {
+                std::vector<HostVolume::Layered::BelowFile> known;
+                for (const auto &file : loaded.files) if (file.drive == letter)
+                    known.push_back({file.path, file.size, file.seconds, file.nanoseconds, loaded.game == "windows", loaded.game != "windows"});
+                layer->NoticeBelowFiles(known);
+            }
+        load_supplier = HostMachineState::ByKind(loaded.game);
+        if (!load_supplier) return -1;
+        load_supplier->Load(std::move(pending)); loading = true; since = std::chrono::steady_clock::now();
+        bool failed = false; std::string error;
+        if (load_supplier != HostMachineState::Dos())
+        {
+            const bool made = load_supplier == HostMachineState::DosUi()
+                ? HostDosUiState::LoadNow(process,clock,failed,error) : HostWindowsState::LoadNow(process,clock,failed,error);
+            if (failed || !made) { fprintf(stderr,"State not loaded: %s\n",error.c_str()); return -1; }
+            rebuilt = true; return 1;
+        }
+        return 0;
+    }
+    bool Rebuilt() const { return rebuilt; }
+    void Attach(X86::Application &process, std::function<void(bool)> stop, std::function<void(const std::string &)> again)
+    {
+        app = &process; pause = std::move(stop); restart = std::move(again);
+        HostWindowsState::first = app;
+        HostWindowsState::pause = [this](bool value,const char *) { pause(value); };
+        HostWindowsState::paused = []() { return X86::Application::MachinePaused(); };
+        if (const char *error = getenv("NEO98_LINUX_STATE_ERROR"); error && *error)
+        { const std::string message = error; unsetenv("NEO98_LINUX_STATE_ERROR"); Notice(message, true); }
+    }
+    bool NeedsRun() const { return saving || loading; }
+    bool HoldUi() const { return job_supplier == HostMachineState::DosUi() && HostDosUiState::HoldUi(); }
+    bool ListOpen() const { return HostStateWindow::IsOpen(); }
+    std::string Blocked(std::vector<std::pair<std::string, std::string>> *info = nullptr) const
+    {
+        if (folder.empty()) return "States are available only in a game machine.";
+        if (saving || loading) return "A state is being saved or loaded.";
+        if (!app) return "The machine is still starting.";
+        if (app->DosVmProcess() && X86::Application::LiveChildren()) return "Another program is running alongside the DOS game.";
+        std::string reason;
+        if (!Supplier()->Ready(reason, info)) return reason;
+        return {};
+    }
+    std::string Last() const
+    {
+        std::string found; long long newest = -1;
+        if (folder.empty()) return found;
+        for (const auto &state : HostSaveState::List(Context()))
+            if (state.usable && state.kind != "auto")
+            { if (state.current) return state.id; if (state.time >= newest) { found = state.id; newest = state.time; } }
+        return found;
+    }
+    void Save(const std::string &title, const std::string &next = {})
+    {
+        machine.clear(); const auto reason = Blocked(&machine);
+        if (!reason.empty()) { Notice(reason, true); return; }
+        kind = next.empty() ? (title.empty() ? "quick" : "manual") : "auto";
+        name = title; then_load = next; job_supplier = Supplier(); saving = true;
+        since = std::chrono::steady_clock::now(); job_supplier->Save();
+    }
+    void Load(std::string id)
+    {
+        if (saving || loading || folder.empty()) return;
+        if (id.empty()) id = Last();
+        std::string error; HostSaveState::Entry wanted;
+        if (!Find(id, wanted, error)) { Notice(error, true); return; }
+        HostStateWindow::Close();
+        if (Blocked().empty()) { Save("", id); return; }
+        pause(true); std::string kept;
+        if (!Write("auto", "", nullptr, kept, error)) { pause(false); Notice(error, true); return; }
+        setenv("NEO98_STATE_KEPT", kept.c_str(), 1); restart(id);
+    }
+    void Open() { if (!folder.empty() && !saving && !loading) HostStateWindow::Open(Model()); }
+    void Poll()
+    {
+        HostStateWindow::Request request;
+        while (HostStateWindow::Next(request))
+        {
+            std::string error;
+            switch (request.kind)
+            {
+            case HostStateWindow::Request::Close: HostStateWindow::Close(); break;
+            case HostStateWindow::Request::Save: Save(request.name); break;
+            case HostStateWindow::Request::Load: Load(request.id); break;
+            case HostStateWindow::Request::Delete: HostSaveState::Delete(folder, request.id, error); break;
+            case HostStateWindow::Request::Rename: HostSaveState::Rename(folder, request.id, request.name, error); break;
+            case HostStateWindow::Request::Keep: HostSaveState::Keep(folder, request.id, error); break;
+            }
+            if (!error.empty()) Notice(error, true);
+            if (ListOpen()) HostStateWindow::Update(Model(), request.id);
+        }
+        if (!saving && !loading) return;
+        std::vector<unsigned char> bytes; std::string error;
+        const auto *supplier = saving ? job_supplier : load_supplier;
+        int answer = supplier->Poll(saving ? &bytes : nullptr, error);
+        if (!answer && std::chrono::steady_clock::now() - since > std::chrono::seconds(45))
+        { answer = -1; error = "The machine did not provide its state in time."; }
+        if (!answer) return;
+        pause(true);
+        const bool was_saving = saving;
+        bool okay = answer > 0;
+        std::string kept;
+        if (okay && saving) okay = Write(kind, name, &bytes, kept, error);
+        if (okay && loading)
+        {
+            std::vector<std::pair<std::string, std::string>> now; std::string reason;
+            if (supplier == HostMachineState::Dos() && !supplier->Ready(reason, &now)) { okay = false; error = reason; }
+            for (const auto &needed : loaded.machine)
+                for (const auto &have : now) if (have.first == needed.first && have.second != needed.second)
+                { okay = false; error = "The DOS settings differ from the saved state."; }
+            if (okay)
+            {
+                std::vector<unsigned> picture; unsigned width = 0, height = 0;
+                if (app->DosVmProcess() && supplier->Picture && supplier->Picture(picture,width,height)) app->DosVmShowPicture(picture.data(), width, height);
+                for (const auto &view : loaded.view) if (view.first == "dos-vollbild" && app->DosVmProcess()) app->DosVmWantFullscreen(view.second == "1");
+                printf("NEO98 Linux state loaded id=%s\n", loaded.id.c_str()); fflush(stdout);
+            }
+        }
+        if (!okay && loading)
+        {
+            // A refused load may have replaced only part of the core. Start
+            // a fresh process on the restored disks and retain the backup.
+            saving = loading = false;
+            setenv("NEO98_LINUX_STATE_ERROR", (error + " The game restarts using the state's files. Its previous state is under Before loading.").c_str(), 1);
+            restart(""); return;
+        }
+        saving = loading = false; supplier->Release(); job_supplier = load_supplier = nullptr; pause(false);
+        if (!okay) { then_load.clear(); Notice(error, true); }
+        else if (was_saving && !then_load.empty()) { setenv("NEO98_STATE_KEPT", kept.c_str(), 1); restart(then_load); then_load.clear(); }
+        if (ListOpen()) HostStateWindow::Update(Model(), kept);
+    }
+};
+}

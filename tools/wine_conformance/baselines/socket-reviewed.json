@@ -1,0 +1,17 @@
+{
+  "group": "socket_contract",
+  "prefix": "SOCKET_CONTRACT",
+  "binary_sha256": "e795f5cc2f89a87c8cd388a3ef71fad5aa59493cec98c33231554de709736463",
+  "differences": [
+    {
+      "reference": "SOCKET_CONTRACT max type=1 input_size=8 ret=0 error=0 size=4 value=ffffffff canary=00000000",
+      "candidate": "SOCKET_CONTRACT max type=1 input_size=8 ret=0 error=0 size=4 value=ffffffff canary=abcdef01",
+      "reason": "SO_MAX_MSG_SIZE returns one DWORD and sets optlen to 4. NEO98 preserves the trailing DWORD in an oversized buffer; Win98 zeroes it. Keep the narrower write while requiring the same result, size, message limit and error behavior."
+    },
+    {
+      "reference": "SOCKET_CONTRACT max type=2 input_size=8 ret=0 error=0 size=4 value=0000fff7 canary=00000000",
+      "candidate": "SOCKET_CONTRACT max type=2 input_size=8 ret=0 error=0 size=4 value=0000fff7 canary=abcdef01",
+      "reason": "SO_MAX_MSG_SIZE returns one DWORD and sets optlen to 4. NEO98 preserves the trailing DWORD in an oversized buffer; Win98 zeroes it. Keep the narrower write while requiring the same result, size, message limit and error behavior."
+    }
+  ]
+}

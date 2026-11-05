@@ -1,0 +1,2155 @@
+{
+  "alternatives_sha256": "502b68fa64bb70cb06550b4f55df73d20088003b4567ad902f40a057d8173f03",
+  "assets": {},
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "user32_win": {
+      "advisory": {
+        "win.c:155": {
+          "FAIL": 1
+        },
+        "win.c:2062": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2070": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2075": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2083": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2084": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2085": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2093": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2094": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2095": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2096": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2104": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2105": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2106": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2107": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2114": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2115": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "win.c:2116": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2117": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2118": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "win.c:2221": {
+          "FAIL": 1,
+          "PASS": 52
+        },
+        "win.c:2223": {
+          "FAIL": 7,
+          "PASS": 33
+        },
+        "win.c:2224": {
+          "FAIL": 1,
+          "PASS": 52
+        },
+        "win.c:2247": {
+          "FAIL": 1
+        },
+        "win.c:2308": {
+          "FAIL": 1
+        },
+        "win.c:2328": {
+          "FAIL": 1
+        },
+        "win.c:2546": {
+          "FAIL": 1
+        },
+        "win.c:2547": {
+          "FAIL": 1
+        },
+        "win.c:2573": {
+          "FAIL": 1
+        },
+        "win.c:2574": {
+          "FAIL": 1
+        },
+        "win.c:2618": {
+          "FAIL": 1
+        },
+        "win.c:2619": {
+          "FAIL": 1
+        },
+        "win.c:2620": {
+          "FAIL": 1
+        },
+        "win.c:2630": {
+          "FAIL": 1
+        },
+        "win.c:2631": {
+          "FAIL": 1
+        },
+        "win.c:2641": {
+          "FAIL": 1
+        },
+        "win.c:2662": {
+          "FAIL": 1
+        },
+        "win.c:2663": {
+          "FAIL": 1
+        },
+        "win.c:2665": {
+          "FAIL": 1
+        },
+        "win.c:2666": {
+          "FAIL": 1
+        },
+        "win.c:2669": {
+          "FAIL": 1
+        },
+        "win.c:2670": {
+          "FAIL": 1
+        },
+        "win.c:2672": {
+          "FAIL": 1
+        },
+        "win.c:2673": {
+          "FAIL": 1
+        },
+        "win.c:2676": {
+          "FAIL": 1
+        },
+        "win.c:2677": {
+          "FAIL": 1
+        },
+        "win.c:2679": {
+          "FAIL": 1
+        },
+        "win.c:2680": {
+          "FAIL": 1
+        },
+        "win.c:2683": {
+          "FAIL": 1
+        },
+        "win.c:2684": {
+          "FAIL": 1
+        },
+        "win.c:2686": {
+          "FAIL": 1
+        },
+        "win.c:2687": {
+          "FAIL": 1
+        },
+        "win.c:2701": {
+          "FAIL": 1
+        },
+        "win.c:2702": {
+          "FAIL": 1
+        },
+        "win.c:2704": {
+          "FAIL": 1
+        },
+        "win.c:2705": {
+          "FAIL": 1
+        },
+        "win.c:2713": {
+          "FAIL": 1
+        },
+        "win.c:2716": {
+          "FAIL": 1
+        },
+        "win.c:3071": {
+          "FAIL": 1
+        },
+        "win.c:3084": {
+          "FAIL": 1
+        },
+        "win.c:3102": {
+          "FAIL": 1
+        },
+        "win.c:3112": {
+          "FAIL": 1
+        },
+        "win.c:3134": {
+          "FAIL": 1
+        },
+        "win.c:3143": {
+          "FAIL": 1
+        },
+        "win.c:3152": {
+          "FAIL": 1
+        },
+        "win.c:3167": {
+          "FAIL": 1
+        },
+        "win.c:3189": {
+          "FAIL": 1
+        },
+        "win.c:3200": {
+          "FAIL": 1
+        },
+        "win.c:3242": {
+          "FAIL": 1
+        },
+        "win.c:3246": {
+          "FAIL": 1
+        },
+        "win.c:3254": {
+          "FAIL": 1
+        },
+        "win.c:3261": {
+          "FAIL": 1
+        },
+        "win.c:3271": {
+          "FAIL": 1
+        },
+        "win.c:3273": {
+          "FAIL": 1
+        },
+        "win.c:3473": {
+          "FAIL": 1
+        },
+        "win.c:3670": {
+          "FAIL": 16,
+          "PASS": 20
+        },
+        "win.c:3676": {
+          "FAIL": 16,
+          "PASS": 20
+        },
+        "win.c:3682": {
+          "FAIL": 4,
+          "PASS": 32
+        },
+        "win.c:3688": {
+          "FAIL": 20,
+          "PASS": 16
+        },
+        "win.c:3694": {
+          "FAIL": 20,
+          "PASS": 16
+        },
+        "win.c:3700": {
+          "FAIL": 4,
+          "PASS": 32
+        },
+        "win.c:3706": {
+          "FAIL": 6,
+          "PASS": 30
+        },
+        "win.c:3890": {
+          "FAIL": 8,
+          "PASS": 4
+        },
+        "win.c:3891": {
+          "FAIL": 10,
+          "PASS": 2
+        },
+        "win.c:3892": {
+          "FAIL": 10,
+          "PASS": 2
+        },
+        "win.c:3987": {
+          "FAIL": 1
+        },
+        "win.c:4001": {
+          "FAIL": 1
+        },
+        "win.c:4015": {
+          "FAIL": 1
+        },
+        "win.c:4029": {
+          "FAIL": 1
+        },
+        "win.c:4035": {
+          "FAIL": 1
+        },
+        "win.c:4036": {
+          "FAIL": 1
+        },
+        "win.c:4050": {
+          "FAIL": 1
+        },
+        "win.c:4055": {
+          "FAIL": 1
+        },
+        "win.c:4056": {
+          "FAIL": 1
+        },
+        "win.c:4070": {
+          "FAIL": 1
+        },
+        "win.c:4075": {
+          "FAIL": 1
+        },
+        "win.c:4076": {
+          "FAIL": 1
+        },
+        "win.c:4090": {
+          "FAIL": 1
+        },
+        "win.c:4095": {
+          "FAIL": 1
+        },
+        "win.c:4096": {
+          "FAIL": 1
+        },
+        "win.c:4110": {
+          "FAIL": 1
+        },
+        "win.c:4177": {
+          "FAIL": 1
+        },
+        "win.c:4178": {
+          "FAIL": 1
+        },
+        "win.c:4211": {
+          "FAIL": 1
+        },
+        "win.c:4220": {
+          "FAIL": 1
+        },
+        "win.c:4221": {
+          "FAIL": 1
+        },
+        "win.c:4273": {
+          "FAIL": 1
+        },
+        "win.c:4446": {
+          "FAIL": 1
+        },
+        "win.c:4599": {
+          "FAIL": 1
+        },
+        "win.c:4643": {
+          "FAIL": 1
+        },
+        "win.c:4655": {
+          "FAIL": 1
+        },
+        "win.c:4663": {
+          "FAIL": 1
+        },
+        "win.c:4677": {
+          "FAIL": 1
+        },
+        "win.c:4696": {
+          "FAIL": 1
+        },
+        "win.c:4702": {
+          "FAIL": 1
+        },
+        "win.c:4708": {
+          "FAIL": 1
+        },
+        "win.c:619": {
+          "FAIL": 2,
+          "PASS": 52
+        },
+        "win.c:739": {
+          "FAIL": 87,
+          "PASS": 443
+        }
+      },
+      "alternatives": {},
+      "bounded_counts": {
+        "win.c:871": {
+          "maximum_deficit": 4,
+          "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass.",
+          "requires": [
+            "win.c:4035",
+            "win.c:4036",
+            "win.c:4055",
+            "win.c:4056",
+            "win.c:4075",
+            "win.c:4076",
+            "win.c:4095",
+            "win.c:4096"
+          ]
+        },
+        "win.c:875": {
+          "maximum_deficit": 4,
+          "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass.",
+          "requires": [
+            "win.c:4035",
+            "win.c:4036",
+            "win.c:4055",
+            "win.c:4056",
+            "win.c:4075",
+            "win.c:4076",
+            "win.c:4095",
+            "win.c:4096"
+          ]
+        },
+        "win.c:901": {
+          "maximum_deficit": 4,
+          "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass.",
+          "requires": [
+            "win.c:4035",
+            "win.c:4036",
+            "win.c:4055",
+            "win.c:4056",
+            "win.c:4075",
+            "win.c:4076",
+            "win.c:4095",
+            "win.c:4096"
+          ]
+        },
+        "win.c:902": {
+          "maximum_deficit": 4,
+          "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass.",
+          "requires": [
+            "win.c:4035",
+            "win.c:4036",
+            "win.c:4055",
+            "win.c:4056",
+            "win.c:4075",
+            "win.c:4076",
+            "win.c:4095",
+            "win.c:4096"
+          ]
+        }
+      },
+      "required": {
+        "win.c:102": {
+          "PASS": 54
+        },
+        "win.c:104": {
+          "PASS": 54
+        },
+        "win.c:106": {
+          "PASS": 54
+        },
+        "win.c:1079": {
+          "PASS": 2
+        },
+        "win.c:1080": {
+          "PASS": 2
+        },
+        "win.c:1082": {
+          "PASS": 2
+        },
+        "win.c:1086": {
+          "PASS": 2
+        },
+        "win.c:1087": {
+          "PASS": 2
+        },
+        "win.c:1089": {
+          "PASS": 2
+        },
+        "win.c:1095": {
+          "PASS": 1
+        },
+        "win.c:1099": {
+          "PASS": 1
+        },
+        "win.c:110": {
+          "PASS": 54
+        },
+        "win.c:1100": {
+          "PASS": 1
+        },
+        "win.c:1102": {
+          "PASS": 1
+        },
+        "win.c:112": {
+          "PASS": 54
+        },
+        "win.c:1132": {
+          "PASS": 2
+        },
+        "win.c:1133": {
+          "PASS": 2
+        },
+        "win.c:1135": {
+          "PASS": 2
+        },
+        "win.c:1143": {
+          "PASS": 2
+        },
+        "win.c:1144": {
+          "PASS": 2
+        },
+        "win.c:1146": {
+          "PASS": 2
+        },
+        "win.c:1156": {
+          "PASS": 1
+        },
+        "win.c:1160": {
+          "PASS": 1
+        },
+        "win.c:1161": {
+          "PASS": 1
+        },
+        "win.c:1163": {
+          "PASS": 1
+        },
+        "win.c:119": {
+          "PASS": 5
+        },
+        "win.c:1194": {
+          "PASS": 2
+        },
+        "win.c:1195": {
+          "PASS": 2
+        },
+        "win.c:1197": {
+          "PASS": 2
+        },
+        "win.c:1205": {
+          "PASS": 2
+        },
+        "win.c:1206": {
+          "PASS": 2
+        },
+        "win.c:1208": {
+          "PASS": 2
+        },
+        "win.c:1218": {
+          "PASS": 1
+        },
+        "win.c:1222": {
+          "PASS": 1
+        },
+        "win.c:1223": {
+          "PASS": 1
+        },
+        "win.c:1225": {
+          "PASS": 1
+        },
+        "win.c:1268": {
+          "PASS": 2
+        },
+        "win.c:1269": {
+          "PASS": 2
+        },
+        "win.c:127": {
+          "PASS": 2
+        },
+        "win.c:1278": {
+          "PASS": 2
+        },
+        "win.c:1279": {
+          "PASS": 2
+        },
+        "win.c:1289": {
+          "PASS": 2
+        },
+        "win.c:1290": {
+          "PASS": 2
+        },
+        "win.c:1300": {
+          "PASS": 2
+        },
+        "win.c:1301": {
+          "PASS": 2
+        },
+        "win.c:1311": {
+          "PASS": 2
+        },
+        "win.c:1312": {
+          "PASS": 2
+        },
+        "win.c:1352": {
+          "PASS": 30
+        },
+        "win.c:1353": {
+          "PASS": 30
+        },
+        "win.c:1355": {
+          "PASS": 30
+        },
+        "win.c:1356": {
+          "PASS": 30
+        },
+        "win.c:1357": {
+          "PASS": 30
+        },
+        "win.c:1358": {
+          "PASS": 30
+        },
+        "win.c:1359": {
+          "PASS": 30
+        },
+        "win.c:136": {
+          "PASS": 46
+        },
+        "win.c:1362": {
+          "PASS": 30
+        },
+        "win.c:1364": {
+          "PASS": 30
+        },
+        "win.c:1365": {
+          "PASS": 30
+        },
+        "win.c:1366": {
+          "PASS": 30
+        },
+        "win.c:1367": {
+          "PASS": 30
+        },
+        "win.c:1370": {
+          "PASS": 30
+        },
+        "win.c:1371": {
+          "PASS": 30
+        },
+        "win.c:1374": {
+          "PASS": 30
+        },
+        "win.c:1375": {
+          "PASS": 30
+        },
+        "win.c:1377": {
+          "PASS": 30
+        },
+        "win.c:1382": {
+          "PASS": 12
+        },
+        "win.c:1391": {
+          "PASS": 18
+        },
+        "win.c:1422": {
+          "PASS": 21
+        },
+        "win.c:1424": {
+          "PASS": 21
+        },
+        "win.c:1433": {
+          "PASS": 21
+        },
+        "win.c:1435": {
+          "PASS": 21
+        },
+        "win.c:1447": {
+          "PASS": 3
+        },
+        "win.c:1449": {
+          "PASS": 3
+        },
+        "win.c:1468": {
+          "PASS": 20
+        },
+        "win.c:1469": {
+          "PASS": 20
+        },
+        "win.c:1471": {
+          "PASS": 20
+        },
+        "win.c:1472": {
+          "PASS": 20
+        },
+        "win.c:1478": {
+          "PASS": 20
+        },
+        "win.c:1484": {
+          "PASS": 20
+        },
+        "win.c:1510": {
+          "PASS": 10
+        },
+        "win.c:1512": {
+          "PASS": 10
+        },
+        "win.c:1528": {
+          "PASS": 6
+        },
+        "win.c:1534": {
+          "PASS": 6
+        },
+        "win.c:1553": {
+          "PASS": 12
+        },
+        "win.c:156": {
+          "PASS": 1
+        },
+        "win.c:161": {
+          "PASS": 1
+        },
+        "win.c:162": {
+          "PASS": 1
+        },
+        "win.c:163": {
+          "PASS": 1
+        },
+        "win.c:1734": {
+          "PASS": 1
+        },
+        "win.c:1736": {
+          "PASS": 1
+        },
+        "win.c:1738": {
+          "PASS": 1
+        },
+        "win.c:1740": {
+          "PASS": 1
+        },
+        "win.c:1742": {
+          "PASS": 1
+        },
+        "win.c:1745": {
+          "PASS": 1
+        },
+        "win.c:1750": {
+          "PASS": 1
+        },
+        "win.c:1752": {
+          "PASS": 1
+        },
+        "win.c:1757": {
+          "PASS": 1
+        },
+        "win.c:1759": {
+          "PASS": 1
+        },
+        "win.c:1766": {
+          "PASS": 1
+        },
+        "win.c:1791": {
+          "PASS": 1
+        },
+        "win.c:1792": {
+          "PASS": 1
+        },
+        "win.c:1796": {
+          "PASS": 1
+        },
+        "win.c:1797": {
+          "PASS": 1
+        },
+        "win.c:1805": {
+          "PASS": 1
+        },
+        "win.c:1809": {
+          "PASS": 1
+        },
+        "win.c:1814": {
+          "PASS": 1
+        },
+        "win.c:1818": {
+          "PASS": 1
+        },
+        "win.c:1838": {
+          "PASS": 1
+        },
+        "win.c:1840": {
+          "PASS": 1
+        },
+        "win.c:1842": {
+          "PASS": 1
+        },
+        "win.c:1844": {
+          "PASS": 1
+        },
+        "win.c:1865": {
+          "PASS": 1
+        },
+        "win.c:1868": {
+          "PASS": 1
+        },
+        "win.c:1869": {
+          "PASS": 1
+        },
+        "win.c:1882": {
+          "PASS": 1
+        },
+        "win.c:1884": {
+          "PASS": 1
+        },
+        "win.c:1887": {
+          "PASS": 1
+        },
+        "win.c:1896": {
+          "PASS": 1
+        },
+        "win.c:1901": {
+          "PASS": 1
+        },
+        "win.c:1908": {
+          "PASS": 1
+        },
+        "win.c:1910": {
+          "PASS": 1
+        },
+        "win.c:1913": {
+          "PASS": 1
+        },
+        "win.c:1915": {
+          "PASS": 1
+        },
+        "win.c:1918": {
+          "PASS": 1
+        },
+        "win.c:1920": {
+          "PASS": 1
+        },
+        "win.c:1923": {
+          "PASS": 1
+        },
+        "win.c:1927": {
+          "PASS": 1
+        },
+        "win.c:1928": {
+          "PASS": 1
+        },
+        "win.c:1932": {
+          "PASS": 1
+        },
+        "win.c:1947": {
+          "PASS": 7
+        },
+        "win.c:1964": {
+          "PASS": 23
+        },
+        "win.c:1968": {
+          "PASS": 7
+        },
+        "win.c:1969": {
+          "PASS": 7
+        },
+        "win.c:1970": {
+          "PASS": 7
+        },
+        "win.c:1975": {
+          "PASS": 23
+        },
+        "win.c:2063": {
+          "PASS": 4
+        },
+        "win.c:2073": {
+          "PASS": 4
+        },
+        "win.c:2074": {
+          "PASS": 4
+        },
+        "win.c:2082": {
+          "PASS": 4
+        },
+        "win.c:2092": {
+          "PASS": 4
+        },
+        "win.c:2103": {
+          "PASS": 4
+        },
+        "win.c:2108": {
+          "PASS": 4
+        },
+        "win.c:2119": {
+          "PASS": 4
+        },
+        "win.c:2146": {
+          "PASS": 1
+        },
+        "win.c:2156": {
+          "PASS": 1
+        },
+        "win.c:2158": {
+          "PASS": 1
+        },
+        "win.c:2160": {
+          "PASS": 1
+        },
+        "win.c:2162": {
+          "PASS": 1
+        },
+        "win.c:2176": {
+          "PASS": 1
+        },
+        "win.c:2177": {
+          "PASS": 1
+        },
+        "win.c:2181": {
+          "PASS": 1
+        },
+        "win.c:2182": {
+          "PASS": 1
+        },
+        "win.c:2186": {
+          "PASS": 1
+        },
+        "win.c:2187": {
+          "PASS": 1
+        },
+        "win.c:2189": {
+          "PASS": 1
+        },
+        "win.c:2190": {
+          "PASS": 1
+        },
+        "win.c:2192": {
+          "PASS": 1
+        },
+        "win.c:2193": {
+          "PASS": 1
+        },
+        "win.c:2196": {
+          "PASS": 1
+        },
+        "win.c:2198": {
+          "PASS": 1
+        },
+        "win.c:2202": {
+          "PASS": 1
+        },
+        "win.c:2204": {
+          "PASS": 1
+        },
+        "win.c:2206": {
+          "PASS": 1
+        },
+        "win.c:2211": {
+          "PASS": 1
+        },
+        "win.c:2213": {
+          "PASS": 1
+        },
+        "win.c:2225": {
+          "PASS": 53
+        },
+        "win.c:2243": {
+          "PASS": 1
+        },
+        "win.c:2298": {
+          "PASS": 1
+        },
+        "win.c:2302": {
+          "PASS": 1
+        },
+        "win.c:2307": {
+          "PASS": 1
+        },
+        "win.c:2318": {
+          "PASS": 1
+        },
+        "win.c:2319": {
+          "PASS": 1
+        },
+        "win.c:2321": {
+          "PASS": 1
+        },
+        "win.c:2358": {
+          "PASS": 34
+        },
+        "win.c:2396": {
+          "PASS": 1
+        },
+        "win.c:2413": {
+          "PASS": 1
+        },
+        "win.c:2424": {
+          "PASS": 1
+        },
+        "win.c:2444": {
+          "PASS": 1
+        },
+        "win.c:2477": {
+          "PASS": 1
+        },
+        "win.c:2495": {
+          "PASS": 1
+        },
+        "win.c:2496": {
+          "PASS": 1
+        },
+        "win.c:2508": {
+          "PASS": 1
+        },
+        "win.c:2510": {
+          "PASS": 1
+        },
+        "win.c:2522": {
+          "PASS": 1
+        },
+        "win.c:2525": {
+          "PASS": 1
+        },
+        "win.c:2530": {
+          "PASS": 1
+        },
+        "win.c:2531": {
+          "PASS": 1
+        },
+        "win.c:2533": {
+          "PASS": 1
+        },
+        "win.c:2535": {
+          "PASS": 1
+        },
+        "win.c:2538": {
+          "PASS": 1
+        },
+        "win.c:2539": {
+          "PASS": 1
+        },
+        "win.c:2541": {
+          "PASS": 1
+        },
+        "win.c:2543": {
+          "PASS": 1
+        },
+        "win.c:2549": {
+          "PASS": 1
+        },
+        "win.c:2552": {
+          "PASS": 1
+        },
+        "win.c:2557": {
+          "PASS": 1
+        },
+        "win.c:2558": {
+          "PASS": 1
+        },
+        "win.c:2560": {
+          "PASS": 1
+        },
+        "win.c:2562": {
+          "PASS": 1
+        },
+        "win.c:2565": {
+          "PASS": 1
+        },
+        "win.c:2566": {
+          "PASS": 1
+        },
+        "win.c:2568": {
+          "PASS": 1
+        },
+        "win.c:2570": {
+          "PASS": 1
+        },
+        "win.c:2576": {
+          "PASS": 1
+        },
+        "win.c:2611": {
+          "PASS": 1
+        },
+        "win.c:2636": {
+          "PASS": 1
+        },
+        "win.c:2640": {
+          "PASS": 1
+        },
+        "win.c:2647": {
+          "PASS": 1
+        },
+        "win.c:2691": {
+          "PASS": 1
+        },
+        "win.c:2712": {
+          "PASS": 1
+        },
+        "win.c:2715": {
+          "PASS": 1
+        },
+        "win.c:2718": {
+          "PASS": 1
+        },
+        "win.c:2725": {
+          "PASS": 1
+        },
+        "win.c:2726": {
+          "PASS": 1
+        },
+        "win.c:2727": {
+          "PASS": 1
+        },
+        "win.c:2728": {
+          "PASS": 1
+        },
+        "win.c:2729": {
+          "PASS": 1
+        },
+        "win.c:2730": {
+          "PASS": 1
+        },
+        "win.c:2731": {
+          "PASS": 1
+        },
+        "win.c:2732": {
+          "PASS": 1
+        },
+        "win.c:2733": {
+          "PASS": 1
+        },
+        "win.c:2734": {
+          "PASS": 1
+        },
+        "win.c:2735": {
+          "PASS": 1
+        },
+        "win.c:2736": {
+          "PASS": 1
+        },
+        "win.c:2737": {
+          "PASS": 1
+        },
+        "win.c:2738": {
+          "PASS": 1
+        },
+        "win.c:2739": {
+          "PASS": 1
+        },
+        "win.c:2740": {
+          "PASS": 1
+        },
+        "win.c:2741": {
+          "PASS": 1
+        },
+        "win.c:2742": {
+          "PASS": 1
+        },
+        "win.c:2743": {
+          "PASS": 1
+        },
+        "win.c:2744": {
+          "PASS": 1
+        },
+        "win.c:2745": {
+          "PASS": 1
+        },
+        "win.c:2746": {
+          "PASS": 1
+        },
+        "win.c:2747": {
+          "PASS": 1
+        },
+        "win.c:2748": {
+          "PASS": 1
+        },
+        "win.c:2770": {
+          "PASS": 1
+        },
+        "win.c:2774": {
+          "PASS": 1
+        },
+        "win.c:2785": {
+          "PASS": 1
+        },
+        "win.c:2817": {
+          "PASS": 1
+        },
+        "win.c:2822": {
+          "PASS": 1
+        },
+        "win.c:2827": {
+          "PASS": 1
+        },
+        "win.c:2832": {
+          "PASS": 1
+        },
+        "win.c:2838": {
+          "PASS": 1
+        },
+        "win.c:2878": {
+          "PASS": 1
+        },
+        "win.c:2879": {
+          "PASS": 1
+        },
+        "win.c:2880": {
+          "PASS": 1
+        },
+        "win.c:2881": {
+          "PASS": 1
+        },
+        "win.c:2882": {
+          "PASS": 1
+        },
+        "win.c:2884": {
+          "PASS": 1
+        },
+        "win.c:2885": {
+          "PASS": 1
+        },
+        "win.c:2886": {
+          "PASS": 1
+        },
+        "win.c:2887": {
+          "PASS": 1
+        },
+        "win.c:2888": {
+          "PASS": 1
+        },
+        "win.c:2889": {
+          "PASS": 1
+        },
+        "win.c:2890": {
+          "PASS": 1
+        },
+        "win.c:2891": {
+          "PASS": 1
+        },
+        "win.c:2892": {
+          "PASS": 1
+        },
+        "win.c:2917": {
+          "PASS": 1
+        },
+        "win.c:2920": {
+          "PASS": 1
+        },
+        "win.c:2922": {
+          "PASS": 1
+        },
+        "win.c:2923": {
+          "PASS": 1
+        },
+        "win.c:2924": {
+          "PASS": 1
+        },
+        "win.c:2925": {
+          "PASS": 1
+        },
+        "win.c:2926": {
+          "PASS": 1
+        },
+        "win.c:2927": {
+          "PASS": 1
+        },
+        "win.c:2946": {
+          "PASS": 6
+        },
+        "win.c:2948": {
+          "PASS": 16
+        },
+        "win.c:2950": {
+          "PASS": 22
+        },
+        "win.c:2954": {
+          "PASS": 22
+        },
+        "win.c:3009": {
+          "PASS": 11
+        },
+        "win.c:3190": {
+          "PASS": 1
+        },
+        "win.c:3191": {
+          "PASS": 1
+        },
+        "win.c:3196": {
+          "PASS": 1
+        },
+        "win.c:3197": {
+          "PASS": 1
+        },
+        "win.c:3201": {
+          "PASS": 1
+        },
+        "win.c:3202": {
+          "PASS": 1
+        },
+        "win.c:3207": {
+          "PASS": 1
+        },
+        "win.c:3208": {
+          "PASS": 1
+        },
+        "win.c:3293": {
+          "PASS": 1
+        },
+        "win.c:3301": {
+          "PASS": 1
+        },
+        "win.c:3302": {
+          "PASS": 1
+        },
+        "win.c:3352": {
+          "PASS": 1
+        },
+        "win.c:3353": {
+          "PASS": 1
+        },
+        "win.c:3469": {
+          "PASS": 1
+        },
+        "win.c:3471": {
+          "PASS": 1
+        },
+        "win.c:3475": {
+          "PASS": 1
+        },
+        "win.c:351": {
+          "PASS": 1
+        },
+        "win.c:355": {
+          "PASS": 1
+        },
+        "win.c:359": {
+          "PASS": 1
+        },
+        "win.c:364": {
+          "PASS": 1
+        },
+        "win.c:368": {
+          "PASS": 1
+        },
+        "win.c:377": {
+          "PASS": 1
+        },
+        "win.c:381": {
+          "PASS": 1
+        },
+        "win.c:385": {
+          "PASS": 1
+        },
+        "win.c:3878": {
+          "PASS": 1
+        },
+        "win.c:3903": {
+          "PASS": 6
+        },
+        "win.c:3937": {
+          "PASS": 1
+        },
+        "win.c:394": {
+          "PASS": 1
+        },
+        "win.c:3943": {
+          "PASS": 1
+        },
+        "win.c:3944": {
+          "PASS": 1
+        },
+        "win.c:3945": {
+          "PASS": 1
+        },
+        "win.c:3946": {
+          "PASS": 1
+        },
+        "win.c:3952": {
+          "PASS": 1
+        },
+        "win.c:3953": {
+          "PASS": 1
+        },
+        "win.c:3954": {
+          "PASS": 1
+        },
+        "win.c:3955": {
+          "PASS": 1
+        },
+        "win.c:3961": {
+          "PASS": 1
+        },
+        "win.c:3962": {
+          "PASS": 1
+        },
+        "win.c:3963": {
+          "PASS": 1
+        },
+        "win.c:3964": {
+          "PASS": 1
+        },
+        "win.c:3970": {
+          "PASS": 1
+        },
+        "win.c:3971": {
+          "PASS": 1
+        },
+        "win.c:3972": {
+          "PASS": 1
+        },
+        "win.c:3973": {
+          "PASS": 1
+        },
+        "win.c:398": {
+          "PASS": 1
+        },
+        "win.c:3980": {
+          "PASS": 1
+        },
+        "win.c:3981": {
+          "PASS": 1
+        },
+        "win.c:3982": {
+          "PASS": 1
+        },
+        "win.c:3983": {
+          "PASS": 1
+        },
+        "win.c:3986": {
+          "PASS": 1
+        },
+        "win.c:3994": {
+          "PASS": 1
+        },
+        "win.c:3995": {
+          "PASS": 1
+        },
+        "win.c:3996": {
+          "PASS": 1
+        },
+        "win.c:3997": {
+          "PASS": 1
+        },
+        "win.c:4000": {
+          "PASS": 1
+        },
+        "win.c:4008": {
+          "PASS": 1
+        },
+        "win.c:4009": {
+          "PASS": 1
+        },
+        "win.c:4010": {
+          "PASS": 1
+        },
+        "win.c:4011": {
+          "PASS": 1
+        },
+        "win.c:4014": {
+          "PASS": 1
+        },
+        "win.c:402": {
+          "PASS": 1
+        },
+        "win.c:4022": {
+          "PASS": 1
+        },
+        "win.c:4023": {
+          "PASS": 1
+        },
+        "win.c:4024": {
+          "PASS": 1
+        },
+        "win.c:4025": {
+          "PASS": 1
+        },
+        "win.c:4028": {
+          "PASS": 1
+        },
+        "win.c:4043": {
+          "PASS": 1
+        },
+        "win.c:4044": {
+          "PASS": 1
+        },
+        "win.c:4045": {
+          "PASS": 1
+        },
+        "win.c:4046": {
+          "PASS": 1
+        },
+        "win.c:4049": {
+          "PASS": 1
+        },
+        "win.c:4063": {
+          "PASS": 1
+        },
+        "win.c:4064": {
+          "PASS": 1
+        },
+        "win.c:4065": {
+          "PASS": 1
+        },
+        "win.c:4066": {
+          "PASS": 1
+        },
+        "win.c:4069": {
+          "PASS": 1
+        },
+        "win.c:4083": {
+          "PASS": 1
+        },
+        "win.c:4084": {
+          "PASS": 1
+        },
+        "win.c:4085": {
+          "PASS": 1
+        },
+        "win.c:4086": {
+          "PASS": 1
+        },
+        "win.c:4089": {
+          "PASS": 1
+        },
+        "win.c:4103": {
+          "PASS": 1
+        },
+        "win.c:4104": {
+          "PASS": 1
+        },
+        "win.c:4105": {
+          "PASS": 1
+        },
+        "win.c:4106": {
+          "PASS": 1
+        },
+        "win.c:4109": {
+          "PASS": 1
+        },
+        "win.c:411": {
+          "PASS": 1
+        },
+        "win.c:4128": {
+          "PASS": 1
+        },
+        "win.c:4129": {
+          "PASS": 1
+        },
+        "win.c:4130": {
+          "PASS": 1
+        },
+        "win.c:4131": {
+          "PASS": 1
+        },
+        "win.c:4136": {
+          "PASS": 1
+        },
+        "win.c:4138": {
+          "PASS": 1
+        },
+        "win.c:4141": {
+          "PASS": 1
+        },
+        "win.c:4143": {
+          "PASS": 1
+        },
+        "win.c:415": {
+          "PASS": 1
+        },
+        "win.c:4152": {
+          "PASS": 1
+        },
+        "win.c:4153": {
+          "PASS": 1
+        },
+        "win.c:4154": {
+          "PASS": 1
+        },
+        "win.c:4155": {
+          "PASS": 1
+        },
+        "win.c:4163": {
+          "PASS": 1
+        },
+        "win.c:4175": {
+          "PASS": 1
+        },
+        "win.c:4184": {
+          "PASS": 1
+        },
+        "win.c:4186": {
+          "PASS": 1
+        },
+        "win.c:4187": {
+          "PASS": 1
+        },
+        "win.c:419": {
+          "PASS": 1
+        },
+        "win.c:4193": {
+          "PASS": 1
+        },
+        "win.c:4195": {
+          "PASS": 1
+        },
+        "win.c:4196": {
+          "PASS": 1
+        },
+        "win.c:4202": {
+          "PASS": 1
+        },
+        "win.c:4208": {
+          "PASS": 1
+        },
+        "win.c:4210": {
+          "PASS": 1
+        },
+        "win.c:4218": {
+          "PASS": 1
+        },
+        "win.c:4228": {
+          "PASS": 1
+        },
+        "win.c:4230": {
+          "PASS": 1
+        },
+        "win.c:4231": {
+          "PASS": 1
+        },
+        "win.c:4261": {
+          "PASS": 1
+        },
+        "win.c:4262": {
+          "PASS": 1
+        },
+        "win.c:4267": {
+          "PASS": 1
+        },
+        "win.c:4268": {
+          "PASS": 1
+        },
+        "win.c:4275": {
+          "PASS": 1
+        },
+        "win.c:4277": {
+          "PASS": 1
+        },
+        "win.c:4279": {
+          "PASS": 1
+        },
+        "win.c:428": {
+          "PASS": 1
+        },
+        "win.c:4315": {
+          "PASS": 1
+        },
+        "win.c:4316": {
+          "PASS": 1
+        },
+        "win.c:4317": {
+          "PASS": 1
+        },
+        "win.c:4318": {
+          "PASS": 1
+        },
+        "win.c:4320": {
+          "PASS": 1
+        },
+        "win.c:4323": {
+          "PASS": 1
+        },
+        "win.c:4325": {
+          "PASS": 1
+        },
+        "win.c:4326": {
+          "PASS": 1
+        },
+        "win.c:4327": {
+          "PASS": 1
+        },
+        "win.c:4328": {
+          "PASS": 1
+        },
+        "win.c:4330": {
+          "PASS": 1
+        },
+        "win.c:4333": {
+          "PASS": 1
+        },
+        "win.c:4335": {
+          "PASS": 1
+        },
+        "win.c:4336": {
+          "PASS": 1
+        },
+        "win.c:4337": {
+          "PASS": 1
+        },
+        "win.c:4338": {
+          "PASS": 1
+        },
+        "win.c:4340": {
+          "PASS": 1
+        },
+        "win.c:4343": {
+          "PASS": 1
+        },
+        "win.c:4345": {
+          "PASS": 1
+        },
+        "win.c:4346": {
+          "PASS": 1
+        },
+        "win.c:4347": {
+          "PASS": 1
+        },
+        "win.c:4348": {
+          "PASS": 1
+        },
+        "win.c:4350": {
+          "PASS": 1
+        },
+        "win.c:4353": {
+          "PASS": 1
+        },
+        "win.c:4355": {
+          "PASS": 1
+        },
+        "win.c:4358": {
+          "PASS": 1
+        },
+        "win.c:4360": {
+          "PASS": 1
+        },
+        "win.c:4361": {
+          "PASS": 1
+        },
+        "win.c:4362": {
+          "PASS": 1
+        },
+        "win.c:4363": {
+          "PASS": 1
+        },
+        "win.c:4365": {
+          "PASS": 1
+        },
+        "win.c:4368": {
+          "PASS": 1
+        },
+        "win.c:437": {
+          "PASS": 1
+        },
+        "win.c:4370": {
+          "PASS": 1
+        },
+        "win.c:4371": {
+          "PASS": 1
+        },
+        "win.c:4372": {
+          "PASS": 1
+        },
+        "win.c:4373": {
+          "PASS": 1
+        },
+        "win.c:4375": {
+          "PASS": 1
+        },
+        "win.c:4378": {
+          "PASS": 1
+        },
+        "win.c:4380": {
+          "PASS": 1
+        },
+        "win.c:4381": {
+          "PASS": 1
+        },
+        "win.c:4382": {
+          "PASS": 1
+        },
+        "win.c:4383": {
+          "PASS": 1
+        },
+        "win.c:4385": {
+          "PASS": 1
+        },
+        "win.c:4388": {
+          "PASS": 1
+        },
+        "win.c:4390": {
+          "PASS": 1
+        },
+        "win.c:4391": {
+          "PASS": 1
+        },
+        "win.c:4392": {
+          "PASS": 1
+        },
+        "win.c:4393": {
+          "PASS": 1
+        },
+        "win.c:4395": {
+          "PASS": 1
+        },
+        "win.c:4398": {
+          "PASS": 1
+        },
+        "win.c:4400": {
+          "PASS": 1
+        },
+        "win.c:4401": {
+          "PASS": 1
+        },
+        "win.c:4402": {
+          "PASS": 1
+        },
+        "win.c:4403": {
+          "PASS": 1
+        },
+        "win.c:4405": {
+          "PASS": 1
+        },
+        "win.c:4408": {
+          "PASS": 1
+        },
+        "win.c:4409": {
+          "PASS": 1
+        },
+        "win.c:441": {
+          "PASS": 1
+        },
+        "win.c:4412": {
+          "PASS": 1
+        },
+        "win.c:4415": {
+          "PASS": 1
+        },
+        "win.c:4416": {
+          "PASS": 1
+        },
+        "win.c:4434": {
+          "PASS": 1
+        },
+        "win.c:4437": {
+          "PASS": 1
+        },
+        "win.c:4440": {
+          "PASS": 1
+        },
+        "win.c:4443": {
+          "PASS": 1
+        },
+        "win.c:4478": {
+          "PASS": 1
+        },
+        "win.c:4479": {
+          "PASS": 1
+        },
+        "win.c:4485": {
+          "PASS": 1
+        },
+        "win.c:4486": {
+          "PASS": 1
+        },
+        "win.c:4501": {
+          "PASS": 1
+        },
+        "win.c:4502": {
+          "PASS": 1
+        },
+        "win.c:452": {
+          "PASS": 1
+        },
+        "win.c:4536": {
+          "PASS": 1
+        },
+        "win.c:4542": {
+          "PASS": 1
+        },
+        "win.c:4543": {
+          "PASS": 1
+        },
+        "win.c:4549": {
+          "PASS": 1
+        },
+        "win.c:4550": {
+          "PASS": 1
+        },
+        "win.c:456": {
+          "PASS": 1
+        },
+        "win.c:4565": {
+          "PASS": 1
+        },
+        "win.c:4566": {
+          "PASS": 1
+        },
+        "win.c:461": {
+          "PASS": 1
+        },
+        "win.c:4648": {
+          "PASS": 1
+        },
+        "win.c:4653": {
+          "PASS": 1
+        },
+        "win.c:4656": {
+          "PASS": 1
+        },
+        "win.c:4664": {
+          "PASS": 1
+        },
+        "win.c:4670": {
+          "PASS": 1
+        },
+        "win.c:4671": {
+          "PASS": 1
+        },
+        "win.c:4678": {
+          "PASS": 1
+        },
+        "win.c:4684": {
+          "PASS": 1
+        },
+        "win.c:4685": {
+          "PASS": 1
+        },
+        "win.c:4695": {
+          "PASS": 1
+        },
+        "win.c:4699": {
+          "PASS": 1
+        },
+        "win.c:470": {
+          "PASS": 1
+        },
+        "win.c:4705": {
+          "PASS": 1
+        },
+        "win.c:4720": {
+          "PASS": 1
+        },
+        "win.c:4724": {
+          "PASS": 1
+        },
+        "win.c:477": {
+          "PASS": 1
+        },
+        "win.c:480": {
+          "PASS": 1
+        },
+        "win.c:481": {
+          "PASS": 1
+        },
+        "win.c:495": {
+          "PASS": 1
+        },
+        "win.c:497": {
+          "PASS": 1
+        },
+        "win.c:499": {
+          "PASS": 1
+        },
+        "win.c:503": {
+          "PASS": 1
+        },
+        "win.c:508": {
+          "PASS": 1
+        },
+        "win.c:514": {
+          "PASS": 1
+        },
+        "win.c:518": {
+          "PASS": 1
+        },
+        "win.c:522": {
+          "PASS": 1
+        },
+        "win.c:525": {
+          "PASS": 1
+        },
+        "win.c:526": {
+          "PASS": 1
+        },
+        "win.c:530": {
+          "PASS": 1
+        },
+        "win.c:533": {
+          "PASS": 1
+        },
+        "win.c:534": {
+          "PASS": 1
+        },
+        "win.c:538": {
+          "PASS": 1
+        },
+        "win.c:579": {
+          "PASS": 5
+        },
+        "win.c:580": {
+          "PASS": 5
+        },
+        "win.c:598": {
+          "PASS": 50
+        },
+        "win.c:599": {
+          "PASS": 50
+        },
+        "win.c:601": {
+          "PASS": 50
+        },
+        "win.c:602": {
+          "PASS": 50
+        },
+        "win.c:633": {
+          "PASS": 1
+        },
+        "win.c:635": {
+          "PASS": 7
+        },
+        "win.c:673": {
+          "PASS": 15
+        },
+        "win.c:675": {
+          "PASS": 31
+        },
+        "win.c:721": {
+          "PASS": 530
+        },
+        "win.c:724": {
+          "PASS": 530
+        },
+        "win.c:729": {
+          "PASS": 530
+        },
+        "win.c:731": {
+          "PASS": 530
+        },
+        "win.c:736": {
+          "PASS": 530
+        },
+        "win.c:753": {
+          "PASS": 530
+        },
+        "win.c:754": {
+          "PASS": 531
+        },
+        "win.c:799": {
+          "PASS": 40
+        },
+        "win.c:806": {
+          "PASS": 40
+        },
+        "win.c:842": {
+          "PASS": 23
+        },
+        "win.c:856": {
+          "PASS": 530
+        },
+        "win.c:871": {
+          "PASS": 221
+        },
+        "win.c:875": {
+          "PASS": 221
+        },
+        "win.c:901": {
+          "PASS": 221
+        },
+        "win.c:902": {
+          "PASS": 221
+        },
+        "win.c:99": {
+          "PASS": 54
+        }
+      },
+      "sha256": "43481098250a5b53fb2c4f47e52f0bb38524a4d8136fd1a9894fa46521aa7666",
+      "skips": {},
+      "variable_counts": {
+        "win.c:2358": "GetKeyState(VK_LBUTTON) assertion on every message delivered to the subclassed button, including repeated painting. Require the site and every observed key-state check to pass. The state and capture assertions following WM_LBUTTONDOWN remain mandatory."
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "a35d1ab0515d51e5f04fb9fc7fb88b047061c2b102c3cb581064c2c2eb051e58",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "64554b9555bfe128c1ae8e3adcff334d6f35f5eab1ac06fa5393c43e829b8473",
+  "variable_counts_sha256": "54ef4d5a5f4ec814dec2d73126522f526f618e0940e94d82be9d71a48a0e342c",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

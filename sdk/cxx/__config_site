@@ -1,0 +1,40 @@
+// The configuration of libc++ for programs of the NEO98 SDK (tools/arm64_sdk.py
+// copies it beside the headers of libc++). What a build of LLVM derives with
+// CMake, written out:
+//   - the Itanium C++ ABI, as for every MinGW target; the library is linked
+//     statically, so nothing is imported or exported;
+//   - threads through the functions libc++ declares for Windows
+//     (__thread/support/windows.h); sdk/cxx/threads.cpp implements them over
+//     what KERNEL32 of Windows 98 has, in place of libc++'s own file, which
+//     needs Windows Vista;
+//   - localization with the one locale of sdk/crt, "C";
+//   - <filesystem> algorithms from libc++, with the private Win98 ANSI
+//     adapter in filesystem_posix_compat.h and filesystem_win98_api.h;
+//   - libc++'s time zone database over installed IANA text files.
+// docs/ARM64-APPS.md, "C++".
+#ifndef _LIBCPP___CONFIG_SITE
+#define _LIBCPP___CONFIG_SITE
+#define _LIBCPP_ABI_VERSION 1
+#define _LIBCPP_ABI_NAMESPACE __1
+#define _LIBCPP_ABI_FORCE_ITANIUM 0
+#define _LIBCPP_ABI_FORCE_MICROSOFT 0
+#define _LIBCPP_HAS_THREADS 1
+#define _LIBCPP_HAS_MONOTONIC_CLOCK 1
+#define _LIBCPP_HAS_TERMINAL 1
+#define _LIBCPP_HAS_MUSL_LIBC 0
+#define _LIBCPP_HAS_THREAD_API_PTHREAD 0
+#define _LIBCPP_HAS_THREAD_API_EXTERNAL 0
+#define _LIBCPP_HAS_THREAD_API_WIN32 1
+#define _LIBCPP_HAS_THREAD_API_C11 0
+#define _LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS
+#define _LIBCPP_HAS_VENDOR_AVAILABILITY_ANNOTATIONS 0
+#define _LIBCPP_HAS_FILESYSTEM 1
+#define _LIBCPP_HAS_RANDOM_DEVICE 1
+#define _LIBCPP_HAS_LOCALIZATION 1
+#define _LIBCPP_HAS_UNICODE 1
+#define _LIBCPP_HAS_WIDE_CHARACTERS 1
+#define _LIBCPP_HAS_TIME_ZONE_DATABASE 1
+#define _LIBCPP_INSTRUMENTED_WITH_ASAN 0
+#define _LIBCPP_PSTL_BACKEND_SERIAL
+#define _LIBCPP_HARDENING_MODE_DEFAULT _LIBCPP_HARDENING_MODE_NONE
+#endif

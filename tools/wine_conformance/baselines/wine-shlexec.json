@@ -1,0 +1,390 @@
+{
+  "alternatives_sha256": "c3f3e444f2b73830909486bacbee62fb95ac4818c3522ae73e1eff8e70c07c92",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "ole32_compobj": {
+      "reference_status": "FAIL",
+      "sha256": "7990f3d755c1a185b4c9e413245f022a314f93d21f54183b84480bd53b75abff"
+    },
+    "ole32_dragdrop": {
+      "reference_status": "PASS",
+      "sha256": "d6bab66f0d09cb8f87a56ca8880eb10e2730effd6b40c49cc21db59845d841cc"
+    },
+    "ole32_errorinfo": {
+      "reference_status": "PASS",
+      "sha256": "1200f448376b2eb3532388aafe6b1d588c44367f16201330cb48e01d5844041a"
+    },
+    "ole32_hglobalstream": {
+      "reference_status": "FAIL",
+      "sha256": "b8693f11d31797361ebf78e9f9cb8523857f6e16db84e16f4cbde4fafb2f4e7f"
+    },
+    "ole32_marshal": {
+      "reference_status": "TIMEOUT",
+      "sha256": "f30f5ae3866047051521daccdd0f4a6b62133f770ab243ea4e372199878222e9"
+    },
+    "ole32_moniker": {
+      "reference_status": "FAIL",
+      "sha256": "3ea921fba7b8899a179ed31d9311e066f344d04803e5167ba6d32fb6daaa2109"
+    },
+    "ole32_ole2": {
+      "reference_status": "FAIL",
+      "sha256": "a12120d0bf4ee782fa3711b27567631fcf46a6bb7e59dd7638f89eb7dcb1c0db"
+    },
+    "ole32_propvariant": {
+      "reference_status": "PASS",
+      "sha256": "12ed451920694ea4ef707d3b2bcec81aa59ae25aee0688ece2b9da8a269fac7f"
+    },
+    "ole32_stg_prop": {
+      "reference_status": "PASS",
+      "sha256": "a912156c449af18ccc8988ac07392c6c9971e4f162aedf60bd69a16ee7a4067b"
+    },
+    "ole32_storage32": {
+      "reference_status": "PASS",
+      "sha256": "5a71f888d833c90d82313fc40381ea765e663cc56766f70e400c13620bb6c468"
+    },
+    "shell32_generated": {
+      "reference_status": "FAIL",
+      "sha256": "8aabb2c3e7b04a2d46795d7711ff69ae3ecdd456e630952f221720e7e4e02272"
+    },
+    "shell32_shelllink": {
+      "reference_status": "PASS",
+      "sha256": "334523b4a5fc43b5fcd72ded5d0edbcaf5ba26606a818cb003bc9854a93726f2"
+    },
+    "shell32_shellpath": {
+      "reference_status": "FAIL",
+      "sha256": "15d4492661f65ebcdc26fbc971e9d3f696c073fe97c230a0ab7d5d8e15922de8"
+    },
+    "shell32_shfldr_netplaces": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "09683e17d7fd6c178aee2ef24faa1ecce9566fc3c811f90e56ec0752a14c8599"
+    },
+    "shell32_shlfileop": {
+      "reference_status": "TIMEOUT",
+      "sha256": "a5fed814431e40c845bf4a10500d0d9186c698091e9bd3fa99c1b5b142c44419"
+    },
+    "shell32_shlfolder": {
+      "reference_status": "FAIL",
+      "sha256": "0f11dd1b84c8539a84bc5329d740fc51e5f4bb869ae7d34852f63bb3e3f721af"
+    },
+    "shell32_string": {
+      "reference_status": "PASS",
+      "sha256": "f95b37e404606bb7c676603da627a10b0ad0ba9f782944082ccc839947593747"
+    },
+    "shell32_systray": {
+      "reference_status": "FAIL",
+      "sha256": "b73de15a03c48d3201fb528abe1027dcb1837a7b00c215bdc75f1c6a847fa781"
+    },
+    "shlwapi_clist": {
+      "reference_status": "FAIL",
+      "sha256": "152c3ec0ebd9087618b34c931b7415d27f6172ba98396c1276a6e646f0751612"
+    }
+  },
+  "groups": {
+    "shell32_shlexec": {
+      "advisory": {
+        "shlexec.c:857": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "shelllink.c:1529": {
+          "PASS": 5
+        },
+        "shelllink.c:1543": {
+          "PASS": 5
+        },
+        "shlexec.c:1010": {
+          "PASS": 5
+        },
+        "shlexec.c:1062": {
+          "PASS": 1
+        },
+        "shlexec.c:1063": {
+          "PASS": 1
+        },
+        "shlexec.c:1064": {
+          "PASS": 1
+        },
+        "shlexec.c:1071": {
+          "PASS": 1
+        },
+        "shlexec.c:1093": {
+          "PASS": 1
+        },
+        "shlexec.c:1094": {
+          "PASS": 1
+        },
+        "shlexec.c:1095": {
+          "PASS": 1
+        },
+        "shlexec.c:1102": {
+          "PASS": 1
+        },
+        "shlexec.c:120": {
+          "PASS": 13
+        },
+        "shlexec.c:1253": {
+          "PASS": 8
+        },
+        "shlexec.c:1265": {
+          "PASS": 8
+        },
+        "shlexec.c:1275": {
+          "PASS": 2
+        },
+        "shlexec.c:1285": {
+          "PASS": 8
+        },
+        "shlexec.c:1419": {
+          "PASS": 16
+        },
+        "shlexec.c:1431": {
+          "PASS": 16
+        },
+        "shlexec.c:1481": {
+          "PASS": 1
+        },
+        "shlexec.c:171": {
+          "PASS": 33
+        },
+        "shlexec.c:180": {
+          "PASS": 10
+        },
+        "shlexec.c:183": {
+          "PASS": 33
+        },
+        "shlexec.c:699": {
+          "PASS": 11
+        },
+        "shlexec.c:704": {
+          "PASS": 4
+        },
+        "shlexec.c:712": {
+          "PASS": 9
+        },
+        "shlexec.c:721": {
+          "PASS": 9
+        },
+        "shlexec.c:729": {
+          "PASS": 9
+        },
+        "shlexec.c:748": {
+          "PASS": 3
+        },
+        "shlexec.c:817": {
+          "PASS": 1
+        },
+        "shlexec.c:819": {
+          "PASS": 1
+        },
+        "shlexec.c:820": {
+          "PASS": 1
+        },
+        "shlexec.c:822": {
+          "PASS": 1
+        },
+        "shlexec.c:840": {
+          "PASS": 1
+        },
+        "shlexec.c:841": {
+          "PASS": 1
+        },
+        "shlexec.c:845": {
+          "PASS": 1
+        },
+        "shlexec.c:846": {
+          "PASS": 1
+        },
+        "shlexec.c:850": {
+          "PASS": 1
+        },
+        "shlexec.c:854": {
+          "PASS": 1
+        },
+        "shlexec.c:866": {
+          "PASS": 1
+        },
+        "shlexec.c:909": {
+          "PASS": 12
+        },
+        "shlexec.c:913": {
+          "PASS": 3
+        },
+        "shlexec.c:923": {
+          "PASS": 9
+        },
+        "shlexec.c:962": {
+          "PASS": 1
+        },
+        "shlexec.c:964": {
+          "PASS": 1
+        },
+        "shlexec.c:965": {
+          "PASS": 1
+        },
+        "shlexec.c:967": {
+          "PASS": 1
+        },
+        "shlexec.c:971": {
+          "PASS": 1
+        },
+        "shlexec.c:973": {
+          "PASS": 1
+        },
+        "shlexec.c:974": {
+          "PASS": 1
+        }
+      },
+      "sha256": "ec1403cace2a2ae683c41d8b492f49bf5a2c6cf40891001b3097a841abac2dfb",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "b8c6709f4d89a54ec1da04e7d920b8221c9e0b11de00bb00c7a632115e951fd3",
+  "reference_selection": {
+    "excluded": {
+      "ole32_compobj": "FAIL",
+      "ole32_dragdrop": "PASS",
+      "ole32_errorinfo": "PASS",
+      "ole32_hglobalstream": "FAIL",
+      "ole32_marshal": "TIMEOUT",
+      "ole32_moniker": "FAIL",
+      "ole32_ole2": "FAIL",
+      "ole32_propvariant": "PASS",
+      "ole32_stg_prop": "PASS",
+      "ole32_storage32": "PASS",
+      "shell32_generated": "FAIL",
+      "shell32_shelllink": "PASS",
+      "shell32_shellpath": "FAIL",
+      "shell32_shfldr_netplaces": "LOAD_ERROR",
+      "shell32_shlfileop": "TIMEOUT",
+      "shell32_shlfolder": "FAIL",
+      "shell32_string": "PASS",
+      "shell32_systray": "FAIL",
+      "shlwapi_clist": "FAIL"
+    },
+    "selected": [
+      "shell32_shlexec"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "11330f7f2ef4079228db0b91592b76e2c11b80b514a209a3711dc8f75f94043d",
+  "variable_counts_sha256": "971f3860abfbddfe05d80a416a865245633f80214380b9a78ed635e34533ba74",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "OLEAUT32.DLL": {
+      "sha256": "baeb2f7c1b8be56738d34e1d1ddf8e0eebd3a633215dc1575e14656be38b939d",
+      "version": [
+        2,
+        40,
+        4275,
+        1
+      ]
+    },
+    "SHELL32.DLL": {
+      "sha256": "533c5809a9b6bdb236cce17a14c03ff251c4ca4d00790ea8e8034ee5d14d7f61",
+      "version": [
+        4,
+        72,
+        3612,
+        1700
+      ]
+    },
+    "SHLWAPI.DLL": {
+      "sha256": "731b1ffdcb821a87e8ef1aa92fc956a0c385eaa6b8f4ad20c89db8b923f1aeae",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

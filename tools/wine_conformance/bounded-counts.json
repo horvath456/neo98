@@ -1,0 +1,60 @@
+{
+  "43481098250a5b53fb2c4f47e52f0bb38524a4d8136fd1a9894fa46521aa7666": {
+    "win.c:871": {
+      "maximum_deficit": 4,
+      "requires": [
+        "win.c:4035",
+        "win.c:4036",
+        "win.c:4055",
+        "win.c:4056",
+        "win.c:4075",
+        "win.c:4076",
+        "win.c:4095",
+        "win.c:4096"
+      ],
+      "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass."
+    },
+    "win.c:875": {
+      "maximum_deficit": 4,
+      "requires": [
+        "win.c:4035",
+        "win.c:4036",
+        "win.c:4055",
+        "win.c:4056",
+        "win.c:4075",
+        "win.c:4076",
+        "win.c:4095",
+        "win.c:4096"
+      ],
+      "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass."
+    },
+    "win.c:901": {
+      "maximum_deficit": 4,
+      "requires": [
+        "win.c:4035",
+        "win.c:4036",
+        "win.c:4055",
+        "win.c:4056",
+        "win.c:4075",
+        "win.c:4076",
+        "win.c:4095",
+        "win.c:4096"
+      ],
+      "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass."
+    },
+    "win.c:902": {
+      "maximum_deficit": 4,
+      "requires": [
+        "win.c:4035",
+        "win.c:4036",
+        "win.c:4055",
+        "win.c:4056",
+        "win.c:4075",
+        "win.c:4076",
+        "win.c:4095",
+        "win.c:4096"
+      ],
+      "reason": "Win98 incorrectly creates four WS_CHILD|WS_POPUP windows with invalid menu handle 1. NEO98 rejects them before HCBT_CREATEWND. Allow at most these four missing callbacks only when all four rejection and ERROR_INVALID_MENU_HANDLE checks pass exactly once. Every observed callback must still pass."
+    }
+  }
+}

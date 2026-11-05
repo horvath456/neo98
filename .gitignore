@@ -1,0 +1,14 @@
+/third_party/
+/build/
+__pycache__/
+/src/*.o
+/src/*.o.tmp
+/src/*.d
+/src/*.elf
+/src/*.img
+/src/*.lst
+/src/*.map
+/.claude/
+/src/.application
+/third_party
+.DS_Store

@@ -1,0 +1,54 @@
+NEO98: preserve REP MOVS progress across demand-page faults.
+
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -3287,6 +3287,49 @@
+   const auto Size = OpSizeFromSrc(Op);
+ 
+   if (Op->Flags & (FEXCore::X86Tables::DecodeFlags::FLAG_REP_PREFIX | FEXCore::X86Tables::DecodeFlags::FLAG_REPNE_PREFIX)) {
++    if (!Is64BitMode) {
++      // NEO98 / a faulting REP must expose completed iterations.
++      // MemCpy keeps its progress in JIT temporaries until the entire copy
++      // finishes. SEH then restarts with the old ESI/EDI/ECX, which can
++      // livelock a demand-paged stream that retires earlier source pages.
++      // An IR loop commits registers after each complete load/store pair.
++      CalculateDeferredFlags();
++      auto Empty = CondJump(LoadGPRRegister(X86State::REG_RCX), CondClass::EQ);
++      auto Before = CreateNewCodeBlockAfter(GetCurrentBlock());
++      SetFalseJumpTarget(Empty, Before);
++      SetCurrentCodeBlock(Before);
++      StartNewBlock();
++      ForeachDirection([this, Op, Size](int32_t Direction) {
++        auto Enter = Jump();
++        auto Loop = CreateNewCodeBlockAfter(GetCurrentBlock());
++        SetJumpTarget(Enter, Loop);
++        SetCurrentCodeBlock(Loop);
++        StartNewBlock();
++        auto Src = LoadGPRRegister(X86State::REG_RSI);
++        auto Dst = LoadGPRRegister(X86State::REG_RDI);
++        auto From = AppendSegmentOffset(Src, Op->Flags, X86Tables::DecodeFlags::FLAG_DS_PREFIX);
++        auto To = AppendSegmentOffset(Dst, 0, X86Tables::DecodeFlags::FLAG_ES_PREFIX, true);
++        auto Value = _LoadMemGPRAutoTSO(Size, From, Size);
++        _StoreMemGPRAutoTSO(Size, To, Value, Size);
++        auto Remaining = Sub(OpSize::i32Bit, LoadGPRRegister(X86State::REG_RCX), 1);
++        StoreGPRRegister(X86State::REG_RSI, Add(OpSize::i32Bit, Src, Direction * static_cast<int32_t>(IR::OpSizeToSize(Size))));
++        StoreGPRRegister(X86State::REG_RDI, Add(OpSize::i32Bit, Dst, Direction * static_cast<int32_t>(IR::OpSizeToSize(Size))));
++        StoreGPRRegister(X86State::REG_RCX, Remaining);
++        auto Repeat = CondJump(Remaining, CondClass::NEQ);
++        SetTrueJumpTarget(Repeat, Loop);
++        auto Done = CreateNewCodeBlockAfter(GetCurrentBlock());
++        SetFalseJumpTarget(Repeat, Done);
++        SetCurrentCodeBlock(Done);
++        StartNewBlock();
++      });
++      auto Leave = Jump();
++      auto Exit = CreateNewCodeBlockAfter(GetCurrentBlock());
++      SetJumpTarget(Leave, Exit);
++      SetTrueJumpTarget(Empty, Exit);
++      SetCurrentCodeBlock(Exit);
++      StartNewBlock();
++      return;
++    }
+     auto SrcAddr = LoadGPRRegister(X86State::REG_RSI);
+     auto DstAddr = LoadGPRRegister(X86State::REG_RDI);
+     auto Counter = LoadGPRRegister(X86State::REG_RCX);

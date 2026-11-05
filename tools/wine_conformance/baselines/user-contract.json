@@ -1,0 +1,690 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "user32_broadcast": {
+      "advisory": {
+        "broadcast.c:111": {
+          "FAIL": 1
+        },
+        "broadcast.c:112": {
+          "FAIL": 1
+        },
+        "broadcast.c:117": {
+          "FAIL": 1
+        },
+        "broadcast.c:118": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "broadcast.c:149": {
+          "PASS": 1
+        },
+        "broadcast.c:150": {
+          "PASS": 1
+        },
+        "broadcast.c:155": {
+          "PASS": 1
+        },
+        "broadcast.c:156": {
+          "PASS": 1
+        },
+        "broadcast.c:161": {
+          "PASS": 1
+        },
+        "broadcast.c:162": {
+          "PASS": 1
+        },
+        "broadcast.c:167": {
+          "PASS": 1
+        },
+        "broadcast.c:168": {
+          "PASS": 1
+        },
+        "broadcast.c:173": {
+          "PASS": 1
+        },
+        "broadcast.c:174": {
+          "PASS": 1
+        },
+        "broadcast.c:67": {
+          "PASS": 1
+        }
+      },
+      "sha256": "f7abc91d35d2c9acbcbe3aae997e7cf451a93a25dd187ec100b764260b0f9ba9",
+      "skips": {
+        "broadcast.c:108": 1,
+        "broadcast.c:354": 1,
+        "broadcast.c:363": 1
+      }
+    },
+    "user32_input": {
+      "advisory": {
+        "input.c:1139": {
+          "FAIL": 1
+        },
+        "input.c:1147": {
+          "FAIL": 1
+        },
+        "input.c:1149": {
+          "FAIL": 1
+        },
+        "input.c:237": {
+          "FAIL": 27,
+          "PASS": 637
+        },
+        "input.c:639": {
+          "FAIL": 7
+        },
+        "input.c:645": {
+          "FAIL": 47,
+          "PASS": 40
+        },
+        "input.c:658": {
+          "FAIL": 2
+        },
+        "input.c:661": {
+          "FAIL": 10,
+          "PASS": 13300
+        },
+        "input.c:670": {
+          "FAIL": 42
+        },
+        "input.c:694": {
+          "FAIL": 2
+        },
+        "input.c:698": {
+          "FAIL": 16,
+          "PASS": 2
+        },
+        "input.c:712": {
+          "FAIL": 4
+        },
+        "input.c:717": {
+          "FAIL": 12
+        },
+        "input.c:735": {
+          "FAIL": 5
+        },
+        "input.c:739": {
+          "FAIL": 45
+        },
+        "input.c:930": {
+          "FAIL": 1
+        },
+        "input.c:933": {
+          "FAIL": 1
+        },
+        "input.c:936": {
+          "FAIL": 1
+        },
+        "input.c:939": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "input.c:1137": {
+          "PASS": 1
+        },
+        "input.c:1142": {
+          "PASS": 1
+        },
+        "input.c:1144": {
+          "PASS": 1
+        },
+        "input.c:1161": {
+          "PASS": 9
+        },
+        "input.c:249": {
+          "PASS": 112
+        },
+        "input.c:684": {
+          "PASS": 18
+        },
+        "input.c:816": {
+          "PASS": 1
+        },
+        "input.c:825": {
+          "PASS": 1
+        },
+        "input.c:858": {
+          "PASS": 512
+        },
+        "input.c:947": {
+          "PASS": 1
+        },
+        "input.c:950": {
+          "PASS": 1
+        },
+        "input.c:953": {
+          "PASS": 1
+        },
+        "input.c:968": {
+          "PASS": 1
+        },
+        "input.c:971": {
+          "PASS": 1
+        },
+        "input.c:975": {
+          "PASS": 1
+        },
+        "input.c:978": {
+          "PASS": 1
+        }
+      },
+      "sha256": "cf42f8b4ea83c1fd5066f290571c7b1524af8bcd2a992add8234b173e9d8b67a",
+      "skips": {
+        "input.c:1185": 1
+      }
+    },
+    "user32_monitor": {
+      "advisory": {
+        "monitor.c:164": {
+          "FAIL": 1
+        },
+        "monitor.c:205": {
+          "FAIL": 1
+        },
+        "monitor.c:229": {
+          "FAIL": 4,
+          "PASS": 8
+        },
+        "monitor.c:243": {
+          "FAIL": 11,
+          "PASS": 1
+        },
+        "monitor.c:258": {
+          "FAIL": 12
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "monitor.c:100": {
+          "PASS": 1
+        },
+        "monitor.c:106": {
+          "PASS": 1
+        },
+        "monitor.c:156": {
+          "PASS": 1
+        },
+        "monitor.c:162": {
+          "PASS": 1
+        },
+        "monitor.c:169": {
+          "PASS": 1
+        },
+        "monitor.c:171": {
+          "PASS": 1
+        },
+        "monitor.c:242": {
+          "PASS": 12
+        },
+        "monitor.c:245": {
+          "PASS": 12
+        },
+        "monitor.c:246": {
+          "PASS": 12
+        },
+        "monitor.c:247": {
+          "PASS": 12
+        },
+        "monitor.c:251": {
+          "PASS": 12
+        },
+        "monitor.c:252": {
+          "PASS": 12
+        },
+        "monitor.c:253": {
+          "PASS": 12
+        },
+        "monitor.c:256": {
+          "PASS": 12
+        },
+        "monitor.c:257": {
+          "PASS": 12
+        },
+        "monitor.c:262": {
+          "PASS": 1
+        },
+        "monitor.c:272": {
+          "PASS": 1
+        },
+        "monitor.c:275": {
+          "PASS": 1
+        },
+        "monitor.c:277": {
+          "PASS": 1
+        },
+        "monitor.c:279": {
+          "PASS": 1
+        },
+        "monitor.c:63": {
+          "PASS": 2
+        },
+        "monitor.c:84": {
+          "PASS": 2
+        },
+        "monitor.c:95": {
+          "PASS": 1
+        }
+      },
+      "sha256": "07e6c181b6dbd1711a00a390c7dc0f7d36720e3743f98bf14b837fcc914cf70c",
+      "skips": {}
+    },
+    "user32_resource": {
+      "advisory": {
+        "resource.c:117": {
+          "FAIL": 1
+        },
+        "resource.c:173": {
+          "FAIL": 1
+        },
+        "resource.c:176": {
+          "FAIL": 1
+        },
+        "resource.c:190": {
+          "FAIL": 1
+        },
+        "resource.c:191": {
+          "FAIL": 1
+        },
+        "resource.c:195": {
+          "FAIL": 1
+        },
+        "resource.c:251": {
+          "FAIL": 1
+        },
+        "resource.c:253": {
+          "FAIL": 1
+        },
+        "resource.c:304": {
+          "FAIL": 1
+        },
+        "resource.c:310": {
+          "FAIL": 1
+        },
+        "resource.c:45": {
+          "FAIL": 1
+        },
+        "resource.c:48": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "resource.c:103": {
+          "PASS": 1
+        },
+        "resource.c:104": {
+          "PASS": 1
+        },
+        "resource.c:106": {
+          "PASS": 1
+        },
+        "resource.c:110": {
+          "PASS": 1
+        },
+        "resource.c:111": {
+          "PASS": 1
+        },
+        "resource.c:113": {
+          "PASS": 1
+        },
+        "resource.c:142": {
+          "PASS": 1
+        },
+        "resource.c:145": {
+          "PASS": 1
+        },
+        "resource.c:170": {
+          "PASS": 1
+        },
+        "resource.c:179": {
+          "PASS": 1
+        },
+        "resource.c:180": {
+          "PASS": 1
+        },
+        "resource.c:181": {
+          "PASS": 1
+        },
+        "resource.c:184": {
+          "PASS": 1
+        },
+        "resource.c:185": {
+          "PASS": 1
+        },
+        "resource.c:186": {
+          "PASS": 1
+        },
+        "resource.c:189": {
+          "PASS": 1
+        },
+        "resource.c:194": {
+          "PASS": 1
+        },
+        "resource.c:196": {
+          "PASS": 1
+        },
+        "resource.c:199": {
+          "PASS": 1
+        },
+        "resource.c:200": {
+          "PASS": 1
+        },
+        "resource.c:201": {
+          "PASS": 1
+        },
+        "resource.c:204": {
+          "PASS": 1
+        },
+        "resource.c:207": {
+          "PASS": 1
+        },
+        "resource.c:239": {
+          "PASS": 1
+        },
+        "resource.c:240": {
+          "PASS": 1
+        },
+        "resource.c:244": {
+          "PASS": 1
+        },
+        "resource.c:245": {
+          "PASS": 1
+        },
+        "resource.c:246": {
+          "PASS": 1
+        },
+        "resource.c:250": {
+          "PASS": 1
+        },
+        "resource.c:252": {
+          "PASS": 1
+        },
+        "resource.c:254": {
+          "PASS": 1
+        },
+        "resource.c:255": {
+          "PASS": 1
+        },
+        "resource.c:256": {
+          "PASS": 1
+        },
+        "resource.c:263": {
+          "PASS": 1
+        },
+        "resource.c:264": {
+          "PASS": 1
+        },
+        "resource.c:265": {
+          "PASS": 1
+        },
+        "resource.c:274": {
+          "PASS": 1
+        },
+        "resource.c:275": {
+          "PASS": 1
+        },
+        "resource.c:277": {
+          "PASS": 1
+        },
+        "resource.c:282": {
+          "PASS": 1
+        },
+        "resource.c:283": {
+          "PASS": 1
+        },
+        "resource.c:285": {
+          "PASS": 1
+        },
+        "resource.c:292": {
+          "PASS": 1
+        },
+        "resource.c:293": {
+          "PASS": 1
+        },
+        "resource.c:295": {
+          "PASS": 1
+        },
+        "resource.c:296": {
+          "PASS": 1
+        },
+        "resource.c:297": {
+          "PASS": 1
+        },
+        "resource.c:298": {
+          "PASS": 1
+        },
+        "resource.c:303": {
+          "PASS": 1
+        },
+        "resource.c:306": {
+          "PASS": 1
+        },
+        "resource.c:307": {
+          "PASS": 1
+        },
+        "resource.c:308": {
+          "PASS": 1
+        },
+        "resource.c:309": {
+          "PASS": 1
+        },
+        "resource.c:311": {
+          "PASS": 1
+        },
+        "resource.c:312": {
+          "PASS": 1
+        },
+        "resource.c:347": {
+          "PASS": 1
+        },
+        "resource.c:351": {
+          "PASS": 1
+        },
+        "resource.c:354": {
+          "PASS": 1
+        },
+        "resource.c:46": {
+          "PASS": 1
+        },
+        "resource.c:65": {
+          "PASS": 1
+        },
+        "resource.c:68": {
+          "PASS": 1
+        },
+        "resource.c:92": {
+          "PASS": 3
+        },
+        "resource.c:95": {
+          "PASS": 3
+        },
+        "resource.c:98": {
+          "PASS": 3
+        }
+      },
+      "sha256": "53b4437fa930797ad89e8f1558f83dd72d6ea8ba28de3c05a95594df7ae6edc2",
+      "skips": {}
+    },
+    "user32_scroll": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "scroll.c:101": {
+          "PASS": 1
+        },
+        "scroll.c:104": {
+          "PASS": 1
+        },
+        "scroll.c:107": {
+          "PASS": 1
+        },
+        "scroll.c:110": {
+          "PASS": 1
+        },
+        "scroll.c:118": {
+          "PASS": 1
+        },
+        "scroll.c:119": {
+          "PASS": 1
+        },
+        "scroll.c:122": {
+          "PASS": 1
+        },
+        "scroll.c:123": {
+          "PASS": 1
+        },
+        "scroll.c:126": {
+          "PASS": 1
+        },
+        "scroll.c:56": {
+          "PASS": 1
+        },
+        "scroll.c:59": {
+          "PASS": 1
+        },
+        "scroll.c:63": {
+          "PASS": 1
+        },
+        "scroll.c:64": {
+          "PASS": 1
+        },
+        "scroll.c:75": {
+          "PASS": 1
+        },
+        "scroll.c:78": {
+          "PASS": 1
+        },
+        "scroll.c:81": {
+          "PASS": 1
+        },
+        "scroll.c:84": {
+          "PASS": 1
+        },
+        "scroll.c:87": {
+          "PASS": 1
+        },
+        "scroll.c:90": {
+          "PASS": 1
+        },
+        "scroll.c:95": {
+          "PASS": 1
+        },
+        "scroll.c:98": {
+          "PASS": 1
+        }
+      },
+      "sha256": "bb0c4cf5240d300cfd94bdff260fc12412cb56379c94b08ba453041ab0e286c4",
+      "skips": {}
+    },
+    "user32_static": {
+      "advisory": {
+        "static.c:93": {
+          "FAIL": 2,
+          "PASS": 2
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "static.c:56": {
+          "PASS": 18
+        },
+        "static.c:91": {
+          "PASS": 4
+        }
+      },
+      "sha256": "6f2917656255074ea49d75a6cee61362b4953a089233386592a8d5301c61a628",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "0494d7c67f965db5e799c995e275bcda597d423798d244d9bedfd269144a8014",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "0dd000854c88e6e8fb925de0be7552f3b5c41cec36e0deedf40a1fd4e58ef669",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

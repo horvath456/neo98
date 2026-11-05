@@ -1,0 +1,3 @@
+/* The DLL and the importing program travel inside the fixture. */
+1 RCDATA "MODDLL.DLL"
+2 RCDATA "IMPORTER.EXE"

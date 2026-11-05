@@ -1,0 +1,765 @@
+{
+  "alternatives_sha256": "c3f3e444f2b73830909486bacbee62fb95ac4818c3522ae73e1eff8e70c07c92",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "comdlg32_filedlg": {
+      "reference_status": "FAIL",
+      "sha256": "a1d5eeb94b14547aadd028be2918ab32e45d1fe3e03b760422cd471db4667d47"
+    },
+    "comdlg32_printdlg": {
+      "reference_status": "PASS",
+      "sha256": "3151ac701fcd93f4f51e14a4649934325a3788cc5759dbaf42f82e9a9003f42a"
+    },
+    "shlwapi_clsid": {
+      "reference_status": "CRASH",
+      "sha256": "2f5c98d0151fdd8948a8a8c2c7d302fa465c9cb3a48ae3520c9f76778f453d7a"
+    },
+    "shlwapi_generated": {
+      "reference_status": "PASS",
+      "sha256": "0de342bb9708ef0dc58ecdba7fd1cc892b92dffe61be7017fc2cb791ef7b801a"
+    },
+    "shlwapi_istream": {
+      "reference_status": "PASS",
+      "sha256": "1c48ab01ea0ddc46026e4a3bed3ab0c720ca70287b780afa77eed6e6a473463a"
+    },
+    "shlwapi_ordinal": {
+      "reference_status": "CRASH",
+      "sha256": "305a584d48b3496c76aa2d08203d7a251e73853b601d70cf2e8730e36f48a698"
+    },
+    "shlwapi_path": {
+      "reference_status": "CRASH",
+      "sha256": "071c1aa195da830660187af7b9c44639df34a4e89b3bfd926d9dcad9894f09c8"
+    },
+    "shlwapi_shreg": {
+      "reference_status": "FAIL",
+      "sha256": "a0ec43b4d203e7b6284e05ee1d9229a363bcd88d2330381336e48d895686feda"
+    },
+    "shlwapi_string": {
+      "reference_status": "PASS",
+      "sha256": "2e9a5db70013923d2fb08e756a08f5dcddb04baf886ef4d66e75bc5f5c5258ed"
+    },
+    "shlwapi_url": {
+      "reference_status": "FAIL",
+      "sha256": "fd3bd524715faa720b6b989ac38e8e58b6cf4691a8897eab5edfe054b3ab31da"
+    },
+    "version_info": {
+      "reference_status": "PASS",
+      "sha256": "4ab6fe9e75d179be9ff18aa8b1120a32a4b70e712d5c255ff289a429d602afd2"
+    },
+    "version_install": {
+      "reference_status": "FAIL",
+      "sha256": "7abd6085904720722e3b528e160d33b90100177a5a1382e577c387298a3f5eac"
+    },
+    "wininet_ftp": {
+      "reference_status": "PASS",
+      "sha256": "0aee08eaa6ef496ce0f10de40bdd633efc53d3be73ed9a76d4660da868010521"
+    },
+    "wininet_generated": {
+      "reference_status": "PASS",
+      "sha256": "5ec13baf2a31061fac844a7cb0cfc6a7d5473f98b74c47ff6d0e31db81a87a4c"
+    },
+    "wininet_http": {
+      "reference_status": "CRASH",
+      "sha256": "b77dfbba8663af20b8f2494e29b4126c3e122eaa420e66d82a19c06837dc63d8"
+    },
+    "wininet_internet": {
+      "reference_status": "FAIL",
+      "sha256": "4210bafbef14ff9eed0e1f57e693a948977e63c31e4c73faa6f5702146d39786"
+    },
+    "wininet_url": {
+      "reference_status": "CRASH",
+      "sha256": "6edfbf0aa81648ce75fb28a9fbb7a22fcf96b7d7d730669f0ec2bf6bf6b43f92"
+    },
+    "wininet_urlcache": {
+      "reference_status": "PASS",
+      "sha256": "b897539b924f317453384738547e88f7cc811526923e9243679fb4b1ed21c47f"
+    },
+    "ws2_32_protocol": {
+      "reference_status": "PASS",
+      "sha256": "7cbe182c1d37faeb15d497c5ff13def77bacdb4392ce2b485291c31c82d1ca7a"
+    }
+  },
+  "groups": {
+    "ws2_32_sock": {
+      "advisory": {
+        "sock.c:1586": {
+          "FAIL": 1
+        },
+        "sock.c:1869": {
+          "FAIL": 1
+        },
+        "sock.c:1987": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {
+        "sock.c:694": {
+          "reason": "The nonblocking send loop checks WSAEWOULDBLOCK only when this payload fills the current buffer. A faster loopback may send everything without blocking. Require completed transmission, reception and intact payload instead. Backpressure and subsequent FD_WRITE are also exercised deliberately by socket_contract v2 (Win98 and NEO98: 79 passing assertions), docs/benchmarks/win98-socket-contract-v2-2026-10-23.json. This is alternate coverage, not execution of the original error branch.",
+          "requires": [
+            "sock.c:743",
+            "sock.c:746",
+            "sock.c:750"
+          ]
+        }
+      },
+      "required": {
+        "sock.c:1030": {
+          "PASS": 3
+        },
+        "sock.c:1045": {
+          "PASS": 3
+        },
+        "sock.c:1046": {
+          "PASS": 3
+        },
+        "sock.c:1050": {
+          "PASS": 1
+        },
+        "sock.c:1056": {
+          "PASS": 2
+        },
+        "sock.c:1061": {
+          "PASS": 2
+        },
+        "sock.c:1062": {
+          "PASS": 2
+        },
+        "sock.c:1077": {
+          "PASS": 3
+        },
+        "sock.c:1087": {
+          "PASS": 750
+        },
+        "sock.c:1088": {
+          "PASS": 750
+        },
+        "sock.c:1089": {
+          "PASS": 750
+        },
+        "sock.c:1090": {
+          "PASS": 750
+        },
+        "sock.c:1093": {
+          "PASS": 375
+        },
+        "sock.c:1131": {
+          "PASS": 1
+        },
+        "sock.c:1134": {
+          "PASS": 1
+        },
+        "sock.c:1138": {
+          "PASS": 1
+        },
+        "sock.c:1145": {
+          "PASS": 1
+        },
+        "sock.c:1156": {
+          "PASS": 1
+        },
+        "sock.c:1184": {
+          "PASS": 1
+        },
+        "sock.c:1195": {
+          "PASS": 1
+        },
+        "sock.c:1197": {
+          "PASS": 1
+        },
+        "sock.c:1206": {
+          "PASS": 1
+        },
+        "sock.c:1208": {
+          "PASS": 1
+        },
+        "sock.c:1217": {
+          "PASS": 1
+        },
+        "sock.c:1219": {
+          "PASS": 1
+        },
+        "sock.c:1228": {
+          "PASS": 1
+        },
+        "sock.c:1230": {
+          "PASS": 1
+        },
+        "sock.c:1255": {
+          "PASS": 1
+        },
+        "sock.c:1266": {
+          "PASS": 1
+        },
+        "sock.c:1268": {
+          "PASS": 1
+        },
+        "sock.c:1277": {
+          "PASS": 1
+        },
+        "sock.c:1279": {
+          "PASS": 1
+        },
+        "sock.c:1288": {
+          "PASS": 1
+        },
+        "sock.c:1290": {
+          "PASS": 1
+        },
+        "sock.c:1299": {
+          "PASS": 1
+        },
+        "sock.c:1301": {
+          "PASS": 1
+        },
+        "sock.c:1324": {
+          "PASS": 1
+        },
+        "sock.c:1332": {
+          "PASS": 1
+        },
+        "sock.c:1340": {
+          "PASS": 1
+        },
+        "sock.c:1349": {
+          "PASS": 1
+        },
+        "sock.c:1358": {
+          "PASS": 1
+        },
+        "sock.c:1367": {
+          "PASS": 1
+        },
+        "sock.c:1378": {
+          "PASS": 1
+        },
+        "sock.c:1388": {
+          "PASS": 1
+        },
+        "sock.c:1398": {
+          "PASS": 1
+        },
+        "sock.c:1426": {
+          "PASS": 1
+        },
+        "sock.c:1434": {
+          "PASS": 1
+        },
+        "sock.c:1442": {
+          "PASS": 1
+        },
+        "sock.c:1451": {
+          "PASS": 1
+        },
+        "sock.c:1460": {
+          "PASS": 1
+        },
+        "sock.c:1468": {
+          "PASS": 1
+        },
+        "sock.c:1479": {
+          "PASS": 1
+        },
+        "sock.c:1489": {
+          "PASS": 1
+        },
+        "sock.c:1499": {
+          "PASS": 1
+        },
+        "sock.c:1521": {
+          "PASS": 1
+        },
+        "sock.c:1540": {
+          "PASS": 1
+        },
+        "sock.c:1542": {
+          "PASS": 1
+        },
+        "sock.c:1560": {
+          "PASS": 1
+        },
+        "sock.c:1561": {
+          "PASS": 1
+        },
+        "sock.c:1562": {
+          "PASS": 1
+        },
+        "sock.c:1565": {
+          "PASS": 1
+        },
+        "sock.c:1566": {
+          "PASS": 1
+        },
+        "sock.c:1569": {
+          "PASS": 1
+        },
+        "sock.c:1572": {
+          "PASS": 1
+        },
+        "sock.c:1578": {
+          "PASS": 1
+        },
+        "sock.c:1583": {
+          "PASS": 1
+        },
+        "sock.c:1663": {
+          "PASS": 1
+        },
+        "sock.c:1710": {
+          "PASS": 1
+        },
+        "sock.c:1711": {
+          "PASS": 1
+        },
+        "sock.c:1717": {
+          "PASS": 1
+        },
+        "sock.c:1736": {
+          "PASS": 1
+        },
+        "sock.c:1740": {
+          "PASS": 1
+        },
+        "sock.c:1741": {
+          "PASS": 1
+        },
+        "sock.c:1779": {
+          "PASS": 1
+        },
+        "sock.c:1781": {
+          "PASS": 1
+        },
+        "sock.c:1799": {
+          "PASS": 1
+        },
+        "sock.c:1811": {
+          "PASS": 1
+        },
+        "sock.c:1828": {
+          "PASS": 1
+        },
+        "sock.c:1831": {
+          "PASS": 1
+        },
+        "sock.c:1840": {
+          "PASS": 1
+        },
+        "sock.c:1858": {
+          "PASS": 1
+        },
+        "sock.c:1887": {
+          "PASS": 1
+        },
+        "sock.c:1932": {
+          "PASS": 1
+        },
+        "sock.c:205": {
+          "PASS": 7
+        },
+        "sock.c:208": {
+          "PASS": 7
+        },
+        "sock.c:211": {
+          "PASS": 7
+        },
+        "sock.c:249": {
+          "PASS": 10
+        },
+        "sock.c:258": {
+          "PASS": 8
+        },
+        "sock.c:268": {
+          "PASS": 8
+        },
+        "sock.c:281": {
+          "PASS": 4
+        },
+        "sock.c:302": {
+          "PASS": 7
+        },
+        "sock.c:314": {
+          "PASS": 3
+        },
+        "sock.c:343": {
+          "PASS": 3
+        },
+        "sock.c:366": {
+          "PASS": 6
+        },
+        "sock.c:380": {
+          "PASS": 6
+        },
+        "sock.c:405": {
+          "PASS": 2
+        },
+        "sock.c:406": {
+          "PASS": 2
+        },
+        "sock.c:418": {
+          "PASS": 4
+        },
+        "sock.c:420": {
+          "PASS": 4
+        },
+        "sock.c:425": {
+          "PASS": 4
+        },
+        "sock.c:428": {
+          "PASS": 4
+        },
+        "sock.c:432": {
+          "PASS": 4
+        },
+        "sock.c:437": {
+          "PASS": 4
+        },
+        "sock.c:465": {
+          "PASS": 1
+        },
+        "sock.c:466": {
+          "PASS": 1
+        },
+        "sock.c:485": {
+          "PASS": 515
+        },
+        "sock.c:497": {
+          "PASS": 2
+        },
+        "sock.c:499": {
+          "PASS": 2
+        },
+        "sock.c:519": {
+          "PASS": 1024
+        },
+        "sock.c:524": {
+          "PASS": 2
+        },
+        "sock.c:528": {
+          "PASS": 1024
+        },
+        "sock.c:541": {
+          "PASS": 1024
+        },
+        "sock.c:548": {
+          "PASS": 1024
+        },
+        "sock.c:554": {
+          "PASS": 515
+        },
+        "sock.c:568": {
+          "PASS": 2
+        },
+        "sock.c:600": {
+          "PASS": 4
+        },
+        "sock.c:602": {
+          "PASS": 4
+        },
+        "sock.c:608": {
+          "PASS": 4
+        },
+        "sock.c:612": {
+          "PASS": 4
+        },
+        "sock.c:616": {
+          "PASS": 4
+        },
+        "sock.c:621": {
+          "PASS": 4
+        },
+        "sock.c:655": {
+          "PASS": 2
+        },
+        "sock.c:657": {
+          "PASS": 2
+        },
+        "sock.c:659": {
+          "PASS": 2
+        },
+        "sock.c:661": {
+          "PASS": 2
+        },
+        "sock.c:677": {
+          "PASS": 10
+        },
+        "sock.c:680": {
+          "PASS": 10
+        },
+        "sock.c:685": {
+          "PASS": 3
+        },
+        "sock.c:694": {
+          "PASS": 1
+        },
+        "sock.c:712": {
+          "PASS": 3
+        },
+        "sock.c:717": {
+          "PASS": 3
+        },
+        "sock.c:738": {
+          "PASS": 2
+        },
+        "sock.c:743": {
+          "PASS": 2
+        },
+        "sock.c:746": {
+          "PASS": 2
+        },
+        "sock.c:750": {
+          "PASS": 2
+        },
+        "sock.c:765": {
+          "PASS": 1
+        },
+        "sock.c:775": {
+          "PASS": 1
+        },
+        "sock.c:778": {
+          "PASS": 1
+        },
+        "sock.c:787": {
+          "PASS": 3
+        },
+        "sock.c:799": {
+          "PASS": 6
+        },
+        "sock.c:819": {
+          "PASS": 3
+        },
+        "sock.c:859": {
+          "PASS": 1
+        },
+        "sock.c:867": {
+          "PASS": 1
+        },
+        "sock.c:868": {
+          "PASS": 1
+        },
+        "sock.c:875": {
+          "PASS": 1
+        },
+        "sock.c:876": {
+          "PASS": 1
+        },
+        "sock.c:884": {
+          "PASS": 4
+        },
+        "sock.c:885": {
+          "PASS": 4
+        },
+        "sock.c:895": {
+          "PASS": 1
+        },
+        "sock.c:898": {
+          "PASS": 1
+        },
+        "sock.c:916": {
+          "PASS": 1
+        },
+        "sock.c:918": {
+          "PASS": 1
+        },
+        "sock.c:921": {
+          "PASS": 1
+        },
+        "sock.c:926": {
+          "PASS": 1
+        },
+        "sock.c:929": {
+          "PASS": 1
+        },
+        "sock.c:933": {
+          "PASS": 1
+        },
+        "sock.c:937": {
+          "PASS": 1
+        }
+      },
+      "sha256": "87f7a5fd766265f2aa919571f980768e787a8623174988196df11ad1c817c56e",
+      "skips": {
+        "sock.c:2053": 1
+      },
+      "variable_counts": {
+        "sock.c:677": "One check per event-loop iteration or FD_READ/FD_WRITE notification while transferring a fixed payload. Scheduling and socket buffer sizes change the number of notifications; require this site to be reached and every observed check to pass. Final sent/received lengths and data pattern remain mandatory at sock.c:743,746,750.",
+        "sock.c:680": "One check per event-loop iteration or FD_READ/FD_WRITE notification while transferring a fixed payload. Scheduling and socket buffer sizes change the number of notifications; require this site to be reached and every observed check to pass. Final sent/received lengths and data pattern remain mandatory at sock.c:743,746,750.",
+        "sock.c:685": "One check per event-loop iteration or FD_READ/FD_WRITE notification while transferring a fixed payload. Scheduling and socket buffer sizes change the number of notifications; require this site to be reached and every observed check to pass. Final sent/received lengths and data pattern remain mandatory at sock.c:743,746,750.",
+        "sock.c:712": "One check per event-loop iteration or FD_READ/FD_WRITE notification while transferring a fixed payload. Scheduling and socket buffer sizes change the number of notifications; require this site to be reached and every observed check to pass. Final sent/received lengths and data pattern remain mandatory at sock.c:743,746,750.",
+        "sock.c:717": "One check per event-loop iteration or FD_READ/FD_WRITE notification while transferring a fixed payload. Scheduling and socket buffer sizes change the number of notifications; require this site to be reached and every observed check to pass. Final sent/received lengths and data pattern remain mandatory at sock.c:743,746,750."
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "f71acc25963f1569cc58e10c78f372cad920ac12d79f8164359e9cd06f460c3a",
+  "reference_selection": {
+    "excluded": {
+      "comdlg32_filedlg": "FAIL",
+      "comdlg32_printdlg": "PASS",
+      "shlwapi_clsid": "CRASH",
+      "shlwapi_generated": "PASS",
+      "shlwapi_istream": "PASS",
+      "shlwapi_ordinal": "CRASH",
+      "shlwapi_path": "CRASH",
+      "shlwapi_shreg": "FAIL",
+      "shlwapi_string": "PASS",
+      "shlwapi_url": "FAIL",
+      "version_info": "PASS",
+      "version_install": "FAIL",
+      "wininet_ftp": "PASS",
+      "wininet_generated": "PASS",
+      "wininet_http": "CRASH",
+      "wininet_internet": "FAIL",
+      "wininet_url": "CRASH",
+      "wininet_urlcache": "PASS",
+      "ws2_32_protocol": "PASS"
+    },
+    "selected": [
+      "ws2_32_sock"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "52a0b0b12be9fb056a066d5c74479f45659d0c6955c5e65e5d911f39e0b0c910",
+  "variable_counts_sha256": "971f3860abfbddfe05d80a416a865245633f80214380b9a78ed635e34533ba74",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "COMDLG32.DLL": {
+      "sha256": "aa6bdfbd7d86814001f318be0d7d952fd4df4575c319a09b7d6c9a7c6d7a7c83",
+      "version": [
+        4,
+        72,
+        3510,
+        2300
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "OLEAUT32.DLL": {
+      "sha256": "baeb2f7c1b8be56738d34e1d1ddf8e0eebd3a633215dc1575e14656be38b939d",
+      "version": [
+        2,
+        40,
+        4275,
+        1
+      ]
+    },
+    "SHLWAPI.DLL": {
+      "sha256": "731b1ffdcb821a87e8ef1aa92fc956a0c385eaa6b8f4ad20c89db8b923f1aeae",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "VERSION.DLL": {
+      "sha256": "1173f38b6efe4339a68206d53fe59381f6514c0b453c49799df2f19cd0483230",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "WININET.DLL": {
+      "sha256": "bc28b292c670946f5a56152a5eb40013a4d3e7ae5b4340d3b59f491fe7436fe7",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "WS2_32.DLL": {
+      "sha256": "bcb2c8d9dfd5e2af5510b432fd39da0cc959717e420b1d40c4b06b08299cd079",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

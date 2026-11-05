@@ -1,0 +1,7 @@
+# Saved-state field rules. See state.rules for the rule format.
+# Pointer fields must identify their allocation or target object.
+
+# ---- The rasterizer of the host ----
+field Glide::Context::gpu bind X86::Application::gpu_backend     # the rasterizer the context draws with; the loading process has its own
+field OpenGL::Context::backend bind X86::Application::gpu_backend # the same for an OpenGL context
+field OpenGL::Context::State::backend bind X86::Application::gpu_backend # and for what the context keeps

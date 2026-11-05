@@ -1,0 +1,376 @@
+License and copyright comment blocks from the pinned musl sources.
+File names are relative to the component source tree.
+
+Files: src/__cos.c, src/__rem_pio2_large.c, src/__sin.c, src/acos.c, src/acosl.c, src/asin.c, src/asinl.c, src/log10.c
+/*
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Developed at SunSoft, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ */
+
+Files: src/__cosdf.c, src/__rem_pio2f.c, src/__sindf.c, src/acosf.c, src/asinf.c, src/atan.c, src/atan2f.c, src/atanf.c, src/atanl.c, src/cbrtf.c, src/cos.c, src/cosf.c, src/erf.c, src/erff.c, src/erfl.c, src/expm1.c, src/expm1f.c, src/lgammaf_r.c, src/lgammal.c, src/log10f.c, src/log1p.c, src/log1pf.c, src/sin.c, src/sincos.c, src/sincosf.c, src/sinf.c, src/tan.c, src/tanf.c
+/*
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Developed at SunPro, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ */
+
+Files: src/__cosl.c, src/__sinl.c
+/*
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2008 Steven G. Kargl, David Schultz, Bruce D. Evans.
+ *
+ * Developed at SunSoft, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ */
+
+Files: src/__rem_pio2.c
+/*
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Developed at SunSoft, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ *
+ * Optimized by Bruce D. Evans.
+ */
+
+Files: src/__rem_pio2l.c
+/*
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2008 Steven G. Kargl, David Schultz, Bruce D. Evans.
+ *
+ * Developed at SunSoft, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ *
+ * Optimized by Bruce D. Evans.
+ */
+
+Files: src/__tan.c, src/__tandf.c
+/*
+ * ====================================================
+ * Copyright 2004 Sun Microsystems, Inc.  All Rights Reserved.
+ *
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ */
+
+Files: src/__tanl.c
+/*
+ * ====================================================
+ * Copyright 2004 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright (c) 2008 Steven G. Kargl, David Schultz, Bruce D. Evans.
+ *
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ */
+
+Files: src/atan2.c, src/atan2l.c, src/lgamma_r.c
+/*
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Developed at SunSoft, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ *
+ */
+
+Files: src/cbrt.c
+/*
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ *
+ * Developed at SunPro, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ *
+ * Optimized by Bruce D. Evans.
+ */
+
+Files: src/cbrtl.c
+/*-
+ * ====================================================
+ * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+ * Copyright (c) 2009-2011, Bruce D. Evans, Steven G. Kargl, David Schultz.
+ *
+ * Developed at SunPro, a Sun Microsystems, Inc. business.
+ * Permission to use, copy, modify, and distribute this
+ * software is freely granted, provided that this notice
+ * is preserved.
+ * ====================================================
+ *
+ * The argument reduction and testing for exceptional cases was
+ * written by Steven G. Kargl with input from Bruce D. Evans
+ * and David A. Schultz.
+ */
+
+Files: src/erfl.c, src/expl.c, src/expm1l.c, src/lgammal.c, src/log10l.c, src/log1pl.c, src/log2l.c, src/logl.c, src/powl.c, src/tgammal.c
+/*
+ * Copyright (c) 2008 Stephen L. Moshier <steve@moshier.net>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+Files: src/exp.c
+/*
+ * Double-precision e^x function.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/exp2.c
+/*
+ * Double-precision 2^x function.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/exp2f.c
+/*
+ * Single-precision 2^x function.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/exp2f_data.c
+/*
+ * Shared data between expf, exp2f and powf.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/exp2f_data.h, src/log2f_data.h, src/logf_data.h, src/powf.c, src/powf_data.h
+/*
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/exp2l.c
+/*-
+ * Copyright (c) 2005-2008 David Schultz <das@FreeBSD.ORG>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+Files: src/exp_data.c
+/*
+ * Shared data between exp, exp2 and pow.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/exp_data.h, src/log2_data.h, src/log_data.h, src/pow_data.h
+/*
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/expf.c
+/*
+ * Single-precision e^x function.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/fmal.c
+/*-
+ * Copyright (c) 2005-2011 David Schultz <das@FreeBSD.ORG>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+Files: src/log.c
+/*
+ * Double-precision log(x) function.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/log2.c
+/*
+ * Double-precision log2(x) function.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/log2_data.c
+/*
+ * Data for log2.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/log2f.c
+/*
+ * Single-precision log2 function.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/log2f_data.c
+/*
+ * Data definition for log2f.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/log_data.c
+/*
+ * Data for log.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/logf.c
+/*
+ * Single-precision log function.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/logf_data.c
+/*
+ * Data definition for logf.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/pow.c
+/*
+ * Double-precision x^y function.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/pow_data.c
+/*
+ * Data for the log part of pow.
+ *
+ * Copyright (c) 2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/powf_data.c
+/*
+ * Data definition for powf.
+ *
+ * Copyright (c) 2017-2018, Arm Limited.
+ * SPDX-License-Identifier: MIT
+ */
+
+Files: src/qsort.c
+/* Copyright (C) 2011 by Valentin Ochs
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */

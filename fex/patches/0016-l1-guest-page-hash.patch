@@ -1,0 +1,75 @@
+--- a/FEXCore/Source/Interface/Core/LookupCache.h
++++ b/FEXCore/Source/Interface/Core/LookupCache.h
+@@ -178,7 +178,7 @@
+ 
+   uintptr_t FindBlock(FEXCore::Core::InternalThreadState* Thread, uint64_t Address) {
+     // Try L1, no lock needed
+-    auto& L1Entry = reinterpret_cast<LookupCacheEntry*>(L1Pointer)[Address & L1PointerMask];
++    auto& L1Entry = reinterpret_cast<LookupCacheEntry*>(L1Pointer)[(Address ^ (Address >> 12)) & L1PointerMask];
+     if (L1Entry.GuestCode == Address) {
+       return L1Entry.HostCode;
+     }
+@@ -310,7 +310,7 @@
+   // Invalidates L1/L2 for a given guest block
+   void InvalidateCache(uint64_t Address, const LookupCacheWriteLockToken& lk) {
+     // Do L1
+-    auto& L1Entry = reinterpret_cast<LookupCacheEntry*>(L1Pointer)[Address & L1PointerMask];
++    auto& L1Entry = reinterpret_cast<LookupCacheEntry*>(L1Pointer)[(Address ^ (Address >> 12)) & L1PointerMask];
+     if (L1Entry.GuestCode == Address) {
+       L1Entry.GuestCode = 0;
+       // Leave L1Entry.HostCode as is, so that concurrent lookups won't read a null pointer
+@@ -390,7 +390,7 @@
+ 
+ private:
+   void AddL1Entry(uint64_t GuestAddress, uint64_t HostCode) {
+-    auto& L1Entry = reinterpret_cast<LookupCacheEntry*>(L1Pointer)[GuestAddress & L1PointerMask];
++    auto& L1Entry = reinterpret_cast<LookupCacheEntry*>(L1Pointer)[(GuestAddress ^ (GuestAddress >> 12)) & L1PointerMask];
+     L1Entry.GuestCode = GuestAddress;
+     L1Entry.HostCode = HostCode;
+   }
+--- a/FEXCore/Source/Interface/Core/JIT/BranchOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/BranchOps.cpp
+@@ -220,7 +220,9 @@
+ 
+     // Calculate (tmp1 + ((ripreg & L1_ENTRIES_MASK) << 4)) for the address
+     // L1Mask is pre-shifted.
+-    and_(ARMEmitter::Size::i64Bit, TMP2, TMP2, RipReg, ARMEmitter::ShiftType::LSL, FEXCore::ilog2(sizeof(LookupCache::LookupCacheEntry)));
++    // Include the guest page number so page-aligned targets do not alias.
++    eor(ARMEmitter::Size::i64Bit, TMP3, RipReg, RipReg, ARMEmitter::ShiftType::LSR, 12);
++    and_(ARMEmitter::Size::i64Bit, TMP2, TMP2, TMP3, ARMEmitter::ShiftType::LSL, FEXCore::ilog2(sizeof(LookupCache::LookupCacheEntry)));
+     add(TMP1, TMP1, TMP2);
+ 
+     ldp<ARMEmitter::IndexType::OFFSET>(TMP2, TMP1, TMP1, 0);
+--- a/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
+@@ -229,11 +229,14 @@
+       // If we've made it here then we have a real compiled block
+       {
+         // update L1 cache
+-        ldp<ARMEmitter::IndexType::OFFSET>(TMP1, TMP2, STATE, offsetof(FEXCore::Core::CpuStateFrame, State.L1Pointer));
++        // Match the JIT/C++ L1 hash, preserving RIP in TMP3 and the target in TMP4.
++        eor(ARMEmitter::Size::i64Bit, TMP1, RipReg.R(), RipReg.R(), ARMEmitter::ShiftType::LSR, 12);
++        ldr(TMP2, STATE, offsetof(FEXCore::Core::CpuStateFrame, State.L1Mask));
+ 
+         // Calculate (tmp1 + ((ripreg & L1_ENTRIES_MASK) << 4)) for the address
+         // L1Mask is pre-shifted.
+-        and_(ARMEmitter::Size::i64Bit, TMP2, TMP2, RipReg.R(), ARMEmitter::ShiftType::LSL, FEXCore::ilog2(sizeof(LookupCache::LookupCacheEntry)));
++        and_(ARMEmitter::Size::i64Bit, TMP2, TMP2, TMP1, ARMEmitter::ShiftType::LSL, FEXCore::ilog2(sizeof(LookupCache::LookupCacheEntry)));
++        ldr(TMP1, STATE, offsetof(FEXCore::Core::CpuStateFrame, State.L1Pointer));
+         add(TMP1, TMP1, TMP2);
+ 
+         stp<ARMEmitter::IndexType::OFFSET>(TMP4, RipReg, TMP1);
+@@ -614,8 +617,11 @@
+       add(ARMEmitter::Size::i64Bit, REG_CALLRET_SP, REG_CALLRET_SP, 0x10);
+       ret(TMP2);
+       (void)Bind(&l_NoCallRet);
+-      ldp<ARMEmitter::IndexType::OFFSET>(TMP1, TMP2, STATE, offsetof(FEXCore::Core::CpuStateFrame, State.L1Pointer));
+-      and_(ARMEmitter::Size::i64Bit, TMP2, TMP2, RipReg.R(), ARMEmitter::ShiftType::LSL, FEXCore::ilog2(sizeof(LookupCache::LookupCacheEntry)));
++      // Match the JIT/C++ L1 hash, preserving RIP in TMP3 and the target in TMP4.
++      eor(ARMEmitter::Size::i64Bit, TMP1, RipReg.R(), RipReg.R(), ARMEmitter::ShiftType::LSR, 12);
++      ldr(TMP2, STATE, offsetof(FEXCore::Core::CpuStateFrame, State.L1Mask));
++      and_(ARMEmitter::Size::i64Bit, TMP2, TMP2, TMP1, ARMEmitter::ShiftType::LSL, FEXCore::ilog2(sizeof(LookupCache::LookupCacheEntry)));
++      ldr(TMP1, STATE, offsetof(FEXCore::Core::CpuStateFrame, State.L1Pointer));
+       add(TMP1, TMP1, TMP2);
+       ldp<ARMEmitter::IndexType::OFFSET>(TMP2, TMP1, TMP1, 0);
+       sub(ARMEmitter::Size::i64Bit, TMP1, TMP1, RipReg);

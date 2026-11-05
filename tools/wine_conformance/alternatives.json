@@ -1,0 +1,88 @@
+{
+  "source_commit": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+  "groups": {
+    "thread": {
+      "thread.c:392": {
+        "reason": "CreateThread accepts a NULL thread-id output; require the complete successful-thread branch instead of reproducing the Win9x rejection.",
+        "requires": [
+          "thread.c:383",
+          "thread.c:385",
+          "thread.c:387",
+          "thread.c:388",
+          "thread.c:389"
+        ]
+      }
+    },
+    "file": {
+      "file.c:916": {
+        "reason": "MoveFile rejects wildcard names with ERROR_INVALID_NAME. Wine only enumerates the destination for other error codes; the two preceding checks must pass.",
+        "requires": [
+          "file.c:895",
+          "file.c:896"
+        ]
+      }
+    },
+    "virtual": {
+      "virtual.c:379": {
+        "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+        "requires": [
+          "virtual.c:374"
+        ]
+      },
+      "virtual.c:384": {
+        "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+        "requires": [
+          "virtual.c:374"
+        ]
+      },
+      "virtual.c:385": {
+        "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+        "requires": [
+          "virtual.c:374"
+        ]
+      },
+      "virtual.c:389": {
+        "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+        "requires": [
+          "virtual.c:374"
+        ]
+      },
+      "virtual.c:394": {
+        "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+        "requires": [
+          "virtual.c:374"
+        ]
+      },
+      "virtual.c:395": {
+        "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+        "requires": [
+          "virtual.c:374"
+        ]
+      }
+    },
+    "kernel32_console": {
+      "console.c:500": {
+        "reason": "Win98 rejects this clipped console scroll with ERROR_NOT_ENOUGH_MEMORY. NEO98 completes it; require every character and attribute check in the successful branch instead of reproducing the allocation failure.",
+        "requires": [
+          "console.c:489",
+          "console.c:492",
+          "console.c:493"
+        ]
+      }
+    },
+    "ws2_32_sock": {
+      "sock.c:694": {
+        "reason": "This branch runs only when a nonblocking send encounters temporary backpressure. Its absence is valid when both clients send and receive all bytes with the correct pattern and complete the event protocol. Any observed failure at this site still fails qualification.",
+        "requires": [
+          "sock.c:677",
+          "sock.c:680",
+          "sock.c:685",
+          "sock.c:738",
+          "sock.c:743",
+          "sock.c:746",
+          "sock.c:750"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,171 @@
+# What the layout table of a saved state cannot know by itself
+# (tools/state_layout.py, src/x86_state_fields.h).
+#
+#   field  Type::name   RULE [argument]   # why
+#   var    Name[@file]  RULE [argument]   # why
+#   type   Type         RULE              # why
+#
+#   host     of the host process: never written, a load leaves what the loading process has
+#   skip     not part of the machine (a cache): never written, a load leaves what is there
+#   auto     a pointer the table cannot type (void *): written when it leads to an object of
+#            the state, a symbol of the program or nothing; anything else refuses the save
+#   count    an owned array of which the field named in the argument says how many elements are in use;
+#            the block keeps its size, the unused rest is written as zeros. On an array inside a
+#            structure: only that many elements are written
+#   bytes    the same for owned bytes
+#   cstring  an owned string
+#   tail     an owned block: one structure with bytes behind it; with an argument, a field of that
+#            structure that says how many of those bytes are in use
+#   custom   written and loaded by src/x86_state_machine.cpp
+#   as       a pointer the table cannot type that points at the type named in the argument
+#   header   a pointer into an owned block of bytes, behind a head of as many bytes as the argument says
+#   address  (type, on a typedef) a number that holds an address of the host: written as what it
+#            points at; a number below 4 GiB stays a number
+#   bind     a pointer to an object of the host that the variable named in the argument holds in
+#            every process (the rasterizer): never written, set from that variable after a load
+#   end      a pointer that means the end of the block another pointer of the structure points into,
+#            also when the allocator has put another block right there
+#   tail     (type) every block of this type is one structure with bytes behind it, never an array
+#            of them; a structure that ends in an array of one element (bytes[1]) is one by itself
+
+# ---- The state code itself ----
+var User::(anonymous namespace)::host_scanout_context host # live host presenter
+var User::(anonymous namespace)::host_scanout host # live host callback
+var Gdi::(anonymous namespace)::surface_access_sink host # live GPU coherence callback
+var MachineState::(anonymous namespace)::sink_stream host        # the file a state is written to
+var MachineState::(anonymous namespace)::source_stream host      # the file a state is read from
+var X86::Application::state_point_wanted host                    # a wish of the saving host; saved set, every thread would stop for ever
+field X86::Application::Thread::CallMark::host_frame host       # a host frame pointer for the blocked-frame measurement; the loaded fiber has a new stack
+field X86::Application::Import::tail_gate skip                    # derived callback classification of this host; legacy states must recalculate it after loading
+var MachineState::ScanPointers()::test_leak auto                 # the test's leak: must refuse the save
+var MachineState::Machine::last_save host                        # numbers of the last save of this process
+
+var MachineState::(anonymous namespace)::layout host             # the layout table of this very program
+var MachineState::(anonymous namespace)::last_writer host        # the last save of this process
+var MachineState::(anonymous namespace)::last_numbers host       # numbers of the last save of this process
+var MachineState::(anonymous namespace)::Regions()::regions host # where this process reserved its regions
+var MachineState::(anonymous namespace)::Interned()::strings host # strings a load copied into this process
+
+# ---- Not saved yet: CanSave refuses a machine that has them ----
+var X86::(anonymous namespace)::open_requests host               # what the guest asked the Mac to open, until the host takes it
+var X86::(anonymous namespace)::settings_requests host           # the same for the settings of a program
+
+# ---- Processors, registers, fibers: made anew by the machine code ----
+field X86::Application::cpu custom                               # the engine; LoadProcess makes a new one
+field X86::Application::win16_flat_template custom               # registers kept in the engine; LoadProcess
+field X86::Application::Thread::context custom                   # registers kept in the engine; LoadProcess
+field X86::Application::Thread::fiber custom                     # the host stack of a thread; LoadProcess makes a new fiber
+field X86::Application::Thread::state_resumed custom               # set by LoadProcess for a thread that goes on from its registers
+field X86::Application::Thread::CallMark::context custom         # registers of the one callback a saved thread may stand in
+field X86::Application::Thread::host_frames count host_frame_count # only the live continuation records, including staged 16-bit delivery
+field X86::Application::Thread::win16_flat_saved custom          # registers of a 16-bit task inside a flat call; no save point there
+field X86::Application::Win16Machine::HostedThread::flat custom  # Windows process part 3 reconstructs aliases to owning typed hosted Call marks
+
+field TrueTypeMachine::(anonymous namespace)::State@truetype_machine.cpp::cpu custom # the TrueType driver has a processor of its own; the machine code makes a new one
+# ---- What the host installs ----
+var X86::Application::crash_context host                         # the crash reporter of the host
+var X86::Application::gpu_backend host                           # the picture backend of the host (Metal)
+var X86::(anonymous namespace)::host_cursor_context host         # the host's cursor provider
+var X86::(anonymous namespace)::host_cursor_move host            # the host's cursor callback, a function of the host program; the loading host has set its own
+var X86::(anonymous namespace)::dos_failure_context host         # the host's list of DOS failures
+var X86::(anonymous namespace)::dos_failure_hook host            # the host's DOS failure callback, a lambda of its main; the loading host has set its own
+var User::(anonymous namespace)::touchscreen_probe host          # the host's touchscreen probe, a lambda of its main; the loading host has set its own
+var NetHost::installed host                                      # the host's network provider (an object in its main); the loading host has installed its own
+field X86::Application::DosVmState::session host                 # rebound only after the explicit composite core has loaded
+field X86::Application::DosVmState::voodoo host                  # derived GPU owner, rebuilt from the unchanged DOS core restore packet
+field DosVm::Provider::owner host                                # the DOS machine of the host
+field X86::HostClipboard::Provider::context host                 # the Mac's clipboard
+
+# ---- Statics inside inline functions that the debug information does not describe ----
+symbol __ZZN17Win98DisplayModes9PanelModeEvE5panel as Win98DisplayModes::Panel             # src/win98_display_modes.h, PanelMode
+symbol __ZZN22Win98KeyboardTranslate11DriverStateEvE7pending as Win98KeyboardTranslate::Pending # src/win98_keyboard_layouts.h, DriverState
+symbol __ZZN18Win98GdiParameters6SystemEvE5state as Win98GdiParameters::State               # src/win98_gdi_parameters.h, System
+symbol __ZZN3X8611Application25ShellIconCacheEnvironment6SystemEvE5value as X86::Application::ShellIconCacheEnvironment::Shared # src/x86_shell_registry.cpp
+symbol __ZZN3X8611Application19TimezoneEnvironment6SystemEvE5value as X86::Application::TimezoneEnvironment::Shared # src/x86_time.cpp
+symbol __ZZN3X8612_GLOBAL__N_16TablesEvE5slots as X86::(anonymous namespace)::Slot@x86_accelerators.cpp[64] # src/x86_accelerators.cpp, Tables
+symbol __ZZN3X8611Application9SendState5SlotsEvE5slots as X86::Application::SendState::Slot[64]   # src/x86_app.cpp, SendState::Slots
+symbol __ZZN8CommHost4SlotEvE8provider host                                                # the serial ports of the host (src/comm_host.h)
+symbol __ZZN11PrinterPort4SlotEvE4sink host                                                # the printer port of the host (src/printer_port.h)
+symbol __ZZN3X8611Application20LibraryExEnvironment4HeadEvE4head skip                       # objects on the host stack of a LoadLibraryEx; no save point inside
+
+# ---- Addresses kept as numbers ----
+type Win98Menu::P address                                        # the menu core keeps host pointers as numbers, as its original does
+field Win98Menu::Item::text header 4                             # the text of an item: User's menu environment keeps its length before it (src/user.cpp, AllocateText)
+
+# ---- Blocks with bytes behind a head ----
+field Registry::HiveImport::Arena::chunks tail used              # a chunk of the registry's arena: its head and, behind it, `used` bytes of names and values
+field Registry::HiveImport::Arena::Chunk::next tail used         # the same, the next chunk
+field Registry::(anonymous namespace)::Journal@registry_persist.cpp::bytes bytes size # the journal of the registry: `size` bytes of its buffer are written
+
+# ---- Arrays inside a structure with their live length beside them ----
+field User::(anonymous namespace)::Window@user.cpp::lease count leases # only the active leases own paint clips
+field RectRegion::rectangles count count                        # live update rectangles, inline or allocated
+field Registry::Session::handles count handle_capacity          # the growing table of open registry handles, including reusable slots
+var X86::(anonymous namespace)::session_dibs count session_dib_count # the DIB sections of the session; behind them the array holds released ones
+field Pe32::Image::sections count count                         # the sections of a loaded image; the rest of the array was never filled
+
+# ---- Scratch ----
+var Win98Frame::(anonymous namespace)::native_environment skip   # filled anew by every call; holds addresses of the caller's stack
+
+# ---- Contexts the port hands to its own callbacks: a process or nothing ----
+var Gdi::(anonymous namespace)::display_palette_context auto     # the process that owns the palette
+var User::(anonymous namespace)::caret_context auto              # a process
+var User::(anonymous namespace)::caret_bracket_context auto      # a process
+var User::(anonymous namespace)::frame_icon_context auto         # a process
+var User::(anonymous namespace)::default_icon_context auto       # a process
+var User::(anonymous namespace)::icon_size_context auto          # a process
+var User::(anonymous namespace)::drag_icon_context auto          # a process
+var User::(anonymous namespace)::scroll_brush_context auto       # a process
+var User::(anonymous namespace)::shell_hook_context auto         # a process
+var User::(anonymous namespace)::shell_context auto              # a process
+var User::(anonymous namespace)::property_context auto           # a process
+var User::(anonymous namespace)::screen_lease_context auto       # a process
+var User::(anonymous namespace)::edit_notify_context auto        # a process
+var User::(anonymous namespace)::control_context auto            # a process
+var User::(anonymous namespace)::guest_paint_context auto        # the process that dispatches a subclassed STATIC's WM_PAINT
+var User::(anonymous namespace)::common_context auto             # a process
+var User::(anonymous namespace)::clipboard_context auto          # a process
+var User::(anonymous namespace)::metadata_context auto           # a process
+var User::(anonymous namespace)::edit_word_context auto          # a process
+var User::(anonymous namespace)::menu_context auto               # a process
+var User::(anonymous namespace)::menu_owner_context auto         # a process
+var User::(anonymous namespace)::frame_context auto              # a process
+var User::(anonymous namespace)::cursor_context auto             # a process
+var User::(anonymous namespace)::cursor_owner_context auto       # a process
+var User::(anonymous namespace)::capture_context auto            # a process
+var User::(anonymous namespace)::win_event_context auto          # a process
+var X86::Application::session_end_context auto                   # a process
+field X86::Application::common_dialog_bytes bytes common_dialog_size # COMDLG32 raw file owned by this process
+field DibText::Font::data bytes length                          # initialized FNT bytes; preserve the allocation size but zero allocator padding
+field DibText::Font::outline as GdiTrueType::Font                # the outline font a view belongs to (src/gdi_truetype.cpp)
+field Files::Store::Watcher::context auto                        # a process
+field Gdi::(anonymous namespace)::Context@gdi.cpp::device_context auto # a process
+field Gdi::DibLease::context auto                                # a process
+field Sound::Mixer::Source::generator_owner auto                 # the object that makes the samples
+field Sound::Output::owner host                                  # the host's audio device (an object in its main); the loading host has set its own
+field Sound::Input::owner host                                   # the host's microphone (an object in its main); the loading host has set its own
+field X86::(anonymous namespace)::Driver@win16_sound.cpp::owner auto # a process
+field TextEdit::word_context auto                                # a process
+field User::(anonymous namespace)::ProcessContext@user.cpp::context auto # a process
+field Win98Draw::Painter::context auto                           # a process
+field Win98Frame::Environment::context auto                      # a process
+field X86::(anonymous namespace)::PropertyPageGuard@x86_common.cpp::app auto # a process
+field X86::(anonymous namespace)::SessionDib@x86_gdi.cpp::storage tail # owns all bytes of the aligned session arena allocation; `host` aliases it, including with ASan's allocator
+field X86::(anonymous namespace)::SessionDib@x86_gdi.cpp::holders auto # the processes that hold it
+field MachineState::(anonymous namespace)::TestBox@x86_state_machine.cpp::buffer_end end   # the test of this rule: one past the end of TestBox::buffer
+field MachineState::(anonymous namespace)::TestBox@x86_state_machine.cpp::boundary_end end # encountered before its owner, beside an allocation of a different type
+field MachineState::(anonymous namespace)::TestBox@x86_state_machine.cpp::boundary_spare skip # unused allocations while finding the adjacent pair
+field MachineState::(anonymous namespace)::TestBox@x86_state_machine.cpp::spare skip       # blocks the test only allocates to find two neighbours
+field X86::Application::DirectDrawHal::surfaces count surface_count # the surfaces in use; behind them the block was never filled and holds what the allocator left there
+
+var X86::Application::Win16HostedLoadFrame::head auto # persistent LoadLibrary16 controller, released after its captured callers unwind
+
+field X86::Application::DialogSet::records count count # only the live dialog pointers; unused capacity is not initialized
+field User::(anonymous namespace)::Window@user.cpp::host_bits bytes host_bytes # complete top-level image owned by the window
+
+var HostDevices::current host # live battery, network and device provider of this host
+var HostMedia::current host # native media service installed by this host; a fresh process keeps its own provider
+
+field X86::Application::host_desktop_mask bytes host_desktop_bytes # cached original desktop icon coverage
+
+field X86::Application::GdiObjects::entries count capacity       # growable process cleanup index, including reusable slots

@@ -1,0 +1,1231 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "kernel32_change": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "change.c:101": {
+          "PASS": 1
+        },
+        "change.c:102": {
+          "PASS": 1
+        },
+        "change.c:114": {
+          "PASS": 1
+        },
+        "change.c:118": {
+          "PASS": 1
+        },
+        "change.c:122": {
+          "PASS": 1
+        },
+        "change.c:127": {
+          "PASS": 1
+        },
+        "change.c:130": {
+          "PASS": 1
+        },
+        "change.c:134": {
+          "PASS": 1
+        },
+        "change.c:136": {
+          "PASS": 1
+        },
+        "change.c:140": {
+          "PASS": 1
+        },
+        "change.c:151": {
+          "PASS": 1
+        },
+        "change.c:156": {
+          "PASS": 1
+        },
+        "change.c:163": {
+          "PASS": 1
+        },
+        "change.c:172": {
+          "PASS": 1
+        },
+        "change.c:178": {
+          "PASS": 1
+        },
+        "change.c:184": {
+          "PASS": 1
+        },
+        "change.c:193": {
+          "PASS": 1
+        },
+        "change.c:199": {
+          "PASS": 1
+        },
+        "change.c:206": {
+          "PASS": 1
+        },
+        "change.c:208": {
+          "PASS": 1
+        },
+        "change.c:212": {
+          "PASS": 1
+        },
+        "change.c:218": {
+          "PASS": 1
+        },
+        "change.c:225": {
+          "PASS": 1
+        },
+        "change.c:228": {
+          "PASS": 1
+        },
+        "change.c:230": {
+          "PASS": 1
+        },
+        "change.c:237": {
+          "PASS": 1
+        },
+        "change.c:239": {
+          "PASS": 1
+        },
+        "change.c:241": {
+          "PASS": 1
+        },
+        "change.c:247": {
+          "PASS": 1
+        },
+        "change.c:250": {
+          "PASS": 1
+        },
+        "change.c:340": {
+          "PASS": 1
+        },
+        "change.c:347": {
+          "PASS": 1
+        },
+        "change.c:353": {
+          "PASS": 1
+        },
+        "change.c:361": {
+          "PASS": 1
+        },
+        "change.c:364": {
+          "PASS": 1
+        },
+        "change.c:365": {
+          "PASS": 1
+        },
+        "change.c:369": {
+          "PASS": 1
+        },
+        "change.c:54": {
+          "PASS": 15
+        },
+        "change.c:66": {
+          "PASS": 13
+        },
+        "change.c:70": {
+          "PASS": 13
+        },
+        "change.c:798": {
+          "PASS": 1
+        },
+        "change.c:80": {
+          "PASS": 14
+        },
+        "change.c:802": {
+          "PASS": 1
+        },
+        "change.c:804": {
+          "PASS": 1
+        },
+        "change.c:808": {
+          "PASS": 1
+        },
+        "change.c:813": {
+          "PASS": 1
+        },
+        "change.c:82": {
+          "PASS": 23
+        },
+        "change.c:825": {
+          "PASS": 1
+        },
+        "change.c:829": {
+          "PASS": 1
+        },
+        "change.c:831": {
+          "PASS": 1
+        },
+        "change.c:834": {
+          "PASS": 1
+        },
+        "change.c:841": {
+          "PASS": 1
+        },
+        "change.c:845": {
+          "PASS": 1
+        },
+        "change.c:849": {
+          "PASS": 1
+        },
+        "change.c:853": {
+          "PASS": 1
+        },
+        "change.c:857": {
+          "PASS": 1
+        },
+        "change.c:861": {
+          "PASS": 1
+        },
+        "change.c:865": {
+          "PASS": 1
+        },
+        "change.c:868": {
+          "PASS": 1
+        },
+        "change.c:871": {
+          "PASS": 1
+        }
+      },
+      "sha256": "8bc2ffcab5a611738c5be4f817d4679eea551725285e22c77b147e13f9e5564f",
+      "skips": {
+        "change.c:267": 1,
+        "change.c:398": 1,
+        "change.c:625": 1,
+        "change.c:720": 1
+      }
+    },
+    "kernel32_codepage": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "codepage.c:101": {
+          "PASS": 1
+        },
+        "codepage.c:108": {
+          "PASS": 1
+        },
+        "codepage.c:133": {
+          "PASS": 1
+        },
+        "codepage.c:139": {
+          "PASS": 1
+        },
+        "codepage.c:145": {
+          "PASS": 1
+        },
+        "codepage.c:163": {
+          "PASS": 1
+        },
+        "codepage.c:172": {
+          "PASS": 1
+        },
+        "codepage.c:180": {
+          "PASS": 1
+        },
+        "codepage.c:194": {
+          "PASS": 1
+        },
+        "codepage.c:208": {
+          "PASS": 1
+        },
+        "codepage.c:209": {
+          "PASS": 1
+        },
+        "codepage.c:40": {
+          "PASS": 1
+        },
+        "codepage.c:52": {
+          "PASS": 1
+        },
+        "codepage.c:59": {
+          "PASS": 1
+        },
+        "codepage.c:66": {
+          "PASS": 1
+        },
+        "codepage.c:74": {
+          "PASS": 1
+        },
+        "codepage.c:80": {
+          "PASS": 1
+        },
+        "codepage.c:85": {
+          "PASS": 1
+        }
+      },
+      "sha256": "1d55a57c786193dd07d389b3bec04aa40b6f8f8286decc26cfe530b4d6b20079",
+      "skips": {}
+    },
+    "kernel32_drive": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "drive.c:100": {
+          "PASS": 1
+        },
+        "drive.c:103": {
+          "PASS": 1
+        },
+        "drive.c:120": {
+          "PASS": 2
+        },
+        "drive.c:126": {
+          "PASS": 2
+        },
+        "drive.c:37": {
+          "PASS": 1
+        },
+        "drive.c:42": {
+          "PASS": 26
+        },
+        "drive.c:45": {
+          "PASS": 23
+        },
+        "drive.c:60": {
+          "PASS": 1
+        },
+        "drive.c:89": {
+          "PASS": 1
+        },
+        "drive.c:92": {
+          "PASS": 1
+        },
+        "drive.c:97": {
+          "PASS": 1
+        }
+      },
+      "sha256": "841db0259cab41c7682abdfbe6c762a76ba434287b107ce3cf498279a2b08567",
+      "skips": {}
+    },
+    "kernel32_mailslot": {
+      "advisory": {
+        "mailslot.c:100": {
+          "FAIL": 1
+        },
+        "mailslot.c:106": {
+          "FAIL": 1
+        },
+        "mailslot.c:108": {
+          "FAIL": 1
+        },
+        "mailslot.c:119": {
+          "FAIL": 1
+        },
+        "mailslot.c:120": {
+          "FAIL": 1
+        },
+        "mailslot.c:124": {
+          "FAIL": 1
+        },
+        "mailslot.c:132": {
+          "FAIL": 1
+        },
+        "mailslot.c:135": {
+          "FAIL": 1
+        },
+        "mailslot.c:137": {
+          "FAIL": 1
+        },
+        "mailslot.c:152": {
+          "FAIL": 1
+        },
+        "mailslot.c:159": {
+          "FAIL": 1
+        },
+        "mailslot.c:175": {
+          "FAIL": 1
+        },
+        "mailslot.c:186": {
+          "FAIL": 1
+        },
+        "mailslot.c:189": {
+          "FAIL": 1
+        },
+        "mailslot.c:192": {
+          "FAIL": 1
+        },
+        "mailslot.c:193": {
+          "FAIL": 1
+        },
+        "mailslot.c:203": {
+          "FAIL": 1
+        },
+        "mailslot.c:204": {
+          "FAIL": 1
+        },
+        "mailslot.c:214": {
+          "FAIL": 1
+        },
+        "mailslot.c:216": {
+          "FAIL": 1
+        },
+        "mailslot.c:226": {
+          "FAIL": 1
+        },
+        "mailslot.c:228": {
+          "FAIL": 1
+        },
+        "mailslot.c:246": {
+          "FAIL": 1
+        },
+        "mailslot.c:248": {
+          "FAIL": 1
+        },
+        "mailslot.c:261": {
+          "FAIL": 1
+        },
+        "mailslot.c:263": {
+          "FAIL": 1
+        },
+        "mailslot.c:280": {
+          "FAIL": 1
+        },
+        "mailslot.c:284": {
+          "FAIL": 1
+        },
+        "mailslot.c:286": {
+          "FAIL": 1
+        },
+        "mailslot.c:300": {
+          "FAIL": 1
+        },
+        "mailslot.c:57": {
+          "FAIL": 1
+        },
+        "mailslot.c:59": {
+          "FAIL": 1
+        },
+        "mailslot.c:68": {
+          "FAIL": 1
+        },
+        "mailslot.c:69": {
+          "FAIL": 1
+        },
+        "mailslot.c:71": {
+          "FAIL": 1
+        },
+        "mailslot.c:83": {
+          "FAIL": 1
+        },
+        "mailslot.c:85": {
+          "FAIL": 1
+        },
+        "mailslot.c:94": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "mailslot.c:109": {
+          "PASS": 1
+        },
+        "mailslot.c:111": {
+          "PASS": 1
+        },
+        "mailslot.c:117": {
+          "PASS": 1
+        },
+        "mailslot.c:122": {
+          "PASS": 1
+        },
+        "mailslot.c:130": {
+          "PASS": 1
+        },
+        "mailslot.c:142": {
+          "PASS": 1
+        },
+        "mailslot.c:147": {
+          "PASS": 1
+        },
+        "mailslot.c:156": {
+          "PASS": 1
+        },
+        "mailslot.c:167": {
+          "PASS": 1
+        },
+        "mailslot.c:180": {
+          "PASS": 1
+        },
+        "mailslot.c:184": {
+          "PASS": 1
+        },
+        "mailslot.c:187": {
+          "PASS": 1
+        },
+        "mailslot.c:188": {
+          "PASS": 1
+        },
+        "mailslot.c:197": {
+          "PASS": 1
+        },
+        "mailslot.c:201": {
+          "PASS": 1
+        },
+        "mailslot.c:208": {
+          "PASS": 1
+        },
+        "mailslot.c:212": {
+          "PASS": 1
+        },
+        "mailslot.c:220": {
+          "PASS": 1
+        },
+        "mailslot.c:224": {
+          "PASS": 1
+        },
+        "mailslot.c:237": {
+          "PASS": 1
+        },
+        "mailslot.c:239": {
+          "PASS": 1
+        },
+        "mailslot.c:240": {
+          "PASS": 1
+        },
+        "mailslot.c:244": {
+          "PASS": 1
+        },
+        "mailslot.c:252": {
+          "PASS": 1
+        },
+        "mailslot.c:254": {
+          "PASS": 1
+        },
+        "mailslot.c:255": {
+          "PASS": 1
+        },
+        "mailslot.c:259": {
+          "PASS": 1
+        },
+        "mailslot.c:268": {
+          "PASS": 1
+        },
+        "mailslot.c:271": {
+          "PASS": 1
+        },
+        "mailslot.c:278": {
+          "PASS": 1
+        },
+        "mailslot.c:281": {
+          "PASS": 1
+        },
+        "mailslot.c:289": {
+          "PASS": 1
+        },
+        "mailslot.c:290": {
+          "PASS": 1
+        },
+        "mailslot.c:291": {
+          "PASS": 1
+        },
+        "mailslot.c:295": {
+          "PASS": 1
+        },
+        "mailslot.c:299": {
+          "PASS": 1
+        },
+        "mailslot.c:302": {
+          "PASS": 1
+        },
+        "mailslot.c:303": {
+          "PASS": 1
+        },
+        "mailslot.c:40": {
+          "PASS": 1
+        },
+        "mailslot.c:46": {
+          "PASS": 1
+        },
+        "mailslot.c:50": {
+          "PASS": 1
+        },
+        "mailslot.c:52": {
+          "PASS": 1
+        },
+        "mailslot.c:64": {
+          "PASS": 1
+        },
+        "mailslot.c:66": {
+          "PASS": 1
+        },
+        "mailslot.c:70": {
+          "PASS": 1
+        },
+        "mailslot.c:72": {
+          "PASS": 1
+        },
+        "mailslot.c:74": {
+          "PASS": 1
+        },
+        "mailslot.c:78": {
+          "PASS": 1
+        },
+        "mailslot.c:86": {
+          "PASS": 1
+        },
+        "mailslot.c:88": {
+          "PASS": 1
+        },
+        "mailslot.c:93": {
+          "PASS": 1
+        }
+      },
+      "sha256": "6a0d400ca62851a5d1fdb3259422c4615681fcfed33371ecc50c4c28ed253a61",
+      "skips": {}
+    },
+    "kernel32_path": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "path.c:100": {
+          "PASS": 156
+        },
+        "path.c:1015": {
+          "PASS": 1
+        },
+        "path.c:1026": {
+          "PASS": 1
+        },
+        "path.c:103": {
+          "PASS": 156
+        },
+        "path.c:1036": {
+          "PASS": 1
+        },
+        "path.c:1044": {
+          "PASS": 1
+        },
+        "path.c:1053": {
+          "PASS": 1
+        },
+        "path.c:106": {
+          "PASS": 156
+        },
+        "path.c:1061": {
+          "PASS": 1
+        },
+        "path.c:1074": {
+          "PASS": 1
+        },
+        "path.c:1084": {
+          "PASS": 1
+        },
+        "path.c:1094": {
+          "PASS": 1
+        },
+        "path.c:1102": {
+          "PASS": 1
+        },
+        "path.c:1111": {
+          "PASS": 1
+        },
+        "path.c:1119": {
+          "PASS": 1
+        },
+        "path.c:1175": {
+          "PASS": 1
+        },
+        "path.c:1176": {
+          "PASS": 1
+        },
+        "path.c:1177": {
+          "PASS": 1
+        },
+        "path.c:1178": {
+          "PASS": 1
+        },
+        "path.c:1184": {
+          "PASS": 1
+        },
+        "path.c:1185": {
+          "PASS": 1
+        },
+        "path.c:1186": {
+          "PASS": 1
+        },
+        "path.c:1187": {
+          "PASS": 1
+        },
+        "path.c:119": {
+          "PASS": 156
+        },
+        "path.c:1192": {
+          "PASS": 1
+        },
+        "path.c:1193": {
+          "PASS": 1
+        },
+        "path.c:1194": {
+          "PASS": 1
+        },
+        "path.c:1195": {
+          "PASS": 1
+        },
+        "path.c:1200": {
+          "PASS": 1
+        },
+        "path.c:1201": {
+          "PASS": 1
+        },
+        "path.c:1202": {
+          "PASS": 1
+        },
+        "path.c:1203": {
+          "PASS": 1
+        },
+        "path.c:1209": {
+          "PASS": 1
+        },
+        "path.c:121": {
+          "PASS": 4
+        },
+        "path.c:1210": {
+          "PASS": 1
+        },
+        "path.c:1211": {
+          "PASS": 1
+        },
+        "path.c:1212": {
+          "PASS": 1
+        },
+        "path.c:1217": {
+          "PASS": 1
+        },
+        "path.c:1218": {
+          "PASS": 1
+        },
+        "path.c:1219": {
+          "PASS": 1
+        },
+        "path.c:1220": {
+          "PASS": 1
+        },
+        "path.c:1225": {
+          "PASS": 1
+        },
+        "path.c:1226": {
+          "PASS": 1
+        },
+        "path.c:1227": {
+          "PASS": 1
+        },
+        "path.c:1228": {
+          "PASS": 1
+        },
+        "path.c:123": {
+          "PASS": 4
+        },
+        "path.c:1235": {
+          "PASS": 1
+        },
+        "path.c:1236": {
+          "PASS": 1
+        },
+        "path.c:1237": {
+          "PASS": 1
+        },
+        "path.c:1238": {
+          "PASS": 1
+        },
+        "path.c:127": {
+          "PASS": 152
+        },
+        "path.c:130": {
+          "PASS": 152
+        },
+        "path.c:138": {
+          "PASS": 6
+        },
+        "path.c:151": {
+          "PASS": 6
+        },
+        "path.c:153": {
+          "PASS": 6
+        },
+        "path.c:164": {
+          "PASS": 6
+        },
+        "path.c:166": {
+          "PASS": 2
+        },
+        "path.c:170": {
+          "PASS": 4
+        },
+        "path.c:202": {
+          "PASS": 4
+        },
+        "path.c:213": {
+          "PASS": 4
+        },
+        "path.c:223": {
+          "PASS": 2
+        },
+        "path.c:225": {
+          "PASS": 2
+        },
+        "path.c:245": {
+          "PASS": 126
+        },
+        "path.c:251": {
+          "PASS": 14
+        },
+        "path.c:257": {
+          "PASS": 140
+        },
+        "path.c:259": {
+          "PASS": 126
+        },
+        "path.c:263": {
+          "PASS": 14
+        },
+        "path.c:284": {
+          "PASS": 7
+        },
+        "path.c:285": {
+          "PASS": 7
+        },
+        "path.c:288": {
+          "PASS": 7
+        },
+        "path.c:291": {
+          "PASS": 7
+        },
+        "path.c:296": {
+          "PASS": 2
+        },
+        "path.c:298": {
+          "PASS": 2
+        },
+        "path.c:301": {
+          "PASS": 2
+        },
+        "path.c:326": {
+          "PASS": 1
+        },
+        "path.c:327": {
+          "PASS": 1
+        },
+        "path.c:331": {
+          "PASS": 1
+        },
+        "path.c:339": {
+          "PASS": 1
+        },
+        "path.c:342": {
+          "PASS": 1
+        },
+        "path.c:346": {
+          "PASS": 1
+        },
+        "path.c:375": {
+          "PASS": 1
+        },
+        "path.c:376": {
+          "PASS": 1
+        },
+        "path.c:378": {
+          "PASS": 1
+        },
+        "path.c:379": {
+          "PASS": 1
+        },
+        "path.c:384": {
+          "PASS": 1
+        },
+        "path.c:386": {
+          "PASS": 1
+        },
+        "path.c:388": {
+          "PASS": 1
+        },
+        "path.c:392": {
+          "PASS": 1
+        },
+        "path.c:398": {
+          "PASS": 1
+        },
+        "path.c:399": {
+          "PASS": 1
+        },
+        "path.c:403": {
+          "PASS": 1
+        },
+        "path.c:404": {
+          "PASS": 1
+        },
+        "path.c:408": {
+          "PASS": 1
+        },
+        "path.c:409": {
+          "PASS": 1
+        },
+        "path.c:413": {
+          "PASS": 1
+        },
+        "path.c:414": {
+          "PASS": 1
+        },
+        "path.c:426": {
+          "PASS": 1
+        },
+        "path.c:432": {
+          "PASS": 1
+        },
+        "path.c:433": {
+          "PASS": 1
+        },
+        "path.c:475": {
+          "PASS": 1
+        },
+        "path.c:477": {
+          "PASS": 1
+        },
+        "path.c:479": {
+          "PASS": 1
+        },
+        "path.c:481": {
+          "PASS": 1
+        },
+        "path.c:483": {
+          "PASS": 1
+        },
+        "path.c:485": {
+          "PASS": 1
+        },
+        "path.c:486": {
+          "PASS": 1
+        },
+        "path.c:487": {
+          "PASS": 1
+        },
+        "path.c:503": {
+          "PASS": 1
+        },
+        "path.c:505": {
+          "PASS": 1
+        },
+        "path.c:509": {
+          "PASS": 1
+        },
+        "path.c:511": {
+          "PASS": 1
+        },
+        "path.c:519": {
+          "PASS": 1
+        },
+        "path.c:525": {
+          "PASS": 1
+        },
+        "path.c:534": {
+          "PASS": 1
+        },
+        "path.c:543": {
+          "PASS": 1
+        },
+        "path.c:553": {
+          "PASS": 1
+        },
+        "path.c:560": {
+          "PASS": 1
+        },
+        "path.c:561": {
+          "PASS": 1
+        },
+        "path.c:566": {
+          "PASS": 1
+        },
+        "path.c:567": {
+          "PASS": 1
+        },
+        "path.c:572": {
+          "PASS": 1
+        },
+        "path.c:573": {
+          "PASS": 1
+        },
+        "path.c:581": {
+          "PASS": 1
+        },
+        "path.c:588": {
+          "PASS": 1
+        },
+        "path.c:589": {
+          "PASS": 1
+        },
+        "path.c:594": {
+          "PASS": 1
+        },
+        "path.c:595": {
+          "PASS": 1
+        },
+        "path.c:600": {
+          "PASS": 1
+        },
+        "path.c:601": {
+          "PASS": 1
+        },
+        "path.c:608": {
+          "PASS": 1
+        },
+        "path.c:615": {
+          "PASS": 1
+        },
+        "path.c:616": {
+          "PASS": 1
+        },
+        "path.c:623": {
+          "PASS": 1
+        },
+        "path.c:624": {
+          "PASS": 1
+        },
+        "path.c:630": {
+          "PASS": 1
+        },
+        "path.c:631": {
+          "PASS": 1
+        },
+        "path.c:638": {
+          "PASS": 1
+        },
+        "path.c:639": {
+          "PASS": 1
+        },
+        "path.c:645": {
+          "PASS": 1
+        },
+        "path.c:646": {
+          "PASS": 1
+        },
+        "path.c:653": {
+          "PASS": 1
+        },
+        "path.c:654": {
+          "PASS": 1
+        },
+        "path.c:660": {
+          "PASS": 1
+        },
+        "path.c:661": {
+          "PASS": 1
+        },
+        "path.c:676": {
+          "PASS": 1
+        },
+        "path.c:683": {
+          "PASS": 1
+        },
+        "path.c:684": {
+          "PASS": 1
+        },
+        "path.c:690": {
+          "PASS": 1
+        },
+        "path.c:691": {
+          "PASS": 1
+        },
+        "path.c:697": {
+          "PASS": 1
+        },
+        "path.c:698": {
+          "PASS": 1
+        },
+        "path.c:705": {
+          "PASS": 1
+        },
+        "path.c:709": {
+          "PASS": 1
+        },
+        "path.c:714": {
+          "PASS": 1
+        },
+        "path.c:715": {
+          "PASS": 1
+        },
+        "path.c:717": {
+          "PASS": 1
+        },
+        "path.c:722": {
+          "PASS": 1
+        },
+        "path.c:724": {
+          "PASS": 1
+        },
+        "path.c:726": {
+          "PASS": 1
+        },
+        "path.c:732": {
+          "PASS": 1
+        },
+        "path.c:734": {
+          "PASS": 1
+        },
+        "path.c:736": {
+          "PASS": 1
+        },
+        "path.c:743": {
+          "PASS": 1
+        },
+        "path.c:745": {
+          "PASS": 1
+        },
+        "path.c:747": {
+          "PASS": 1
+        },
+        "path.c:752": {
+          "PASS": 1
+        },
+        "path.c:754": {
+          "PASS": 1
+        },
+        "path.c:756": {
+          "PASS": 1
+        },
+        "path.c:760": {
+          "PASS": 1
+        },
+        "path.c:762": {
+          "PASS": 1
+        },
+        "path.c:765": {
+          "PASS": 1
+        },
+        "path.c:769": {
+          "PASS": 1
+        },
+        "path.c:772": {
+          "PASS": 1
+        },
+        "path.c:773": {
+          "PASS": 1
+        },
+        "path.c:777": {
+          "PASS": 1
+        },
+        "path.c:779": {
+          "PASS": 1
+        },
+        "path.c:782": {
+          "PASS": 1
+        },
+        "path.c:784": {
+          "PASS": 1
+        },
+        "path.c:824": {
+          "PASS": 4
+        },
+        "path.c:825": {
+          "PASS": 4
+        },
+        "path.c:826": {
+          "PASS": 4
+        },
+        "path.c:836": {
+          "PASS": 4
+        },
+        "path.c:839": {
+          "PASS": 4
+        },
+        "path.c:846": {
+          "PASS": 4
+        },
+        "path.c:847": {
+          "PASS": 4
+        },
+        "path.c:97": {
+          "PASS": 156
+        }
+      },
+      "sha256": "890d0fed2092afccdabeb5d0ba1710eaadb5febda80d524a078eacef5f8a722a",
+      "skips": {
+        "path.c:951": 1,
+        "path.c:980": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "7d7a9f23808c8542ac4835abca63673530d4d7fbdce07d5089d266864192038d",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "ec795ff54e8c8721cc121d3f4c9d3ee2eecac43d5be67eac3b908c80d4066e20",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

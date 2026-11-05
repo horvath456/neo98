@@ -1,0 +1,12 @@
+{
+  "reactos": {
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330"
+  },
+  "sdl12": {
+    "url": "https://www.libsdl.org/release/SDL-1.2.15.tar.gz",
+    "revision": "release-1.2.15",
+    "sha256": "d6d316a793e5e348155f0dd93b979798933fb98aa1edebcc108829d6474aad00"
+  }
+}

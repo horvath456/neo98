@@ -1,0 +1,218 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "kernel32_actctx": {
+      "reference_status": "PASS",
+      "sha256": "5c3da2da776bc8edd7a60db45ed8853b7395d2857df71632ff6b097162fa7ab6"
+    },
+    "kernel32_alloc": {
+      "reference_status": "PASS",
+      "sha256": "5b2d9dde30136b3d53d46483e6a36a0f23017e051b6c319e3f282efbb791b78d"
+    },
+    "kernel32_atom": {
+      "reference_status": "PASS",
+      "sha256": "c3857358ac033c30d002cd8e22207ef1f78aefb0f98ccc0c688f365fb6591a36"
+    },
+    "kernel32_change": {
+      "reference_status": "PASS",
+      "sha256": "8bc2ffcab5a611738c5be4f817d4679eea551725285e22c77b147e13f9e5564f"
+    },
+    "kernel32_codepage": {
+      "reference_status": "PASS",
+      "sha256": "1d55a57c786193dd07d389b3bec04aa40b6f8f8286decc26cfe530b4d6b20079"
+    },
+    "kernel32_comm": {
+      "reference_status": "PASS",
+      "sha256": "be3cda713164309b073e71bf97d062592dbd77e732af5a0cfea957b60688fae2"
+    },
+    "kernel32_console": {
+      "reference_status": "FAIL",
+      "sha256": "42c10b557210a00f92d5fb6246cd448759ab40870ffbdb82d81f50521a98ebbf"
+    },
+    "kernel32_debugger": {
+      "reference_status": "TIMEOUT",
+      "sha256": "031eb9185216e4223dc2b4df6ca2050404a929a0a7e12af719db8b384509fbcf"
+    },
+    "kernel32_directory": {
+      "reference_status": "PASS",
+      "sha256": "37e9dbc7b09e7205d7f74e97c229802cb8f15b2bffa55b4fef49bb166d0f1dbf"
+    },
+    "kernel32_drive": {
+      "reference_status": "PASS",
+      "sha256": "841db0259cab41c7682abdfbe6c762a76ba434287b107ce3cf498279a2b08567"
+    },
+    "kernel32_environ": {
+      "reference_status": "PASS",
+      "sha256": "d3eee9ffa21493a1a4f12fc1a37d3a1e89379d271f877305e3710606ebf411e7"
+    },
+    "kernel32_file": {
+      "reference_status": "FAIL",
+      "sha256": "e93681494bdcf52d019fc023d50ce41e055457663953fe3229eb7989b1bb451b"
+    },
+    "kernel32_format_msg": {
+      "reference_status": "FAIL",
+      "sha256": "156d7e5df9431245d8680bd3221375f553ff3bffcc887c59ee29073571df1880"
+    },
+    "kernel32_generated": {
+      "reference_status": "FAIL",
+      "sha256": "114b3c78eedd9975277bb09471012c07c574bc08e942f3bbcaa29867591c983d"
+    },
+    "kernel32_heap": {
+      "reference_status": "FAIL",
+      "sha256": "8ac45b874f1d61457f287e298b4241f2acb368b93a123d2f65d63e31b17baaa3"
+    },
+    "kernel32_locale": {
+      "reference_status": "FAIL",
+      "sha256": "2e60369e1e272344f896a23eaf55321e912437cab2f2b811c72a179d6d6f20fa"
+    },
+    "kernel32_mailslot": {
+      "reference_status": "FAIL",
+      "sha256": "6a0d400ca62851a5d1fdb3259422c4615681fcfed33371ecc50c4c28ed253a61"
+    },
+    "kernel32_module": {
+      "reference_status": "PASS",
+      "sha256": "0299d0f0392c8456a4ed0a9ab022eb7c8ac00febc6ce6836b06a45735adb1518"
+    },
+    "kernel32_path": {
+      "reference_status": "PASS",
+      "sha256": "890d0fed2092afccdabeb5d0ba1710eaadb5febda80d524a078eacef5f8a722a"
+    }
+  },
+  "groups": {
+    "kernel32_loader": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "loader.c:264": {
+          "PASS": 1
+        },
+        "loader.c:275": {
+          "PASS": 1
+        },
+        "loader.c:312": {
+          "PASS": 1
+        },
+        "loader.c:317": {
+          "PASS": 1
+        },
+        "loader.c:465": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2a299fb76cc6e913c88f519ad84305d470cbded3765e5a6384b6548ee4b48479",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "87161721c544c599ef3f6405cc549892634a1488e1c81fb23ebb6178b8872019",
+  "reference_selection": {
+    "excluded": {
+      "kernel32_actctx": "PASS",
+      "kernel32_alloc": "PASS",
+      "kernel32_atom": "PASS",
+      "kernel32_change": "PASS",
+      "kernel32_codepage": "PASS",
+      "kernel32_comm": "PASS",
+      "kernel32_console": "FAIL",
+      "kernel32_debugger": "TIMEOUT",
+      "kernel32_directory": "PASS",
+      "kernel32_drive": "PASS",
+      "kernel32_environ": "PASS",
+      "kernel32_file": "FAIL",
+      "kernel32_format_msg": "FAIL",
+      "kernel32_generated": "FAIL",
+      "kernel32_heap": "FAIL",
+      "kernel32_locale": "FAIL",
+      "kernel32_mailslot": "FAIL",
+      "kernel32_module": "PASS",
+      "kernel32_path": "PASS"
+    },
+    "selected": [
+      "kernel32_loader"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "c4a85be3f233f47963c5ae6f7d44a96b96c59d6689e73b5bcfe49f6d60837866",
+  "variable_counts_sha256": "fa1eef3715ef341c59a96ae8b75a58800d9df9f1e59e6f151ad6ff568d2079a2",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

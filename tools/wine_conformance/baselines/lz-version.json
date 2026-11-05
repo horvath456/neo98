@@ -1,0 +1,608 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "lz32_lzexpand_main": {
+      "advisory": {
+        "lzexpand_main.c:233": {
+          "FAIL": 1
+        },
+        "lzexpand_main.c:372": {
+          "FAIL": 1
+        },
+        "lzexpand_main.c:390": {
+          "FAIL": 1
+        },
+        "lzexpand_main.c:405": {
+          "FAIL": 1
+        },
+        "lzexpand_main.c:420": {
+          "FAIL": 1
+        },
+        "lzexpand_main.c:435": {
+          "FAIL": 1
+        },
+        "lzexpand_main.c:450": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "lzexpand_main.c:102": {
+          "PASS": 4
+        },
+        "lzexpand_main.c:112": {
+          "PASS": 4
+        },
+        "lzexpand_main.c:115": {
+          "PASS": 4
+        },
+        "lzexpand_main.c:154": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:156": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:158": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:160": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:183": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:186": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:188": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:191": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:214": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:216": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:218": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:220": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:232": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:235": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:237": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:268": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:270": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:273": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:275": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:277": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:289": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:291": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:294": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:296": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:298": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:310": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:312": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:315": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:317": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:319": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:331": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:333": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:336": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:338": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:340": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:358": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:360": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:369": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:370": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:374": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:380": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:389": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:392": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:394": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:404": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:407": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:409": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:419": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:422": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:424": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:434": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:437": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:439": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:449": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:452": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:454": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:461": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:478": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:480": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:481": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:485": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:488": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:491": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:497": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:503": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:516": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:519": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:520": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:524": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:526": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:529": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:535": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:539": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:541": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:546": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:548": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:766": {
+          "PASS": 1
+        },
+        "lzexpand_main.c:77": {
+          "PASS": 11
+        },
+        "lzexpand_main.c:87": {
+          "PASS": 2
+        },
+        "lzexpand_main.c:99": {
+          "PASS": 4
+        }
+      },
+      "sha256": "c0cacfe2d8972e5dc6f554c38499798ff4702b324c13ed75e6fb6c7a3c79308b",
+      "skips": {}
+    },
+    "version_info": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "info.c:101": {
+          "PASS": 1
+        },
+        "info.c:104": {
+          "PASS": 1
+        },
+        "info.c:111": {
+          "PASS": 1
+        },
+        "info.c:114": {
+          "PASS": 1
+        },
+        "info.c:117": {
+          "PASS": 1
+        },
+        "info.c:122": {
+          "PASS": 1
+        },
+        "info.c:125": {
+          "PASS": 1
+        },
+        "info.c:137": {
+          "PASS": 1
+        },
+        "info.c:140": {
+          "PASS": 1
+        },
+        "info.c:143": {
+          "PASS": 1
+        },
+        "info.c:159": {
+          "PASS": 1
+        },
+        "info.c:162": {
+          "PASS": 1
+        },
+        "info.c:165": {
+          "PASS": 1
+        },
+        "info.c:178": {
+          "PASS": 1
+        },
+        "info.c:179": {
+          "PASS": 1
+        },
+        "info.c:180": {
+          "PASS": 1
+        },
+        "info.c:216": {
+          "PASS": 1
+        },
+        "info.c:219": {
+          "PASS": 1
+        },
+        "info.c:222": {
+          "PASS": 1
+        },
+        "info.c:229": {
+          "PASS": 1
+        },
+        "info.c:247": {
+          "PASS": 1
+        },
+        "info.c:252": {
+          "PASS": 1
+        },
+        "info.c:390": {
+          "PASS": 1
+        },
+        "info.c:391": {
+          "PASS": 1
+        },
+        "info.c:407": {
+          "PASS": 1
+        },
+        "info.c:408": {
+          "PASS": 1
+        },
+        "info.c:422": {
+          "PASS": 1
+        },
+        "info.c:423": {
+          "PASS": 1
+        },
+        "info.c:428": {
+          "PASS": 1
+        },
+        "info.c:429": {
+          "PASS": 1
+        },
+        "info.c:460": {
+          "PASS": 1
+        },
+        "info.c:467": {
+          "PASS": 1
+        },
+        "info.c:473": {
+          "PASS": 1
+        },
+        "info.c:474": {
+          "PASS": 1
+        },
+        "info.c:483": {
+          "PASS": 1
+        },
+        "info.c:484": {
+          "PASS": 1
+        },
+        "info.c:487": {
+          "PASS": 1
+        },
+        "info.c:488": {
+          "PASS": 1
+        },
+        "info.c:496": {
+          "PASS": 1
+        },
+        "info.c:497": {
+          "PASS": 1
+        },
+        "info.c:498": {
+          "PASS": 1
+        },
+        "info.c:504": {
+          "PASS": 1
+        },
+        "info.c:505": {
+          "PASS": 1
+        },
+        "info.c:506": {
+          "PASS": 1
+        },
+        "info.c:512": {
+          "PASS": 1
+        },
+        "info.c:513": {
+          "PASS": 1
+        },
+        "info.c:514": {
+          "PASS": 1
+        },
+        "info.c:520": {
+          "PASS": 1
+        },
+        "info.c:521": {
+          "PASS": 1
+        },
+        "info.c:522": {
+          "PASS": 1
+        },
+        "info.c:529": {
+          "PASS": 1
+        },
+        "info.c:530": {
+          "PASS": 1
+        },
+        "info.c:531": {
+          "PASS": 1
+        },
+        "info.c:540": {
+          "PASS": 14
+        },
+        "info.c:541": {
+          "PASS": 14
+        },
+        "info.c:542": {
+          "PASS": 14
+        },
+        "info.c:55": {
+          "PASS": 1
+        },
+        "info.c:552": {
+          "PASS": 14
+        },
+        "info.c:553": {
+          "PASS": 14
+        },
+        "info.c:556": {
+          "PASS": 14
+        },
+        "info.c:557": {
+          "PASS": 14
+        },
+        "info.c:67": {
+          "PASS": 1
+        },
+        "info.c:70": {
+          "PASS": 1
+        },
+        "info.c:75": {
+          "PASS": 1
+        },
+        "info.c:78": {
+          "PASS": 1
+        },
+        "info.c:79": {
+          "PASS": 1
+        },
+        "info.c:84": {
+          "PASS": 1
+        },
+        "info.c:87": {
+          "PASS": 1
+        },
+        "info.c:92": {
+          "PASS": 1
+        },
+        "info.c:95": {
+          "PASS": 1
+        },
+        "info.c:96": {
+          "PASS": 1
+        }
+      },
+      "sha256": "4ab6fe9e75d179be9ff18aa8b1120a32a4b70e712d5c255ff289a429d602afd2",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "06a6101ddfa8fc7461811b3821596b7b0607dbf8c0a1b0d59af25951e1accf12",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "720bdc4aa0a4cad54fa130e6ead786b33be6a3b5d8111f56e623dcf9cc1a4329",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "LZ32.DLL": {
+      "sha256": "0086c7aa3e84ad59eae148292adad415bcc0ac5afb62cc827576777391e9887d",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "VERSION.DLL": {
+      "sha256": "1173f38b6efe4339a68206d53fe59381f6514c0b453c49799df2f19cd0483230",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    }
+  }
+}

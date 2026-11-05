@@ -1,0 +1,77 @@
+diff --git a/FEXCore/Source/Interface/Core/Core.cpp b/FEXCore/Source/Interface/Core/Core.cpp
+--- a/FEXCore/Source/Interface/Core/Core.cpp
++++ b/FEXCore/Source/Interface/Core/Core.cpp
+@@ -78,6 +78,8 @@
+ #include <utility>
+ #include <xxhash.h>
+ 
++extern "C" FEX_DEFAULT_VISIBILITY NEO98FexStatsT NEO98FexStats = {};
++
+ namespace FEXCore::Context {
+ ContextImpl::ContextImpl(const FEXCore::HostFeatures& Features)
+   : HostFeatures {Features}
+@@ -494,6 +496,7 @@
+ 
+ void ContextImpl::ClearCodeCache(FEXCore::Core::InternalThreadState* Thread, bool NewCodeBuffer) {
+   FEXCORE_PROFILE_INSTANT("ClearCodeCache");
++  ++NEO98FexStats.Clears;
+ 
+   if (NewCodeBuffer) {
+     // Allocate new CodeBuffer + L3 LookupCache and clear L1+L2 caches
+@@ -937,6 +940,17 @@
+   };
+ }
+ 
++// NEO98: translations and how long they took, and how often the code cache was cleared (NEO98_FEX_STATS).
++namespace {
++struct NEO98CompileTimer {
++  std::chrono::steady_clock::time_point Start = std::chrono::steady_clock::now();
++  ~NEO98CompileTimer() {
++    ++NEO98FexStats.Compiles;
++    NEO98FexStats.CompileNs += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - Start).count();
++  }
++};
++} // namespace
++
+ uintptr_t ContextImpl::CompileBlock(FEXCore::Core::CpuStateFrame* Frame, uint64_t GuestRIP, uint64_t MaxInst) {
+   if constexpr (BLOCK_DEBUGGING) {
+     // Block debugging logic is hand-written and needs to be handled with care.
+@@ -967,6 +981,7 @@
+   // NEO98 spike: only a real translation writes code; a cache hit stays executable.
+   FEXCore::Allocator::NEO98JitWriteScope NEO98Writable;
+ #endif
++  NEO98CompileTimer NEO98Timer;
+ 
+   Thread->FrontendDecoder->SetupDecodeInstructionsAtEntry(Thread, GuestRIP, MaxInst);
+ 
+--- a/FEXCore/include/FEXCore/Core/Context.h
++++ b/FEXCore/include/FEXCore/Core/Context.h
+@@ -15,6 +15,14 @@
+ #include <FEXCore/fextl/vector.h>
+ #include <FEXCore/Utils/WritePriorityMutex.h>
+ 
++// NEO98: translations (count, nanoseconds) and code cache clears since the start; one guest CPU thread writes them.
++struct NEO98FexStatsT {
++  uint64_t Compiles;
++  uint64_t CompileNs;
++  uint64_t Clears;
++};
++extern "C" FEX_DEFAULT_VISIBILITY NEO98FexStatsT NEO98FexStats;
++
+ namespace FEXCore {
+ struct HostFeatures;
+ class ThunkHandler;
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -899,6 +899,11 @@
+     if (AllocatedInfo.BufferAllocationOffset == nullptr) {
+       // If it didn't fit then clear the buffer and try again.
+       // This has the possibility of migrating the SharedCodeBuffer. See above in `Arm64JITCore::ClearCache()`
++      // NEO98_FEX_STATS: why the code went
++      if (getenv("NEO98_FEX_STATS")) {
++        fprintf(stderr, "FEXCLEAR code buffer full: used=%zu of %zu, block wants %zu\n", CurrentCodeBuffer->AllocatedSpaceUsed(),
++                CurrentCodeBuffer->TotalAllocationSize(), (size_t)Size);
++      }
+       CTX->ClearCodeCache(ThreadState);
+       continue;
+     }

@@ -1,0 +1,13 @@
+# Saved-state field rules. See state.rules for the rule format.
+# Pointer fields must identify their allocation or target object.
+
+# ---- Blocks with bytes behind a head ----
+type Gdi::(anonymous namespace)::ClipSnapshot@gdi.cpp tail       # a clip region kept by a device context: its head and its rectangles behind it (src/gdi_region_store.inc, Snapshot)
+field Gdi::(anonymous namespace)::ClipSnapshot@gdi.cpp::rectangles end # the array follows the snapshot's head; with count zero it is one past this snapshot, even if another allocation starts there
+
+# ---- Caches ----
+var Gdi::(anonymous namespace)::BlitDib()::cache_owner skip       # whose colour table the last blit cached, compared and never followed; a load starts with an empty cache
+
+# Provider descriptors grow; their referenced pixel/region buffers keep their addresses.
+field Gdi::(anonymous namespace)::BitmapStore@gdi.cpp::ranges count range_capacity # allocated mapping descriptors, including reusable slots
+field Gdi::(anonymous namespace)::RegionStore@gdi.cpp::blocks count capacity # allocated region descriptors, including reusable slots

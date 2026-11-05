@@ -1,0 +1,2 @@
+# The clock conversion belongs to this host, not to the saved machine.
+var HostClock::Microseconds()::divisor@x86_threads.cpp host # the current host's Mach timebase

@@ -1,0 +1,88 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  macos:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      NEO98_NATIVE_JOBS: '3'
+      NEO98_WITH_HOST_MEDIA: '0'
+      SDL_AUDIODRIVER: dummy
+      MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+      MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+      NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+      NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+      NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check architecture
+        run: test "$(uname -m)" = arm64
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            third_party
+            build/fex-host
+            build/unicorn-host
+            build/dosbox-pure-host
+            build/release-downloads
+          key: macos15-deps-${{ hashFiles('fex/dependencies.json', 'unicorn/dependencies.json', 'sdk/dependencies.json', 'tools/build_fex*.py', 'tools/build_unicorn_host.py', 'tools/build_dosbox_pure.py', 'tools/dosbox_pure_*.h') }}
+      - name: Install build dependencies
+        run: brew install llvm lld cmake ninja pkg-config sdl2 python
+      - name: Import optional signing identity
+        if: env.MACOS_CERT_P12 != '' && env.MACOS_CERT_PASSWORD != '' && env.NOTARY_KEY_P8 != '' && env.NOTARY_KEY_ID != '' && env.NOTARY_ISSUER_ID != ''
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import base64, os
+          from pathlib import Path
+          Path(os.environ['RUNNER_TEMP'], 'signing.p12').write_bytes(base64.b64decode(os.environ['MACOS_CERT_P12']))
+          PY
+          KEYCHAIN="$RUNNER_TEMP/neo98.keychain-db"
+          PASSWORD="$(openssl rand -hex 24)"
+          security create-keychain -p "$PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN"
+          security unlock-keychain -p "$PASSWORD" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/signing.p12" -k "$KEYCHAIN" -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" "$HOME/Library/Keychains/login.keychain-db"
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN" | awk '/Developer ID Application/ {print $2; exit}')
+          test -n "$IDENTITY"
+          echo "NEO98_SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+      - name: Build disk image and corresponding sources
+        run: python3 tools/make_release_assets.py
+      - name: Notarize and staple optional signed release
+        if: env.MACOS_CERT_P12 != '' && env.MACOS_CERT_PASSWORD != '' && env.NOTARY_KEY_P8 != '' && env.NOTARY_KEY_ID != '' && env.NOTARY_ISSUER_ID != ''
+        shell: bash
+        run: |
+          printf '%s' "$NOTARY_KEY_P8" > "$RUNNER_TEMP/notary.p8"
+          chmod 600 "$RUNNER_TEMP/notary.p8"
+          xcrun notarytool submit build/release-assets/Neo98.dmg --key "$RUNNER_TEMP/notary.p8" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" --wait --timeout 20m
+          xcrun stapler staple build/release-assets/Neo98.dmg
+          python3 tools/make_release_assets.py --checksums-only
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neo98-release
+          path: build/release-assets/*
+          if-no-files-found: error
+          retention-days: 7
+      - name: Attach assets to tag release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --draft
+          gh release upload "$GITHUB_REF_NAME" build/release-assets/* --clobber
+      - name: Remove temporary signing material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/neo98.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/signing.p12" "$RUNNER_TEMP/notary.p8"

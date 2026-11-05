@@ -1,0 +1,5 @@
+Some development tools of Neo98 generate files from the developer's own
+Windows 98 installation, for tests and comparisons. Those files are marked
+with "SPDX-License-Identifier: LicenseRef-Microsoft". They contain Microsoft
+data, Microsoft's license terms apply to them, and they stay on the
+developer's machine. They are never part of Neo98's source code or releases.

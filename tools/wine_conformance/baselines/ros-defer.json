@@ -1,0 +1,614 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "ros_pefile_ntoskrnl": {
+      "reference_status": "PASS",
+      "sha256": "a8e3230f21c131bcca7bf9398978ac64fe75342789b53e1fb5b3cfd5c17c03bd"
+    },
+    "ros_setupapi_SetupDiInstallClassExA": {
+      "reference_status": "FAIL",
+      "sha256": "faaa25c2bd410d82582bbba6ea87340767c49177e36b7a5e14d2fed769fb0b74"
+    },
+    "ros_setupapi_SetupInstallServicesFromInfSectionEx": {
+      "reference_status": "PASS",
+      "sha256": "5c47a59666ef107219d2c480955b46ed9136c6c562d7cd33f652d0484585a6e8"
+    },
+    "ros_setupapi_devclass": {
+      "reference_status": "TIMEOUT",
+      "sha256": "eab358c3c2e8b759255fdd43464210024c35b7843861fa7efd912a8bac7dec8a"
+    },
+    "ros_shlwapi_AssocQueryString": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "72be656a7446608ca88f987edf2ad61a8f5536b72893cdea5ae3e81461cf11a9"
+    },
+    "ros_shlwapi_PathIsUNC": {
+      "reference_status": "PASS",
+      "sha256": "f949b7700ce7de4fc78a72d1d6215d0c615f76e4e9336fcab93a4e252d78c2c3"
+    },
+    "ros_shlwapi_PathIsUNCServer": {
+      "reference_status": "PASS",
+      "sha256": "abcb2425a7ae0eaf9aac291ea9822f62048252db559217ec9ec3f821d282ca04"
+    },
+    "ros_shlwapi_PathIsUNCServerShare": {
+      "reference_status": "PASS",
+      "sha256": "056d7ff5dabcadbe134a7d272ed1c3698efaaabb34d978577159c45373607507"
+    },
+    "ros_shlwapi_PathUnExpandEnvStrings": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "fb6d5c41ed18b53ac74c10acc0d578f6ce06fcc777bcb37efedf07bf2742dd92"
+    },
+    "ros_shlwapi_PathUnExpandEnvStringsForUser": {
+      "reference_status": "PASS",
+      "sha256": "82a32a807e41825ed15aeb1571445b03b0cccb016d6879ead64b798ad0c8885d"
+    },
+    "ros_shlwapi_SHGetRestriction": {
+      "reference_status": "PASS",
+      "sha256": "7af2f9af2b4673afbcb56ed045b572bea699aca88a87722d525ffbc2d7986de0"
+    },
+    "ros_shlwapi_StrDup": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "cba8c09f42b07d02058930698b77c577d1678345cb987b0151c328ef326175fa"
+    },
+    "ros_shlwapi_StrFormatByteSizeW": {
+      "reference_status": "PASS",
+      "sha256": "73f7866550164136393f7ae30377046bdd1539cb16599176822f724bd2ce8b91"
+    },
+    "ros_user32_CloseWindow": {
+      "reference_status": "FAIL",
+      "sha256": "501e8331d489d63bdb656d64a9a339c066616c61e82008d6ff0bb81205970d05"
+    },
+    "ros_user32_CopyImage": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "eeb63fb091964b88af8a3d2f5be56d931b20c6a1a5dee2ec007d290792f5c0e7"
+    },
+    "ros_user32_CreateDialog": {
+      "reference_status": "FAIL",
+      "sha256": "e39a6522b700233d101aa0da7518c9b75aa185a6c78dfe73ecc685fae4cde0ec"
+    },
+    "ros_user32_CreateIconFromResourceEx": {
+      "reference_status": "FAIL",
+      "sha256": "2754ab0e4faeff505cb9767eff0f3af7976e97e30a75568456b4a77ebdd571d0"
+    },
+    "ros_user32_CreateWindowEx": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "aabf7f0a68ec431ff00c131c762e8365d99c41248bd9d4de5ec384c376c656ce"
+    },
+    "ros_user32_DM_REPOSITION": {
+      "reference_status": "FAIL",
+      "sha256": "11ae64805b9329d0e4787800fd77250b99e81fec22abbfa8aef38bbb5769fdf2"
+    }
+  },
+  "groups": {
+    "ros_user32_DeferWindowPos": {
+      "advisory": {
+        "DeferWindowPos.c:112": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:113": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:119": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:124": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:129": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:130": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:147": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:150": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:151": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:154": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:162": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:165": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:168": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:169": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:170": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:171": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:180": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:183": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:185": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:193": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:196": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:198": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:206": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:209": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:212": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:213": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:214": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:222": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:225": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:226": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:227": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:235": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:238": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:241": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:242": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:243": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:244": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:304": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:308": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:310": {
+          "FAIL": 4,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:316": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:320": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:322": {
+          "FAIL": 5,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:328": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:330": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:334": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:336": {
+          "FAIL": 8,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:342": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:346": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:348": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:354": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:356": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:360": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:362": {
+          "FAIL": 4,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:430": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:437": {
+          "FAIL": 3,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:438": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:442": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:443": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:447": {
+          "FAIL": 6,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:448": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:452": {
+          "FAIL": 3,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:453": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:457": {
+          "FAIL": 4,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:458": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:467": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:471": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:472": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:476": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:477": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:481": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:482": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:486": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:487": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:491": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "DeferWindowPos.c:492": {
+          "FAIL": 3
+        },
+        "DeferWindowPos.c:510": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:511": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:512": {
+          "FAIL": 1
+        },
+        "DeferWindowPos.c:513": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "DeferWindowPos.c:118": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:123": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:135": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:136": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:138": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:139": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:144": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:145": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:148": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:159": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:160": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:163": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:166": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:177": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:178": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:181": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:184": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:190": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:191": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:194": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:197": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:203": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:204": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:207": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:210": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:219": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:220": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:223": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:232": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:233": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:236": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:239": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:302": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:306": {
+          "PASS": 2
+        },
+        "DeferWindowPos.c:314": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:318": {
+          "PASS": 2
+        },
+        "DeferWindowPos.c:326": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:332": {
+          "PASS": 2
+        },
+        "DeferWindowPos.c:340": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:344": {
+          "PASS": 2
+        },
+        "DeferWindowPos.c:352": {
+          "PASS": 1
+        },
+        "DeferWindowPos.c:358": {
+          "PASS": 2
+        }
+      },
+      "sha256": "cadcb81ba2730442ddf16cc23c81ebdacf6b5c09da374bb93d2d94d38e799788",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "b6631231447eb3c606a035a310863048eafc3cf304360c006b5a550663f10a89",
+  "reference_selection": {
+    "excluded": {
+      "ros_pefile_ntoskrnl": "PASS",
+      "ros_setupapi_SetupDiInstallClassExA": "FAIL",
+      "ros_setupapi_SetupInstallServicesFromInfSectionEx": "PASS",
+      "ros_setupapi_devclass": "TIMEOUT",
+      "ros_shlwapi_AssocQueryString": "LOAD_ERROR",
+      "ros_shlwapi_PathIsUNC": "PASS",
+      "ros_shlwapi_PathIsUNCServer": "PASS",
+      "ros_shlwapi_PathIsUNCServerShare": "PASS",
+      "ros_shlwapi_PathUnExpandEnvStrings": "LOAD_ERROR",
+      "ros_shlwapi_PathUnExpandEnvStringsForUser": "PASS",
+      "ros_shlwapi_SHGetRestriction": "PASS",
+      "ros_shlwapi_StrDup": "LOAD_ERROR",
+      "ros_shlwapi_StrFormatByteSizeW": "PASS",
+      "ros_user32_CloseWindow": "FAIL",
+      "ros_user32_CopyImage": "LOAD_ERROR",
+      "ros_user32_CreateDialog": "FAIL",
+      "ros_user32_CreateIconFromResourceEx": "FAIL",
+      "ros_user32_CreateWindowEx": "LOAD_ERROR",
+      "ros_user32_DM_REPOSITION": "FAIL"
+    },
+    "selected": [
+      "ros_user32_DeferWindowPos"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "b7d53604b36fb5e5f5d13a9d60b94feab83992d498bfa97994bc4505044dc1a4",
+  "variable_counts_sha256": "fa1eef3715ef341c59a96ae8b75a58800d9df9f1e59e6f151ad6ff568d2079a2",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "SETUPAPI.DLL": {
+      "sha256": "66c66f6a59223a826713158a0bb12e0be5a5f7f415ab10f9f7b462bf219e6a55",
+      "version": [
+        5,
+        0,
+        1671,
+        1
+      ]
+    },
+    "SHLWAPI.DLL": {
+      "sha256": "731b1ffdcb821a87e8ef1aa92fc956a0c385eaa6b8f4ad20c89db8b923f1aeae",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

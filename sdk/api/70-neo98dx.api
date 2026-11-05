@@ -1,0 +1,189 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2026 Andreas Horvath
+# NEO98DX: the driver below the ARM64 DDRAW.DLL and DSOUND.DLL.
+# It is not an interface for programs: a program
+# imports DDRAW.DLL and DSOUND.DLL, and those call here. Every structure is in
+# sdk/dx/neo98dx_abi.h and has the same bytes in the Win32 and the Win64
+# layout, so every pointer goes through as it is. The results are HRESULTs of
+# DirectDraw and DirectSound.
+dll NEO98DX;
+DWORD DxDrvVersion();
+
+# The display.
+HRESULT DdDrvGetInfo(LPVOID info, DWORD bytes);
+HRESULT DdDrvGetMode(DWORD index, LPVOID mode, DWORD bytes);
+HRESULT DdDrvSetMode(DWORD width, DWORD height, DWORD bits);
+HRESULT DdDrvRestoreMode();
+HRESULT DdDrvSetExclusive(HWND window, BOOL enter);
+HRESULT DdDrvWaitForVerticalBlank(DWORD flags, LPDWORD inVerticalBlank);
+HRESULT DdDrvGetScanLine(LPDWORD line);
+HRESULT DdDrvSetGammaRamp(LPVOID ramp);
+HRESULT DdDrvGetGammaRamp(LPVOID ramp);
+
+# Surfaces of the driver.
+HRESULT DdDrvCreateSurface(LPVOID create, DWORD bytes);
+HRESULT DdDrvDestroySurface(DWORD surface);
+HRESULT DdDrvAttach(DWORD surface, DWORD attached, BOOL attach);
+HRESULT DdDrvLock(LPVOID lock, DWORD bytes);
+HRESULT DdDrvUnlock(DWORD surface);
+HRESULT DdDrvBlt(LPVOID blt, DWORD bytes);
+HRESULT DdDrvFlip(LPVOID surfaces, DWORD count, DWORD flags);
+HRESULT DdDrvIsLost(DWORD surface);
+HRESULT DdDrvRestore(DWORD surface, LPVOID create, DWORD bytes);
+HRESULT DdDrvSetPalette(DWORD surface, DWORD start, DWORD count, LPVOID colors, DWORD flags);
+HRESULT DdDrvSetColorKey(DWORD surface, DWORD flags, DWORD low, DWORD high);
+
+# GDI on a surface, and the visible region of a window.
+HRESULT DdDrvGetDC(LPVOID dc, DWORD bytes);
+HRESULT DdDrvReleaseDC(HDC dc);
+HRESULT DdDrvGetClipList(HWND window, LPVOID data, LPDWORD bytes);
+
+# Direct3D: the rasterizer below the Direct3D 7 of the SDK. A context is a
+# render target with its Z buffer and the state the commands left; D3dDrvRun
+# takes one batch of commands (sdk/dx/neo98dx_abi.h, NEO98D3D_OP_).
+HRESULT D3dDrvGetCaps(LPVOID caps, DWORD bytes);
+HRESULT D3dDrvCreateContext(DWORD target, DWORD depth, LPDWORD context);
+HRESULT D3dDrvDestroyContext(DWORD context);
+HRESULT D3dDrvRun(DWORD context, LPVOID commands, DWORD bytes);
+
+# Sound.
+HRESULT DsDrvOpen();
+HRESULT DsDrvGetCaps(LPVOID caps, DWORD bytes);
+HRESULT DsDrvCreateBuffer(LPVOID sound, DWORD bytes);
+HRESULT DsDrvDuplicateBuffer(DWORD buffer, LPDWORD duplicate);
+HRESULT DsDrvDestroyBuffer(DWORD buffer);
+HRESULT DsDrvPlay(DWORD buffer, DWORD flags);
+HRESULT DsDrvStop(DWORD buffer);
+HRESULT DsDrvGetPosition(DWORD buffer, LPDWORD play, LPDWORD write);
+HRESULT DsDrvSetPosition(DWORD buffer, DWORD position);
+HRESULT DsDrvGetStatus(DWORD buffer, LPDWORD status);
+HRESULT DsDrvSetNotifications(DWORD buffer, LPVOID positions, DWORD count);
+HRESULT DsDrvSetFormat(DWORD buffer, DWORD rate, DWORD channels, DWORD bitsPerSample);
+HRESULT DsDrvSetFrequency(DWORD buffer, DWORD rate);
+HRESULT DsDrvSetVolumePan(DWORD buffer, DWORD left, DWORD right);
+
+# Types of wingdi.h and windef.h that ddraw.h names.
+handle HMONITOR;
+struct PALETTEENTRY { BYTE peRed; BYTE peGreen; BYTE peBlue; BYTE peFlags; };
+type LPPALETTEENTRY ptr "PALETTEENTRY *";
+struct RGNDATAHEADER { DWORD dwSize; DWORD iType; DWORD nCount; DWORD nRgnSize; RECT rcBound; };
+struct RGNDATA { RGNDATAHEADER rdh; CHAR Buffer[1]; };
+type LPRGNDATA ptr "RGNDATA *";
+const PC_RESERVED 0x01;
+const PC_EXPLICIT 0x02;
+const PC_NOCOLLAPSE 0x04;
+const RDH_RECTANGLES 1;
+
+# What the Win32 front ends of the games call beyond the functions the SDK
+# described so far. The branch arm64-cxx names the
+# same gap; at the merge one description of each stays.
+dll GDI32;
+const CBM_INIT 4;
+# Packed to two bytes in wingdi.h and winuser.h; every member lies where one
+# byte packs it.
+struct BITMAPFILEHEADER packed { WORD bfType; DWORD bfSize; WORD bfReserved1; WORD bfReserved2; DWORD bfOffBits; };
+struct DLGTEMPLATE packed { DWORD style; DWORD dwExtendedStyle; WORD cdit; SHORT x; SHORT y; SHORT cx; SHORT cy; };
+struct DLGITEMTEMPLATE packed { DWORD style; DWORD dwExtendedStyle; SHORT x; SHORT y; SHORT cx; SHORT cy; WORD id; };
+HBITMAP CreateDIBitmap(HDC hdc, in BITMAPINFOHEADER* pbmih, DWORD flInit, LPCVOID pjBits, in BITMAPINFO* pbmi, UINT iUsage);
+dll USER32;
+BOOL UnionRect(RECT* lprcDst, in RECT* lprcSrc1, in RECT* lprcSrc2);
+HCURSOR GetCursor();
+INT_PTR DialogBoxIndirectParamA(HINSTANCE hInstance, LPCVOID hDialogTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
+# The indices of GetSystemMetrics the SDK did not name yet (winuser.h, Windows 98).
+const SM_CXVSCROLL 2;
+const SM_CYHSCROLL 3;
+const SM_CXDLGFRAME 7;
+const SM_CXFIXEDFRAME 7;
+const SM_CYDLGFRAME 8;
+const SM_CYFIXEDFRAME 8;
+const SM_CYVTHUMB 9;
+const SM_CXHTHUMB 10;
+const SM_CXICON 11;
+const SM_CYICON 12;
+const SM_CXCURSOR 13;
+const SM_CYCURSOR 14;
+const SM_CXFULLSCREEN 16;
+const SM_CYFULLSCREEN 17;
+const SM_CYKANJIWINDOW 18;
+const SM_MOUSEPRESENT 19;
+const SM_CYVSCROLL 20;
+const SM_CXHSCROLL 21;
+const SM_DEBUG 22;
+const SM_SWAPBUTTON 23;
+const SM_CXMIN 28;
+const SM_CYMIN 29;
+const SM_CXSIZE 30;
+const SM_CYSIZE 31;
+const SM_CXSIZEFRAME 32;
+const SM_CYSIZEFRAME 33;
+const SM_CXMINTRACK 34;
+const SM_CYMINTRACK 35;
+const SM_CXDOUBLECLK 36;
+const SM_CYDOUBLECLK 37;
+const SM_CXICONSPACING 38;
+const SM_CYICONSPACING 39;
+const SM_MENUDROPALIGNMENT 40;
+const SM_PENWINDOWS 41;
+const SM_DBCSENABLED 42;
+const SM_CMOUSEBUTTONS 43;
+const SM_SECURE 44;
+const SM_CXEDGE 45;
+const SM_CYEDGE 46;
+const SM_CXMINSPACING 47;
+const SM_CYMINSPACING 48;
+const SM_CXSMICON 49;
+const SM_CYSMICON 50;
+const SM_CYSMCAPTION 51;
+const SM_CXSMSIZE 52;
+const SM_CYSMSIZE 53;
+const SM_CXMENUSIZE 54;
+const SM_CYMENUSIZE 55;
+const SM_ARRANGE 56;
+const SM_CXMINIMIZED 57;
+const SM_CYMINIMIZED 58;
+const SM_CXMAXTRACK 59;
+const SM_CYMAXTRACK 60;
+const SM_CXMAXIMIZED 61;
+const SM_CYMAXIMIZED 62;
+const SM_NETWORK 63;
+const SM_CLEANBOOT 67;
+const SM_CXDRAG 68;
+const SM_CYDRAG 69;
+const SM_SHOWSOUNDS 70;
+const SM_CXMENUCHECK 71;
+const SM_CYMENUCHECK 72;
+const SM_SLOWMACHINE 73;
+const SM_MIDEASTENABLED 74;
+const SM_MOUSEWHEELPRESENT 75;
+const SM_XVIRTUALSCREEN 76;
+const SM_YVIRTUALSCREEN 77;
+const SM_CXVIRTUALSCREEN 78;
+const SM_CYVIRTUALSCREEN 79;
+const SM_CMONITORS 80;
+const SM_SAMEDISPLAYFORMAT 81;
+const ICON_SMALL 0;
+const ICON_BIG 1;
+const LR_LOADFROMFILE 0x0010;
+const LR_DEFAULTSIZE 0x0040;
+const VK_PRIOR 0x21;
+const VK_NEXT 0x22;
+const VK_END 0x23;
+const VK_HOME 0x24;
+const VK_F3 0x72;
+const VK_F4 0x73;
+const VK_F5 0x74;
+const VK_F6 0x75;
+const VK_F10 0x79;
+const VK_F11 0x7A;
+message WM_SETICON 0x0080;
+message WM_MOUSEWHEEL 0x020A;
+message WM_ENTERMENULOOP 0x0211;
+message WM_EXITMENULOOP 0x0212;
+message WM_CAPTURECHANGED 0x0215;
+message WM_DEVICECHANGE 0x0219;
+dll KERNEL32;
+BOOL SetThreadPriority(HANDLE hThread, int nPriority);
+const THREAD_PRIORITY_NORMAL 0;
+const THREAD_PRIORITY_HIGHEST 2;
+const THREAD_PRIORITY_ABOVE_NORMAL 1;
+const THREAD_PRIORITY_TIME_CRITICAL 15;

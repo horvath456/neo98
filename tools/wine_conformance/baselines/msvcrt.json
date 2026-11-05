@@ -1,0 +1,2124 @@
+{
+  "alternatives_sha256": "0d060bd6901ab73f6f3f275d34c0542428532d9b131d6ac3e1a3a8f5dac40a86",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "msvcrt_data": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "data.c:62": {
+          "PASS": 1
+        },
+        "data.c:63": {
+          "PASS": 1
+        },
+        "data.c:64": {
+          "PASS": 1
+        },
+        "data.c:67": {
+          "PASS": 1
+        }
+      },
+      "sha256": "8420b2152c7f2b803dd7ba91231c20e897a4542702fcc97449ac1a42665b1b6d",
+      "skips": {}
+    },
+    "msvcrt_dir": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "dir.c:39": {
+          "PASS": 1
+        },
+        "dir.c:41": {
+          "PASS": 1
+        },
+        "dir.c:46": {
+          "PASS": 1
+        },
+        "dir.c:77": {
+          "PASS": 1
+        },
+        "dir.c:80": {
+          "PASS": 1
+        },
+        "dir.c:81": {
+          "PASS": 1
+        },
+        "dir.c:85": {
+          "PASS": 1
+        },
+        "dir.c:86": {
+          "PASS": 1
+        },
+        "dir.c:89": {
+          "PASS": 1
+        },
+        "dir.c:90": {
+          "PASS": 1
+        },
+        "dir.c:93": {
+          "PASS": 1
+        },
+        "dir.c:96": {
+          "PASS": 1
+        }
+      },
+      "sha256": "98c3024d7a5170493f31b7764d247393ba28468c8659812e6a80ced424d67210",
+      "skips": {}
+    },
+    "msvcrt_environ": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "environ.c:47": {
+          "PASS": 1
+        },
+        "environ.c:48": {
+          "PASS": 1
+        },
+        "environ.c:49": {
+          "PASS": 1
+        },
+        "environ.c:50": {
+          "PASS": 1
+        },
+        "environ.c:52": {
+          "PASS": 1
+        },
+        "environ.c:53": {
+          "PASS": 1
+        },
+        "environ.c:54": {
+          "PASS": 1
+        },
+        "environ.c:56": {
+          "PASS": 1
+        }
+      },
+      "sha256": "e2e672b13b9c602bb372855cec13b754e7b7338a5541a1cfa8046d6d39e2b8cd",
+      "skips": {}
+    },
+    "msvcrt_file": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "file.c:100": {
+          "PASS": 1
+        },
+        "file.c:1005": {
+          "PASS": 1
+        },
+        "file.c:1016": {
+          "PASS": 1
+        },
+        "file.c:1019": {
+          "PASS": 1
+        },
+        "file.c:102": {
+          "PASS": 1
+        },
+        "file.c:1024": {
+          "PASS": 1
+        },
+        "file.c:1025": {
+          "PASS": 1
+        },
+        "file.c:1026": {
+          "PASS": 1
+        },
+        "file.c:1028": {
+          "PASS": 1
+        },
+        "file.c:103": {
+          "PASS": 1
+        },
+        "file.c:104": {
+          "PASS": 1
+        },
+        "file.c:107": {
+          "PASS": 1
+        },
+        "file.c:108": {
+          "PASS": 1
+        },
+        "file.c:110": {
+          "PASS": 1
+        },
+        "file.c:111": {
+          "PASS": 1
+        },
+        "file.c:112": {
+          "PASS": 1
+        },
+        "file.c:117": {
+          "PASS": 1
+        },
+        "file.c:118": {
+          "PASS": 1
+        },
+        "file.c:119": {
+          "PASS": 1
+        },
+        "file.c:121": {
+          "PASS": 1
+        },
+        "file.c:122": {
+          "PASS": 1
+        },
+        "file.c:123": {
+          "PASS": 1
+        },
+        "file.c:124": {
+          "PASS": 1
+        },
+        "file.c:128": {
+          "PASS": 1
+        },
+        "file.c:130": {
+          "PASS": 1
+        },
+        "file.c:132": {
+          "PASS": 1
+        },
+        "file.c:180": {
+          "PASS": 2
+        },
+        "file.c:181": {
+          "PASS": 2
+        },
+        "file.c:184": {
+          "PASS": 2
+        },
+        "file.c:185": {
+          "PASS": 2
+        },
+        "file.c:190": {
+          "PASS": 2
+        },
+        "file.c:192": {
+          "PASS": 2
+        },
+        "file.c:193": {
+          "PASS": 2
+        },
+        "file.c:197": {
+          "PASS": 2
+        },
+        "file.c:199": {
+          "PASS": 2
+        },
+        "file.c:200": {
+          "PASS": 2
+        },
+        "file.c:202": {
+          "PASS": 2
+        },
+        "file.c:203": {
+          "PASS": 2
+        },
+        "file.c:205": {
+          "PASS": 2
+        },
+        "file.c:208": {
+          "PASS": 2
+        },
+        "file.c:209": {
+          "PASS": 2
+        },
+        "file.c:214": {
+          "PASS": 2
+        },
+        "file.c:215": {
+          "PASS": 2
+        },
+        "file.c:218": {
+          "PASS": 2
+        },
+        "file.c:220": {
+          "PASS": 2
+        },
+        "file.c:222": {
+          "PASS": 6
+        },
+        "file.c:226": {
+          "PASS": 69
+        },
+        "file.c:233": {
+          "PASS": 2
+        },
+        "file.c:234": {
+          "PASS": 2
+        },
+        "file.c:237": {
+          "PASS": 2
+        },
+        "file.c:239": {
+          "PASS": 2
+        },
+        "file.c:240": {
+          "PASS": 2
+        },
+        "file.c:241": {
+          "PASS": 2
+        },
+        "file.c:242": {
+          "PASS": 2
+        },
+        "file.c:243": {
+          "PASS": 2
+        },
+        "file.c:244": {
+          "PASS": 2
+        },
+        "file.c:245": {
+          "PASS": 2
+        },
+        "file.c:246": {
+          "PASS": 2
+        },
+        "file.c:247": {
+          "PASS": 2
+        },
+        "file.c:248": {
+          "PASS": 2
+        },
+        "file.c:252": {
+          "PASS": 2
+        },
+        "file.c:253": {
+          "PASS": 2
+        },
+        "file.c:256": {
+          "PASS": 2
+        },
+        "file.c:261": {
+          "PASS": 2
+        },
+        "file.c:268": {
+          "PASS": 2
+        },
+        "file.c:284": {
+          "PASS": 1
+        },
+        "file.c:285": {
+          "PASS": 1
+        },
+        "file.c:287": {
+          "PASS": 1
+        },
+        "file.c:298": {
+          "PASS": 1
+        },
+        "file.c:299": {
+          "PASS": 1
+        },
+        "file.c:300": {
+          "PASS": 1
+        },
+        "file.c:302": {
+          "PASS": 1
+        },
+        "file.c:303": {
+          "PASS": 1
+        },
+        "file.c:330": {
+          "PASS": 1
+        },
+        "file.c:332": {
+          "PASS": 1
+        },
+        "file.c:368": {
+          "PASS": 1
+        },
+        "file.c:371": {
+          "PASS": 1
+        },
+        "file.c:380": {
+          "PASS": 1
+        },
+        "file.c:381": {
+          "PASS": 1
+        },
+        "file.c:405": {
+          "PASS": 1
+        },
+        "file.c:407": {
+          "PASS": 1
+        },
+        "file.c:410": {
+          "PASS": 1
+        },
+        "file.c:412": {
+          "PASS": 1
+        },
+        "file.c:413": {
+          "PASS": 1
+        },
+        "file.c:416": {
+          "PASS": 1
+        },
+        "file.c:423": {
+          "PASS": 1
+        },
+        "file.c:429": {
+          "PASS": 19
+        },
+        "file.c:432": {
+          "PASS": 1
+        },
+        "file.c:433": {
+          "PASS": 1
+        },
+        "file.c:444": {
+          "PASS": 19
+        },
+        "file.c:447": {
+          "PASS": 1
+        },
+        "file.c:448": {
+          "PASS": 1
+        },
+        "file.c:477": {
+          "PASS": 1
+        },
+        "file.c:480": {
+          "PASS": 1
+        },
+        "file.c:483": {
+          "PASS": 1
+        },
+        "file.c:484": {
+          "PASS": 1
+        },
+        "file.c:488": {
+          "PASS": 1
+        },
+        "file.c:491": {
+          "PASS": 1
+        },
+        "file.c:493": {
+          "PASS": 1
+        },
+        "file.c:494": {
+          "PASS": 1
+        },
+        "file.c:496": {
+          "PASS": 1
+        },
+        "file.c:497": {
+          "PASS": 1
+        },
+        "file.c:520": {
+          "PASS": 1
+        },
+        "file.c:521": {
+          "PASS": 1
+        },
+        "file.c:528": {
+          "PASS": 1
+        },
+        "file.c:53": {
+          "PASS": 1
+        },
+        "file.c:532": {
+          "PASS": 1
+        },
+        "file.c:54": {
+          "PASS": 1
+        },
+        "file.c:545": {
+          "PASS": 1
+        },
+        "file.c:563": {
+          "PASS": 1
+        },
+        "file.c:565": {
+          "PASS": 1
+        },
+        "file.c:570": {
+          "PASS": 1
+        },
+        "file.c:572": {
+          "PASS": 1
+        },
+        "file.c:576": {
+          "PASS": 1
+        },
+        "file.c:578": {
+          "PASS": 1
+        },
+        "file.c:583": {
+          "PASS": 1
+        },
+        "file.c:585": {
+          "PASS": 1
+        },
+        "file.c:589": {
+          "PASS": 1
+        },
+        "file.c:591": {
+          "PASS": 1
+        },
+        "file.c:593": {
+          "PASS": 1
+        },
+        "file.c:596": {
+          "PASS": 1
+        },
+        "file.c:598": {
+          "PASS": 1
+        },
+        "file.c:604": {
+          "PASS": 1
+        },
+        "file.c:605": {
+          "PASS": 1
+        },
+        "file.c:606": {
+          "PASS": 1
+        },
+        "file.c:613": {
+          "PASS": 1
+        },
+        "file.c:616": {
+          "PASS": 1
+        },
+        "file.c:619": {
+          "PASS": 1
+        },
+        "file.c:620": {
+          "PASS": 1
+        },
+        "file.c:624": {
+          "PASS": 1
+        },
+        "file.c:628": {
+          "PASS": 1
+        },
+        "file.c:630": {
+          "PASS": 1
+        },
+        "file.c:634": {
+          "PASS": 1
+        },
+        "file.c:636": {
+          "PASS": 1
+        },
+        "file.c:638": {
+          "PASS": 1
+        },
+        "file.c:641": {
+          "PASS": 1
+        },
+        "file.c:643": {
+          "PASS": 1
+        },
+        "file.c:648": {
+          "PASS": 1
+        },
+        "file.c:651": {
+          "PASS": 1
+        },
+        "file.c:673": {
+          "PASS": 1
+        },
+        "file.c:684": {
+          "PASS": 1
+        },
+        "file.c:691": {
+          "PASS": 1
+        },
+        "file.c:693": {
+          "PASS": 1
+        },
+        "file.c:695": {
+          "PASS": 1
+        },
+        "file.c:698": {
+          "PASS": 1
+        },
+        "file.c:705": {
+          "PASS": 1
+        },
+        "file.c:706": {
+          "PASS": 1
+        },
+        "file.c:708": {
+          "PASS": 1
+        },
+        "file.c:717": {
+          "PASS": 1
+        },
+        "file.c:718": {
+          "PASS": 1
+        },
+        "file.c:719": {
+          "PASS": 1
+        },
+        "file.c:720": {
+          "PASS": 1
+        },
+        "file.c:723": {
+          "PASS": 1
+        },
+        "file.c:724": {
+          "PASS": 1
+        },
+        "file.c:725": {
+          "PASS": 1
+        },
+        "file.c:726": {
+          "PASS": 1
+        },
+        "file.c:727": {
+          "PASS": 1
+        },
+        "file.c:737": {
+          "PASS": 1
+        },
+        "file.c:740": {
+          "PASS": 1
+        },
+        "file.c:743": {
+          "PASS": 1
+        },
+        "file.c:749": {
+          "PASS": 1
+        },
+        "file.c:75": {
+          "PASS": 1
+        },
+        "file.c:752": {
+          "PASS": 1
+        },
+        "file.c:753": {
+          "PASS": 1
+        },
+        "file.c:756": {
+          "PASS": 1
+        },
+        "file.c:759": {
+          "PASS": 1
+        },
+        "file.c:76": {
+          "PASS": 1
+        },
+        "file.c:760": {
+          "PASS": 1
+        },
+        "file.c:77": {
+          "PASS": 1
+        },
+        "file.c:776": {
+          "PASS": 1
+        },
+        "file.c:778": {
+          "PASS": 1
+        },
+        "file.c:78": {
+          "PASS": 1
+        },
+        "file.c:781": {
+          "PASS": 1
+        },
+        "file.c:783": {
+          "PASS": 1
+        },
+        "file.c:786": {
+          "PASS": 1
+        },
+        "file.c:790": {
+          "PASS": 1
+        },
+        "file.c:795": {
+          "PASS": 1
+        },
+        "file.c:797": {
+          "PASS": 1
+        },
+        "file.c:799": {
+          "PASS": 1
+        },
+        "file.c:80": {
+          "PASS": 1
+        },
+        "file.c:801": {
+          "PASS": 1
+        },
+        "file.c:806": {
+          "PASS": 1
+        },
+        "file.c:808": {
+          "PASS": 1
+        },
+        "file.c:81": {
+          "PASS": 1
+        },
+        "file.c:810": {
+          "PASS": 1
+        },
+        "file.c:811": {
+          "PASS": 1
+        },
+        "file.c:812": {
+          "PASS": 1
+        },
+        "file.c:82": {
+          "PASS": 1
+        },
+        "file.c:827": {
+          "PASS": 1
+        },
+        "file.c:83": {
+          "PASS": 1
+        },
+        "file.c:835": {
+          "PASS": 1
+        },
+        "file.c:836": {
+          "PASS": 1
+        },
+        "file.c:84": {
+          "PASS": 1
+        },
+        "file.c:853": {
+          "PASS": 1
+        },
+        "file.c:854": {
+          "PASS": 1
+        },
+        "file.c:856": {
+          "PASS": 1
+        },
+        "file.c:858": {
+          "PASS": 1
+        },
+        "file.c:879": {
+          "PASS": 1
+        },
+        "file.c:880": {
+          "PASS": 1
+        },
+        "file.c:881": {
+          "PASS": 1
+        },
+        "file.c:89": {
+          "PASS": 20
+        },
+        "file.c:900": {
+          "PASS": 1
+        },
+        "file.c:902": {
+          "PASS": 1
+        },
+        "file.c:904": {
+          "PASS": 1
+        },
+        "file.c:91": {
+          "PASS": 1
+        },
+        "file.c:92": {
+          "PASS": 1
+        },
+        "file.c:93": {
+          "PASS": 1
+        },
+        "file.c:937": {
+          "PASS": 2
+        },
+        "file.c:94": {
+          "PASS": 1
+        },
+        "file.c:943": {
+          "PASS": 6
+        },
+        "file.c:949": {
+          "PASS": 2
+        },
+        "file.c:95": {
+          "PASS": 1
+        },
+        "file.c:97": {
+          "PASS": 1
+        },
+        "file.c:977": {
+          "PASS": 1
+        },
+        "file.c:98": {
+          "PASS": 1
+        },
+        "file.c:981": {
+          "PASS": 3
+        },
+        "file.c:984": {
+          "PASS": 3
+        },
+        "file.c:988": {
+          "PASS": 1
+        },
+        "file.c:989": {
+          "PASS": 1
+        },
+        "file.c:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "d7f08f14e589284cab6db4695a5eb9ab2a0aea01787b3a29f0a58df1a63ec002",
+      "skips": {}
+    },
+    "msvcrt_heap": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "heap.c:422": {
+          "PASS": 1
+        },
+        "heap.c:426": {
+          "PASS": 1
+        },
+        "heap.c:429": {
+          "PASS": 1
+        },
+        "heap.c:432": {
+          "PASS": 1
+        },
+        "heap.c:435": {
+          "PASS": 1
+        }
+      },
+      "sha256": "609ce309a8eff34d010e724bda8ea169d6ad8af0b72084e77ac679b64f60d338",
+      "skips": {
+        "heap.c:250": 1
+      }
+    },
+    "msvcrt_printf": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "printf.c:101": {
+          "PASS": 1
+        },
+        "printf.c:105": {
+          "PASS": 1
+        },
+        "printf.c:109": {
+          "PASS": 1
+        },
+        "printf.c:113": {
+          "PASS": 1
+        },
+        "printf.c:117": {
+          "PASS": 1
+        },
+        "printf.c:121": {
+          "PASS": 1
+        },
+        "printf.c:125": {
+          "PASS": 1
+        },
+        "printf.c:129": {
+          "PASS": 1
+        },
+        "printf.c:133": {
+          "PASS": 1
+        },
+        "printf.c:137": {
+          "PASS": 1
+        },
+        "printf.c:141": {
+          "PASS": 1
+        },
+        "printf.c:145": {
+          "PASS": 1
+        },
+        "printf.c:149": {
+          "PASS": 1
+        },
+        "printf.c:153": {
+          "PASS": 1
+        },
+        "printf.c:157": {
+          "PASS": 1
+        },
+        "printf.c:161": {
+          "PASS": 1
+        },
+        "printf.c:165": {
+          "PASS": 1
+        },
+        "printf.c:169": {
+          "PASS": 1
+        },
+        "printf.c:173": {
+          "PASS": 1
+        },
+        "printf.c:177": {
+          "PASS": 1
+        },
+        "printf.c:181": {
+          "PASS": 1
+        },
+        "printf.c:185": {
+          "PASS": 1
+        },
+        "printf.c:189": {
+          "PASS": 1
+        },
+        "printf.c:193": {
+          "PASS": 1
+        },
+        "printf.c:197": {
+          "PASS": 1
+        },
+        "printf.c:201": {
+          "PASS": 1
+        },
+        "printf.c:205": {
+          "PASS": 1
+        },
+        "printf.c:209": {
+          "PASS": 1
+        },
+        "printf.c:213": {
+          "PASS": 1
+        },
+        "printf.c:217": {
+          "PASS": 1
+        },
+        "printf.c:218": {
+          "PASS": 1
+        },
+        "printf.c:222": {
+          "PASS": 1
+        },
+        "printf.c:223": {
+          "PASS": 1
+        },
+        "printf.c:234": {
+          "PASS": 1
+        },
+        "printf.c:239": {
+          "PASS": 1
+        },
+        "printf.c:240": {
+          "PASS": 1
+        },
+        "printf.c:244": {
+          "PASS": 1
+        },
+        "printf.c:245": {
+          "PASS": 1
+        },
+        "printf.c:249": {
+          "PASS": 1
+        },
+        "printf.c:250": {
+          "PASS": 1
+        },
+        "printf.c:254": {
+          "PASS": 1
+        },
+        "printf.c:255": {
+          "PASS": 1
+        },
+        "printf.c:259": {
+          "PASS": 1
+        },
+        "printf.c:260": {
+          "PASS": 1
+        },
+        "printf.c:264": {
+          "PASS": 1
+        },
+        "printf.c:265": {
+          "PASS": 1
+        },
+        "printf.c:269": {
+          "PASS": 1
+        },
+        "printf.c:270": {
+          "PASS": 1
+        },
+        "printf.c:274": {
+          "PASS": 1
+        },
+        "printf.c:275": {
+          "PASS": 1
+        },
+        "printf.c:279": {
+          "PASS": 1
+        },
+        "printf.c:280": {
+          "PASS": 1
+        },
+        "printf.c:284": {
+          "PASS": 1
+        },
+        "printf.c:285": {
+          "PASS": 1
+        },
+        "printf.c:289": {
+          "PASS": 1
+        },
+        "printf.c:290": {
+          "PASS": 1
+        },
+        "printf.c:294": {
+          "PASS": 1
+        },
+        "printf.c:295": {
+          "PASS": 1
+        },
+        "printf.c:299": {
+          "PASS": 1
+        },
+        "printf.c:300": {
+          "PASS": 1
+        },
+        "printf.c:304": {
+          "PASS": 1
+        },
+        "printf.c:305": {
+          "PASS": 1
+        },
+        "printf.c:309": {
+          "PASS": 1
+        },
+        "printf.c:310": {
+          "PASS": 1
+        },
+        "printf.c:314": {
+          "PASS": 1
+        },
+        "printf.c:315": {
+          "PASS": 1
+        },
+        "printf.c:319": {
+          "PASS": 1
+        },
+        "printf.c:320": {
+          "PASS": 1
+        },
+        "printf.c:324": {
+          "PASS": 1
+        },
+        "printf.c:325": {
+          "PASS": 1
+        },
+        "printf.c:329": {
+          "PASS": 1
+        },
+        "printf.c:330": {
+          "PASS": 1
+        },
+        "printf.c:334": {
+          "PASS": 1
+        },
+        "printf.c:335": {
+          "PASS": 1
+        },
+        "printf.c:339": {
+          "PASS": 1
+        },
+        "printf.c:340": {
+          "PASS": 1
+        },
+        "printf.c:344": {
+          "PASS": 1
+        },
+        "printf.c:345": {
+          "PASS": 1
+        },
+        "printf.c:349": {
+          "PASS": 1
+        },
+        "printf.c:350": {
+          "PASS": 1
+        },
+        "printf.c:354": {
+          "PASS": 1
+        },
+        "printf.c:355": {
+          "PASS": 1
+        },
+        "printf.c:359": {
+          "PASS": 1
+        },
+        "printf.c:360": {
+          "PASS": 1
+        },
+        "printf.c:364": {
+          "PASS": 1
+        },
+        "printf.c:365": {
+          "PASS": 1
+        },
+        "printf.c:369": {
+          "PASS": 1
+        },
+        "printf.c:370": {
+          "PASS": 1
+        },
+        "printf.c:374": {
+          "PASS": 1
+        },
+        "printf.c:375": {
+          "PASS": 1
+        },
+        "printf.c:380": {
+          "PASS": 1
+        },
+        "printf.c:381": {
+          "PASS": 1
+        },
+        "printf.c:382": {
+          "PASS": 1
+        },
+        "printf.c:386": {
+          "PASS": 1
+        },
+        "printf.c:387": {
+          "PASS": 1
+        },
+        "printf.c:391": {
+          "PASS": 1
+        },
+        "printf.c:392": {
+          "PASS": 1
+        },
+        "printf.c:396": {
+          "PASS": 1
+        },
+        "printf.c:397": {
+          "PASS": 1
+        },
+        "printf.c:401": {
+          "PASS": 1
+        },
+        "printf.c:402": {
+          "PASS": 1
+        },
+        "printf.c:407": {
+          "PASS": 1
+        },
+        "printf.c:408": {
+          "PASS": 1
+        },
+        "printf.c:413": {
+          "PASS": 1
+        },
+        "printf.c:414": {
+          "PASS": 1
+        },
+        "printf.c:418": {
+          "PASS": 1
+        },
+        "printf.c:419": {
+          "PASS": 1
+        },
+        "printf.c:423": {
+          "PASS": 1
+        },
+        "printf.c:424": {
+          "PASS": 1
+        },
+        "printf.c:428": {
+          "PASS": 1
+        },
+        "printf.c:429": {
+          "PASS": 1
+        },
+        "printf.c:43": {
+          "PASS": 1
+        },
+        "printf.c:433": {
+          "PASS": 1
+        },
+        "printf.c:434": {
+          "PASS": 1
+        },
+        "printf.c:438": {
+          "PASS": 1
+        },
+        "printf.c:439": {
+          "PASS": 1
+        },
+        "printf.c:443": {
+          "PASS": 1
+        },
+        "printf.c:444": {
+          "PASS": 1
+        },
+        "printf.c:448": {
+          "PASS": 1
+        },
+        "printf.c:449": {
+          "PASS": 1
+        },
+        "printf.c:45": {
+          "PASS": 1
+        },
+        "printf.c:453": {
+          "PASS": 1
+        },
+        "printf.c:454": {
+          "PASS": 1
+        },
+        "printf.c:458": {
+          "PASS": 1
+        },
+        "printf.c:459": {
+          "PASS": 1
+        },
+        "printf.c:463": {
+          "PASS": 1
+        },
+        "printf.c:464": {
+          "PASS": 1
+        },
+        "printf.c:468": {
+          "PASS": 1
+        },
+        "printf.c:469": {
+          "PASS": 1
+        },
+        "printf.c:473": {
+          "PASS": 1
+        },
+        "printf.c:474": {
+          "PASS": 1
+        },
+        "printf.c:478": {
+          "PASS": 1
+        },
+        "printf.c:479": {
+          "PASS": 1
+        },
+        "printf.c:483": {
+          "PASS": 1
+        },
+        "printf.c:484": {
+          "PASS": 1
+        },
+        "printf.c:488": {
+          "PASS": 1
+        },
+        "printf.c:489": {
+          "PASS": 1
+        },
+        "printf.c:49": {
+          "PASS": 1
+        },
+        "printf.c:493": {
+          "PASS": 1
+        },
+        "printf.c:494": {
+          "PASS": 1
+        },
+        "printf.c:50": {
+          "PASS": 1
+        },
+        "printf.c:512": {
+          "PASS": 1
+        },
+        "printf.c:515": {
+          "PASS": 1
+        },
+        "printf.c:517": {
+          "PASS": 1
+        },
+        "printf.c:519": {
+          "PASS": 1
+        },
+        "printf.c:54": {
+          "PASS": 1
+        },
+        "printf.c:543": {
+          "PASS": 4
+        },
+        "printf.c:545": {
+          "PASS": 4
+        },
+        "printf.c:557": {
+          "PASS": 1
+        },
+        "printf.c:558": {
+          "PASS": 1
+        },
+        "printf.c:559": {
+          "PASS": 1
+        },
+        "printf.c:562": {
+          "PASS": 1
+        },
+        "printf.c:563": {
+          "PASS": 1
+        },
+        "printf.c:564": {
+          "PASS": 1
+        },
+        "printf.c:567": {
+          "PASS": 1
+        },
+        "printf.c:568": {
+          "PASS": 1
+        },
+        "printf.c:569": {
+          "PASS": 1
+        },
+        "printf.c:573": {
+          "PASS": 1
+        },
+        "printf.c:574": {
+          "PASS": 1
+        },
+        "printf.c:575": {
+          "PASS": 1
+        },
+        "printf.c:578": {
+          "PASS": 1
+        },
+        "printf.c:579": {
+          "PASS": 1
+        },
+        "printf.c:58": {
+          "PASS": 1
+        },
+        "printf.c:580": {
+          "PASS": 1
+        },
+        "printf.c:584": {
+          "PASS": 1
+        },
+        "printf.c:585": {
+          "PASS": 1
+        },
+        "printf.c:586": {
+          "PASS": 1
+        },
+        "printf.c:589": {
+          "PASS": 1
+        },
+        "printf.c:590": {
+          "PASS": 1
+        },
+        "printf.c:591": {
+          "PASS": 1
+        },
+        "printf.c:594": {
+          "PASS": 1
+        },
+        "printf.c:595": {
+          "PASS": 1
+        },
+        "printf.c:596": {
+          "PASS": 1
+        },
+        "printf.c:600": {
+          "PASS": 1
+        },
+        "printf.c:601": {
+          "PASS": 1
+        },
+        "printf.c:602": {
+          "PASS": 1
+        },
+        "printf.c:605": {
+          "PASS": 1
+        },
+        "printf.c:606": {
+          "PASS": 1
+        },
+        "printf.c:607": {
+          "PASS": 1
+        },
+        "printf.c:610": {
+          "PASS": 1
+        },
+        "printf.c:611": {
+          "PASS": 1
+        },
+        "printf.c:612": {
+          "PASS": 1
+        },
+        "printf.c:615": {
+          "PASS": 1
+        },
+        "printf.c:616": {
+          "PASS": 1
+        },
+        "printf.c:617": {
+          "PASS": 1
+        },
+        "printf.c:62": {
+          "PASS": 1
+        },
+        "printf.c:621": {
+          "PASS": 1
+        },
+        "printf.c:622": {
+          "PASS": 1
+        },
+        "printf.c:623": {
+          "PASS": 1
+        },
+        "printf.c:627": {
+          "PASS": 1
+        },
+        "printf.c:628": {
+          "PASS": 1
+        },
+        "printf.c:629": {
+          "PASS": 1
+        },
+        "printf.c:632": {
+          "PASS": 1
+        },
+        "printf.c:633": {
+          "PASS": 1
+        },
+        "printf.c:634": {
+          "PASS": 1
+        },
+        "printf.c:637": {
+          "PASS": 1
+        },
+        "printf.c:638": {
+          "PASS": 1
+        },
+        "printf.c:639": {
+          "PASS": 1
+        },
+        "printf.c:642": {
+          "PASS": 1
+        },
+        "printf.c:643": {
+          "PASS": 1
+        },
+        "printf.c:644": {
+          "PASS": 1
+        },
+        "printf.c:65": {
+          "PASS": 1
+        },
+        "printf.c:69": {
+          "PASS": 1
+        },
+        "printf.c:73": {
+          "PASS": 1
+        },
+        "printf.c:77": {
+          "PASS": 1
+        },
+        "printf.c:81": {
+          "PASS": 1
+        },
+        "printf.c:85": {
+          "PASS": 1
+        },
+        "printf.c:89": {
+          "PASS": 1
+        },
+        "printf.c:93": {
+          "PASS": 1
+        },
+        "printf.c:97": {
+          "PASS": 1
+        }
+      },
+      "sha256": "a8ad72fee0c229d0f8547397fa7a44d54b66cb6e635e99ead35d19faf904a4d5",
+      "skips": {}
+    },
+    "msvcrt_scanf": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "scanf.c:100": {
+          "PASS": 1
+        },
+        "scanf.c:103": {
+          "PASS": 1
+        },
+        "scanf.c:104": {
+          "PASS": 1
+        },
+        "scanf.c:106": {
+          "PASS": 1
+        },
+        "scanf.c:107": {
+          "PASS": 1
+        },
+        "scanf.c:110": {
+          "PASS": 1
+        },
+        "scanf.c:111": {
+          "PASS": 1
+        },
+        "scanf.c:117": {
+          "PASS": 1
+        },
+        "scanf.c:118": {
+          "PASS": 1
+        },
+        "scanf.c:122": {
+          "PASS": 1
+        },
+        "scanf.c:123": {
+          "PASS": 1
+        },
+        "scanf.c:128": {
+          "PASS": 1
+        },
+        "scanf.c:129": {
+          "PASS": 1
+        },
+        "scanf.c:134": {
+          "PASS": 1
+        },
+        "scanf.c:135": {
+          "PASS": 1
+        },
+        "scanf.c:141": {
+          "PASS": 1
+        },
+        "scanf.c:142": {
+          "PASS": 1
+        },
+        "scanf.c:147": {
+          "PASS": 1
+        },
+        "scanf.c:148": {
+          "PASS": 1
+        },
+        "scanf.c:153": {
+          "PASS": 1
+        },
+        "scanf.c:154": {
+          "PASS": 1
+        },
+        "scanf.c:155": {
+          "PASS": 1
+        },
+        "scanf.c:156": {
+          "PASS": 1
+        },
+        "scanf.c:161": {
+          "PASS": 1
+        },
+        "scanf.c:162": {
+          "PASS": 1
+        },
+        "scanf.c:163": {
+          "PASS": 1
+        },
+        "scanf.c:164": {
+          "PASS": 1
+        },
+        "scanf.c:169": {
+          "PASS": 1
+        },
+        "scanf.c:170": {
+          "PASS": 1
+        },
+        "scanf.c:40": {
+          "PASS": 1
+        },
+        "scanf.c:44": {
+          "PASS": 1
+        },
+        "scanf.c:45": {
+          "PASS": 1
+        },
+        "scanf.c:48": {
+          "PASS": 1
+        },
+        "scanf.c:49": {
+          "PASS": 1
+        },
+        "scanf.c:52": {
+          "PASS": 1
+        },
+        "scanf.c:53": {
+          "PASS": 1
+        },
+        "scanf.c:57": {
+          "PASS": 1
+        },
+        "scanf.c:58": {
+          "PASS": 1
+        },
+        "scanf.c:63": {
+          "PASS": 1
+        },
+        "scanf.c:64": {
+          "PASS": 1
+        },
+        "scanf.c:69": {
+          "PASS": 1
+        },
+        "scanf.c:74": {
+          "PASS": 1
+        },
+        "scanf.c:75": {
+          "PASS": 1
+        },
+        "scanf.c:78": {
+          "PASS": 1
+        },
+        "scanf.c:79": {
+          "PASS": 1
+        },
+        "scanf.c:82": {
+          "PASS": 1
+        },
+        "scanf.c:83": {
+          "PASS": 1
+        },
+        "scanf.c:88": {
+          "PASS": 1
+        },
+        "scanf.c:89": {
+          "PASS": 1
+        },
+        "scanf.c:90": {
+          "PASS": 1
+        },
+        "scanf.c:93": {
+          "PASS": 1
+        },
+        "scanf.c:94": {
+          "PASS": 1
+        },
+        "scanf.c:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "39ceed1937756a1fc3dd6076fa59138969ca70b74447e89def969f76aa9674d6",
+      "skips": {}
+    },
+    "msvcrt_string": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "string.c:101": {
+          "PASS": 1
+        },
+        "string.c:163": {
+          "PASS": 1
+        },
+        "string.c:167": {
+          "PASS": 1023
+        },
+        "string.c:193": {
+          "PASS": 1
+        },
+        "string.c:194": {
+          "PASS": 1
+        },
+        "string.c:195": {
+          "PASS": 1
+        },
+        "string.c:196": {
+          "PASS": 1
+        },
+        "string.c:197": {
+          "PASS": 1
+        },
+        "string.c:199": {
+          "PASS": 1
+        },
+        "string.c:200": {
+          "PASS": 1
+        },
+        "string.c:201": {
+          "PASS": 1
+        },
+        "string.c:202": {
+          "PASS": 1
+        },
+        "string.c:203": {
+          "PASS": 1
+        },
+        "string.c:212": {
+          "PASS": 1
+        },
+        "string.c:213": {
+          "PASS": 1
+        },
+        "string.c:214": {
+          "PASS": 1
+        },
+        "string.c:215": {
+          "PASS": 1
+        },
+        "string.c:216": {
+          "PASS": 1
+        },
+        "string.c:217": {
+          "PASS": 1
+        },
+        "string.c:218": {
+          "PASS": 1
+        },
+        "string.c:221": {
+          "PASS": 1
+        },
+        "string.c:222": {
+          "PASS": 1
+        },
+        "string.c:223": {
+          "PASS": 1
+        },
+        "string.c:224": {
+          "PASS": 1
+        },
+        "string.c:225": {
+          "PASS": 1
+        },
+        "string.c:226": {
+          "PASS": 1
+        },
+        "string.c:227": {
+          "PASS": 1
+        },
+        "string.c:228": {
+          "PASS": 1
+        },
+        "string.c:229": {
+          "PASS": 1
+        },
+        "string.c:231": {
+          "PASS": 1
+        },
+        "string.c:232": {
+          "PASS": 1
+        },
+        "string.c:233": {
+          "PASS": 1
+        },
+        "string.c:234": {
+          "PASS": 1
+        },
+        "string.c:237": {
+          "PASS": 1
+        },
+        "string.c:238": {
+          "PASS": 1
+        },
+        "string.c:239": {
+          "PASS": 1
+        },
+        "string.c:240": {
+          "PASS": 1
+        },
+        "string.c:241": {
+          "PASS": 1
+        },
+        "string.c:242": {
+          "PASS": 1
+        },
+        "string.c:243": {
+          "PASS": 1
+        },
+        "string.c:244": {
+          "PASS": 1
+        },
+        "string.c:245": {
+          "PASS": 1
+        },
+        "string.c:247": {
+          "PASS": 1
+        },
+        "string.c:248": {
+          "PASS": 1
+        },
+        "string.c:249": {
+          "PASS": 1
+        },
+        "string.c:250": {
+          "PASS": 1
+        },
+        "string.c:251": {
+          "PASS": 1
+        },
+        "string.c:252": {
+          "PASS": 1
+        },
+        "string.c:255": {
+          "PASS": 1
+        },
+        "string.c:256": {
+          "PASS": 1
+        },
+        "string.c:257": {
+          "PASS": 1
+        },
+        "string.c:258": {
+          "PASS": 1
+        },
+        "string.c:259": {
+          "PASS": 1
+        },
+        "string.c:260": {
+          "PASS": 1
+        },
+        "string.c:261": {
+          "PASS": 1
+        },
+        "string.c:262": {
+          "PASS": 1
+        },
+        "string.c:263": {
+          "PASS": 1
+        },
+        "string.c:265": {
+          "PASS": 1
+        },
+        "string.c:266": {
+          "PASS": 1
+        },
+        "string.c:267": {
+          "PASS": 1
+        },
+        "string.c:268": {
+          "PASS": 1
+        },
+        "string.c:269": {
+          "PASS": 1
+        },
+        "string.c:270": {
+          "PASS": 1
+        },
+        "string.c:273": {
+          "PASS": 1
+        },
+        "string.c:274": {
+          "PASS": 1
+        },
+        "string.c:275": {
+          "PASS": 1
+        },
+        "string.c:278": {
+          "PASS": 1
+        },
+        "string.c:279": {
+          "PASS": 1
+        },
+        "string.c:280": {
+          "PASS": 1
+        },
+        "string.c:281": {
+          "PASS": 1
+        },
+        "string.c:282": {
+          "PASS": 1
+        },
+        "string.c:283": {
+          "PASS": 1
+        },
+        "string.c:288": {
+          "PASS": 1
+        },
+        "string.c:292": {
+          "PASS": 1
+        },
+        "string.c:295": {
+          "PASS": 1
+        },
+        "string.c:298": {
+          "PASS": 1
+        },
+        "string.c:301": {
+          "PASS": 1
+        },
+        "string.c:304": {
+          "PASS": 1
+        },
+        "string.c:307": {
+          "PASS": 1
+        },
+        "string.c:311": {
+          "PASS": 1
+        },
+        "string.c:313": {
+          "PASS": 1
+        },
+        "string.c:315": {
+          "PASS": 1
+        },
+        "string.c:318": {
+          "PASS": 1
+        },
+        "string.c:322": {
+          "PASS": 1
+        },
+        "string.c:324": {
+          "PASS": 1
+        },
+        "string.c:327": {
+          "PASS": 1
+        },
+        "string.c:329": {
+          "PASS": 1
+        },
+        "string.c:331": {
+          "PASS": 1
+        },
+        "string.c:333": {
+          "PASS": 1
+        },
+        "string.c:335": {
+          "PASS": 1
+        },
+        "string.c:337": {
+          "PASS": 1
+        },
+        "string.c:339": {
+          "PASS": 1
+        },
+        "string.c:341": {
+          "PASS": 1
+        },
+        "string.c:343": {
+          "PASS": 1
+        },
+        "string.c:351": {
+          "PASS": 1
+        },
+        "string.c:352": {
+          "PASS": 1
+        },
+        "string.c:368": {
+          "PASS": 1
+        },
+        "string.c:370": {
+          "PASS": 1
+        },
+        "string.c:372": {
+          "PASS": 1
+        },
+        "string.c:384": {
+          "PASS": 1
+        },
+        "string.c:386": {
+          "PASS": 1
+        },
+        "string.c:388": {
+          "PASS": 1
+        },
+        "string.c:390": {
+          "PASS": 1
+        },
+        "string.c:397": {
+          "PASS": 1
+        },
+        "string.c:619": {
+          "PASS": 1
+        },
+        "string.c:620": {
+          "PASS": 1
+        },
+        "string.c:621": {
+          "PASS": 1
+        },
+        "string.c:632": {
+          "PASS": 1
+        },
+        "string.c:77": {
+          "PASS": 1
+        },
+        "string.c:85": {
+          "PASS": 1
+        },
+        "string.c:93": {
+          "PASS": 1
+        }
+      },
+      "sha256": "5751e9318680ddba9011971889f1607108976c26126fae5556f593f995a73d99",
+      "skips": {
+        "string.c:410": 1,
+        "string.c:464": 1,
+        "string.c:528": 1,
+        "string.c:575": 1
+      }
+    },
+    "msvcrt_time": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "time.c:100": {
+          "PASS": 1
+        },
+        "time.c:102": {
+          "PASS": 1
+        },
+        "time.c:114": {
+          "PASS": 1
+        },
+        "time.c:116": {
+          "PASS": 1
+        },
+        "time.c:128": {
+          "PASS": 1
+        },
+        "time.c:130": {
+          "PASS": 1
+        },
+        "time.c:142": {
+          "PASS": 1
+        },
+        "time.c:150": {
+          "PASS": 1
+        },
+        "time.c:163": {
+          "PASS": 1
+        },
+        "time.c:165": {
+          "PASS": 1
+        },
+        "time.c:175": {
+          "PASS": 1
+        },
+        "time.c:188": {
+          "PASS": 1
+        },
+        "time.c:202": {
+          "PASS": 1
+        },
+        "time.c:204": {
+          "PASS": 1
+        },
+        "time.c:206": {
+          "PASS": 1
+        },
+        "time.c:215": {
+          "PASS": 1
+        },
+        "time.c:217": {
+          "PASS": 1
+        },
+        "time.c:219": {
+          "PASS": 1
+        },
+        "time.c:229": {
+          "PASS": 1
+        },
+        "time.c:231": {
+          "PASS": 1
+        },
+        "time.c:233": {
+          "PASS": 1
+        },
+        "time.c:243": {
+          "PASS": 1
+        },
+        "time.c:245": {
+          "PASS": 1
+        },
+        "time.c:247": {
+          "PASS": 1
+        },
+        "time.c:43": {
+          "PASS": 1
+        },
+        "time.c:61": {
+          "PASS": 1
+        },
+        "time.c:79": {
+          "PASS": 1
+        },
+        "time.c:86": {
+          "PASS": 1
+        },
+        "time.c:88": {
+          "PASS": 1
+        }
+      },
+      "sha256": "eb682eac39d7a78430b8b91ad4b3cc2d87b5e3a68b5f14f1622635276e9af339",
+      "skips": {}
+    }
+  },
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "0f6f4adbbf37939e735ffc3a92337c5b40d8f551754277477261d9adfa9e28fe",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "4dcbfa7a0a4aa7864a9b74e1552ff43925bde50bc392839e2740ee257fc3e660",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

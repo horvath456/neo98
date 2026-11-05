@@ -1,0 +1,1891 @@
+diff --git a/FEXCore/Source/Interface/Context/Context.h b/FEXCore/Source/Interface/Context/Context.h
+index ebceec1..5846b96 100644
+--- a/FEXCore/Source/Interface/Context/Context.h
++++ b/FEXCore/Source/Interface/Context/Context.h
+@@ -464,6 +464,49 @@ public:
+     return ExitOnHLT;
+   }
+ 
++  // NEO98: see Context::NEO98SetHookRange.
++  uint64_t NEO98HookBegin[2] {}, NEO98HookEnd[2] {};
++  void NEO98SetHookRange(unsigned Index, uint64_t Begin, uint64_t End) override {
++    if (Index < 2) {
++      NEO98HookBegin[Index] = Begin;
++      NEO98HookEnd[Index] = End;
++    }
++  }
++  // NEO98: see Context::NEO98SetX87Reduced; starts out as the config says.
++  bool NEO98X87ReducedMode {FEXCore::Config::Getter<FEXCore::Config::ConfigOption::CONFIG_X87REDUCEDPRECISION> {}()};
++  void NEO98SetX87Reduced(bool Reduced) override {
++    NEO98X87ReducedMode = Reduced;
++  }
++  bool NEO98X87Reduced() const override {
++    return NEO98X87ReducedMode;
++  }
++  // NEO98: see Context::NEO98SetCodeView.
++  int64_t NEO98CodeDelta {};
++  void NEO98SetCodeView(int64_t Delta) override {
++    NEO98CodeDelta = Delta;
++  }
++  NEO98CodePageFn NEO98CodePage {};
++  void* NEO98CodePageOpaque {};
++  NEO98CheckedFn NEO98Checked {};
++  void* NEO98CheckedOpaque {};
++  bool NEO98CheckedCompile {};
++  void NEO98SetCheckedLookup(NEO98CheckedFn Lookup, void* Opaque) override {
++    NEO98Checked = Lookup;
++    NEO98CheckedOpaque = Opaque;
++  }
++  void NEO98SetCodePageLookup(NEO98CodePageFn Lookup, void* Opaque) override {
++    NEO98CodePage = Lookup;
++    NEO98CodePageOpaque = Opaque;
++  }
++  bool NEO98InHookRange(uint64_t Address) const {
++    for (unsigned i = 0; i < 2; ++i) {
++      if (Address - NEO98HookBegin[i] < NEO98HookEnd[i] - NEO98HookBegin[i]) {
++        return true;
++      }
++    }
++    return false;
++  }
++
+   bool AreMonoHacksActive() const {
+     return Config.MonoHacks && MonoDetected;
+   }
+diff --git a/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.cpp b/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.cpp
+index 3ebadb5..7dd1391 100644
+--- a/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.cpp
++++ b/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.cpp
+@@ -245,26 +245,24 @@ namespace x32 {
+     REG_AF,
+   };
+ 
+-  constexpr std::array<ARMEmitter::Register, 14> RA = {
+-    // All these callee saved
++  // NEO98: r24, r23, r19 and r29 are MEMTMP, MEMTMP2, MEMBASE and BUDGET,
++  // see Arm64Emitter.h. The first RAPairs registers form even/odd pairs.
++  constexpr std::array<ARMEmitter::Register, 10> RA = {
+     ARMEmitter::Reg::r20,
+     ARMEmitter::Reg::r21,
+-    ARMEmitter::Reg::r22,
+-    ARMEmitter::Reg::r23,
+ 
+     // Registers only available on 32-bit
+-    // All these are caller saved (except for r19).
++    // All these are caller saved.
+     ARMEmitter::Reg::r12,
+     ARMEmitter::Reg::r13,
+     ARMEmitter::Reg::r14,
+     ARMEmitter::Reg::r15,
+     ARMEmitter::Reg::r16,
+     ARMEmitter::Reg::r17,
+-    ARMEmitter::Reg::r29,
+-    ARMEmitter::Reg::r30,
+ 
+-    ARMEmitter::Reg::r24,
+-    ARMEmitter::Reg::r19,
++    // Callee saved.
++    ARMEmitter::Reg::r22,
++    ARMEmitter::Reg::r30,
+   };
+ 
+   constexpr std::array<ARMEmitter::Register, 7> NotPreserved_Dynamic = {
+@@ -272,7 +270,7 @@ namespace x32 {
+     ARMEmitter::Reg::r16, ARMEmitter::Reg::r17, ARMEmitter::Reg::r30,
+   };
+ 
+-  constexpr unsigned RAPairs = 10;
++  constexpr unsigned RAPairs = 8;
+ 
+   // All are caller saved
+   constexpr std::array<ARMEmitter::VRegister, 8> SRAFPR = {
+@@ -394,6 +392,7 @@ Arm64Emitter::Arm64Emitter(FEXCore::Context::ContextImpl* ctx, void* EmissionPtr
+     PairRegisters = x64::RAPairs;
+   } else {
+     PairRegisters = x32::RAPairs;
++    GuestMemBaseActive = true;
+ 
+     StaticRegisters = x32::SRA;
+     GeneralRegisters = x32::RA;
+diff --git a/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.h b/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.h
+index 5ad6e7b..db19031 100644
+--- a/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.h
++++ b/FEXCore/Source/Interface/Core/ArchHelpers/Arm64Emitter.h
+@@ -41,6 +41,19 @@ constexpr auto TMP3 = ARMEmitter::XReg::x2;
+ constexpr auto TMP4 = ARMEmitter::XReg::x3;
+ constexpr bool TMP_ABIARGS = true;
+ 
++// NEO98: in 32-bit mode x19 holds CPUState::GuestMemBase for the whole run
++// of the dispatcher, and x24 is the scratch register a guest address is
++// turned into a host address in. Both are callee saved and left out of the
++// 32-bit register allocator.
++constexpr auto MEMBASE = ARMEmitter::XReg::x19;
++constexpr auto MEMTMP = ARMEmitter::XReg::x24;
++// NEO98: the host address of a checked access (see NEO98CheckedHost), also
++// left out of the 32-bit register allocator.
++constexpr auto MEMTMP2 = ARMEmitter::XReg::x23;
++// NEO98: the block budget of the time slice lives in w29 while the JIT runs
++// (32-bit mode) and in CPUState::NEO98Budget whenever the host is in control.
++constexpr auto BUDGET = ARMEmitter::XReg::x29;
++
+ // We pin r26/r27 as PF/AF respectively, this is internal FEX ABI.
+ constexpr auto REG_PF = ARMEmitter::Reg::r26;
+ constexpr auto REG_AF = ARMEmitter::Reg::r27;
+@@ -128,6 +141,8 @@ protected:
+   std::span<const ARMEmitter::VRegister> StaticFPRegisters {};
+   std::span<const ARMEmitter::VRegister> GeneralFPRegisters {};
+   uint32_t PairRegisters = 0;
++  // NEO98: guest addresses are offsets from MEMBASE (32-bit mode).
++  bool GuestMemBaseActive = false;
+ 
+   bool SupportCodeRelocations;
+ 
+diff --git a/FEXCore/Source/Interface/Core/Core.cpp b/FEXCore/Source/Interface/Core/Core.cpp
+index a7ed0bf..aedc7a8 100644
+--- a/FEXCore/Source/Interface/Core/Core.cpp
++++ b/FEXCore/Source/Interface/Core/Core.cpp
+@@ -523,6 +523,7 @@ ContextImpl::GenerateIR(FEXCore::Core::InternalThreadState* Thread, uint64_t Gue
+   FEXCORE_PROFILE_SCOPED("GenerateIR");
+ 
+   Thread->OpDispatcher->ResetWorkingList();
++  Thread->OpDispatcher->NEO98SetReducedPrecision(NEO98X87ReducedMode);
+ 
+   uint64_t TotalInstructions {0};
+   uint64_t TotalInstructionsLength {0};
+@@ -542,6 +543,22 @@ ContextImpl::GenerateIR(FEXCore::Core::InternalThreadState* Thread, uint64_t Gue
+     }
+   }
+ 
++  if (!HasCustomIR && NEO98InHookRange(GuestRIP)) {
++    // NEO98: the block only calls the syscall handler with RIP here; the
++    // handler decides where the guest goes on.
++    TotalInstructions = 1;
++    TotalInstructionsLength = 1;
++    auto emit = Thread->OpDispatcher.get();
++    auto IRHeader = emit->_IRHeader(emit->Invalid(), GuestRIP, 0, 0, 0, 0);
++    auto Block = emit->CreateCodeNode(true, 0);
++    IRHeader.first->Blocks = emit->WrapNode(Block);
++    emit->SetCurrentCodeBlock(Block);
++    emit->_StoreContextGPR(IR::OpSize::i64Bit, emit->Constant(GuestRIP), offsetof(Core::CPUState, rip));
++    emit->_Syscall();
++    emit->_ExitFunction(IR::OpSize::i64Bit, emit->Constant(GuestRIP), IR::BranchHint::None, emit->Invalid(), emit->Invalid());
++    HasCustomIR = true;
++  }
++
+   if (!HasCustomIR) {
+     const auto* GuestCode = reinterpret_cast<const uint8_t*>(GuestRIP);
+ 
+@@ -601,6 +618,33 @@ ContextImpl::GenerateIR(FEXCore::Core::InternalThreadState* Thread, uint64_t Gue
+       }
+ 
+       uint64_t BlockInstructionsLength {};
++      // NEO98: in 32-bit mode a block with forced detection compares its bytes
++      // in chunks at the chunk's first instruction, not at every instruction.
++      const bool NEO98ChunkCheck = !Config.Is64BitMode && Block.ForceFullSMCDetection && Config.SMCChecks != FEXCore::Config::CONFIG_SMC_FULL;
++      uint64_t NEO98NextCheck {};
++      // NEO98: a store may rewrite the rest of its own chunk, so the
++      // instruction after one checks its bytes again.
++      const auto NEO98MayStore = [](const FEXCore::X86Tables::DecodedInst& Inst) {
++        using Type = FEXCore::X86Tables::DecodedOperand::OpType;
++        // Any memory operand counts: x87 and some vector stores carry the
++        // stored-to address as a source operand.
++        const auto Memory = [](const FEXCore::X86Tables::DecodedOperand& Operand) {
++          switch (Operand.Type) {
++          case Type::GPRIndirect:
++          case Type::GPRIndirectRelocation:
++          case Type::RIPRelative:
++          case Type::RIPRelativeRelocation:
++          case Type::SIB:
++          case Type::SIBRelocation: return true;
++          default: return false;
++          }
++        };
++        if (Memory(Inst.Dest) || Memory(Inst.Src[0]) || Memory(Inst.Src[1]) || Memory(Inst.Src[2])) {
++          return true;
++        }
++        const auto Op = Inst.OPRaw;
++        return Op == 0xA2 || Op == 0xA3 || Op == 0xA4 || Op == 0xA5 || Op == 0xAA || Op == 0xAB;
++      };
+       for (size_t i = 0; i < InstsInBlock; ++i) {
+         uint64_t InstAddress = Block.Entry + BlockInstructionsLength;
+         const FEXCore::X86Tables::X86InstInfo* TableInfo {nullptr};
+@@ -640,16 +661,34 @@ ContextImpl::GenerateIR(FEXCore::Core::InternalThreadState* Thread, uint64_t Gue
+-        if (ExtendedDebugInfo || Thread->OpDispatcher->CanHaveSideEffects(TableInfo, DecodedInfo)) {
++        // NEO98: MOV with a memory offset (A0..A3) and the string stores
++        // touch memory too; without the mark a fault in them restores the
++        // address of the instruction before.
++        if (ExtendedDebugInfo || Thread->OpDispatcher->CanHaveSideEffects(TableInfo, DecodedInfo) ||
++            (!Config.Is64BitMode && (NEO98MayStore(*DecodedInfo) || DecodedInfo->OPRaw == 0xA0 || DecodedInfo->OPRaw == 0xA1))) {
+           Thread->OpDispatcher->_GuestOpcode(InstAddress - GuestRIP);
+         }
+ 
+-        if (Config.SMCChecks == FEXCore::Config::CONFIG_SMC_FULL || Block.ForceFullSMCDetection) {
+-          auto ExistingCodePtr = reinterpret_cast<uint8_t*>(Block.Entry + BlockInstructionsLength);
++        uint64_t NEO98CheckLength = DecodedInfo->InstSize;
++        bool NEO98Check = Config.SMCChecks == FEXCore::Config::CONFIG_SMC_FULL || Block.ForceFullSMCDetection;
++        if (NEO98ChunkCheck) {
++          NEO98Check = BlockInstructionsLength >= NEO98NextCheck;
++          if (NEO98Check) {
++            NEO98CheckLength = std::min<uint64_t>(Block.Size - BlockInstructionsLength, 240);
++            NEO98NextCheck = BlockInstructionsLength + NEO98CheckLength;
++          } else if (i && NEO98MayStore(Block.DecodedInstructions[i - 1])) {
++            NEO98Check = true;
++            NEO98CheckLength = NEO98NextCheck - BlockInstructionsLength;
++          }
++        }
++        if (NEO98Check) {
++          // NEO98: the guest bytes lie at GuestMemBase + address in 32-bit mode.
++          auto ExistingCodePtr = reinterpret_cast<uint8_t*>(Block.Entry + BlockInstructionsLength +
++                                                            (Config.Is64BitMode ? 0 : Thread->CurrentFrame->State.GuestMemBase + NEO98CodeDelta));
+           auto InstAddressReg = Thread->OpDispatcher->_EntrypointOffset(GPRSize, InstAddress - GuestRIP);
+ 
+-          auto Value = FEXCore::Utils::crc32(ExistingCodePtr, DecodedInfo->InstSize);
++          auto Value = FEXCore::Utils::crc32(ExistingCodePtr, NEO98CheckLength);
+           auto CRC = WantsDiskCachePatching ?
+-                       Thread->OpDispatcher->_PatchableGuestCRC(IR::OpSize::i64Bit, Value, (int64_t)ExistingCodePtr, DecodedInfo->InstSize) :
++                       Thread->OpDispatcher->_PatchableGuestCRC(IR::OpSize::i64Bit, Value, (int64_t)ExistingCodePtr, NEO98CheckLength) :
+                        Thread->OpDispatcher->Constant(Value);
+-          auto CodeChanged = Thread->OpDispatcher->_ValidateCode(CRC, InstAddressReg, DecodedInfo->InstSize);
++          auto CodeChanged = Thread->OpDispatcher->_ValidateCode(CRC, InstAddressReg, NEO98CheckLength);
+ 
+           auto InvalidateCodeCond = Thread->OpDispatcher->CondJump(CodeChanged);
+ 
+@@ -832,7 +864,10 @@ ContextImpl::CompileCodeResult ContextImpl::CompileCode(FEXCore::Core::InternalT
+   // If the trap flag is set we generate single instruction blocks that each check to generate a single step exception.
+   bool TFSet = Thread->CurrentFrame->State.flags[X86State::RFLAG_TF_RAW_LOC];
+ 
++  // NEO98: the embedder decides whether this block checks its pages.
++  NEO98CheckedCompile = !Config.Is64BitMode && NEO98Checked && NEO98Checked(NEO98CheckedOpaque, GuestRIP);
+   auto CompiledCode = Thread->CPUBackend->CompileCode(GuestRIP, Length, TotalInstructions == 1, &*IRView, DebugData.get(), TFSet);
++  NEO98CheckedCompile = false;
+ 
+   // Release the IR
+   Thread->OpDispatcher->DelayedDisownBuffer();
+diff --git a/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp b/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
+index 2f4babd..0ddc869 100644
+--- a/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
+@@ -86,6 +86,14 @@ void Dispatcher::EmitDispatcher() {
+   add(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::r0, ARMEmitter::Reg::rsp, 0);
+   str(ARMEmitter::XReg::x0, STATE_PTR(CpuStateFrame, ReturningStackLocation));
+ 
++#ifndef ARCHITECTURE_arm64ec
++  // NEO98: the guest memory base of this thread, for the whole run.
++  if (GuestMemBaseActive) {
++    ldr(MEMBASE, STATE_PTR(CpuStateFrame, State.GuestMemBase));
++    ldr(BUDGET.W(), STATE_PTR(CpuStateFrame, State.NEO98Budget));
++  }
++#endif
++
+   ARMEmitter::ForwardLabel CompileSingleStep;
+   AbsoluteLoopTopAddressFillSRA = GetCursorAddress<uint64_t>();
+ 
+@@ -239,6 +247,9 @@ void Dispatcher::EmitDispatcher() {
+   {
+     ThreadStopHandlerAddressSpillSRA = GetCursorAddress<uint64_t>();
+     SpillStaticRegs(TMP1);
++    if (GuestMemBaseActive) {
++      str(BUDGET.W(), STATE_PTR(CpuStateFrame, State.NEO98Budget));
++    }
+ 
+     ThreadStopHandlerAddress = GetCursorAddress<uint64_t>();
+ 
+@@ -404,7 +415,18 @@ void Dispatcher::EmitDispatcher() {
+ 
+     SpillStaticRegs(TMP1);
+ 
+-    hlt(0);
++    if (CTX->ExitOnHLTEnabled()) {
++      // NEO98: an embedder that asked for exits gets this one as an exit too.
++      if (GuestMemBaseActive) {
++        str(BUDGET.W(), STATE_PTR(CpuStateFrame, State.NEO98Budget));
++      }
++      ldr(ARMEmitter::XReg::x0, STATE_PTR(CpuStateFrame, ReturningStackLocation));
++      add(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::rsp, ARMEmitter::Reg::r0, 0);
++      PopCalleeSavedRegisters();
++      ret();
++    } else {
++      hlt(0);
++    }
+   }
+ 
+   {
+@@ -414,7 +436,17 @@ void Dispatcher::EmitDispatcher() {
+ 
+     SpillStaticRegs(TMP1);
+ 
+-    brk(0);
++    if (CTX->ExitOnHLTEnabled()) {
++      if (GuestMemBaseActive) {
++        str(BUDGET.W(), STATE_PTR(CpuStateFrame, State.NEO98Budget));
++      }
++      ldr(ARMEmitter::XReg::x0, STATE_PTR(CpuStateFrame, ReturningStackLocation));
++      add(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::rsp, ARMEmitter::Reg::r0, 0);
++      PopCalleeSavedRegisters();
++      ret();
++    } else {
++      brk(0);
++    }
+   }
+ 
+   {
+@@ -429,6 +461,9 @@ void Dispatcher::EmitDispatcher() {
+     // ??? = SIGSEGV
+     // Force a SIGSEGV by loading zero
+     if (CTX->ExitOnHLTEnabled()) {
++      if (GuestMemBaseActive) {
++        str(BUDGET.W(), STATE_PTR(CpuStateFrame, State.NEO98Budget));
++      }
+       ldr(ARMEmitter::XReg::x0, STATE_PTR(CpuStateFrame, ReturningStackLocation));
+       add(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::rsp, ARMEmitter::Reg::r0, 0);
+       PopCalleeSavedRegisters();
+@@ -525,6 +560,10 @@ void Dispatcher::EmitDispatcher() {
+     LoadConstant(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::r0, 0xFFFF);
+     str(ARMEmitter::XReg::x0, STATE, offsetof(FEXCore::Core::CpuStateFrame, InSyscallInfo));
+ 
++    if (GuestMemBaseActive) {
++      // NEO98: the host may read or set the budget in the handler.
++      str(BUDGET.W(), STATE_PTR(CpuStateFrame, State.NEO98Budget));
++    }
+     ldr(ARMEmitter::XReg::x0, STATE, offsetof(FEXCore::Core::CpuStateFrame, Pointers.SyscallHandlerObj));
+     ldr(ARMEmitter::XReg::x3, STATE, offsetof(FEXCore::Core::CpuStateFrame, Pointers.SyscallHandlerFunc));
+     mov(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::r1, STATE.R());
+@@ -546,6 +585,18 @@ void Dispatcher::EmitDispatcher() {
+     // We can safely claim we are no longer in a syscall
+     str(ARMEmitter::XReg::zr, STATE, offsetof(FEXCore::Core::CpuStateFrame, InSyscallInfo));
+ 
++    if (GuestMemBaseActive) {
++      ldr(BUDGET.W(), STATE_PTR(CpuStateFrame, State.NEO98Budget));
++      // NEO98: the handler asked to return to the host. The registers are
++      // back from the state, the stop path spills them there unchanged.
++      ARMEmitter::ForwardLabel l_NoExit;
++      ldrb(TMP1, STATE_PTR(CpuStateFrame, State.NEO98Exit));
++      (void)cbz(ARMEmitter::Size::i32Bit, TMP1, &l_NoExit);
++      ldr(TMP1, STATE, offsetof(FEXCore::Core::CpuStateFrame, Pointers.ThreadStopHandlerSpillSRA));
++      br(TMP1);
++      (void)Bind(&l_NoExit);
++    }
++
+     // Now go back to the regular dispatcher loop
+     (void)b(&LoopTop);
+   }
+diff --git a/FEXCore/Source/Interface/Core/Frontend.cpp b/FEXCore/Source/Interface/Core/Frontend.cpp
+index 78d5f1a..38b1388 100644
+--- a/FEXCore/Source/Interface/Core/Frontend.cpp
++++ b/FEXCore/Source/Interface/Core/Frontend.cpp
+@@ -88,6 +88,15 @@ Decoder::Decoder(FEXCore::Core::InternalThreadState* Thread)
+   }
+ }
+ 
++uint8_t Decoder::NEO98CodeByte(uint64_t Address) {
++  const uint64_t Page = (Address & 0xffffffffULL) >> 12;
++  if (Page != NEO98CachedPage) {
++    NEO98CachedHost = CTX->NEO98CodePage(CTX->NEO98CodePageOpaque, Page);
++    NEO98CachedPage = Page;
++  }
++  return NEO98CachedHost[Address & 0xfff];
++}
++
+ bool Decoder::CheckRangeExecutable(uint64_t Address, uint64_t Size) {
+   // Check for wraparound
+   if (Address + Size < Address) {
+@@ -130,6 +139,9 @@ uint8_t Decoder::ReadByte() {
+ std::optional<uint8_t> Decoder::PeekByte(uint8_t Offset) {
+   uint64_t ByteAddress = reinterpret_cast<uint64_t>(InstStream.InstStream + InstructionSize + Offset);
+   if (CheckRangeExecutable(ByteAddress, 1)) {
++    if (CTX->NEO98CodePage && !BlockInfo.Is64BitMode) {
++      return NEO98CodeByte(ByteAddress);
++    }
+     return InstStream.AdjustedInstStream[InstructionSize + Offset];
+   } else {
+     return std::nullopt;
+@@ -144,7 +156,13 @@ std::pair<uint64_t, bool> Decoder::ReadData(uint8_t Size) {
+   LastFieldReadOffset = (uint8_t)InstructionSize;
+   LastFieldReadSize = Size;
+   if (CheckRangeExecutable(Address, Size)) {
+-    std::memcpy(&Res, &InstStream.AdjustedInstStream[InstructionSize], Size);
++    if (CTX->NEO98CodePage && !BlockInfo.Is64BitMode) {
++      for (uint8_t i = 0; i < Size; ++i) {
++        Res |= uint64_t(NEO98CodeByte(Address + i)) << (i * 8);
++      }
++    } else {
++      std::memcpy(&Res, &InstStream.AdjustedInstStream[InstructionSize], Size);
++    }
+   } else {
+     HitNonExecutableRange = true;
+     // See PeekByte, this specific case may cause some executable memory to read as 0 but it doesn't matter as the entire instruction will be rolled back anyway.
+@@ -1292,6 +1310,18 @@ void Decoder::AddBranchTarget(uint64_t Target) {
+   if (VisitedBlocks.contains(Target)) {
+     return;
+   }
++  // NEO98: a hooked address is never part of a multiblock; the branch leaves
++  // it through the dispatcher, where the hook block runs.
++  if (CTX->NEO98InHookRange(Target)) {
++    return;
++  }
++  // NEO98: code on a page that checks its own bytes rewrites itself while
++  // it runs; such code is translated one block at a time. A multiblock
++  // kept running the old immediate of a CMP that the block before had
++  // just patched (ICCVID).
++  if (ExecutableRangeWritable && !BlockInfo.Is64BitMode) {
++    return;
++  }
+ 
+   auto BlockSuccIt = std::lower_bound(BlockInfo.Blocks.begin(), BlockInfo.Blocks.end(), Target,
+                                       [](const auto& a, uint64_t Address) { return a.Entry < Address; });
+@@ -1366,9 +1389,12 @@ const Decoder::DecodeStream Decoder::AdjustAddrForSpecialRegion(const uint8_t* _
+     };
+   }
+ 
++  // NEO98: in 32-bit mode the guest bytes lie at GuestMemBase + RIP, while
++  // InstStream keeps the guest address for the range and relocation checks.
++  const uint64_t MemBase = BlockInfo.Is64BitMode ? 0 : Thread->CurrentFrame->State.GuestMemBase + CTX->NEO98CodeDelta;
+   return DecodeStream {
+     .InstStream = _InstStream - EntryPoint + RIP,
+-    .AdjustedInstStream = _InstStream - EntryPoint + RIP,
++    .AdjustedInstStream = _InstStream - EntryPoint + RIP + MemBase,
+   };
+ }
+ 
+@@ -1629,6 +1655,11 @@ void Decoder::DecodeLoop(const uint8_t* _InstStream, uint64_t GuestSizePause) {
+       ++DecodedSize;
+       ++BlockIt->NumInstructions;
+       BlockIt->Size += DecodeInst->InstSize;
++      // NEO98: the embedder reports code it does not protect against writes as
++      // writable; such a block checks its own bytes when it runs.
++      if (ExecutableRangeWritable && !BlockInfo.Is64BitMode) {
++        BlockIt->ForceFullSMCDetection = true;
++      }
+ 
+       // if we weren't provided relocations (guest JIT), try to detect what we can
+       if (WantsDataMasks && BlockIt->BlockStatus == DecodedBlockStatus::SUCCESS && BlockInfo.Is64BitMode && !Relocations) {
+@@ -1675,6 +1706,11 @@ void Decoder::DecodeLoop(const uint8_t* _InstStream, uint64_t GuestSizePause) {
+         break;
+       }
+ 
++      // NEO98: a hooked address starts its own block, see NEO98SetHookRange.
++      if (CTX->NEO98InHookRange(DecodeInst->PC + DecodeInst->InstSize)) {
++        break;
++      }
++
+       if (!InstCanContinue()) {
+         if (DecodeInst->TableInfo->Flags & FEXCore::X86Tables::InstFlags::FLAGS_SETS_RIP) {
+           // If we have multiblock enabled
+@@ -1743,6 +1779,15 @@ void Decoder::SetupDecodeInstructionsAtEntry(FEXCore::Core::InternalThreadState*
+   BlockInfo.TotalInstructionCount = 0;
+   BlockInfo.Blocks.clear();
+   VisitedBlocks.clear();
++  // NEO98: a page may have changed its bytes since the last block.
++  NEO98CachedPage = ~0ULL;
++  // NEO98: and the embedder may have changed whether a page checks its
++  // own bytes (a host page that switched to checked blocks); the range
++  // and its Writable flag are asked anew for every translation.
++  ExecutableRangeBase = 0;
++  ExecutableRangeEnd = 0;
++  // NEO98: the x87 representation of the context (NEO98SetX87Reduced).
++  X87Table = CTX->NEO98X87ReducedMode ? &FEXCore::X86Tables::X87F64Ops : &FEXCore::X86Tables::X87F80Ops;
+   // Reset internal state management
+   Paused = false;
+   BlockResume = -1;
+diff --git a/FEXCore/Source/Interface/Core/Frontend.h b/FEXCore/Source/Interface/Core/Frontend.h
+index 1fc0e6e..54b92c7 100644
+--- a/FEXCore/Source/Interface/Core/Frontend.h
++++ b/FEXCore/Source/Interface/Core/Frontend.h
+@@ -119,6 +119,11 @@ private:
+ 
+   uint8_t ReadByte();
+   std::optional<uint8_t> PeekByte(uint8_t Offset);
++  // NEO98: guest code through the embedder's page lookup, see
++  // Context::NEO98SetCodePageLookup. The page of the last byte is cached.
++  uint8_t NEO98CodeByte(uint64_t Address);
++  uint64_t NEO98CachedPage {~0ULL};
++  const uint8_t* NEO98CachedHost {};
+   std::pair<uint64_t, bool> ReadData(uint8_t Size);
+ 
+   void SkipBytes(uint8_t Size) {
+diff --git a/FEXCore/Source/Interface/Core/JIT/AtomicOps.cpp b/FEXCore/Source/Interface/Core/JIT/AtomicOps.cpp
+index 014a8c6..6585821 100644
+--- a/FEXCore/Source/Interface/Core/JIT/AtomicOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/AtomicOps.cpp
+@@ -20,7 +20,7 @@ DEF_OP(CASPair) {
+   auto Expected1 = GetReg(Op->ExpectedHi);
+   auto Desired0 = GetReg(Op->DesiredLo);
+   auto Desired1 = GetReg(Op->DesiredHi);
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+ 
+   const auto EmitSize = IROp->ElementSize == IR::OpSize::i64Bit ? ARMEmitter::Size::i64Bit : ARMEmitter::Size::i32Bit;
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -99,7 +99,7 @@ DEF_OP(CAS) {
+ 
+   auto Expected = GetReg(Op->Expected);
+   auto Desired = GetReg(Op->Desired);
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Dst = GetReg(Node);
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -146,7 +146,7 @@ DEF_OP(AtomicSwap) {
+                                                                                                                                  "d CAS "
+                                                                                                                                  "size");
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Src = GetReg(Op->Value);
+ 
+   const auto EmitSize = ConvertSize(IROp);
+@@ -172,7 +172,7 @@ DEF_OP(AtomicFetchAdd) {
+   const auto EmitSize = ConvertSize(IROp);
+   const auto SubEmitSize = ConvertSubRegSize8(IROp->Size);
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Src = GetReg(Op->Value);
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -193,7 +193,7 @@ DEF_OP(AtomicFetchSub) {
+   const auto EmitSize = ConvertSize(IROp);
+   const auto SubEmitSize = ConvertSubRegSize8(IROp->Size);
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Src = GetReg(Op->Value);
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -215,7 +215,7 @@ DEF_OP(AtomicFetchAnd) {
+   const auto EmitSize = ConvertSize(IROp);
+   const auto SubEmitSize = ConvertSubRegSize8(IROp->Size);
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Src = GetReg(Op->Value);
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -237,7 +237,7 @@ DEF_OP(AtomicFetchCLR) {
+   const auto EmitSize = ConvertSize(IROp);
+   const auto SubEmitSize = ConvertSubRegSize8(IROp->Size);
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Src = GetReg(Op->Value);
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -258,7 +258,7 @@ DEF_OP(AtomicFetchOr) {
+   const auto EmitSize = ConvertSize(IROp);
+   const auto SubEmitSize = ConvertSubRegSize8(IROp->Size);
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Src = GetReg(Op->Value);
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -279,7 +279,7 @@ DEF_OP(AtomicFetchXor) {
+   const auto EmitSize = ConvertSize(IROp);
+   const auto SubEmitSize = ConvertSubRegSize8(IROp->Size);
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+   auto Src = GetReg(Op->Value);
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+@@ -300,7 +300,7 @@ DEF_OP(AtomicFetchNeg) {
+   const auto EmitSize = ConvertSize(IROp);
+   const auto SubEmitSize = ConvertSubRegSize8(IROp->Size);
+ 
+-  auto MemSrc = GetReg(Op->Addr);
++  auto MemSrc = GuestAddr(GetReg(Op->Addr));
+ 
+   if (CTX->HostFeatures.SupportsAtomics) {
+     // Use a CAS loop to avoid needing to emulate unaligned LLSC atomics
+diff --git a/FEXCore/Source/Interface/Core/JIT/BranchOps.cpp b/FEXCore/Source/Interface/Core/JIT/BranchOps.cpp
+index c2b1d8e..0c82861 100644
+--- a/FEXCore/Source/Interface/Core/JIT/BranchOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/BranchOps.cpp
+@@ -165,12 +165,22 @@ DEF_OP(ExitFunction) {
+ 
+       ARMEmitter::ForwardLabel l_BranchHost;
+       ARMEmitter::ForwardLabel l_CallReturn;
++      // NEO98: without multiblock the return block of a call is never part of
++      // this translation. A linked branch to it right behind the call gives the
++      // return a host address all the same, so the call-return stack predicts.
++      uint64_t NEO98ReturnRIP = 0;
++      NEO98ReturnRIP = Op->NEO98ReturnRIP;
++      const bool NEO98ReturnStub = Op->Hint == IR::BranchHint::Call && Op->CallReturnBlock.IsInvalid() && NEO98ReturnRIP;
+       if (Op->Hint == IR::BranchHint::Call) {
+         if (!Op->CallReturnBlock.IsInvalid()) {
+           auto CallReturnAddressReg = GetReg(Op->CallReturnAddress).X();
+           PendingCallReturnTargetLabel = &CallReturnTargets.try_emplace(Op->CallReturnBlock.ID()).first->second;
+           (void)adr(TMP1, &l_CallReturn);
+           stp<ARMEmitter::IndexType::PRE>(CallReturnAddressReg, TMP1, REG_CALLRET_SP, -0x10);
++        } else if (NEO98ReturnStub) {
++          LoadConstant(ARMEmitter::Size::i64Bit, TMP2, NEO98ReturnRIP);
++          (void)adr(TMP1, &l_CallReturn);
++          stp<ARMEmitter::IndexType::PRE>(TMP2, TMP1, REG_CALLRET_SP, -0x10);
+         } else {
+           stp<ARMEmitter::IndexType::PRE>(ARMEmitter::XReg::zr, ARMEmitter::XReg::zr, REG_CALLRET_SP, -0x10);
+         }
+@@ -188,6 +198,9 @@ DEF_OP(ExitFunction) {
+ 
+       EmitLinkedBranch(NewRIP, Op->Hint == IR::BranchHint::Call, Op->PatchSiteAddress, Op->PatchSiteSize);
+       (void)Bind(&l_CallReturn);
++      if (NEO98ReturnStub) {
++        EmitLinkedBranch(NEO98ReturnRIP, false);
++      }
+ #ifdef ARCHITECTURE_arm64ec
+     }
+ #endif
+@@ -221,16 +234,27 @@ DEF_OP(ExitFunction) {
+     (void)Bind(&SkipFullLookup);
+     if (Op->Hint == IR::BranchHint::Call) {
+       ARMEmitter::ForwardLabel l_CallReturn;
++      uint64_t NEO98ReturnRIP = 0;
++      NEO98ReturnRIP = Op->NEO98ReturnRIP;
++      const bool NEO98ReturnStub = Op->CallReturnBlock.IsInvalid() && NEO98ReturnRIP;
+       if (!Op->CallReturnBlock.IsInvalid()) {
+         auto CallReturnAddressReg = GetReg(Op->CallReturnAddress).X();
+         PendingCallReturnTargetLabel = &CallReturnTargets.try_emplace(Op->CallReturnBlock.ID()).first->second;
+         (void)adr(TMP1, &l_CallReturn);
+         stp<ARMEmitter::IndexType::PRE>(CallReturnAddressReg, TMP1, REG_CALLRET_SP, -0x10);
++      } else if (NEO98ReturnStub) {
++        // NEO98: see the direct call above. TMP2 holds the target here.
++        LoadConstant(ARMEmitter::Size::i64Bit, TMP3, NEO98ReturnRIP);
++        (void)adr(TMP1, &l_CallReturn);
++        stp<ARMEmitter::IndexType::PRE>(TMP3, TMP1, REG_CALLRET_SP, -0x10);
+       } else {
+         stp<ARMEmitter::IndexType::PRE>(ARMEmitter::XReg::zr, ARMEmitter::XReg::zr, REG_CALLRET_SP, -0x10);
+       }
+       blr(TMP2);
+       (void)Bind(&l_CallReturn);
++      if (NEO98ReturnStub) {
++        EmitLinkedBranch(NEO98ReturnRIP, false);
++      }
+     } else if (Op->Hint == IR::BranchHint::Return) {
+       ret(TMP2);
+     } else {
+@@ -322,7 +346,12 @@ DEF_OP(Thunk) {
+ 
+ DEF_OP(ValidateCode) {
+   auto Op = IROp->C<IR::IROp_ValidateCode>();
++  // NEO98: never through NEO98CheckedHost, the code view is added below.
+   auto Base = GetReg(Op->Address).X();
++  if (GuestMemBaseActive) {
++    add(ARMEmitter::Size::i64Bit, MEMTMP.R(), MEMBASE.R(), GetReg(Op->Address), ARMEmitter::ExtendedType::UXTW, 0);
++    Base = MEMTMP;
++  }
+   int len = Op->CodeLength;
+ 
+   const auto Dst = GetReg(Node);
+@@ -333,6 +362,11 @@ DEF_OP(ValidateCode) {
+   auto BaseReg = TMP2;
+   auto TmpDataReg = TMP3;
+   mov(ARMEmitter::Size::i64Bit, BaseReg, Base);
++  // NEO98: the bytes come from the always readable code view.
++  if (GuestMemBaseActive && CTX->NEO98CodeDelta) {
++    LoadConstant(ARMEmitter::Size::i64Bit, TmpDataReg, CTX->NEO98CodeDelta);
++    add(ARMEmitter::Size::i64Bit, BaseReg, BaseReg, TmpDataReg);
++  }
+ 
+   while (len >= 8) {
+     ldr<ARMEmitter::IndexType::POST>(TmpDataReg, BaseReg, 8);
+diff --git a/FEXCore/Source/Interface/Core/JIT/JIT.cpp b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+index 6d997c8..587eb87 100644
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -828,7 +828,35 @@ void Arm64JITCore::EmitSuspendInterruptCheck() {
+ #endif
+ }
+ 
+-void Arm64JITCore::EmitEntryPoint(ARMEmitter::BackwardLabel& HeaderLabel, bool CheckTF) {
++// NEO98: the block budget of a time slice. Every guest block head counts one
++// down, whether the dispatcher enters it or a branch inside a multiblock
++// reaches it, without touching NZCV, which holds guest flags. The block that
++// finds the budget used up returns to the host before its first instruction:
++// the spill slots of the region go, and the dispatcher's exit spills the
++// static registers as at any block boundary.
++void Arm64JITCore::EmitNEO98Budget(uint64_t GuestRIP) {
++  ARMEmitter::ForwardLabel l_BudgetLeft;
++  sub(ARMEmitter::Size::i32Bit, BUDGET.R(), BUDGET.R(), 1);
++  (void)tbz(BUDGET.R(), 31, &l_BudgetLeft);
++  if (SpillSlots) {
++    const auto TotalSpillSlotsSize = SpillSlots * MaxSpillSlotSize;
++    if (ARMEmitter::IsImmAddSub(TotalSpillSlotsSize)) {
++      add(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::rsp, ARMEmitter::Reg::rsp, TotalSpillSlotsSize);
++    } else {
++      LoadConstant(ARMEmitter::Size::i64Bit, TMP1, TotalSpillSlotsSize);
++      add(ARMEmitter::Size::i64Bit, ARMEmitter::XReg::rsp, ARMEmitter::XReg::rsp, TMP1, ARMEmitter::ExtendedType::LSL_64, 0);
++    }
++  }
++  LoadConstant(ARMEmitter::Size::i64Bit, TMP2.R(), GuestRIP);
++  str(TMP2, STATE_PTR(CpuStateFrame, State.rip));
++  LoadConstant(ARMEmitter::Size::i32Bit, TMP2.R(), 1);
++  strb(TMP2.W(), STATE_PTR(CpuStateFrame, State.NEO98Exit));
++  ldr(TMP2, STATE, offsetof(FEXCore::Core::CpuStateFrame, Pointers.ThreadStopHandlerSpillSRA));
++  br(TMP2);
++  (void)Bind(&l_BudgetLeft);
++}
++
++void Arm64JITCore::EmitEntryPoint(ARMEmitter::BackwardLabel& HeaderLabel, bool CheckTF, uint64_t GuestRIP) {
+   // Get the address of the JITCodeHeader and store in to the core state.
+   // Two instruction cost, each 1 cycle.
+   adr_OrRestart(TMP1, &HeaderLabel);
+@@ -886,6 +914,7 @@ CPUBackend::CompiledCode Arm64JITCore::CompileCode(uint64_t Entry, uint64_t Size
+   const auto PrevNumAllocations = Relocations.size();
+ 
+   this->Entry = Entry;
++  NEO98Checked = CTX->NEO98CheckedCompile;
+   this->DebugData = DebugData;
+   this->IR = IR;
+   RequiresFarARM64Jumps = false;
+@@ -1003,7 +1032,7 @@ CPUBackend::CompiledCode Arm64JITCore::CompileCode(uint64_t Entry, uint64_t Size
+         CodeData.EntryPoints.emplace(BlockStartRIP, GetCursorAddress<uint8_t*>());
+         DebugData->GuestOpcodes.push_back({BlockIROp->GuestEntryOffset, GetCursorAddress<uint8_t*>() - CodeData.BlockBegin});
+ 
+-        EmitEntryPoint(JITCodeHeaderLabel, CheckTF);
++        EmitEntryPoint(JITCodeHeaderLabel, CheckTF, BlockStartRIP);
+       }
+ 
+       if (PendingCallReturnTargetLabel) {
+@@ -1014,6 +1043,9 @@ CPUBackend::CompiledCode Arm64JITCore::CompileCode(uint64_t Entry, uint64_t Size
+       PendingTargetLabel = nullptr;
+ 
+       BindOrRestart(Target);
++      if (GuestMemBaseActive && BlockIROp->NEO98GuestHead) {
++        EmitNEO98Budget(Entry + BlockIROp->GuestEntryOffset);
++      }
+     }
+ 
+     for (auto [CodeNode, IROp] : IR->GetCode(BlockNode)) {
+diff --git a/FEXCore/Source/Interface/Core/JIT/JITClass.h b/FEXCore/Source/Interface/Core/JIT/JITClass.h
+index 7c60a27..c5b4f56 100644
+--- a/FEXCore/Source/Interface/Core/JIT/JITClass.h
++++ b/FEXCore/Source/Interface/Core/JIT/JITClass.h
+@@ -321,6 +321,38 @@ private:
+   }
+ 
+   [[nodiscard]]
++  // NEO98: see MemoryOps.cpp. GuestAddr turns a guest address register into
++  // the host address MEMBASE + zext32(Addr) in MEMTMP, or returns it unchanged
++  // without a memory base.
++  ARMEmitter::Register GuestAddr(ARMEmitter::Register Addr, bool Write = true) {
++    if (!GuestMemBaseActive) {
++      return Addr;
++    }
++    if (NEO98Checked) {
++      return NEO98CheckedHost(Addr, Write);
++    }
++    add(ARMEmitter::Size::i64Bit, MEMTMP.R(), MEMBASE.R(), Addr, ARMEmitter::ExtendedType::UXTW, 0);
++    return MEMTMP.R();
++  }
++  // NEO98: a block of the embedder's choice (Context::NEO98SetCheckedLookup)
++  // looks up every guest page it touches. The embedder keeps two byte tables
++  // at MEMBASE + 4 GiB (reads) and MEMBASE + 8 GiB (writes), one byte per
++  // 4 KiB page, 1 where the page may be used through its second view at
++  // MEMBASE + 16 GiB. Otherwise the access goes to MEMBASE + address, where
++  // the host page's rights let the embedder's fault handler decide. The host
++  // address ends up in MEMTMP2; Addr is left alone and may be MEMTMP.
++  // NEO98: the block being compiled checks its pages, see NEO98CheckedHost.
++  bool NEO98Checked {};
++  ARMEmitter::Register NEO98CheckedHost(ARMEmitter::Register Addr, bool Write) {
++    ubfx(ARMEmitter::Size::i64Bit, MEMTMP2.R(), Addr.X(), 12, 20);
++    orr(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMTMP2.R(), Write ? (1ULL << 33) : (1ULL << 32));
++    ldrb(MEMTMP2.W(), MEMBASE.R(), MEMTMP2.R(), ARMEmitter::ExtendedType::LSL_64);
++    add(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMBASE.R(), MEMTMP2.R(), ARMEmitter::ShiftType::LSL, 34);
++    add(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMTMP2.R(), Addr, ARMEmitter::ExtendedType::UXTW, 0);
++    return MEMTMP2.R();
++  }
++  ARMEmitter::ExtendedMemOperand GenerateGuestMemOperand(IR::OpSize AccessSize, ARMEmitter::Register Base, IR::OrderedNodeWrapper Offset,
++                                                         IR::MemOffsetType OffsetType, uint8_t OffsetScale, bool Write = true);
+   ARMEmitter::ExtendedMemOperand GenerateMemOperand(IR::OpSize AccessSize, ARMEmitter::Register Base, IR::OrderedNodeWrapper Offset,
+                                                     IR::MemOffsetType OffsetType, uint8_t OffsetScale);
+ 
+@@ -635,7 +667,8 @@ private:
+ 
+   void EmitSuspendInterruptCheck();
+ 
+-  void EmitEntryPoint(ARMEmitter::BackwardLabel& HeaderLabel, bool CheckTF);
++  void EmitNEO98Budget(uint64_t GuestRIP);
++  void EmitEntryPoint(ARMEmitter::BackwardLabel& HeaderLabel, bool CheckTF, uint64_t GuestRIP);
+ 
+   [[nodiscard]] CodeBuffer::CodeBufferAllocation AllocateCodeBufferInSharedCache(size_t Size);
+ 
+diff --git a/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp b/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp
+index 805a731..f4b1cd3 100644
+--- a/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp
+@@ -612,6 +612,45 @@ ARMEmitter::ExtendedMemOperand Arm64JITCore::GenerateMemOperand(
+   FEX_UNREACHABLE;
+ }
+ 
++// NEO98: the operand of a guest access. Without a memory base this is
++// GenerateMemOperand. With one, the 32-bit guest address (base register plus
++// offset, wrapping at 4 GiB like the i386) is formed in MEMTMP and the access
++// goes to MEMBASE + zext32(MEMTMP).
++ARMEmitter::ExtendedMemOperand Arm64JITCore::GenerateGuestMemOperand(IR::OpSize AccessSize, ARMEmitter::Register Base,
++                                                                    IR::OrderedNodeWrapper Offset, IR::MemOffsetType OffsetType,
++                                                                    uint8_t OffsetScale, bool Write) {
++  if (!GuestMemBaseActive) {
++    return GenerateMemOperand(AccessSize, Base, Offset, OffsetType, OffsetScale);
++  }
++  ARMEmitter::Register Address = Base;
++  if (!Offset.IsInvalid()) {
++    uint64_t Const;
++    if (IsInlineConstant(Offset, &Const)) {
++      const int64_t Signed = static_cast<int64_t>(Const);
++      if (Signed == 0) {
++      } else if (Signed > 0 && Signed < 4096) {
++        add(ARMEmitter::Size::i32Bit, MEMTMP.R(), Base, static_cast<uint32_t>(Signed));
++        Address = MEMTMP.R();
++      } else if (Signed < 0 && Signed > -4096) {
++        sub(ARMEmitter::Size::i32Bit, MEMTMP.R(), Base, static_cast<uint32_t>(-Signed));
++        Address = MEMTMP.R();
++      } else {
++        LoadConstant(ARMEmitter::Size::i32Bit, MEMTMP.R(), static_cast<uint32_t>(Const));
++        add(ARMEmitter::Size::i32Bit, MEMTMP.R(), Base, MEMTMP.R());
++        Address = MEMTMP.R();
++      }
++    } else {
++      auto RegOffset = GetReg(Offset);
++      add(ARMEmitter::Size::i32Bit, MEMTMP.R(), Base, RegOffset, ARMEmitter::ShiftType::LSL, FEXCore::ilog2(OffsetScale));
++      Address = MEMTMP.R();
++    }
++  }
++  if (NEO98Checked) {
++    return ARMEmitter::ExtendedMemOperand(NEO98CheckedHost(Address, Write).X(), ARMEmitter::IndexType::OFFSET, 0);
++  }
++  return ARMEmitter::ExtendedMemOperand(MEMBASE, Address.X(), ARMEmitter::ExtendedType::UXTW, 0);
++}
++
+ ARMEmitter::Register Arm64JITCore::ApplyMemOperand(IR::OpSize AccessSize, ARMEmitter::Register Base, ARMEmitter::Register Tmp,
+                                                    IR::OrderedNodeWrapper Offset, IR::MemOffsetType OffsetType, uint8_t OffsetScale) {
+   if (Offset.IsInvalid()) {
+@@ -706,7 +745,7 @@ DEF_OP(LoadMem) {
+   const auto OpSize = IROp->Size;
+ 
+   const auto MemReg = GetReg(Op->Addr);
+-  const auto MemSrc = GenerateMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
++  const auto MemSrc = GenerateGuestMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale, false);
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     const auto Dst = GetReg(Node);
+@@ -729,7 +768,7 @@ DEF_OP(LoadMem) {
+     case IR::OpSize::i128Bit: ldr(Dst.Q(), MemSrc); break;
+     case IR::OpSize::i256Bit: {
+       LOGMAN_THROW_A_FMT(HostSupportsSVE256, "Need SVE256 support in order to use {} with 256-bit operation", __func__);
+-      const auto Operand = GenerateSVEMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
++      const auto Operand = GenerateSVEMemOperand(OpSize, GuestAddr(MemReg, false), Op->Offset, Op->OffsetType, Op->OffsetScale);
+       ld1b<ARMEmitter::SubRegSize::i8Bit>(Dst.Z(), PRED_TMP_32B.Zeroing(), Operand);
+       break;
+     }
+@@ -740,7 +779,7 @@ DEF_OP(LoadMem) {
+ 
+ DEF_OP(LoadMemPair) {
+   const auto Op = IROp->C<IR::IROp_LoadMemPair>();
+-  const auto Addr = GetReg(Op->Addr);
++  const auto Addr = GuestAddr(GetReg(Op->Addr), false);
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     const auto Dst1 = GetReg(Op->OutValue1);
+@@ -768,7 +807,7 @@ DEF_OP(LoadMemTSO) {
+   const auto Op = IROp->C<IR::IROp_LoadMemTSO>();
+   const auto OpSize = IROp->Size;
+ 
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr), false);
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     LOGMAN_THROW_A_FMT(Op->Offset.IsInvalid() || CTX->HostFeatures.SupportsTSOImm9, "unexpected offset");
+@@ -866,7 +905,7 @@ DEF_OP(VLoadVectorMasked) {
+ 
+   const auto Dst = GetVReg(Node);
+   const auto MaskReg = GetVReg(Op->Mask);
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr), false);
+ 
+   if (HostSupportsSVE128 || HostSupportsSVE256) {
+     const auto MemSrc = GenerateSVEMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
+@@ -969,7 +1008,7 @@ DEF_OP(VStoreVectorMasked) {
+ 
+   const auto RegData = GetVReg(Op->Data);
+   const auto MaskReg = GetVReg(Op->Mask);
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr));
+   if (HostSupportsSVE128 || HostSupportsSVE256) {
+     const auto MemDst = GenerateSVEMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
+ 
+@@ -1168,6 +1207,7 @@ void Arm64JITCore::Emulate128BitGather(IR::OpSize Size, IR::OpSize ElementSize,
+ }
+ 
+ DEF_OP(VLoadVectorGatherMasked) {
++  LOGMAN_THROW_A_FMT(!GuestMemBaseActive, "NEO98: gathers are not rebased onto the guest memory base");
+   const auto Op = IROp->C<IR::IROp_VLoadVectorGatherMasked>();
+   const auto OpSize = IROp->Size;
+ 
+@@ -1266,6 +1306,7 @@ DEF_OP(VLoadVectorGatherMasked) {
+ }
+ 
+ DEF_OP(VLoadVectorGatherMaskedQPS) {
++  LOGMAN_THROW_A_FMT(!GuestMemBaseActive, "NEO98: gathers are not rebased onto the guest memory base");
+   const auto Op = IROp->C<IR::IROp_VLoadVectorGatherMaskedQPS>();
+ 
+   /// This instruction behaves similarly to the non-QPS version except for some STRICT limitations
+@@ -1355,7 +1396,7 @@ DEF_OP(VLoadVectorElement) {
+ 
+   const auto Dst = GetVReg(Node);
+   const auto DstSrc = GetVReg(Op->DstSrc);
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr), false);
+ 
+   LOGMAN_THROW_A_FMT(ElementSize == IR::OpSize::i8Bit || ElementSize == IR::OpSize::i16Bit || ElementSize == IR::OpSize::i32Bit ||
+                        ElementSize == IR::OpSize::i64Bit || ElementSize == IR::OpSize::i128Bit,
+@@ -1392,7 +1433,7 @@ DEF_OP(VStoreVectorElement) {
+   const auto ElementSize = IROp->ElementSize;
+ 
+   const auto Value = GetVReg(Op->Value);
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr));
+ 
+   LOGMAN_THROW_A_FMT(ElementSize == IR::OpSize::i8Bit || ElementSize == IR::OpSize::i16Bit || ElementSize == IR::OpSize::i32Bit ||
+                        ElementSize == IR::OpSize::i64Bit || ElementSize == IR::OpSize::i128Bit,
+@@ -1427,7 +1468,7 @@ DEF_OP(VBroadcastFromMem) {
+   const auto ElementSize = IROp->ElementSize;
+ 
+   const auto Dst = GetVReg(Node);
+-  const auto MemReg = GetReg(Op->Address);
++  const auto MemReg = GuestAddr(GetReg(Op->Address), false);
+ 
+   LOGMAN_THROW_A_FMT(ElementSize == IR::OpSize::i8Bit || ElementSize == IR::OpSize::i16Bit || ElementSize == IR::OpSize::i32Bit ||
+                        ElementSize == IR::OpSize::i64Bit || ElementSize == IR::OpSize::i128Bit,
+@@ -1472,6 +1513,24 @@ DEF_OP(Push) {
+   const auto AddrSrc = GetReg(Op->Addr);
+   const auto Dst = GetReg(Node);
+ 
++  if (GuestMemBaseActive) {
++    // NEO98: the new stack pointer wraps at 4 GiB and the store goes to
++    // MEMBASE + zext32(it). Dst is written last, it may alias either source.
++    sub(ARMEmitter::Size::i32Bit, MEMTMP.R(), AddrSrc, ValueSize);
++    const auto Operand = NEO98Checked ?
++                           ARMEmitter::ExtendedMemOperand(NEO98CheckedHost(MEMTMP.R(), true).X(), ARMEmitter::IndexType::OFFSET, 0) :
++                           ARMEmitter::ExtendedMemOperand(MEMBASE, MEMTMP, ARMEmitter::ExtendedType::UXTW, 0);
++    switch (ValueSize) {
++    case 1: strb(Src.W(), Operand); break;
++    case 2: strh(Src.W(), Operand); break;
++    case 4: str(Src.W(), Operand); break;
++    case 8: str(Src.X(), Operand); break;
++    default: LOGMAN_MSG_A_FMT("Unhandled {} size: {}", __func__, ValueSize); break;
++    }
++    mov(ARMEmitter::Size::i32Bit, Dst, MEMTMP.R());
++    return;
++  }
++
+   bool NeedsMoveAfterwards = false;
+   if (Dst != AddrSrc) {
+     if (Dst == Src) {
+@@ -1557,6 +1616,24 @@ DEF_OP(PushTwo) {
+   auto Src2 = GetReg(Op->Value2);
+   const auto Dst = GetReg(Op->Addr);
+ 
++  if (GuestMemBaseActive) {
++    // NEO98: as Push. Values come from allocated registers, never from TMP1.
++    sub(ARMEmitter::Size::i32Bit, MEMTMP.R(), Dst, 2 * ValueSize);
++    ARMEmitter::Register Host = TMP1.R();
++    if (NEO98Checked) {
++      Host = NEO98CheckedHost(MEMTMP.R(), true);
++    } else {
++      add(ARMEmitter::Size::i64Bit, TMP1.R(), MEMBASE.R(), MEMTMP.R(), ARMEmitter::ExtendedType::UXTW, 0);
++    }
++    switch (ValueSize) {
++    case 4: stp<ARMEmitter::IndexType::OFFSET>(Src1.W(), Src2.W(), Host.X(), 0); break;
++    case 8: stp<ARMEmitter::IndexType::OFFSET>(Src1.X(), Src2.X(), Host.X(), 0); break;
++    default: LOGMAN_MSG_A_FMT("Unhandled {} size: {}", __func__, ValueSize); break;
++    }
++    mov(ARMEmitter::Size::i32Bit, Dst, MEMTMP.R());
++    return;
++  }
++
+   switch (ValueSize) {
+   case 4: {
+     stp<ARMEmitter::IndexType::PRE>(Src1.W(), Src2.W(), Dst, -2 * ValueSize);
+@@ -1581,6 +1658,21 @@ DEF_OP(Pop) {
+ 
+   LOGMAN_THROW_A_FMT(Dst != Addr, "Invalid");
+ 
++  if (GuestMemBaseActive) {
++    const auto Operand = NEO98Checked ?
++                           ARMEmitter::ExtendedMemOperand(NEO98CheckedHost(Addr, false).X(), ARMEmitter::IndexType::OFFSET, 0) :
++                           ARMEmitter::ExtendedMemOperand(MEMBASE, Addr.X(), ARMEmitter::ExtendedType::UXTW, 0);
++    switch (Size) {
++    case 1: ldrb(Dst.W(), Operand); break;
++    case 2: ldrh(Dst.W(), Operand); break;
++    case 4: ldr(Dst.W(), Operand); break;
++    case 8: ldr(Dst.X(), Operand); break;
++    default: LOGMAN_MSG_A_FMT("Unhandled {} size: {}", __func__, Op->Size); break;
++    }
++    add(ARMEmitter::Size::i32Bit, Addr, Addr, Size);
++    return;
++  }
++
+   switch (Size) {
+   case 1: {
+     ldrb<ARMEmitter::IndexType::POST>(Dst.W(), Addr, Size);
+@@ -1620,6 +1712,17 @@ DEF_OP(PopTwo) {
+   LOGMAN_THROW_A_FMT(Dst1 != Addr && Dst2 != Addr, "Invalid");
+   LOGMAN_THROW_A_FMT(Dst1 != Dst2, "Invalid");
+ 
++  if (GuestMemBaseActive) {
++    const auto Host = GuestAddr(Addr, false);
++    switch (Size) {
++    case 4: ldp<ARMEmitter::IndexType::OFFSET>(Dst1.W(), Dst2.W(), Host, 0); break;
++    case 8: ldp<ARMEmitter::IndexType::OFFSET>(Dst1.X(), Dst2.X(), Host, 0); break;
++    default: LOGMAN_MSG_A_FMT("Unhandled {} size: {}", __func__, Op->Size); break;
++    }
++    add(ARMEmitter::Size::i32Bit, Addr, Addr, 2 * Size);
++    return;
++  }
++
+   switch (Size) {
+   case 4: {
+     ldp<ARMEmitter::IndexType::POST>(Dst1.W(), Dst2.W(), Addr, 2 * Size);
+@@ -1641,7 +1744,7 @@ DEF_OP(StoreMem) {
+   const auto OpSize = IROp->Size;
+ 
+   const auto MemReg = GetReg(Op->Addr);
+-  const auto MemSrc = GenerateMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
++  const auto MemSrc = GenerateGuestMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     const auto Src = GetZeroableReg(Op->Value);
+@@ -1678,7 +1781,7 @@ DEF_OP(StoreMem) {
+     }
+     case IR::OpSize::i256Bit: {
+       LOGMAN_THROW_A_FMT(HostSupportsSVE256, "Need SVE256 support in order to use {} with 256-bit operation", __func__);
+-      const auto MemSrc = GenerateSVEMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
++      const auto MemSrc = GenerateSVEMemOperand(OpSize, GuestAddr(MemReg), Op->Offset, Op->OffsetType, Op->OffsetScale);
+       st1b<ARMEmitter::SubRegSize::i8Bit>(Src.Z(), PRED_TMP_32B, MemSrc);
+       break;
+     }
+@@ -1694,7 +1797,7 @@ DEF_OP(StoreMemX87SVEOptPredicate) {
+   LOGMAN_THROW_A_FMT(HostSupportsSVE128 || HostSupportsSVE256, "StoreMemX87SVEOptPredicate needs SVE support");
+ 
+   const auto RegData = GetVReg(Op->Value);
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr));
+   const auto MemDst = ARMEmitter::SVEMemOperand(MemReg.X(), 0);
+ 
+   switch (IROp->ElementSize) {
+@@ -1722,7 +1825,7 @@ DEF_OP(LoadMemX87SVEOptPredicate) {
+   const auto Op = IROp->C<IR::IROp_LoadMemX87SVEOptPredicate>();
+   const auto Dst = GetVReg(Node);
+   const auto Predicate = PRED_X87_SVEOPT;
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr), false);
+ 
+   LOGMAN_THROW_A_FMT(HostSupportsSVE128 || HostSupportsSVE256, "LoadMemX87SVEOptPredicate needs SVE support");
+ 
+@@ -1752,7 +1855,7 @@ DEF_OP(LoadMemX87SVEOptPredicate) {
+ DEF_OP(StoreMemPair) {
+   const auto Op = IROp->C<IR::IROp_StoreMemPair>();
+   const auto OpSize = IROp->Size;
+-  const auto Addr = GetReg(Op->Addr);
++  const auto Addr = GuestAddr(GetReg(Op->Addr));
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     const auto Src1 = GetZeroableReg(Op->Value1);
+@@ -1779,7 +1882,7 @@ DEF_OP(StoreMemTSO) {
+   const auto Op = IROp->C<IR::IROp_StoreMemTSO>();
+   const auto OpSize = IROp->Size;
+ 
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr));
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     LOGMAN_THROW_A_FMT(Op->Offset.IsInvalid() || CTX->HostFeatures.SupportsTSOImm9, "unexpected offset");
+@@ -1882,6 +1985,49 @@ DEF_OP(MemSet) {
+     const auto Prefix = GetReg(Op->Prefix);
+     add(TMP2, Prefix.X(), MemReg.X());
+   }
++  if (GuestMemBaseActive && NEO98Checked) {
++    // NEO98: a checked block stores element by element, each through the
++    // page table (NEO98CheckedHost). TMP1 counts, TMP2 is the guest address,
++    // TMP3 the step.
++    ARMEmitter::ForwardLabel l_Backward, l_Step, l_Done;
++    ARMEmitter::BackwardLabel l_Loop;
++    if (DirectionIsInline) {
++      LoadConstant(ARMEmitter::Size::i64Bit, TMP3, static_cast<uint64_t>(static_cast<int64_t>(DirectionConstant == 1 ? Size : -int64_t(Size))));
++    } else {
++      (void)tbnz(DirectionReg, 1, &l_Backward);
++      LoadConstant(ARMEmitter::Size::i64Bit, TMP3, Size);
++      (void)b(&l_Step);
++      (void)Bind(&l_Backward);
++      LoadConstant(ARMEmitter::Size::i64Bit, TMP3, static_cast<uint64_t>(-int64_t(Size)));
++      (void)Bind(&l_Step);
++    }
++    (void)cbz(ARMEmitter::Size::i64Bit, TMP1, &l_Done);
++    (void)Bind(&l_Loop);
++    {
++      const auto Host = NEO98CheckedHost(TMP2.R(), true);
++      switch (Size) {
++      case 1: strb(Value.W(), Host.X(), 0); break;
++      case 2: strh(Value.W(), Host.X(), 0); break;
++      case 4: str(Value.W(), Host.X(), 0); break;
++      case 8: str(Value.X(), Host.X(), 0); break;
++      default: LOGMAN_MSG_A_FMT("Unhandled {} size: {}", __func__, Size); break;
++      }
++    }
++    add(ARMEmitter::Size::i64Bit, TMP2, TMP2, TMP3);
++    sub(ARMEmitter::Size::i64Bit, TMP1, TMP1, 1);
++    (void)cbnz(ARMEmitter::Size::i64Bit, TMP1, &l_Loop);
++    (void)Bind(&l_Done);
++    if (Op->Prefix.IsInvalid()) {
++      mov(Dst.X(), TMP2);
++    } else {
++      sub(Dst.X(), TMP2, GetReg(Op->Prefix).X());
++    }
++    return;
++  }
++  if (GuestMemBaseActive) {
++    // NEO98: the working pointer walks host memory from MEMBASE + guest address.
++    add(ARMEmitter::Size::i64Bit, TMP2, MEMBASE, TMP2, ARMEmitter::ExtendedType::UXTW, 0);
++  }
+ 
+   if (!DirectionIsInline) {
+     // Backward or forwards implementation depends on flag
+@@ -2114,8 +2260,61 @@ DEF_OP(MemCpy) {
+   ARMEmitter::ForwardLabel Done {};
+ 
+   mov(TMP1, Length.X());
+-  mov(TMP2, MemRegDest.X());
+-  mov(TMP3, MemRegSrc.X());
++  if (GuestMemBaseActive && NEO98Checked) {
++    // NEO98: a checked block copies element by element, each side through
++    // the page table (NEO98CheckedHost). TMP1 counts, TMP2 and TMP3 are the
++    // guest addresses, TMP4 the step, MEMTMP carries the element.
++    ARMEmitter::ForwardLabel l_Backward, l_Step, l_Done;
++    ARMEmitter::BackwardLabel l_Loop;
++    mov(TMP2, MemRegDest.X());
++    mov(TMP3, MemRegSrc.X());
++    if (DirectionIsInline) {
++      LoadConstant(ARMEmitter::Size::i64Bit, TMP4, static_cast<uint64_t>(static_cast<int64_t>(DirectionConstant == 1 ? Size : -int64_t(Size))));
++    } else {
++      (void)tbnz(DirectionReg, 1, &l_Backward);
++      LoadConstant(ARMEmitter::Size::i64Bit, TMP4, Size);
++      (void)b(&l_Step);
++      (void)Bind(&l_Backward);
++      LoadConstant(ARMEmitter::Size::i64Bit, TMP4, static_cast<uint64_t>(-int64_t(Size)));
++      (void)Bind(&l_Step);
++    }
++    (void)cbz(ARMEmitter::Size::i64Bit, TMP1, &l_Done);
++    (void)Bind(&l_Loop);
++    {
++      const auto From = NEO98CheckedHost(TMP3.R(), false);
++      switch (Size) {
++      case 1: ldrb(MEMTMP.W(), From.X(), 0); break;
++      case 2: ldrh(MEMTMP.W(), From.X(), 0); break;
++      case 4: ldr(MEMTMP.W(), From.X(), 0); break;
++      case 8: ldr(MEMTMP, From.X(), 0); break;
++      default: LOGMAN_MSG_A_FMT("Unhandled {} size: {}", __func__, Size); break;
++      }
++      const auto To = NEO98CheckedHost(TMP2.R(), true);
++      switch (Size) {
++      case 1: strb(MEMTMP.W(), To.X(), 0); break;
++      case 2: strh(MEMTMP.W(), To.X(), 0); break;
++      case 4: str(MEMTMP.W(), To.X(), 0); break;
++      case 8: str(MEMTMP, To.X(), 0); break;
++      default: break;
++      }
++    }
++    add(ARMEmitter::Size::i64Bit, TMP2, TMP2, TMP4);
++    add(ARMEmitter::Size::i64Bit, TMP3, TMP3, TMP4);
++    sub(ARMEmitter::Size::i64Bit, TMP1, TMP1, 1);
++    (void)cbnz(ARMEmitter::Size::i64Bit, TMP1, &l_Loop);
++    (void)Bind(&l_Done);
++    mov(Dst0.X(), TMP2);
++    mov(Dst1.X(), TMP3);
++    return;
++  }
++  if (GuestMemBaseActive) {
++    // NEO98: both working pointers walk host memory.
++    add(ARMEmitter::Size::i64Bit, TMP2, MEMBASE, MemRegDest.X(), ARMEmitter::ExtendedType::UXTW, 0);
++    add(ARMEmitter::Size::i64Bit, TMP3, MEMBASE, MemRegSrc.X(), ARMEmitter::ExtendedType::UXTW, 0);
++  } else {
++    mov(TMP2, MemRegDest.X());
++    mov(TMP3, MemRegSrc.X());
++  }
+ 
+   // TMP1 = Length
+   // TMP2 = Dest
+@@ -2396,7 +2595,7 @@ DEF_OP(CacheLineClear) {
+ 
+   auto Op = IROp->C<IR::IROp_CacheLineClear>();
+ 
+-  auto MemReg = GetReg(Op->Addr);
++  auto MemReg = GuestAddr(GetReg(Op->Addr));
+ 
+   // Clear dcache only
+   // icache doesn't matter here since the guest application shouldn't be calling clflush on JIT code.
+@@ -2426,7 +2625,7 @@ DEF_OP(CacheLineClean) {
+ 
+   auto Op = IROp->C<IR::IROp_CacheLineClean>();
+ 
+-  auto MemReg = GetReg(Op->Addr);
++  auto MemReg = GuestAddr(GetReg(Op->Addr));
+ 
+   // Clean dcache only
+   // check host cacheline size again x86_64 size to ensure at least 64 bytes are cleaned
+@@ -2445,7 +2644,7 @@ DEF_OP(CacheLineClean) {
+ DEF_OP(CacheLineZero) {
+   auto Op = IROp->C<IR::IROp_CacheLineZero>();
+ 
+-  auto MemReg = GetReg(Op->Addr);
++  auto MemReg = GuestAddr(GetReg(Op->Addr));
+ 
+   if (CTX->HostFeatures.SupportsCLZERO) {
+     // We can use this instruction directly
+@@ -2465,7 +2664,7 @@ DEF_OP(CacheLineZero) {
+ 
+ DEF_OP(Prefetch) {
+   auto Op = IROp->C<IR::IROp_Prefetch>();
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr), false);
+ 
+   // Access size is only ever handled as 8-byte. Even though it is accesssed as a cacheline.
+   const auto MemSrc = GenerateMemOperand(IR::OpSize::i64Bit, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
+@@ -2510,7 +2709,7 @@ DEF_OP(VStoreNonTemporal) {
+   const auto Is128Bit = OpSize == IR::OpSize::i128Bit;
+ 
+   const auto Value = GetVReg(Op->Value);
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr));
+   const auto Offset = Op->Offset;
+ 
+   if (Is256Bit) {
+@@ -2537,7 +2736,7 @@ DEF_OP(VStoreNonTemporalPair) {
+   const auto ValueLow = GetVReg(Op->ValueLow);
+   const auto ValueHigh = GetVReg(Op->ValueHigh);
+ 
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr));
+   const auto Offset = Op->Offset;
+ 
+   stnp(ValueLow.Q(), ValueHigh.Q(), MemReg, Offset);
+@@ -2552,7 +2751,7 @@ DEF_OP(VLoadNonTemporal) {
+   const auto Is128Bit = OpSize == IR::OpSize::i128Bit;
+ 
+   const auto Dst = GetVReg(Node);
+-  const auto MemReg = GetReg(Op->Addr);
++  const auto MemReg = GuestAddr(GetReg(Op->Addr), false);
+   const auto Offset = Op->Offset;
+ 
+   if (Is256Bit) {
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+index 8dc605c..90f0554 100644
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -493,7 +493,7 @@ void OpDispatchBuilder::CALLOp(OpcodeArgs) {
+         return CallReturnJumpTarget->second.BlockEntry;
+       }
+       return InvalidNode;
+-    }());
++    }(), NextRIP);
+   } else {
+     NeedsBlockEnd = true;
+   }
+@@ -517,7 +517,7 @@ void OpDispatchBuilder::CALLAbsoluteOp(OpcodeArgs) {
+       return CallReturnJumpTarget->second.BlockEntry;
+     }
+     return InvalidNode;
+-  }());
++  }(), 0, 0, NextRIP);
+ }
+ 
+ std::optional<CondClass> OpDispatchBuilder::DecodeNZCVCondition(uint8_t OP) {
+@@ -3991,6 +3991,8 @@ void OpDispatchBuilder::CreateJumpBlocks(const fextl::vector<FEXCore::Frontend::
+   Ref PrevCodeBlock {};
+   for (auto& Target : *Blocks) {
+     auto CodeNode = CreateCodeNode(Target.IsEntryPoint, Target.Entry - Entry);
++    // NEO98: the head of a guest block, where the JIT counts the budget.
++    CodeNode.first->NEO98GuestHead = true;
+ 
+     JumpTargets.try_emplace(Target.Entry, JumpTargetInfo {CodeNode, false, Target.IsEntryPoint});
+ 
+@@ -5170,6 +5172,17 @@ void OpDispatchBuilder::UnimplementedOp(OpcodeArgs) {
+               });
+ }
+ 
++// NEO98: IN and OUT of a 32-bit guest go to the syscall handler with RIP on
++// the instruction; the embedder answers the port and moves RIP on.
++void OpDispatchBuilder::NEO98PortOp(OpcodeArgs) {
++  if (Is64BitMode) {
++    PermissionRestrictedOp(Op);
++    return;
++  }
++  BlockSetRIP = true;
++  SyscallOp(Op, false);
++}
++
+ void OpDispatchBuilder::PermissionRestrictedOp(OpcodeArgs) {
+   BreakOp(Op, FEXCore::IR::BreakDefinition {
+                 .ErrorRegister = 0,
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher.h b/FEXCore/Source/Interface/Core/OpcodeDispatcher.h
+index 0190282..0bac53c 100644
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.h
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.h
+@@ -122,6 +122,10 @@ struct DispatchTableEntry {
+ 
+ class OpDispatchBuilder final : public IREmitter {
+ public:
++  // NEO98: see ReducedPrecisionMode.
++  void NEO98SetReducedPrecision(bool Reduced) {
++    ReducedPrecisionMode = Reduced;
++  }
+   Ref GetNewJumpBlock(uint64_t RIP) {
+     auto it = JumpTargets.find(RIP);
+     LOGMAN_THROW_A_FMT(it != JumpTargets.end(), "Couldn't find block generated for 0x{:x}", RIP);
+@@ -203,9 +207,10 @@ public:
+     return _ExitFunction(GetOpSize(NewRIP), NewRIP, Hint, InvalidNode, InvalidNode);
+   }
+   IRPair<IROp_ExitFunction> ExitFunction(Ref NewRIP, BranchHint Hint, Ref CallReturnAddress, Ref CallReturnBlock,
+-                                         uint64_t PatchSiteAddress = 0, uint64_t PatchSiteSize = 0) {
++                                         uint64_t PatchSiteAddress = 0, uint64_t PatchSiteSize = 0, uint64_t NEO98ReturnRIP = 0) {
+     FlushRegisterCache();
+-    return _ExitFunction(GetOpSize(NewRIP), NewRIP, Hint, CallReturnAddress, CallReturnBlock, PatchSiteAddress, PatchSiteSize);
++    return _ExitFunction(GetOpSize(NewRIP), NewRIP, Hint, CallReturnAddress, CallReturnBlock, PatchSiteAddress, PatchSiteSize,
++                         NEO98ReturnRIP);
+   }
+   IRPair<IROp_Break> Break(BreakDefinition Reason) {
+     FlushRegisterCache();
+@@ -367,6 +372,7 @@ public:
+   void ALUOp(OpcodeArgs, FEXCore::IR::IROps ALUIROp, FEXCore::IR::IROps AtomicFetchOp, unsigned SrcIdx, bool DestRAX);
+   void LSLOp(OpcodeArgs);
+   void INTOp(OpcodeArgs);
++  void NEO98PortOp(OpcodeArgs);
+   void SyscallOp(OpcodeArgs, bool IsSyscallInst);
+   void ThunkOp(OpcodeArgs);
+   void LEAOp(OpcodeArgs);
+@@ -776,6 +782,9 @@ public:
+   void FSUBF64(OpcodeArgs, IR::OpSize Width, bool Integer, bool Reverse, OpResult ResInST0);
+   void FTSTF64(OpcodeArgs);
+   void X87FLDCWF64(OpcodeArgs);
++  // NEO98: in reduced precision, a control word with PC=11b (64-bit
++  // mantissa) returns to the embedder before the instruction runs.
++  void NEO98X87PrecisionGuard(OpcodeArgs, Ref NewFCW);
+   void X87FXTRACTF64(OpcodeArgs);
+   void X87LDENVF64(OpcodeArgs);
+ 
+@@ -1313,8 +1322,11 @@ protected:
+     NZCVDirty = true;
+   }
+ 
++  // NEO98: set from the context before every translation
++  // (Context::NEO98SetX87Reduced).
++  bool ReducedPrecisionMode {FEXCore::Config::Getter<FEXCore::Config::ConfigOption::CONFIG_X87REDUCEDPRECISION> {}()};
++
+ private:
+-  FEX_CONFIG_OPT(ReducedPrecisionMode, X87REDUCEDPRECISION);
+ 
+   struct JumpTargetInfo {
+     Ref BlockEntry;
+@@ -1542,14 +1554,16 @@ private:
+     return _GetRelocatedPC(Op, Offset, false);
+   }
+ 
+-  void ExitRelocatedPC(const FEXCore::X86Tables::DecodedOp& Op, int64_t Offset, BranchHint Hint, Ref CallReturnAddress, Ref CallReturnBlock) {
++  void ExitRelocatedPC(const FEXCore::X86Tables::DecodedOp& Op, int64_t Offset, BranchHint Hint, Ref CallReturnAddress, Ref CallReturnBlock,
++                       uint64_t NEO98ReturnRIP = 0) {
+     uint64_t PatchOffset = 0;
+     uint64_t PatchSize = 0;
+     if (Op->Src[0].IsLiteralPatchable() && Offset && Offset == (int64_t)Op->Src[0].Literal()) {
+       PatchOffset = Op->PC + Op->Src[0].Data.LiteralPatchable.FieldOffset;
+       PatchSize = Op->Src[0].Data.LiteralPatchable.Width;
+     }
+-    ExitFunction(_GetRelocatedPC(Op, Offset, true /* Inline */), Hint, CallReturnAddress, CallReturnBlock, PatchOffset, PatchSize);
++    ExitFunction(_GetRelocatedPC(Op, Offset, true /* Inline */), Hint, CallReturnAddress, CallReturnBlock, PatchOffset, PatchSize,
++                 NEO98ReturnRIP);
+   }
+ 
+   void ExitRelocatedPC(const FEXCore::X86Tables::DecodedOp& Op, int64_t Offset = 0) {
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher/BaseTables.h b/FEXCore/Source/Interface/Core/OpcodeDispatcher/BaseTables.h
+index e328c40..bfd5920 100644
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher/BaseTables.h
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher/BaseTables.h
+@@ -72,11 +72,11 @@ constexpr inline DispatchTableEntry OpDispatch_BaseOpTable[] = {
+   {0xD7, 2, &OpDispatchBuilder::XLATOp},
+   {0xE0, 3, &OpDispatchBuilder::LoopOp},
+   {0xE3, 1, &OpDispatchBuilder::CondJUMPRCXOp},
+-  {0xE4, 4, &OpDispatchBuilder::PermissionRestrictedOp},
++  {0xE4, 4, &OpDispatchBuilder::NEO98PortOp},
+   {0xE8, 1, &OpDispatchBuilder::CALLOp},
+   {0xE9, 1, &OpDispatchBuilder::JUMPOp},
+   {0xEB, 1, &OpDispatchBuilder::JUMPOp},
+-  {0xEC, 4, &OpDispatchBuilder::PermissionRestrictedOp},
++  {0xEC, 4, &OpDispatchBuilder::NEO98PortOp},
+   {0xF1, 1, &OpDispatchBuilder::INTOp},
+   {0xF4, 1, &OpDispatchBuilder::INTOp},
+ 
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+index 37de3a0..d734607 100644
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher/Vector.cpp
+@@ -3171,6 +3171,8 @@ Ref OpDispatchBuilder::GetMXCSR() {
+ }
+ 
+ void OpDispatchBuilder::FXRStoreOp(OpcodeArgs) {
++  // NEO98: the guard starts a new IR block, and no value lives across one.
++  NEO98X87PrecisionGuard(Op, _LoadMemGPR(OpSize::i16Bit, MakeSegmentAddress(Op, Op->Src[0]), OpSize::i16Bit));
+   Ref Mem = MakeSegmentAddress(Op, Op->Src[0]);
+ 
+   RestoreX87State(Mem);
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87.cpp
+index d8820ab..5d138e6 100644
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87.cpp
+@@ -544,6 +544,8 @@ void OpDispatchBuilder::X87FNSAVE(OpcodeArgs) {
+ void OpDispatchBuilder::X87FRSTOR(OpcodeArgs) {
+   _StackForceSlow();
+   const auto Size = OpSizeFromSrc(Op);
++  // NEO98: the guard starts a new IR block, and no value lives across one.
++  NEO98X87PrecisionGuard(Op, _LoadMemGPR(OpSize::i16Bit, MakeSegmentAddress(Op, Op->Src[0]), OpSize::i16Bit));
+   Ref Mem = MakeSegmentAddress(Op, Op->Src[0]);
+ 
+   auto NewFCW = _LoadMemGPR(OpSize::i16Bit, Mem, OpSize::i16Bit);
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87F64.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87F64.cpp
+index 33fba69..4bea768 100644
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87F64.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87F64.cpp
+@@ -27,6 +27,8 @@ void OpDispatchBuilder::X87LDENVF64(OpcodeArgs) {
+   _StackForceSlow();
+ 
+   const auto Size = OpSizeFromSrc(Op);
++  // NEO98: the guard starts a new IR block, and no value lives across one.
++  NEO98X87PrecisionGuard(Op, _LoadMemGPR(OpSize::i16Bit, MakeSegmentAddress(Op, Op->Src[0]), OpSize::i16Bit));
+   Ref Mem = MakeSegmentAddress(Op, Op->Src[0]);
+ 
+   auto NewFCW = _LoadMemGPR(OpSize::i16Bit, Mem, OpSize::i16Bit);
+@@ -45,9 +47,45 @@ void OpDispatchBuilder::X87LDENVF64(OpcodeArgs) {
+   }
+ }
+ 
++// NEO98: a 32-bit guest that asks for 64-bit precision gets it. The block
++// leaves through the syscall handler with RIP on this instruction and
++// CPUState::NEO98Exit 3; the embedder switches the context to 80-bit x87
++// (Context::NEO98SetX87Reduced), drops translated code and runs the
++// instruction again.
++void OpDispatchBuilder::NEO98X87PrecisionGuard(OpcodeArgs, Ref NewFCW) {
++  if (Is64BitMode || !ReducedPrecisionMode) {
++    return;
++  }
++  CalculateDeferredFlags();
++  Ref Precision = _Bfe(OpSize::i32Bit, 2, 8, NewFCW);
++  Ref NotFull = _Sub(OpSize::i32Bit, Precision, Constant(3));
++  // Both successors start clean: nothing cached may cross the branch.
++  FlushRegisterCache();
++  auto CondJump_ = CondJump(NotFull, CondClass::EQ);
++
++  auto ExitBlock = CreateNewCodeBlockAfter(GetCurrentBlock());
++  SetTrueJumpTarget(CondJump_, ExitBlock);
++  SetCurrentCodeBlock(ExitBlock);
++  StartNewBlock();
++  {
++    const auto GPRSize = GetGPROpSize();
++    _StoreContextGPR(GPRSize, GetRelocatedPC(Op, -Op->InstSize), offsetof(FEXCore::Core::CPUState, rip));
++    _StoreContextGPR(OpSize::i8Bit, Constant(3), offsetof(FEXCore::Core::CPUState, NEO98Exit));
++    FlushRegisterCache();
++    _Syscall();
++  }
++
++  auto Continue = CreateNewCodeBlockAfter(ExitBlock);
++  SetFalseJumpTarget(CondJump_, Continue);
++  SetCurrentCodeBlock(Continue);
++  StartNewBlock();
++}
++
+ void OpDispatchBuilder::X87FLDCWF64(OpcodeArgs) {
+   _StackForceSlow();
+ 
++  // NEO98: the guard starts a new IR block, and no value lives across one.
++  NEO98X87PrecisionGuard(Op, LoadSourceGPR(Op, Op->Src[0], Op->Flags));
+   Ref NewFCW = LoadSourceGPR(Op, Op->Src[0], Op->Flags);
+   // ignore the rounding precision, we're always 64-bit in F64.
+   // extract rounding mode
+diff --git a/FEXCore/Source/Interface/Core/SharedCodeBufferManager.cpp b/FEXCore/Source/Interface/Core/SharedCodeBufferManager.cpp
+index eee5023..bfd0035 100644
+--- a/FEXCore/Source/Interface/Core/SharedCodeBufferManager.cpp
++++ b/FEXCore/Source/Interface/Core/SharedCodeBufferManager.cpp
+@@ -18,14 +18,11 @@ static constexpr size_t MAX_CODE_SIZE = 1024 * 1024 * 128;
+ 
+ CodeBuffer::CodeBuffer(size_t Size, bool ShouldBeNamed)
+   : AllocatedSize(Size) {
+-  Ptr = static_cast<uint8_t*>(FEXCore::Allocator::VirtualAlloc(Size, true));
+-  LOGMAN_THROW_A_FMT(!!Ptr, "Couldn't allocate code buffer");
+-
+-  // Protect the last page of the allocated buffer to trigger SIGSEGV on write access
+-  uintptr_t LastPageAddr = AlignDown(reinterpret_cast<uintptr_t>(Ptr) + Size - 1, FEXCore::Utils::FEX_PAGE_SIZE);
+-  if (!FEXCore::Allocator::VirtualProtect(reinterpret_cast<void*>(LastPageAddr), FEXCore::Utils::FEX_PAGE_SIZE,
+-                                          FEXCore::Allocator::ProtectOptions::None)) {
+-    LogMan::Msg::EFmt("Failed to mprotect last page of code buffer.");
++  // NEO98: the last page is the guard against running past the end; without
++  // the memory FEXCore cannot go on, so say so instead of using a bad pointer.
++  Ptr = static_cast<uint8_t*>(FEXCore::Allocator::VirtualAllocWithTailGuard(Size, true));
++  if (!Ptr) {
++    ERROR_AND_DIE_FMT("Couldn't allocate a code buffer of {} bytes", Size);
+   }
+ 
+   if (ShouldBeNamed) {
+@@ -42,7 +39,7 @@ CodeBuffer::CodeBuffer(size_t Size, bool ShouldBeNamed)
+ }
+ 
+ CodeBuffer::~CodeBuffer() {
+-  FEXCore::Allocator::VirtualFree(Ptr, AllocatedSize);
++  FEXCore::Allocator::VirtualFreeWithTailGuard(Ptr, AllocatedSize);
+ }
+ 
+ SharedCodeBufferManager::SharedCodeBufferManager() {
+diff --git a/FEXCore/Source/Interface/IR/IR.json b/FEXCore/Source/Interface/IR/IR.json
+index 172d62d..0fe9e4c 100644
+--- a/FEXCore/Source/Interface/IR/IR.json
++++ b/FEXCore/Source/Interface/IR/IR.json
+@@ -167,7 +167,7 @@
+         "SwitchGen": false,
+         "JITDispatchOverride": "NoOp"
+       },
+-      "CodeBlock SSA:$Begin, SSA:$Last, u32:$ID, i1:$EntryPoint{false}, u32:$GuestEntryOffset{0}": {
++      "CodeBlock SSA:$Begin, SSA:$Last, u32:$ID, i1:$EntryPoint{false}, u32:$GuestEntryOffset{0}, i1:$NEO98GuestHead{false}": {
+         "SwitchGen": false,
+         "RAOverride": "0",
+         "JITDispatchOverride": "NoOp"
+@@ -313,7 +313,7 @@
+         "HasSideEffects": true,
+         "RAOverride": "2"
+       },
+-      "ExitFunction OpSize:#Size, GPR:$NewRIP, BranchHint:$Hint, GPR:$CallReturnAddress, SSA:$CallReturnBlock, i64:$PatchSiteAddress{0}, i64:$PatchSiteSize{0}": {
++      "ExitFunction OpSize:#Size, GPR:$NewRIP, BranchHint:$Hint, GPR:$CallReturnAddress, SSA:$CallReturnBlock, i64:$PatchSiteAddress{0}, i64:$PatchSiteSize{0}, i64:$NEO98ReturnRIP{0}": {
+         "Desc": ["Exits the current JIT function with a target RIP - optionally patchable from guest bytes for caching"
+                 ],
+         "Inline": ["Any"],
+diff --git a/FEXCore/Source/Interface/IR/PassManager.cpp b/FEXCore/Source/Interface/IR/PassManager.cpp
+index 5d3bcec..86bfc99 100644
+--- a/FEXCore/Source/Interface/IR/PassManager.cpp
++++ b/FEXCore/Source/Interface/IR/PassManager.cpp
+@@ -73,7 +73,8 @@ void PassManager::AddDefaultPasses(Context::ContextImpl* ctx) {
+   // We only specifically disable optimization passes if desired, as IR output should
+   // still be well-formed regardless of the modifications made to it.
+   if (!DisablePasses()) {
+-    InsertPass(CreateX87StackOptimizationPass(ctx->HostFeatures, ctx->Config.Is64BitMode ? IR::OpSize::i64Bit : IR::OpSize::i32Bit));
++    InsertPass(CreateX87StackOptimizationPass(ctx->HostFeatures, ctx->Config.Is64BitMode ? IR::OpSize::i64Bit : IR::OpSize::i32Bit,
++                                              &ctx->NEO98X87ReducedMode));
+     InsertPass(CreateDeadFlagCalculationEliminination());
+   }
+ 
+diff --git a/FEXCore/Source/Interface/IR/Passes.h b/FEXCore/Source/Interface/IR/Passes.h
+index 213967a..9a7afda 100644
+--- a/FEXCore/Source/Interface/IR/Passes.h
++++ b/FEXCore/Source/Interface/IR/Passes.h
+@@ -13,7 +13,7 @@ class Pass;
+ 
+ fextl::unique_ptr<Pass> CreateDeadFlagCalculationEliminination();
+ fextl::unique_ptr<Pass> CreateRegisterAllocationPass(const CPUIDEmu* CPUID);
+-fextl::unique_ptr<Pass> CreateX87StackOptimizationPass(const HostFeatures&, OpSize GPROpSize);
++fextl::unique_ptr<Pass> CreateX87StackOptimizationPass(const HostFeatures&, OpSize GPROpSize, const bool* ReducedFlag = nullptr);
+ 
+ namespace Validation {
+   fextl::unique_ptr<Pass> CreateIRValidation();
+diff --git a/FEXCore/Source/Interface/IR/Passes/x87StackOptimizationPass.cpp b/FEXCore/Source/Interface/IR/Passes/x87StackOptimizationPass.cpp
+index f205097..a847fe8 100644
+--- a/FEXCore/Source/Interface/IR/Passes/x87StackOptimizationPass.cpp
++++ b/FEXCore/Source/Interface/IR/Passes/x87StackOptimizationPass.cpp
+@@ -151,9 +151,10 @@ private:
+ 
+ class X87StackOptimization final : public Pass {
+ public:
+-  X87StackOptimization(const FEXCore::HostFeatures& Features, OpSize GPROpSize)
++  X87StackOptimization(const FEXCore::HostFeatures& Features, OpSize GPROpSize, const bool* ReducedFlag)
+     : Features(Features)
+-    , GPROpSize(GPROpSize) {
++    , GPROpSize(GPROpSize)
++    , ReducedFlag(ReducedFlag) {
+     FEX_CONFIG_OPT(ReducedPrecision, X87REDUCEDPRECISION);
+     ReducedPrecisionMode = ReducedPrecision;
+   }
+@@ -163,6 +164,8 @@ private:
+   const FEXCore::HostFeatures& Features;
+   const OpSize GPROpSize;
+   bool ReducedPrecisionMode;
++  // NEO98: the context's x87 representation, read at every Run.
++  const bool* ReducedFlag {};
+   FEX_CONFIG_OPT(DisableVixlIndirectCalls, DISABLE_VIXL_INDIRECT_RUNTIME_CALLS);
+ 
+   // Helpers
+@@ -469,10 +472,11 @@ inline Ref X87StackOptimization::GetX87ValidTag_Slow(uint8_t Offset) {
+ }
+ 
+ inline Ref X87StackOptimization::LoadStackValueAtOffset_Slow(uint8_t Offset) {
+-  OrderedNode* TopOffsetAddress = GetOffsetTopAddressWithCache_Slow(Offset);
+   auto Size = ReducedPrecisionMode ? OpSize::i64Bit : OpSize::i128Bit;
+   if (!TopValueCache[Offset]) {
+-    TopValueCache[Offset] = IREmit->_LoadMemFPR(Size, TopOffsetAddress, IREmit->_InlineConstant(MMBaseOffset()), Size, MemOffsetType::SXTX, 1);
++    // NEO98: a context access, not a guest memory access; guest memory
++    // operations are rebased onto the guest memory base in 32-bit mode.
++    TopValueCache[Offset] = IREmit->_LoadContextFPRIndexed(GetOffsetTopWithCache_Slow(Offset), Size, MMBaseOffset(), 16);
+   }
+   return TopValueCache[Offset];
+ }
+@@ -618,8 +622,7 @@ void X87StackOptimization::FlushCachedRegs() {
+   auto Size = ReducedPrecisionMode ? OpSize::i64Bit : OpSize::i128Bit;
+   for (size_t i = 0; i < FlushValuesPending.size(); i++) {
+     if (FlushValuesPending[i]) {
+-      OrderedNode* TopOffsetAddress = GetOffsetTopAddressWithCache_Slow(i);
+-      IREmit->_StoreMemFPR(Size, TopValueCache[i], TopOffsetAddress, IREmit->_InlineConstant(MMBaseOffset()), Size, MemOffsetType::SXTX, 1);
++      IREmit->_StoreContextFPRIndexed(TopValueCache[i], GetOffsetTopWithCache_Slow(i), Size, MMBaseOffset(), 16);
+       // store
+       FlushValuesPending[i] = false;
+     }
+@@ -724,6 +727,9 @@ Ref X87StackOptimization::SynchronizeStackValues() {
+ 
+ void X87StackOptimization::Run(IREmitter* Emit) {
+   FEXCORE_PROFILE_SCOPED("PassManager::x87StackOpt");
++  if (ReducedFlag) {
++    ReducedPrecisionMode = *ReducedFlag;
++  }
+ 
+   auto CurrentIR = Emit->ViewIR();
+   auto* HeaderOp = CurrentIR.GetHeader();
+@@ -1234,7 +1240,7 @@ void X87StackOptimization::Run(IREmitter* Emit) {
+   }
+ }
+ 
+-fextl::unique_ptr<Pass> CreateX87StackOptimizationPass(const HostFeatures& Features, OpSize GPROpSize) {
+-  return fextl::make_unique<X87StackOptimization>(Features, GPROpSize);
++fextl::unique_ptr<Pass> CreateX87StackOptimizationPass(const HostFeatures& Features, OpSize GPROpSize, const bool* ReducedFlag) {
++  return fextl::make_unique<X87StackOptimization>(Features, GPROpSize, ReducedFlag);
+ }
+ } // namespace FEXCore::IR
+diff --git a/FEXCore/include/FEXCore/Core/Context.h b/FEXCore/include/FEXCore/Core/Context.h
+index 8aa448e..244ecbe 100644
+--- a/FEXCore/include/FEXCore/Core/Context.h
++++ b/FEXCore/include/FEXCore/Core/Context.h
+@@ -174,6 +174,55 @@ public:
+    */
+   FEX_DEFAULT_VISIBILITY virtual void EnableExitOnHLT() = 0;
+ 
++  /**
++   * @brief NEO98: guest addresses that call the syscall handler before they run.
++   *
++   * A block that starts in one of the two ranges calls the syscall handler with
++   * RIP at its start; decoding never runs into such an address. Code already
++   * translated across a new range has to be invalidated by the caller.
++   */
++  FEX_DEFAULT_VISIBILITY virtual void NEO98SetHookRange(unsigned Index, uint64_t Begin, uint64_t End) = 0;
++
++  /**
++   * @brief NEO98: where the frontend reads guest code
++   *
++   * In 32-bit mode the code bytes of guest address A are read at
++   * GuestMemBase + A + Delta: the embedder keeps a second view of guest memory
++   * that is always readable, while the view behind GuestMemBase carries the
++   * guest's rights. Used by the decoder and by blocks that check their bytes.
++   */
++  FEX_DEFAULT_VISIBILITY virtual void NEO98SetCodeView(int64_t Delta) = 0;
++
++  /**
++   * @brief NEO98: x87 with 64-bit doubles (true) or 80-bit extended values
++   *
++   * Blocks translated afterwards use the chosen representation; the caller
++   * drops translated code and converts the register file in the CPUState
++   * (mm[i] holds a double in the low 64 bits in reduced mode).
++   */
++  FEX_DEFAULT_VISIBILITY virtual void NEO98SetX87Reduced(bool Reduced) = 0;
++  FEX_DEFAULT_VISIBILITY virtual bool NEO98X87Reduced() const = 0;
++
++  /**
++   * @brief NEO98: the host bytes of one 4 KiB guest page of code
++   *
++   * When set, the decoder reads guest code page by page through Lookup
++   * (guest address >> 12 in, host pointer to the page out) instead of through
++   * the code view: a page may keep its bytes apart from its neighbours.
++   */
++  using NEO98CodePageFn = const uint8_t* (*)(void* Opaque, uint64_t Page);
++  FEX_DEFAULT_VISIBILITY virtual void NEO98SetCodePageLookup(NEO98CodePageFn Lookup, void* Opaque) = 0;
++
++  /**
++   * @brief NEO98: which blocks look up the rights of every page they touch
++   *
++   * Asked with the entry of every block that is compiled in 32-bit mode; a
++   * true answer compiles its guest accesses through the page tables described
++   * at Arm64JITCore::NEO98CheckedHost.
++   */
++  using NEO98CheckedFn = bool (*)(void* Opaque, uint64_t GuestRIP);
++  FEX_DEFAULT_VISIBILITY virtual void NEO98SetCheckedLookup(NEO98CheckedFn Lookup, void* Opaque) = 0;
++
+   /**
+    * @brief Adds a new Thunk trampoline handler
+    *
+diff --git a/FEXCore/include/FEXCore/Core/CoreState.h b/FEXCore/include/FEXCore/Core/CoreState.h
+index 80514bf..ca7e96e 100644
+--- a/FEXCore/include/FEXCore/Core/CoreState.h
++++ b/FEXCore/include/FEXCore/Core/CoreState.h
+@@ -107,7 +107,10 @@ struct alignas(64) CPUState {
+   uint64_t L1Pointer {};
+   uint64_t L1Mask {};
+   uint64_t callret_sp {};
+-  uint64_t _pad1 {};
++  // NEO98: host address of guest address zero in 32-bit mode. Every guest
++  // memory access becomes GuestMemBase + zext32(address); 0 keeps guest
++  // address == host address.
++  uint64_t GuestMemBase {};
+ 
+   // Cacheline: 1,2,3,4
+   // The high 128-bits of AVX registers when not being emulated by SVE256.
+@@ -191,7 +194,11 @@ struct alignas(64) CPUState {
+   uint16_t FCW {0x37F};
+   uint8_t AbridgedFTW {};
+ 
+-  uint8_t _pad2[5];
++  // NEO98: why the dispatcher returned to the host (1 budget, 2 host stop),
++  // and the blocks left before the budget exit. The same five bytes as the
++  // padding they replace.
++  uint8_t NEO98Exit {};
++  int32_t NEO98Budget {0x7fffffff};
+   // PF/AF are statically mapped as-if they were r16/r17 (which do not exist in
+   // x86 otherwise). This allows a straightforward mapping for SRA.
+   static constexpr uint8_t PF_AS_GREG = 16;
+diff --git a/FEXCore/include/FEXCore/Utils/AllocatorHooks.h b/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
+index 6aee149..f690ca4 100644
+--- a/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
++++ b/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
+@@ -2,6 +2,7 @@
+ #pragma once
+ #ifdef __APPLE__
+ #include <pthread.h>
++#include <unistd.h>
+ #endif
+ #include <FEXCore/Utils/CompilerDefs.h>
+ #include <FEXCore/Utils/EnumOperators.h>
+@@ -17,6 +18,7 @@
+ #endif
+ 
+ #include <new>
++#include <cstring>
+ #include <cstddef>
+ #include <cstdint>
+ #include <sys/types.h>
+@@ -124,13 +126,20 @@ FEX_DEFAULT_VISIBILITY extern void VirtualName(const char* Name, void* Ptr, size
+ #else
+ #define NEO98_MAP_JIT(Execute) 0
+ #endif
++#ifdef __APPLE__
++// NEO98: callers test the result against nullptr, mmap fails with MAP_FAILED.
++#define NEO98_MAPPED(Ptr) ((Ptr) == MAP_FAILED ? nullptr : (Ptr))
++#else
++#define NEO98_MAPPED(Ptr) (Ptr)
++#endif
+ inline void* VirtualAlloc(size_t Size, bool Execute = false, bool Commit = true) {
+-  return FEXCore::Allocator::mmap(nullptr, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS | NEO98_MAP_JIT(Execute), -1, 0);
++  return NEO98_MAPPED(FEXCore::Allocator::mmap(nullptr, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS | NEO98_MAP_JIT(Execute), -1, 0));
+ }
+ 
+ inline void* VirtualAlloc(void* Base, size_t Size, bool Execute = false, bool Commit = true) {
+-  return FEXCore::Allocator::mmap(Base, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS | NEO98_MAP_JIT(Execute), -1, 0);
++  return NEO98_MAPPED(FEXCore::Allocator::mmap(Base, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS | NEO98_MAP_JIT(Execute), -1, 0));
+ }
++#undef NEO98_MAPPED
+ #ifdef __APPLE__
+ // NEO98 spike: make MAP_JIT pages writable for this thread for the scope.
+ struct NEO98JitWriteScope {
+@@ -145,6 +154,12 @@ inline void VirtualFree(void* Ptr, size_t Size) {
+   FEXCore::Allocator::munmap(Ptr, Size);
+ }
+ inline void VirtualDontNeed(void* Ptr, size_t Size, bool Recommit = true) {
++#ifdef __APPLE__
++  // NEO98: MADV_DONTNEED keeps the bytes on Darwin, but callers rely on the
++  // pages reading as zero afterwards (the call-return stack after a cache
++  // clear holds host addresses of code that no longer exists).
++  memset(Ptr, 0, Size);
++#endif
+   ::madvise(reinterpret_cast<void*>(Ptr), Size, MADV_DONTNEED);
+ }
+ inline bool VirtualProtect(void* Ptr, size_t Size, ProtectOptions options) {
+@@ -162,6 +177,55 @@ inline bool VirtualProtect(void* Ptr, size_t Size, ProtectOptions options) {
+   return ::mprotect(Ptr, Size, prot) == 0;
+ }
+ 
++// NEO98: Size bytes whose last FEX page (4 KiB) is inaccessible, a guard
++// behind the usable part. Apple silicon has 16 KiB pages and refuses mprotect
++// on MAP_JIT memory, so the guard there is a PROT_NONE host page mapped over
++// the tail of a slightly larger reservation, placed so that it begins exactly
++// FEX_PAGE_SIZE bytes before the end. Returns nullptr when the memory cannot
++// be had; VirtualFreeWithTailGuard releases it.
++#ifdef __APPLE__
++inline size_t NEO98HostPage() {
++  return static_cast<size_t>(getpagesize());
++}
++inline size_t NEO98GuardedBytes(size_t Size) {
++  const size_t Host = NEO98HostPage();
++  return (Size + Host - 1) / Host * Host + Host;
++}
++#endif
++inline void* VirtualAllocWithTailGuard(size_t Size, bool Execute = false) {
++  constexpr size_t Guard = 4096; // FEXCore::Utils::FEX_PAGE_SIZE
++#ifdef __APPLE__
++  const size_t Host = NEO98HostPage(), Total = NEO98GuardedBytes(Size);
++  auto* Base = static_cast<uint8_t*>(VirtualAlloc(Total, Execute));
++  if (!Base) {
++    return nullptr;
++  }
++  uint8_t* Tail = Base + Total - Host;
++  if (FEXCore::Allocator::mmap(Tail, Host, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0) != Tail) {
++    FEXCore::Allocator::munmap(Base, Total);
++    return nullptr;
++  }
++  return Tail + Guard - Size;
++#else
++  auto* Ptr = static_cast<uint8_t*>(VirtualAlloc(Size, Execute));
++  if (Ptr && !VirtualProtect(Ptr + Size - Guard, Guard, ProtectOptions::None)) {
++    LogMan::Msg::EFmt("Failed to mprotect the guard page of an allocation.");
++  }
++  return Ptr;
++#endif
++}
++inline void VirtualFreeWithTailGuard(void* Ptr, size_t Size) {
++#ifdef __APPLE__
++  // The guard begins FEX_PAGE_SIZE before the end and the reservation Total
++  // bytes before the guard's end.
++  const size_t Total = NEO98GuardedBytes(Size);
++  auto* End = static_cast<uint8_t*>(Ptr) + Size - 4096 + NEO98HostPage();
++  FEXCore::Allocator::munmap(End - Total, Total);
++#else
++  FEXCore::Allocator::munmap(Ptr, Size);
++#endif
++}
++
+ inline void VirtualTHPControl(const void* Ptr, size_t Size, THPControl Control) {
+ #ifndef __APPLE__
+   ::madvise(const_cast<void*>(Ptr), Size, Control == THPControl::Enable ? MADV_HUGEPAGE : MADV_NOHUGEPAGE);
+diff --git a/FEXCore/include/FEXCore/Utils/ThreadPoolAllocator.h b/FEXCore/include/FEXCore/Utils/ThreadPoolAllocator.h
+index 69e410c..4857490 100644
+--- a/FEXCore/include/FEXCore/Utils/ThreadPoolAllocator.h
++++ b/FEXCore/include/FEXCore/Utils/ThreadPoolAllocator.h
+@@ -419,11 +419,11 @@ public:
+ 
+ private:
+   void* Alloc(size_t Size) override {
+-    auto Ptr = FEXCore::Allocator::VirtualAlloc(Size);
+-    uintptr_t LastPageAddr = AlignDown(reinterpret_cast<uintptr_t>(Ptr) + Size - 1, FEXCore::Utils::FEX_PAGE_SIZE);
+-    if (!FEXCore::Allocator::VirtualProtect(reinterpret_cast<void*>(LastPageAddr), FEXCore::Utils::FEX_PAGE_SIZE,
+-                                            FEXCore::Allocator::ProtectOptions::None)) {
+-      LogMan::Msg::EFmt("Failed to mprotect last page of code buffer.");
++    // NEO98: the guard works on hosts with larger pages too, and running out
++    // of memory ends here with a message instead of a bad pointer later.
++    auto Ptr = FEXCore::Allocator::VirtualAllocWithTailGuard(Size);
++    if (!Ptr) {
++      ERROR_AND_DIE_FMT("Couldn't allocate {} bytes for {}", Size, Name ? Name : "a pooled buffer");
+     }
+     if (Name) {
+       FEXCore::Allocator::VirtualName(Name, Ptr, Size);
+@@ -432,7 +432,7 @@ private:
+   }
+ 
+   void Free(void* Ptr, size_t Size) override {
+-    FEXCore::Allocator::VirtualFree(Ptr, Size);
++    FEXCore::Allocator::VirtualFreeWithTailGuard(Ptr, Size);
+   }
+ 
+   const char* Name {};

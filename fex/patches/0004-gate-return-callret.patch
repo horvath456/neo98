@@ -1,0 +1,39 @@
+NEO98: a gate served in the syscall handler returns through the call-return
+stack and the L1 cache instead of the dispatcher loop.
+
+diff --git a/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp b/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
+--- a/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/Dispatcher/Dispatcher.cpp
+@@ -595,6 +595,32 @@
+       ldr(TMP1, STATE, offsetof(FEXCore::Core::CpuStateFrame, Pointers.ThreadStopHandlerSpillSRA));
+       br(TMP1);
+       (void)Bind(&l_NoExit);
++
++      // NEO98: a gate served in the handler has returned to its caller. That
++      // return address lies on top of the call-return stack, pushed by the
++      // guest CALL that reached the gate: pop it and return into the calling
++      // block like a guest RET does, so the stack stays balanced and the
++      // RETs of the callers keep predicting. Otherwise look in the L1 cache
++      // as an indirect branch does; the loop top only knows the L2 cache,
++      // which a block enters on its first L1 miss, so it would call
++      // CompileBlock for every gate. A single step takes the loop top.
++      ldrb(TMP1, STATE_PTR(CpuStateFrame, State.flags[X86State::RFLAG_TF_RAW_LOC]));
++      (void)cbnz(ARMEmitter::Size::i32Bit, TMP1, &LoopTop);
++      ldr(RipReg, STATE_PTR(CpuStateFrame, State.rip));
++      ARMEmitter::ForwardLabel l_NoCallRet;
++      ldp<ARMEmitter::IndexType::OFFSET>(TMP1, TMP2, REG_CALLRET_SP);
++      sub(ARMEmitter::Size::i64Bit, TMP1, TMP1, RipReg);
++      (void)cbnz(ARMEmitter::Size::i64Bit, TMP1, &l_NoCallRet);
++      add(ARMEmitter::Size::i64Bit, REG_CALLRET_SP, REG_CALLRET_SP, 0x10);
++      ret(TMP2);
++      (void)Bind(&l_NoCallRet);
++      ldp<ARMEmitter::IndexType::OFFSET>(TMP1, TMP2, STATE, offsetof(FEXCore::Core::CpuStateFrame, State.L1Pointer));
++      and_(ARMEmitter::Size::i64Bit, TMP2, TMP2, RipReg.R(), ARMEmitter::ShiftType::LSL, FEXCore::ilog2(sizeof(LookupCache::LookupCacheEntry)));
++      add(TMP1, TMP1, TMP2);
++      ldp<ARMEmitter::IndexType::OFFSET>(TMP2, TMP1, TMP1, 0);
++      sub(ARMEmitter::Size::i64Bit, TMP1, TMP1, RipReg);
++      (void)cbnz(ARMEmitter::Size::i64Bit, TMP1, &LoopTop);
++      br(TMP2);
+     }
+ 
+     // Now go back to the regular dispatcher loop

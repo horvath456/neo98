@@ -1,0 +1,206 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 87b7c31..3cc5a55 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -61,7 +61,7 @@ if (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+   message(FATAL_ERROR "Unsupported pointer size ${CMAKE_SIZEOF_VOID_P}."
+     " FEX only supports 64-bit (8-byte pointer) systems."
+     " If you believe this is in error, file an issue.")
+-elseif (NOT (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Linux"))
++elseif (NOT (WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin"))
+   message(FATAL_ERROR "Unsupported system type ${CMAKE_SYSTEM_NAME}."
+     " FEX only supports Linux and Windows."
+     " If you believe this is in error, file an issue.")
+@@ -617,14 +617,16 @@ add_subdirectory(FEXHeaderUtils/)
+ add_subdirectory(CodeEmitter/)
+ add_subdirectory(FEXCore/)
+ 
+-if (ARCHITECTURE_arm64 AND NOT MINGW AND NOT BUILD_STEAM_SUPPORT)
++if (ARCHITECTURE_arm64 AND NOT MINGW AND NOT BUILD_STEAM_SUPPORT AND NOT APPLE)
+   # Binfmt_misc files must be installed prior to Source/ installs
+   add_subdirectory(Data/binfmts/)
+ endif()
+ 
++if (NOT APPLE)
+ add_subdirectory(Source/)
++endif()
+ 
+-if (NOT BUILD_STEAM_SUPPORT)
++if (NOT BUILD_STEAM_SUPPORT AND NOT APPLE)
+   add_subdirectory(Data/AppConfig/)
+ endif()
+ 
+diff --git a/FEXCore/Source/Interface/Core/CodeCache.cpp b/FEXCore/Source/Interface/Core/CodeCache.cpp
+index a9de6c7..4391f4e 100644
+--- a/FEXCore/Source/Interface/Core/CodeCache.cpp
++++ b/FEXCore/Source/Interface/Core/CodeCache.cpp
+@@ -256,7 +256,7 @@ void CodeMapWriter::AppendData(std::span<const std::byte> Data) {
+     }
+     if (!IsResponsibleForFlush) {
+       // Wait for the buffer to be flushed on the responsible thread
+-      Utils::SpinWaitLock::WaitPred<std::less_equal<>, size_t>(reinterpret_cast<size_t*>(&BufferOffset), Buffer.size());
++      Utils::SpinWaitLock::WaitPred<std::less_equal<>, uint64_t>(reinterpret_cast<uint64_t*>(&BufferOffset), Buffer.size()); // NEO98 spike: size_t is unsigned long on Darwin
+     }
+     AppendData(Data);
+     return;
+@@ -988,7 +988,13 @@ void CodeCache::FinalizeCodePages(MappedCodeCacheFile& Code, std::span<std::byte
+   // buffer onto the requested CodeBuffer window. MREMAP_DONTUNMAP is used to
+   // leave the old VA range reserved so that we can cleanly deallocate it
+   // through Allocator.
++#ifdef __APPLE__
++  // NEO98 spike: no mremap on Darwin; the disk code cache is not used in the spike.
++  void* RemapResult = MAP_FAILED;
++  errno = ENOSYS;
++#else
+   void* RemapResult = ::mremap(Staging, Size, Size, MREMAP_FIXED | MREMAP_MAYMOVE | MREMAP_DONTUNMAP, CodeRange.data());
++#endif
+   if (RemapResult == MAP_FAILED) {
+     ERROR_AND_DIE_FMT("{}: mremap failed: {}", __FUNCTION__, errno);
+   }
+diff --git a/FEXCore/Source/Interface/Core/Core.cpp b/FEXCore/Source/Interface/Core/Core.cpp
+index 63280a4..a7ed0bf 100644
+--- a/FEXCore/Source/Interface/Core/Core.cpp
++++ b/FEXCore/Source/Interface/Core/Core.cpp
+@@ -874,6 +874,10 @@ uintptr_t ContextImpl::CompileBlock(FEXCore::Core::CpuStateFrame* Frame, uint64_
+   if (auto HostCode = Thread->LookupCache->FindBlock(Thread, GuestRIP)) {
+     return HostCode;
+   }
++#ifdef __APPLE__
++  // NEO98 spike: only a real translation writes code; a cache hit stays executable.
++  FEXCore::Allocator::NEO98JitWriteScope NEO98Writable;
++#endif
+ 
+   Thread->FrontendDecoder->SetupDecodeInstructionsAtEntry(Thread, GuestRIP, MaxInst);
+ 
+diff --git a/FEXCore/Source/Interface/Core/Interpreter/Fallbacks/F80Fallbacks.h b/FEXCore/Source/Interface/Core/Interpreter/Fallbacks/F80Fallbacks.h
+index 5c0e656..4cdb765 100644
+--- a/FEXCore/Source/Interface/Core/Interpreter/Fallbacks/F80Fallbacks.h
++++ b/FEXCore/Source/Interface/Core/Interpreter/Fallbacks/F80Fallbacks.h
+@@ -373,7 +373,7 @@ struct OpHandlers<IR::OP_F64SINCOS> {
+     sin = ::sin(src);
+     cos = ::cos(src);
+ #else
+-    sincos(src, &sin, &cos);
++    __sincos(src, &sin, &cos); // NEO98 spike: Darwin spells glibc sincos as __sincos
+ #endif
+     return VectorScalarF64Pair {sin, cos};
+   }
+diff --git a/FEXCore/Source/Interface/Core/JIT/JIT.cpp b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+index ef7e332..6d997c8 100644
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -564,6 +564,9 @@ static void IndirectBlockDelinker(FEXCore::Context::ExitFunctionLinkData* Record
+ }
+ 
+ uint64_t Arm64JITCore::ExitFunctionLink(FEXCore::Core::CpuStateFrame* Frame, FEXCore::Context::ExitFunctionLinkData* Record) {
++#ifdef __APPLE__
++  FEXCore::Allocator::NEO98JitWriteScope NEO98Writable;
++#endif
+   auto Thread = Frame->Thread;
+   bool TFSet = Thread->CurrentFrame->State.flags[X86State::RFLAG_TF_RAW_LOC];
+   uintptr_t HostCode {};
+diff --git a/FEXCore/Source/Interface/Core/JIT/MiscOps.cpp b/FEXCore/Source/Interface/Core/JIT/MiscOps.cpp
+index 6e8df95..edc0fbd 100644
+--- a/FEXCore/Source/Interface/Core/JIT/MiscOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/MiscOps.cpp
+@@ -276,7 +276,12 @@ DEF_OP(ProcessorID) {
+   // Node in x1
+   add(ARMEmitter::Size::i64Bit, ARMEmitter::Reg::r1, ARMEmitter::Reg::rsp, 4);
+ 
++#ifdef __APPLE__
++  // NEO98 spike: no Linux getcpu syscall on Darwin, report CPU 0 node 0.
++  str(ARMEmitter::XReg::zr, ARMEmitter::Reg::rsp, 0);
++#else
+   svc(0);
++#endif
+   // On updated signal mask we can receive a signal RIGHT HERE
+ 
+   // Load the values returned by the kernel
+diff --git a/FEXCore/Source/Utils/AllocatorHooks.cpp b/FEXCore/Source/Utils/AllocatorHooks.cpp
+index e85f09a..c81a5d3 100644
+--- a/FEXCore/Source/Utils/AllocatorHooks.cpp
++++ b/FEXCore/Source/Utils/AllocatorHooks.cpp
+@@ -229,6 +229,11 @@ size_t malloc_usable_size(void* ptr) {
+   return ::malloc_usable_size(ptr);
+ }
+ void* aligned_alloc(size_t a, size_t s) {
++#ifdef __APPLE__
++  // NEO98 spike: Darwin's aligned_alloc refuses an alignment below the pointer size.
++  if (a < sizeof(void*)) a = sizeof(void*);
++  s = (s + a - 1) & ~(a - 1);
++#endif
+   return ::aligned_alloc(a, s);
+ }
+ void aligned_free(void* ptr) {
+diff --git a/FEXCore/include/FEXCore/Utils/AllocatorHooks.h b/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
+index c4cadf4..6aee149 100644
+--- a/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
++++ b/FEXCore/include/FEXCore/Utils/AllocatorHooks.h
+@@ -1,5 +1,8 @@
+ // SPDX-License-Identifier: MIT
+ #pragma once
++#ifdef __APPLE__
++#include <pthread.h>
++#endif
+ #include <FEXCore/Utils/CompilerDefs.h>
+ #include <FEXCore/Utils/EnumOperators.h>
+ #include <FEXCore/Utils/LogManager.h>
+@@ -113,13 +116,30 @@ FEX_DEFAULT_VISIBILITY extern void VirtualName(const char* Name, void* Ptr, size
+ 
+ // All commit parameters are ignored here, they are unnecessary as Linux supports overcommit
+ 
++#ifdef __APPLE__
++// NEO98 spike: writable and executable memory needs MAP_JIT on Apple silicon;
++// the thread switches between writing and executing with
++// pthread_jit_write_protect_np (see NEO98JitWriteScope).
++#define NEO98_MAP_JIT(Execute) ((Execute) ? MAP_JIT : 0)
++#else
++#define NEO98_MAP_JIT(Execute) 0
++#endif
+ inline void* VirtualAlloc(size_t Size, bool Execute = false, bool Commit = true) {
+-  return FEXCore::Allocator::mmap(nullptr, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++  return FEXCore::Allocator::mmap(nullptr, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS | NEO98_MAP_JIT(Execute), -1, 0);
+ }
+ 
+ inline void* VirtualAlloc(void* Base, size_t Size, bool Execute = false, bool Commit = true) {
+-  return FEXCore::Allocator::mmap(Base, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++  return FEXCore::Allocator::mmap(Base, Size, PROT_READ | PROT_WRITE | (Execute ? PROT_EXEC : 0), MAP_PRIVATE | MAP_ANONYMOUS | NEO98_MAP_JIT(Execute), -1, 0);
+ }
++#ifdef __APPLE__
++// NEO98 spike: make MAP_JIT pages writable for this thread for the scope.
++struct NEO98JitWriteScope {
++  // Nested scopes (ExitFunctionLink compiles the target block) switch only once.
++  static inline thread_local unsigned Depth = 0;
++  NEO98JitWriteScope() { if (Depth++ == 0) pthread_jit_write_protect_np(0); }
++  ~NEO98JitWriteScope() { if (--Depth == 0) pthread_jit_write_protect_np(1); }
++};
++#endif
+ 
+ inline void VirtualFree(void* Ptr, size_t Size) {
+   FEXCore::Allocator::munmap(Ptr, Size);
+@@ -143,7 +163,12 @@ inline bool VirtualProtect(void* Ptr, size_t Size, ProtectOptions options) {
+ }
+ 
+ inline void VirtualTHPControl(const void* Ptr, size_t Size, THPControl Control) {
++#ifndef __APPLE__
+   ::madvise(const_cast<void*>(Ptr), Size, Control == THPControl::Enable ? MADV_HUGEPAGE : MADV_NOHUGEPAGE);
++#else
++  // NEO98 spike: Darwin has no transparent huge pages.
++  (void)Ptr; (void)Size; (void)Control;
++#endif
+ }
+ 
+ #endif
+diff --git a/FEXCore/include/FEXCore/Utils/SignalScopeGuards.h b/FEXCore/include/FEXCore/Utils/SignalScopeGuards.h
+index 9616a6e..a7138f6 100644
+--- a/FEXCore/include/FEXCore/Utils/SignalScopeGuards.h
++++ b/FEXCore/include/FEXCore/Utils/SignalScopeGuards.h
+@@ -1,5 +1,8 @@
+ // SPDX-License-Identifier: MIT
+ #pragma once
++#ifdef __APPLE__
++#include <fex_darwin_syscall.h>
++#endif
+ 
+ #include <FEXCore/Debug/InternalThreadState.h>
+ 

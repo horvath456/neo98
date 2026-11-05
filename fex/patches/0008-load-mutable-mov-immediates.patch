@@ -1,0 +1,88 @@
+--- a/FEXCore/Source/Interface/Core/Core.cpp
++++ b/FEXCore/Source/Interface/Core/Core.cpp
+@@ -622,6 +622,13 @@
+       // in chunks at the chunk's first instruction, not at every instruction.
+       const bool NEO98ChunkCheck = !Config.Is64BitMode && Block.ForceFullSMCDetection && Config.SMCChecks != FEXCore::Config::CONFIG_SMC_FULL;
+       uint64_t NEO98NextCheck {};
++      // Frequently rewritten MOV immediates are data, loaded when executed.
++      // Keep checking the opcode; changing it must still invalidate the block.
++      const auto NEO98MutableMov = [&](const FEXCore::X86Tables::DecodedInst& Inst) {
++        return !Config.Is64BitMode && Block.ForceFullSMCDetection &&
++               Inst.OPRaw >= 0xB8 && Inst.OPRaw <= 0xBF && Inst.InstSize == 5 &&
++               Inst.Src[0].IsLiteral() && Inst.Src[0].Data.Literal.Size == 4;
++      };
+       // NEO98: a store may rewrite the rest of its own chunk, so the
+       // instruction after one checks its bytes again.
+       const auto NEO98MayStore = [](const FEXCore::X86Tables::DecodedInst& Inst) {
+@@ -684,7 +691,7 @@
+         // NEO98: MOV with a memory offset (A0..A3) and the string stores
+         // touch memory too; without the mark a fault in them restores the
+         // address of the instruction before.
+-        if (ExtendedDebugInfo || Thread->OpDispatcher->CanHaveSideEffects(TableInfo, DecodedInfo) ||
++        if (ExtendedDebugInfo || NEO98MutableMov(*DecodedInfo) || Thread->OpDispatcher->CanHaveSideEffects(TableInfo, DecodedInfo) ||
+             (!Config.Is64BitMode && (NEO98MayStore(*DecodedInfo) || DecodedInfo->OPRaw == 0xA0 || DecodedInfo->OPRaw == 0xA1))) {
+           Thread->OpDispatcher->_GuestOpcode(InstAddress - GuestRIP);
+         }
+@@ -695,11 +702,25 @@
+           NEO98Check = BlockInstructionsLength >= NEO98NextCheck;
+           if (NEO98Check) {
+             NEO98CheckLength = std::min<uint64_t>(Block.Size - BlockInstructionsLength, 240);
++            // Never include a runtime immediate in an earlier chunk's CRC.
++            uint64_t Offset = BlockInstructionsLength;
++            for (size_t k = i; k < InstsInBlock && Offset < BlockInstructionsLength + NEO98CheckLength; ++k) {
++              if (NEO98MutableMov(Block.DecodedInstructions[k])) {
++                NEO98CheckLength = Offset - BlockInstructionsLength + 1;
++                break;
++              }
++              Offset += Block.DecodedInstructions[k].InstSize;
++            }
+             NEO98NextCheck = BlockInstructionsLength + NEO98CheckLength;
+           } else if (i && NEO98MayStore(Block.DecodedInstructions[i - 1])) {
+             NEO98Check = true;
+             NEO98CheckLength = NEO98NextCheck - BlockInstructionsLength;
+           }
++        }
++        if (NEO98MutableMov(*DecodedInfo)) {
++          NEO98Check = true;
++          NEO98CheckLength = 1;
++          NEO98NextCheck = BlockInstructionsLength + DecodedInfo->InstSize;
+         }
+         if (NEO98Check) {
+           // NEO98: the guest bytes lie at GuestMemBase + address in 32-bit mode.
+@@ -751,7 +772,10 @@
+           }
+ 
+           Thread->OpDispatcher->SetForceTSO(ForceTSO);
+-          std::invoke(Fn, Thread->OpDispatcher, DecodedInfo);
++          if (NEO98MutableMov(*DecodedInfo))
++            Thread->OpDispatcher->NEO98MutableMOV(DecodedInfo, InstAddress - GuestRIP + 1);
++          else
++            std::invoke(Fn, Thread->OpDispatcher, DecodedInfo);
+           if (Thread->OpDispatcher->HadDecodeFailure()) {
+             HadDispatchError = true;
+           } else {
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -4710,6 +4710,12 @@
+   DecodeFailure = true;
+ }
+ 
++void OpDispatchBuilder::NEO98MutableMOV(OpcodeArgs, uint64_t ImmediateOffset) {
++  Ref Address = _EntrypointOffset(GetGPROpSize(), ImmediateOffset);
++  Ref Value = _LoadMem(RegClass::GPR, OpSize::i32Bit, Address, Invalid(), OpSize::i8Bit, MemOffsetType::SXTX, 1);
++  StoreResultGPR(Op, Value, OpSize::i8Bit);
++}
++
+ void OpDispatchBuilder::MOVGPROp(OpcodeArgs, uint32_t SrcIndex) {
+   // StoreResult will store with the same size as the input, so we allow upper
+   // garbage on the input. The zero extension would be pointless.
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.h
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.h
+@@ -362,6 +362,7 @@
+   };
+ 
+   void UnhandledOp(OpcodeArgs);
++  void NEO98MutableMOV(OpcodeArgs, uint64_t ImmediateOffset);
+   void MOVGPROp(OpcodeArgs, uint32_t SrcIndex);
+   void MOVGPRNTOp(OpcodeArgs);
+   void MOVVectorAlignedOp(OpcodeArgs);

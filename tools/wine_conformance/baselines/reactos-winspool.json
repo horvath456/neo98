@@ -1,0 +1,425 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "ros_winspool_EnumPrinters": {
+      "reference_status": "PASS",
+      "sha256": "b14e68fb3ab5b25c3f3d84288c2251a60fd0880b0152714452b5e008ff973742"
+    },
+    "ros_winspool_GetDefaultPrinter": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "ae27a499c6b5a45768a187078b61305f7900c3a282647bcb82722e5a8d046365"
+    },
+    "ros_winspool_GetPrinter": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "05def0446903e8677ca2bf33e93644a7433a537bc3be2cb1ab57272a60ecea76"
+    },
+    "ros_winspool_GetPrinterData": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "3abe06a5b661d629c2bf53035aa0a17b5a66b41148829d56313bf29349112e73"
+    },
+    "ros_winspool_IsValidDevmode": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "92a6a453f07b0910f27f1ed2b450f243fc7ed37386493660ccd579b312184973"
+    }
+  },
+  "groups": {
+    "ros_winspool_ClosePrinter": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "ClosePrinter.c:19": {
+          "PASS": 1
+        },
+        "ClosePrinter.c:20": {
+          "PASS": 1
+        }
+      },
+      "sha256": "8a67b8ac5feea1ef88505c2a542a61554cedaaf13ecfe2d43eac5808ebf7efb5",
+      "skips": {}
+    },
+    "ros_winspool_EnumPrintProcessorDatatypes": {
+      "advisory": {
+        "EnumPrintProcessorDatatypes.c:26": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:31": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:36": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:41": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:47": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:49": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:54": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:56": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:61": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:62": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:63": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:68": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:69": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:70": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:75": {
+          "FAIL": 1
+        },
+        "EnumPrintProcessorDatatypes.c:76": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "EnumPrintProcessorDatatypes.c:25": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:30": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:35": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:40": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:46": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:48": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:53": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:55": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:60": {
+          "PASS": 1
+        },
+        "EnumPrintProcessorDatatypes.c:67": {
+          "PASS": 1
+        }
+      },
+      "sha256": "7731c4a021cc757b16236b0cf73d41aada254b3ce9c517ad5a8b35aecf02c17b",
+      "skips": {}
+    },
+    "ros_winspool_GetPrintProcessorDirectory": {
+      "advisory": {
+        "GetPrintProcessorDirectory.c:103": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:104": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:110": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:111": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:117": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:118": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:123": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:124": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:125": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:26": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:27": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:32": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:39": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:52": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:53": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:54": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:60": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:61": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:70": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:84": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:90": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:96": {
+          "FAIL": 1
+        },
+        "GetPrintProcessorDirectory.c:97": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetPrintProcessorDirectory.c:102": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:109": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:116": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:25": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:31": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:37": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:38": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:45": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:46": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:47": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:59": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:66": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:67": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:83": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:85": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:89": {
+          "PASS": 1
+        },
+        "GetPrintProcessorDirectory.c:95": {
+          "PASS": 1
+        }
+      },
+      "sha256": "b605d8387fcaed44d8e6bb8d4ba99a5d3f353292b56988c59e9e95e000c2345b",
+      "skips": {}
+    },
+    "ros_winspool_OpenPrinter": {
+      "advisory": {
+        "OpenPrinter.c:23": {
+          "FAIL": 1
+        },
+        "OpenPrinter.c:27": {
+          "FAIL": 1
+        },
+        "OpenPrinter.c:28": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "OpenPrinter.c:22": {
+          "PASS": 1
+        }
+      },
+      "sha256": "07589dc6d7b5a79ad34d4d3d0461bd5c4dc6facb4f769de7189d3af68db47b01",
+      "skips": {}
+    },
+    "ros_winspool_StartDocPrinter": {
+      "advisory": {
+        "StartDocPrinter.c:24": {
+          "FAIL": 1
+        },
+        "StartDocPrinter.c:29": {
+          "FAIL": 1
+        },
+        "StartDocPrinter.c:34": {
+          "FAIL": 1
+        },
+        "StartDocPrinter.c:39": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "StartDocPrinter.c:23": {
+          "PASS": 1
+        },
+        "StartDocPrinter.c:28": {
+          "PASS": 1
+        },
+        "StartDocPrinter.c:33": {
+          "PASS": 1
+        },
+        "StartDocPrinter.c:38": {
+          "PASS": 1
+        }
+      },
+      "sha256": "d7895fcee8872ddfccd359ce3748895d201527b13ab71fa833d1302a84ca757a",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "00c269931f55ccbd84e80e55305917d8a0c26858628778fa329082d2aefee770",
+  "reference_selection": {
+    "excluded": {
+      "ros_winspool_EnumPrinters": "PASS",
+      "ros_winspool_GetDefaultPrinter": "LOAD_ERROR",
+      "ros_winspool_GetPrinter": "LOAD_ERROR",
+      "ros_winspool_GetPrinterData": "LOAD_ERROR",
+      "ros_winspool_IsValidDevmode": "LOAD_ERROR"
+    },
+    "selected": [
+      "ros_winspool_ClosePrinter",
+      "ros_winspool_EnumPrintProcessorDatatypes",
+      "ros_winspool_GetPrintProcessorDirectory",
+      "ros_winspool_OpenPrinter",
+      "ros_winspool_StartDocPrinter"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "56bf8cadbd96bf9740b07d6d7b2df7c1909350993a101a7f45c7ce0538d258ba",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "WINSPOOL.DRV": {
+      "sha256": "615b069c9ee4e99264490ed76a7681ef9af76b9dcd5e6a85c7c8561444d25ec3",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    }
+  }
+}

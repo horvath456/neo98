@@ -1,0 +1,47 @@
+{
+  "81b9b47df66b10145076190a958a81858adf42491a49474c84e9ce37d7a0f41e": {
+    "file.c:1305": "One assertion per file in the Windows directory. The two installations contain different files; every enumerated entry must pass and the site must be reached."
+  },
+  "93949148a3dea9196318e0b794612e4cb167b6ca149312ad3e7e2eac5fe533e8": {
+    "listbox.c:1190": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1191": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1192": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1235": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1302": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1351": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1354": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1357": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:718": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:719": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:720": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:794": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:795": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:830": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:871": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:939": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:973": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:974": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+    "listbox.c:1346": "One LB_SETCURSEL assertion per DlgDirList entry before checking whether that entry is a drive, directory or file. The original VM exposes A:, C:, D:; NEO98 with --fixture-cdrom exposes C:, D:. Require the site to be reached and every observed selection to pass."
+  },
+  "de52e056eaf7169403f5d8c6331b3938d6c8da34957578cc80f420e3bdef9378": {
+    "process.c:894": "One assertion per inherited environment string, checked in both directions between parent and child. Win98 and NEO98 have different environment sizes; every checked string must pass and both sites must be reached.",
+    "process.c:919": "One assertion per inherited environment string, checked in both directions between parent and child. Win98 and NEO98 have different environment sizes; every checked string must pass and both sites must be reached."
+  },
+  "87f7a5fd766265f2aa919571f980768e787a8623174988196df11ad1c817c56e": {
+    "sock.c:677": "One wait per asynchronous network-event batch. Batching depends on scheduling; require this site and all observed waits to pass. The unchanged terminal checks 743, 746 and 750 require both clients to transfer and validate every byte.",
+    "sock.c:680": "One enumeration per asynchronous network-event batch; events may coalesce. Require this site and every enumeration to pass, plus both clients terminal transfer and data-pattern checks.",
+    "sock.c:685": "One check per FD_WRITE event, whose count depends on send-buffer backpressure. Require this site and every observed event to pass; the unchanged terminal checks require both complete transfers.",
+    "sock.c:712": "One error-code assertion per FD_READ event batch; TCP readiness may coalesce. Every observed event must pass and this site must be reached. Exact terminal checks 738, 743, 746 and 750 still require both clients to close, send and receive all bytes and validate their patterns.",
+    "sock.c:717": "The first recv after each FD_READ notification must succeed; notification count depends on scheduling. Every observed recv must pass and this site must be reached. Exact terminal checks 738, 743, 746 and 750 still require both complete, correct client transfers."
+  },
+  "2a798d64284048e04f2416928a063ec644ca9fc3cfc5298e7c2a0b992d28be5e": {
+    "tooltips.c:104": "One source/id check per custom-draw notification during a timed message pump. Repaints may repeat; every observed callback must pass and the site must be reached. The unchanged tooltips.c:223 check requires the exact expected draw-stage set for all seven test iterations.",
+    "tooltips.c:106": "One source/id check per custom-draw notification during a timed message pump. Repaints may repeat; every observed callback must pass and the site must be reached. The unchanged tooltips.c:223 check requires the exact expected draw-stage set for all seven test iterations."
+  },
+  "43481098250a5b53fb2c4f47e52f0bb38524a4d8136fd1a9894fa46521aa7666": {
+    "win.c:2358": "GetKeyState(VK_LBUTTON) assertion on every message delivered to the subclassed button, including repeated painting. Require the site and every observed key-state check to pass. The state and capture assertions following WM_LBUTTONDOWN remain mandatory."
+  },
+  "43699aaf59c4409702f457ca396d7b05a32562432040c6d3fce10ddea38048e7": {
+    "DeviceIoControl.c:236": "One successful StringCchPrintfW per drive returned by GetLogicalDrives. The original VM has A:, C:, D:; this NEO98 fixture has C:. Require the site to be reached and every observed formatting assertion to pass. Both runs skip the disk and CD-ROM IOCTL paths because GetDriveTypeW is not implemented on Win98; this qualifies formatting only, not DeviceIoControl behavior."
+  }
+}

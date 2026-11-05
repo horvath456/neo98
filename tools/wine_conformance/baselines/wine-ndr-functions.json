@@ -1,0 +1,1261 @@
+{
+  "alternatives_sha256": "502b68fa64bb70cb06550b4f55df73d20088003b4567ad902f40a057d8173f03",
+  "assets": {},
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "rpcrt4_ndr_marshall__test_simple_struct": {
+      "reference_status": "CRASH",
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4"
+    }
+  },
+  "groups": {
+    "rpcrt4_ndr_marshall__test_NdrMapCommAndFaultStatus": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1797": {
+          "PASS": 10000
+        },
+        "ndr_marshall.c:1817": {
+          "PASS": 10000
+        },
+        "ndr_marshall.c:1819": {
+          "PASS": 10000
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_client_init": {
+      "advisory": {
+        "ndr_marshall.c:1089": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1107": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1110": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1111": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1114": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1129": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1130": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1131": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1132": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1059": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1060": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1061": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1062": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1063": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1064": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1068": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1069": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1070": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1078": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1079": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1080": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1081": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1082": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1083": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1084": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1085": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1086": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1087": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1088": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1090": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1091": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1092": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1093": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1095": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1096": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1097": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1098": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1099": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1100": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1101": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1102": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1103": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1104": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1105": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1106": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1108": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1109": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1112": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1113": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1115": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1116": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1117": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1118": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1119": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1120": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1121": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1122": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1123": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1124": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1125": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1126": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1133": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1134": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1135": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1136": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1137": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1138": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1139": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1140": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1141": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1142": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_conformant_array": {
+      "advisory": {
+        "ndr_marshall.c:1401": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1351": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1358": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1359": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1360": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1370": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1371": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1372": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1378": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1379": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1380": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1385": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1386": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1387": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1392": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1402": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1407": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1408": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1415": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1416": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1422": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1423": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_conformant_string": {
+      "advisory": {
+        "ndr_marshall.c:1508": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1509": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1516": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1517": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1524": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1525": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1532": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1533": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1459": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1466": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1467": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1469": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1480": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1481": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1487": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1488": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1494": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1500": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1540": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_fullpointer_xlat": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1000": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1003": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1004": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1007": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1008": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1013": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1016": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1017": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1020": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1021": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1024": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1027": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1030": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1031": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1034": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1035": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1038": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1039": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1042": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:933": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:934": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:937": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:938": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:941": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:942": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:945": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:946": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:949": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:950": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:955": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:956": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:959": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:960": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:965": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:966": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:975": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:976": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:981": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:982": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:985": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:986": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:991": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:992": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:995": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:996": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:999": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_ndr_allocate": {
+      "advisory": {
+        "ndr_marshall.c:1267": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1298": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1299": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1304": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1305": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1306": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1271": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1272": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1300": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_ndr_buffer": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1730": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1732": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1734": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1742": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1745": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1751": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1752": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1753": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1754": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1755": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1756": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1757": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1758": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1760": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1761": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1765": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1766": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1767": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1768": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1769": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1770": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1778": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_ndr_simple_type": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:121": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:122": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:126": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:127": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:131": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:132": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_nonconformant_string": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1578": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1585": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1586": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1588": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1599": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1600": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1606": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1608": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1616": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1617": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1618": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1625": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1626": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1633": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1635": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1652": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1659": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1660": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1662": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1673": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1674": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1680": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1682": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1690": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1691": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1692": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1699": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1700": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1707": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1709": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_nontrivial_pointer_types": {
+      "advisory": {
+        "ndr_marshall.c:583": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:592": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:601": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:602": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:611": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:612": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:519": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:526": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:527": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:529": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:530": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:543": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:544": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:550": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:551": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:557": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:564": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:572": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:581": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:590": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:620": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:628": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_server_init": {
+      "advisory": {
+        "ndr_marshall.c:1181": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1183": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1201": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1204": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1205": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1208": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1223": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1224": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1225": {
+          "FAIL": 1
+        },
+        "ndr_marshall.c:1226": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:1164": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1171": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1172": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1173": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1174": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1175": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1177": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1178": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1179": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1180": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1182": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1184": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1185": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1186": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1187": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1189": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1190": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1191": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1192": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1193": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1194": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1195": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1196": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1197": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1198": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1199": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1200": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1202": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1203": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1206": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1207": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1209": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1210": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1211": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1212": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1213": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1214": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1215": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1216": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1217": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1218": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1219": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1220": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1227": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1228": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1229": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1230": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1231": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1232": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1233": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1234": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1235": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:1236": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    },
+    "rpcrt4_ndr_marshall__test_simple_types": {
+      "advisory": {
+        "ndr_marshall.c:180": {
+          "FAIL": 2,
+          "PASS": 16
+        },
+        "ndr_marshall.c:181": {
+          "FAIL": 2,
+          "PASS": 16
+        },
+        "ndr_marshall.c:231": {
+          "FAIL": 2,
+          "PASS": 16
+        },
+        "ndr_marshall.c:247": {
+          "FAIL": 2,
+          "PASS": 16
+        },
+        "ndr_marshall.c:263": {
+          "FAIL": 2,
+          "PASS": 13
+        },
+        "ndr_marshall.c:278": {
+          "FAIL": 14
+        },
+        "ndr_marshall.c:280": {
+          "FAIL": 2,
+          "PASS": 13
+        },
+        "ndr_marshall.c:283": {
+          "FAIL": 14
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ndr_marshall.c:170": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:179": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:228": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:229": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:230": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:232": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:233": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:241": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:244": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:246": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:248": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:251": {
+          "PASS": 18
+        },
+        "ndr_marshall.c:260": {
+          "PASS": 15
+        },
+        "ndr_marshall.c:261": {
+          "PASS": 15
+        },
+        "ndr_marshall.c:262": {
+          "PASS": 15
+        },
+        "ndr_marshall.c:264": {
+          "PASS": 15
+        },
+        "ndr_marshall.c:265": {
+          "PASS": 15
+        },
+        "ndr_marshall.c:274": {
+          "PASS": 15
+        },
+        "ndr_marshall.c:276": {
+          "PASS": 1
+        },
+        "ndr_marshall.c:279": {
+          "PASS": 15
+        },
+        "ndr_marshall.c:281": {
+          "PASS": 15
+        }
+      },
+      "sha256": "2d4040547a2fdc5b8fae57ca1c6a6acb25b04aa3c9b35af390be0bf9e90a61e4",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "cf568beb43f702074e7c60c75e5865b6cdcd48aa5dde3b7f90ba8282bdfd7506",
+  "reference_selection": {
+    "excluded": {
+      "rpcrt4_ndr_marshall__test_simple_struct": "CRASH"
+    },
+    "selected": [
+      "rpcrt4_ndr_marshall__test_NdrMapCommAndFaultStatus",
+      "rpcrt4_ndr_marshall__test_client_init",
+      "rpcrt4_ndr_marshall__test_conformant_array",
+      "rpcrt4_ndr_marshall__test_conformant_string",
+      "rpcrt4_ndr_marshall__test_fullpointer_xlat",
+      "rpcrt4_ndr_marshall__test_ndr_allocate",
+      "rpcrt4_ndr_marshall__test_ndr_buffer",
+      "rpcrt4_ndr_marshall__test_ndr_simple_type",
+      "rpcrt4_ndr_marshall__test_nonconformant_string",
+      "rpcrt4_ndr_marshall__test_nontrivial_pointer_types",
+      "rpcrt4_ndr_marshall__test_server_init",
+      "rpcrt4_ndr_marshall__test_simple_types"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "1e9b2904aa672315a5d9bee6372c3168204db78cf5e8dbbfb560424caff46897",
+  "variable_counts_sha256": "54ef4d5a5f4ec814dec2d73126522f526f618e0940e94d82be9d71a48a0e342c",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "RPCRT4.DLL": {
+      "sha256": "f5719c28ce60526cb4873332073c21148ce4c74427197aa6a4438c2951af9c5a",
+      "version": [
+        4,
+        71,
+        2900,
+        2
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

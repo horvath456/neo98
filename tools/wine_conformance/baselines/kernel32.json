@@ -1,0 +1,3687 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "alloc": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "alloc.c:101": {
+          "PASS": 1
+        },
+        "alloc.c:106": {
+          "PASS": 1
+        },
+        "alloc.c:113": {
+          "PASS": 1
+        },
+        "alloc.c:115": {
+          "PASS": 1
+        },
+        "alloc.c:122": {
+          "PASS": 1
+        },
+        "alloc.c:133": {
+          "PASS": 1
+        },
+        "alloc.c:139": {
+          "PASS": 1
+        },
+        "alloc.c:142": {
+          "PASS": 1
+        },
+        "alloc.c:149": {
+          "PASS": 1
+        },
+        "alloc.c:153": {
+          "PASS": 1
+        },
+        "alloc.c:154": {
+          "PASS": 1
+        },
+        "alloc.c:157": {
+          "PASS": 1
+        },
+        "alloc.c:183": {
+          "PASS": 1
+        },
+        "alloc.c:185": {
+          "PASS": 1
+        },
+        "alloc.c:190": {
+          "PASS": 1
+        },
+        "alloc.c:192": {
+          "PASS": 1
+        },
+        "alloc.c:194": {
+          "PASS": 1
+        },
+        "alloc.c:202": {
+          "PASS": 1
+        },
+        "alloc.c:217": {
+          "PASS": 1
+        },
+        "alloc.c:219": {
+          "PASS": 1
+        },
+        "alloc.c:221": {
+          "PASS": 1
+        },
+        "alloc.c:229": {
+          "PASS": 1
+        },
+        "alloc.c:233": {
+          "PASS": 1
+        },
+        "alloc.c:243": {
+          "PASS": 1
+        },
+        "alloc.c:246": {
+          "PASS": 1
+        },
+        "alloc.c:274": {
+          "PASS": 1
+        },
+        "alloc.c:276": {
+          "PASS": 1
+        },
+        "alloc.c:281": {
+          "PASS": 1
+        },
+        "alloc.c:283": {
+          "PASS": 1
+        },
+        "alloc.c:285": {
+          "PASS": 1
+        },
+        "alloc.c:293": {
+          "PASS": 1
+        },
+        "alloc.c:296": {
+          "PASS": 1
+        },
+        "alloc.c:301": {
+          "PASS": 1
+        },
+        "alloc.c:305": {
+          "PASS": 1
+        },
+        "alloc.c:309": {
+          "PASS": 1
+        },
+        "alloc.c:311": {
+          "PASS": 1
+        },
+        "alloc.c:313": {
+          "PASS": 1
+        },
+        "alloc.c:321": {
+          "PASS": 1
+        },
+        "alloc.c:324": {
+          "PASS": 1
+        },
+        "alloc.c:327": {
+          "PASS": 1
+        },
+        "alloc.c:329": {
+          "PASS": 1
+        },
+        "alloc.c:333": {
+          "PASS": 1
+        },
+        "alloc.c:336": {
+          "PASS": 1
+        },
+        "alloc.c:370": {
+          "PASS": 1
+        },
+        "alloc.c:377": {
+          "PASS": 1
+        },
+        "alloc.c:386": {
+          "PASS": 1
+        },
+        "alloc.c:395": {
+          "PASS": 1
+        },
+        "alloc.c:397": {
+          "PASS": 1
+        },
+        "alloc.c:60": {
+          "PASS": 1
+        },
+        "alloc.c:79": {
+          "PASS": 1
+        },
+        "alloc.c:85": {
+          "PASS": 1
+        },
+        "alloc.c:87": {
+          "PASS": 1
+        },
+        "alloc.c:92": {
+          "PASS": 1
+        },
+        "alloc.c:94": {
+          "PASS": 1
+        }
+      },
+      "sha256": "f3a7fd91565a3ccfb7b1dd44331587ce7839f05fc2bbdcbc3f2b47366109c9d0",
+      "skips": {}
+    },
+    "atom": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "atom.c:120": {
+          "PASS": 1
+        },
+        "atom.c:131": {
+          "PASS": 49151
+        },
+        "atom.c:143": {
+          "PASS": 16384
+        },
+        "atom.c:164": {
+          "PASS": 1
+        },
+        "atom.c:165": {
+          "PASS": 1
+        },
+        "atom.c:180": {
+          "PASS": 1
+        },
+        "atom.c:181": {
+          "PASS": 1
+        },
+        "atom.c:200": {
+          "PASS": 49151
+        },
+        "atom.c:203": {
+          "PASS": 49151
+        },
+        "atom.c:206": {
+          "PASS": 1
+        },
+        "atom.c:212": {
+          "PASS": 1
+        },
+        "atom.c:218": {
+          "PASS": 49151
+        },
+        "atom.c:225": {
+          "PASS": 1
+        },
+        "atom.c:228": {
+          "PASS": 1
+        },
+        "atom.c:243": {
+          "PASS": 1
+        },
+        "atom.c:245": {
+          "PASS": 1
+        },
+        "atom.c:248": {
+          "PASS": 255
+        },
+        "atom.c:250": {
+          "PASS": 1
+        },
+        "atom.c:260": {
+          "PASS": 1
+        },
+        "atom.c:264": {
+          "PASS": 9
+        },
+        "atom.c:266": {
+          "PASS": 1
+        },
+        "atom.c:267": {
+          "PASS": 1
+        },
+        "atom.c:270": {
+          "PASS": 1
+        },
+        "atom.c:337": {
+          "PASS": 1
+        },
+        "atom.c:338": {
+          "PASS": 1
+        },
+        "atom.c:356": {
+          "PASS": 1
+        },
+        "atom.c:357": {
+          "PASS": 1
+        },
+        "atom.c:360": {
+          "PASS": 1
+        },
+        "atom.c:361": {
+          "PASS": 1
+        },
+        "atom.c:362": {
+          "PASS": 1
+        },
+        "atom.c:392": {
+          "PASS": 1
+        },
+        "atom.c:403": {
+          "PASS": 49151
+        },
+        "atom.c:415": {
+          "PASS": 16384
+        },
+        "atom.c:434": {
+          "PASS": 1
+        },
+        "atom.c:435": {
+          "PASS": 1
+        },
+        "atom.c:451": {
+          "PASS": 1
+        },
+        "atom.c:452": {
+          "PASS": 1
+        },
+        "atom.c:468": {
+          "PASS": 1
+        },
+        "atom.c:469": {
+          "PASS": 1
+        },
+        "atom.c:488": {
+          "PASS": 49151
+        },
+        "atom.c:491": {
+          "PASS": 49151
+        },
+        "atom.c:494": {
+          "PASS": 1
+        },
+        "atom.c:497": {
+          "PASS": 49152
+        },
+        "atom.c:501": {
+          "PASS": 49151
+        },
+        "atom.c:506": {
+          "PASS": 1
+        },
+        "atom.c:514": {
+          "PASS": 1
+        },
+        "atom.c:516": {
+          "PASS": 1
+        },
+        "atom.c:519": {
+          "PASS": 255
+        },
+        "atom.c:521": {
+          "PASS": 1
+        },
+        "atom.c:524": {
+          "PASS": 1
+        },
+        "atom.c:527": {
+          "PASS": 9
+        },
+        "atom.c:529": {
+          "PASS": 1
+        },
+        "atom.c:530": {
+          "PASS": 1
+        },
+        "atom.c:533": {
+          "PASS": 1
+        },
+        "atom.c:536": {
+          "PASS": 1
+        },
+        "atom.c:606": {
+          "PASS": 1
+        },
+        "atom.c:607": {
+          "PASS": 1
+        },
+        "atom.c:84": {
+          "PASS": 1
+        },
+        "atom.c:85": {
+          "PASS": 1
+        },
+        "atom.c:88": {
+          "PASS": 1
+        },
+        "atom.c:89": {
+          "PASS": 1
+        },
+        "atom.c:90": {
+          "PASS": 1
+        }
+      },
+      "sha256": "25424bf9fee5b14f0043eb450a8fda02d1475667c2a8ec30c85cbbbb09c86031",
+      "skips": {}
+    },
+    "directory": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "directory.c:102": {
+          "PASS": 1
+        },
+        "directory.c:103": {
+          "PASS": 1
+        },
+        "directory.c:108": {
+          "PASS": 1
+        },
+        "directory.c:109": {
+          "PASS": 1
+        },
+        "directory.c:114": {
+          "PASS": 1
+        },
+        "directory.c:115": {
+          "PASS": 1
+        },
+        "directory.c:116": {
+          "PASS": 1
+        },
+        "directory.c:157": {
+          "PASS": 1
+        },
+        "directory.c:162": {
+          "PASS": 1
+        },
+        "directory.c:167": {
+          "PASS": 1
+        },
+        "directory.c:170": {
+          "PASS": 1
+        },
+        "directory.c:173": {
+          "PASS": 1
+        },
+        "directory.c:178": {
+          "PASS": 1
+        },
+        "directory.c:184": {
+          "PASS": 1
+        },
+        "directory.c:191": {
+          "PASS": 1
+        },
+        "directory.c:194": {
+          "PASS": 1
+        },
+        "directory.c:198": {
+          "PASS": 1
+        },
+        "directory.c:204": {
+          "PASS": 1
+        },
+        "directory.c:211": {
+          "PASS": 1
+        },
+        "directory.c:219": {
+          "PASS": 1
+        },
+        "directory.c:229": {
+          "PASS": 1
+        },
+        "directory.c:234": {
+          "PASS": 1
+        },
+        "directory.c:237": {
+          "PASS": 1
+        },
+        "directory.c:243": {
+          "PASS": 1
+        },
+        "directory.c:252": {
+          "PASS": 1
+        },
+        "directory.c:257": {
+          "PASS": 1
+        },
+        "directory.c:263": {
+          "PASS": 1
+        },
+        "directory.c:270": {
+          "PASS": 1
+        },
+        "directory.c:279": {
+          "PASS": 1
+        },
+        "directory.c:284": {
+          "PASS": 1
+        },
+        "directory.c:290": {
+          "PASS": 1
+        },
+        "directory.c:297": {
+          "PASS": 1
+        },
+        "directory.c:306": {
+          "PASS": 1
+        },
+        "directory.c:311": {
+          "PASS": 1
+        },
+        "directory.c:317": {
+          "PASS": 1
+        },
+        "directory.c:324": {
+          "PASS": 1
+        },
+        "directory.c:37": {
+          "PASS": 1
+        },
+        "directory.c:407": {
+          "PASS": 1
+        },
+        "directory.c:41": {
+          "PASS": 1
+        },
+        "directory.c:410": {
+          "PASS": 1
+        },
+        "directory.c:414": {
+          "PASS": 1
+        },
+        "directory.c:421": {
+          "PASS": 1
+        },
+        "directory.c:45": {
+          "PASS": 1
+        },
+        "directory.c:46": {
+          "PASS": 1
+        },
+        "directory.c:461": {
+          "PASS": 1
+        },
+        "directory.c:462": {
+          "PASS": 1
+        },
+        "directory.c:463": {
+          "PASS": 1
+        },
+        "directory.c:464": {
+          "PASS": 1
+        },
+        "directory.c:51": {
+          "PASS": 1
+        },
+        "directory.c:52": {
+          "PASS": 1
+        },
+        "directory.c:53": {
+          "PASS": 1
+        },
+        "directory.c:98": {
+          "PASS": 1
+        }
+      },
+      "sha256": "164bf48ac50b12b5e275ef0fb528c3e3f001a38b6dc7cc58d22215075dcb6b77",
+      "skips": {}
+    },
+    "environ": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "environ.c:100": {
+          "PASS": 1
+        },
+        "environ.c:106": {
+          "PASS": 1
+        },
+        "environ.c:114": {
+          "PASS": 1
+        },
+        "environ.c:119": {
+          "PASS": 1
+        },
+        "environ.c:124": {
+          "PASS": 1
+        },
+        "environ.c:239": {
+          "PASS": 1
+        },
+        "environ.c:245": {
+          "PASS": 1
+        },
+        "environ.c:254": {
+          "PASS": 1
+        },
+        "environ.c:261": {
+          "PASS": 1
+        },
+        "environ.c:268": {
+          "PASS": 1
+        },
+        "environ.c:271": {
+          "PASS": 1
+        },
+        "environ.c:276": {
+          "PASS": 1
+        },
+        "environ.c:277": {
+          "PASS": 1
+        },
+        "environ.c:282": {
+          "PASS": 1
+        },
+        "environ.c:285": {
+          "PASS": 1
+        },
+        "environ.c:297": {
+          "PASS": 1
+        },
+        "environ.c:298": {
+          "PASS": 1
+        },
+        "environ.c:317": {
+          "PASS": 1
+        },
+        "environ.c:332": {
+          "PASS": 1
+        },
+        "environ.c:334": {
+          "PASS": 1
+        },
+        "environ.c:337": {
+          "PASS": 1
+        },
+        "environ.c:49": {
+          "PASS": 1
+        },
+        "environ.c:55": {
+          "PASS": 1
+        },
+        "environ.c:60": {
+          "PASS": 1
+        },
+        "environ.c:61": {
+          "PASS": 1
+        },
+        "environ.c:66": {
+          "PASS": 1
+        },
+        "environ.c:67": {
+          "PASS": 1
+        },
+        "environ.c:72": {
+          "PASS": 1
+        },
+        "environ.c:73": {
+          "PASS": 1
+        },
+        "environ.c:78": {
+          "PASS": 1
+        },
+        "environ.c:82": {
+          "PASS": 1
+        },
+        "environ.c:83": {
+          "PASS": 1
+        },
+        "environ.c:89": {
+          "PASS": 1
+        },
+        "environ.c:95": {
+          "PASS": 1
+        },
+        "environ.c:96": {
+          "PASS": 1
+        }
+      },
+      "sha256": "8c7b2a658d038947f9228981bff4460e58ce5a317357fb4f7b4a1204ce0207f0",
+      "skips": {
+        "environ.c:144": 1,
+        "environ.c:345": 1,
+        "environ.c:370": 1,
+        "environ.c:444": 1
+      }
+    },
+    "file": {
+      "advisory": {
+        "file.c:1100": {
+          "FAIL": 1
+        },
+        "file.c:1103": {
+          "FAIL": 1
+        },
+        "file.c:1355": {
+          "FAIL": 1
+        },
+        "file.c:1356": {
+          "FAIL": 1
+        },
+        "file.c:1370": {
+          "FAIL": 1
+        },
+        "file.c:1371": {
+          "FAIL": 1
+        },
+        "file.c:1764": {
+          "FAIL": 1
+        },
+        "file.c:1851": {
+          "FAIL": 1
+        },
+        "file.c:1852": {
+          "FAIL": 1
+        },
+        "file.c:1858": {
+          "FAIL": 1
+        },
+        "file.c:1859": {
+          "FAIL": 1
+        },
+        "file.c:1868": {
+          "FAIL": 1
+        },
+        "file.c:1875": {
+          "FAIL": 1
+        },
+        "file.c:1884": {
+          "FAIL": 1
+        },
+        "file.c:1893": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {
+        "file.c:916": {
+          "reason": "MoveFile rejects wildcard names with ERROR_INVALID_NAME. Wine only enumerates the destination for other error codes; the two preceding checks must pass.",
+          "requires": [
+            "file.c:895",
+            "file.c:896"
+          ]
+        }
+      },
+      "required": {
+        "file.c:1012": {
+          "PASS": 1
+        },
+        "file.c:102": {
+          "PASS": 1
+        },
+        "file.c:1031": {
+          "PASS": 1
+        },
+        "file.c:105": {
+          "PASS": 1
+        },
+        "file.c:1050": {
+          "PASS": 1
+        },
+        "file.c:1052": {
+          "PASS": 1
+        },
+        "file.c:1053": {
+          "PASS": 1
+        },
+        "file.c:1061": {
+          "PASS": 1
+        },
+        "file.c:1063": {
+          "PASS": 1
+        },
+        "file.c:1064": {
+          "PASS": 1
+        },
+        "file.c:1066": {
+          "PASS": 1
+        },
+        "file.c:1068": {
+          "PASS": 1
+        },
+        "file.c:1069": {
+          "PASS": 1
+        },
+        "file.c:1070": {
+          "PASS": 1
+        },
+        "file.c:1071": {
+          "PASS": 1
+        },
+        "file.c:1090": {
+          "PASS": 1
+        },
+        "file.c:1096": {
+          "PASS": 1
+        },
+        "file.c:1101": {
+          "PASS": 1
+        },
+        "file.c:1102": {
+          "PASS": 1
+        },
+        "file.c:1118": {
+          "PASS": 1
+        },
+        "file.c:1120": {
+          "PASS": 1
+        },
+        "file.c:1123": {
+          "PASS": 1
+        },
+        "file.c:1126": {
+          "PASS": 1
+        },
+        "file.c:1215": {
+          "PASS": 196
+        },
+        "file.c:1219": {
+          "PASS": 196
+        },
+        "file.c:1229": {
+          "PASS": 828
+        },
+        "file.c:1233": {
+          "PASS": 828
+        },
+        "file.c:1244": {
+          "PASS": 1
+        },
+        "file.c:1248": {
+          "PASS": 1
+        },
+        "file.c:1249": {
+          "PASS": 1
+        },
+        "file.c:1252": {
+          "PASS": 1
+        },
+        "file.c:1281": {
+          "PASS": 1
+        },
+        "file.c:1282": {
+          "PASS": 1
+        },
+        "file.c:1288": {
+          "PASS": 1
+        },
+        "file.c:1289": {
+          "PASS": 1
+        },
+        "file.c:129": {
+          "PASS": 1
+        },
+        "file.c:1292": {
+          "PASS": 1
+        },
+        "file.c:1294": {
+          "PASS": 1
+        },
+        "file.c:1300": {
+          "PASS": 1
+        },
+        "file.c:1301": {
+          "PASS": 1
+        },
+        "file.c:1302": {
+          "PASS": 1
+        },
+        "file.c:1303": {
+          "PASS": 1
+        },
+        "file.c:1305": {
+          "PASS": 251
+        },
+        "file.c:1307": {
+          "PASS": 1
+        },
+        "file.c:131": {
+          "PASS": 1
+        },
+        "file.c:1315": {
+          "PASS": 1
+        },
+        "file.c:1317": {
+          "PASS": 1
+        },
+        "file.c:1326": {
+          "PASS": 1
+        },
+        "file.c:1327": {
+          "PASS": 1
+        },
+        "file.c:1335": {
+          "PASS": 1
+        },
+        "file.c:1336": {
+          "PASS": 1
+        },
+        "file.c:1343": {
+          "PASS": 1
+        },
+        "file.c:1344": {
+          "PASS": 1
+        },
+        "file.c:1352": {
+          "PASS": 1
+        },
+        "file.c:1353": {
+          "PASS": 1
+        },
+        "file.c:1354": {
+          "PASS": 1
+        },
+        "file.c:1358": {
+          "PASS": 1
+        },
+        "file.c:1359": {
+          "PASS": 1
+        },
+        "file.c:1360": {
+          "PASS": 1
+        },
+        "file.c:1367": {
+          "PASS": 1
+        },
+        "file.c:1368": {
+          "PASS": 1
+        },
+        "file.c:1369": {
+          "PASS": 1
+        },
+        "file.c:137": {
+          "PASS": 1
+        },
+        "file.c:1373": {
+          "PASS": 1
+        },
+        "file.c:1374": {
+          "PASS": 1
+        },
+        "file.c:1375": {
+          "PASS": 1
+        },
+        "file.c:1383": {
+          "PASS": 1
+        },
+        "file.c:1384": {
+          "PASS": 1
+        },
+        "file.c:139": {
+          "PASS": 1
+        },
+        "file.c:1392": {
+          "PASS": 1
+        },
+        "file.c:1393": {
+          "PASS": 1
+        },
+        "file.c:1401": {
+          "PASS": 1
+        },
+        "file.c:1402": {
+          "PASS": 1
+        },
+        "file.c:1410": {
+          "PASS": 1
+        },
+        "file.c:1411": {
+          "PASS": 1
+        },
+        "file.c:1423": {
+          "PASS": 1
+        },
+        "file.c:1428": {
+          "PASS": 1
+        },
+        "file.c:1430": {
+          "PASS": 1
+        },
+        "file.c:1503": {
+          "PASS": 1
+        },
+        "file.c:1506": {
+          "PASS": 1
+        },
+        "file.c:1508": {
+          "PASS": 1
+        },
+        "file.c:1513": {
+          "PASS": 1
+        },
+        "file.c:1514": {
+          "PASS": 1
+        },
+        "file.c:1515": {
+          "PASS": 1
+        },
+        "file.c:1518": {
+          "PASS": 1
+        },
+        "file.c:1521": {
+          "PASS": 1
+        },
+        "file.c:1522": {
+          "PASS": 1
+        },
+        "file.c:1525": {
+          "PASS": 1
+        },
+        "file.c:1529": {
+          "PASS": 1
+        },
+        "file.c:153": {
+          "PASS": 100
+        },
+        "file.c:1534": {
+          "PASS": 1
+        },
+        "file.c:1535": {
+          "PASS": 1
+        },
+        "file.c:1542": {
+          "PASS": 1
+        },
+        "file.c:1544": {
+          "PASS": 1
+        },
+        "file.c:1547": {
+          "PASS": 1
+        },
+        "file.c:1549": {
+          "PASS": 1
+        },
+        "file.c:157": {
+          "PASS": 1
+        },
+        "file.c:1578": {
+          "PASS": 1
+        },
+        "file.c:1594": {
+          "PASS": 1
+        },
+        "file.c:160": {
+          "PASS": 1
+        },
+        "file.c:1607": {
+          "PASS": 1
+        },
+        "file.c:1608": {
+          "PASS": 1
+        },
+        "file.c:1611": {
+          "PASS": 1
+        },
+        "file.c:1615": {
+          "PASS": 1
+        },
+        "file.c:1620": {
+          "PASS": 1
+        },
+        "file.c:1622": {
+          "PASS": 1
+        },
+        "file.c:1627": {
+          "PASS": 1
+        },
+        "file.c:1630": {
+          "PASS": 1
+        },
+        "file.c:164": {
+          "PASS": 1
+        },
+        "file.c:1641": {
+          "PASS": 1
+        },
+        "file.c:1643": {
+          "PASS": 1
+        },
+        "file.c:1648": {
+          "PASS": 1
+        },
+        "file.c:1651": {
+          "PASS": 1
+        },
+        "file.c:1654": {
+          "PASS": 1
+        },
+        "file.c:1656": {
+          "PASS": 1
+        },
+        "file.c:1690": {
+          "PASS": 1
+        },
+        "file.c:1691": {
+          "PASS": 1
+        },
+        "file.c:1693": {
+          "PASS": 1
+        },
+        "file.c:1694": {
+          "PASS": 1
+        },
+        "file.c:1695": {
+          "PASS": 1
+        },
+        "file.c:1711": {
+          "PASS": 1
+        },
+        "file.c:1712": {
+          "PASS": 1
+        },
+        "file.c:1714": {
+          "PASS": 1
+        },
+        "file.c:1715": {
+          "PASS": 1
+        },
+        "file.c:1716": {
+          "PASS": 1
+        },
+        "file.c:172": {
+          "PASS": 1
+        },
+        "file.c:1732": {
+          "PASS": 1
+        },
+        "file.c:1733": {
+          "PASS": 1
+        },
+        "file.c:1736": {
+          "PASS": 1
+        },
+        "file.c:1737": {
+          "PASS": 1
+        },
+        "file.c:1739": {
+          "PASS": 1
+        },
+        "file.c:174": {
+          "PASS": 1
+        },
+        "file.c:1760": {
+          "PASS": 1
+        },
+        "file.c:1761": {
+          "PASS": 1
+        },
+        "file.c:1763": {
+          "PASS": 1
+        },
+        "file.c:1766": {
+          "PASS": 1
+        },
+        "file.c:1768": {
+          "PASS": 1
+        },
+        "file.c:1775": {
+          "PASS": 1
+        },
+        "file.c:1776": {
+          "PASS": 1
+        },
+        "file.c:1778": {
+          "PASS": 1
+        },
+        "file.c:1779": {
+          "PASS": 1
+        },
+        "file.c:1780": {
+          "PASS": 1
+        },
+        "file.c:1783": {
+          "PASS": 1
+        },
+        "file.c:1789": {
+          "PASS": 1
+        },
+        "file.c:1790": {
+          "PASS": 1
+        },
+        "file.c:1792": {
+          "PASS": 1
+        },
+        "file.c:1793": {
+          "PASS": 1
+        },
+        "file.c:1794": {
+          "PASS": 1
+        },
+        "file.c:1797": {
+          "PASS": 1
+        },
+        "file.c:1803": {
+          "PASS": 1
+        },
+        "file.c:1804": {
+          "PASS": 1
+        },
+        "file.c:1806": {
+          "PASS": 1
+        },
+        "file.c:1807": {
+          "PASS": 1
+        },
+        "file.c:1808": {
+          "PASS": 1
+        },
+        "file.c:1811": {
+          "PASS": 1
+        },
+        "file.c:1817": {
+          "PASS": 1
+        },
+        "file.c:1818": {
+          "PASS": 1
+        },
+        "file.c:1820": {
+          "PASS": 1
+        },
+        "file.c:1821": {
+          "PASS": 1
+        },
+        "file.c:1822": {
+          "PASS": 1
+        },
+        "file.c:1829": {
+          "PASS": 1
+        },
+        "file.c:1830": {
+          "PASS": 1
+        },
+        "file.c:1832": {
+          "PASS": 1
+        },
+        "file.c:1833": {
+          "PASS": 1
+        },
+        "file.c:1834": {
+          "PASS": 1
+        },
+        "file.c:1838": {
+          "PASS": 1
+        },
+        "file.c:185": {
+          "PASS": 1
+        },
+        "file.c:1866": {
+          "PASS": 1
+        },
+        "file.c:1867": {
+          "PASS": 1
+        },
+        "file.c:187": {
+          "PASS": 1
+        },
+        "file.c:1876": {
+          "PASS": 1
+        },
+        "file.c:1877": {
+          "PASS": 1
+        },
+        "file.c:1885": {
+          "PASS": 1
+        },
+        "file.c:1894": {
+          "PASS": 1
+        },
+        "file.c:1897": {
+          "PASS": 1
+        },
+        "file.c:190": {
+          "PASS": 1
+        },
+        "file.c:1906": {
+          "PASS": 1
+        },
+        "file.c:1909": {
+          "PASS": 1
+        },
+        "file.c:1913": {
+          "PASS": 1
+        },
+        "file.c:1917": {
+          "PASS": 1
+        },
+        "file.c:1921": {
+          "PASS": 1
+        },
+        "file.c:206": {
+          "PASS": 1
+        },
+        "file.c:208": {
+          "PASS": 1
+        },
+        "file.c:211": {
+          "PASS": 1
+        },
+        "file.c:232": {
+          "PASS": 1
+        },
+        "file.c:234": {
+          "PASS": 1
+        },
+        "file.c:236": {
+          "PASS": 1
+        },
+        "file.c:238": {
+          "PASS": 1
+        },
+        "file.c:240": {
+          "PASS": 1
+        },
+        "file.c:243": {
+          "PASS": 1
+        },
+        "file.c:246": {
+          "PASS": 1
+        },
+        "file.c:248": {
+          "PASS": 1
+        },
+        "file.c:250": {
+          "PASS": 1
+        },
+        "file.c:252": {
+          "PASS": 1
+        },
+        "file.c:254": {
+          "PASS": 1
+        },
+        "file.c:256": {
+          "PASS": 1
+        },
+        "file.c:258": {
+          "PASS": 1
+        },
+        "file.c:261": {
+          "PASS": 1
+        },
+        "file.c:263": {
+          "PASS": 1
+        },
+        "file.c:265": {
+          "PASS": 1
+        },
+        "file.c:267": {
+          "PASS": 1
+        },
+        "file.c:269": {
+          "PASS": 1
+        },
+        "file.c:271": {
+          "PASS": 1
+        },
+        "file.c:274": {
+          "PASS": 1
+        },
+        "file.c:277": {
+          "PASS": 1
+        },
+        "file.c:279": {
+          "PASS": 1
+        },
+        "file.c:281": {
+          "PASS": 1
+        },
+        "file.c:283": {
+          "PASS": 1
+        },
+        "file.c:285": {
+          "PASS": 1
+        },
+        "file.c:287": {
+          "PASS": 1
+        },
+        "file.c:290": {
+          "PASS": 1
+        },
+        "file.c:295": {
+          "PASS": 1
+        },
+        "file.c:325": {
+          "PASS": 1
+        },
+        "file.c:326": {
+          "PASS": 1
+        },
+        "file.c:329": {
+          "PASS": 1
+        },
+        "file.c:334": {
+          "PASS": 1
+        },
+        "file.c:356": {
+          "PASS": 400
+        },
+        "file.c:358": {
+          "PASS": 1
+        },
+        "file.c:359": {
+          "PASS": 1
+        },
+        "file.c:362": {
+          "PASS": 1
+        },
+        "file.c:363": {
+          "PASS": 1
+        },
+        "file.c:364": {
+          "PASS": 1
+        },
+        "file.c:367": {
+          "PASS": 1
+        },
+        "file.c:368": {
+          "PASS": 1
+        },
+        "file.c:369": {
+          "PASS": 1
+        },
+        "file.c:370": {
+          "PASS": 1
+        },
+        "file.c:373": {
+          "PASS": 1
+        },
+        "file.c:391": {
+          "PASS": 1
+        },
+        "file.c:392": {
+          "PASS": 1
+        },
+        "file.c:395": {
+          "PASS": 1
+        },
+        "file.c:397": {
+          "PASS": 1
+        },
+        "file.c:398": {
+          "PASS": 1
+        },
+        "file.c:402": {
+          "PASS": 1
+        },
+        "file.c:403": {
+          "PASS": 1
+        },
+        "file.c:404": {
+          "PASS": 1
+        },
+        "file.c:407": {
+          "PASS": 1
+        },
+        "file.c:408": {
+          "PASS": 1
+        },
+        "file.c:409": {
+          "PASS": 1
+        },
+        "file.c:412": {
+          "PASS": 1
+        },
+        "file.c:433": {
+          "PASS": 1
+        },
+        "file.c:435": {
+          "PASS": 1
+        },
+        "file.c:439": {
+          "PASS": 1
+        },
+        "file.c:443": {
+          "PASS": 1
+        },
+        "file.c:447": {
+          "PASS": 696
+        },
+        "file.c:448": {
+          "PASS": 696
+        },
+        "file.c:451": {
+          "PASS": 241860
+        },
+        "file.c:455": {
+          "PASS": 1
+        },
+        "file.c:458": {
+          "PASS": 1
+        },
+        "file.c:482": {
+          "PASS": 1
+        },
+        "file.c:484": {
+          "PASS": 1
+        },
+        "file.c:490": {
+          "PASS": 1
+        },
+        "file.c:492": {
+          "PASS": 1
+        },
+        "file.c:506": {
+          "PASS": 100
+        },
+        "file.c:510": {
+          "PASS": 1
+        },
+        "file.c:513": {
+          "PASS": 1
+        },
+        "file.c:517": {
+          "PASS": 1
+        },
+        "file.c:525": {
+          "PASS": 1
+        },
+        "file.c:527": {
+          "PASS": 1
+        },
+        "file.c:538": {
+          "PASS": 1
+        },
+        "file.c:540": {
+          "PASS": 1
+        },
+        "file.c:543": {
+          "PASS": 1
+        },
+        "file.c:558": {
+          "PASS": 1
+        },
+        "file.c:559": {
+          "PASS": 1
+        },
+        "file.c:562": {
+          "PASS": 1
+        },
+        "file.c:566": {
+          "PASS": 1
+        },
+        "file.c:568": {
+          "PASS": 1
+        },
+        "file.c:570": {
+          "PASS": 1
+        },
+        "file.c:573": {
+          "PASS": 1
+        },
+        "file.c:576": {
+          "PASS": 1
+        },
+        "file.c:581": {
+          "PASS": 1
+        },
+        "file.c:585": {
+          "PASS": 1
+        },
+        "file.c:589": {
+          "PASS": 1
+        },
+        "file.c:593": {
+          "PASS": 1
+        },
+        "file.c:595": {
+          "PASS": 1
+        },
+        "file.c:599": {
+          "PASS": 1
+        },
+        "file.c:600": {
+          "PASS": 1
+        },
+        "file.c:604": {
+          "PASS": 1
+        },
+        "file.c:609": {
+          "PASS": 1
+        },
+        "file.c:611": {
+          "PASS": 1
+        },
+        "file.c:613": {
+          "PASS": 1
+        },
+        "file.c:617": {
+          "PASS": 1
+        },
+        "file.c:619": {
+          "PASS": 1
+        },
+        "file.c:663": {
+          "PASS": 1
+        },
+        "file.c:664": {
+          "PASS": 1
+        },
+        "file.c:667": {
+          "PASS": 1
+        },
+        "file.c:672": {
+          "PASS": 1
+        },
+        "file.c:678": {
+          "PASS": 1
+        },
+        "file.c:686": {
+          "PASS": 1
+        },
+        "file.c:692": {
+          "PASS": 1
+        },
+        "file.c:697": {
+          "PASS": 1
+        },
+        "file.c:703": {
+          "PASS": 1
+        },
+        "file.c:791": {
+          "PASS": 1
+        },
+        "file.c:792": {
+          "PASS": 1
+        },
+        "file.c:80": {
+          "PASS": 1
+        },
+        "file.c:805": {
+          "PASS": 1
+        },
+        "file.c:806": {
+          "PASS": 1
+        },
+        "file.c:811": {
+          "PASS": 1
+        },
+        "file.c:815": {
+          "PASS": 1
+        },
+        "file.c:82": {
+          "PASS": 1
+        },
+        "file.c:824": {
+          "PASS": 1
+        },
+        "file.c:829": {
+          "PASS": 1
+        },
+        "file.c:834": {
+          "PASS": 1
+        },
+        "file.c:86": {
+          "PASS": 1
+        },
+        "file.c:867": {
+          "PASS": 1
+        },
+        "file.c:868": {
+          "PASS": 1
+        },
+        "file.c:871": {
+          "PASS": 1
+        },
+        "file.c:874": {
+          "PASS": 1
+        },
+        "file.c:877": {
+          "PASS": 1
+        },
+        "file.c:881": {
+          "PASS": 1
+        },
+        "file.c:884": {
+          "PASS": 1
+        },
+        "file.c:888": {
+          "PASS": 1
+        },
+        "file.c:895": {
+          "PASS": 1
+        },
+        "file.c:896": {
+          "PASS": 1
+        },
+        "file.c:90": {
+          "PASS": 1
+        },
+        "file.c:916": {
+          "PASS": 2
+        },
+        "file.c:923": {
+          "PASS": 1
+        },
+        "file.c:925": {
+          "PASS": 1
+        },
+        "file.c:927": {
+          "PASS": 1
+        },
+        "file.c:94": {
+          "PASS": 696
+        },
+        "file.c:95": {
+          "PASS": 696
+        },
+        "file.c:973": {
+          "PASS": 1
+        },
+        "file.c:975": {
+          "PASS": 1
+        },
+        "file.c:98": {
+          "PASS": 241860
+        },
+        "file.c:980": {
+          "PASS": 1
+        },
+        "file.c:984": {
+          "PASS": 1
+        },
+        "file.c:985": {
+          "PASS": 1
+        }
+      },
+      "sha256": "81b9b47df66b10145076190a958a81858adf42491a49474c84e9ce37d7a0f41e",
+      "skips": {
+        "file.c:1453": 1,
+        "file.c:1940": 1,
+        "file.c:2126": 1
+      },
+      "variable_counts": {
+        "file.c:1305": "One assertion per file in the Windows directory. The two installations contain different files; every enumerated entry must pass and the site must be reached."
+      }
+    },
+    "heap": {
+      "advisory": {
+        "heap.c:189": {
+          "FAIL": 1
+        },
+        "heap.c:195": {
+          "FAIL": 1
+        },
+        "heap.c:198": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "heap.c:101": {
+          "PASS": 1
+        },
+        "heap.c:104": {
+          "PASS": 1
+        },
+        "heap.c:109": {
+          "PASS": 1
+        },
+        "heap.c:113": {
+          "PASS": 1
+        },
+        "heap.c:119": {
+          "PASS": 1
+        },
+        "heap.c:122": {
+          "PASS": 1
+        },
+        "heap.c:128": {
+          "PASS": 1
+        },
+        "heap.c:133": {
+          "PASS": 1
+        },
+        "heap.c:140": {
+          "PASS": 1
+        },
+        "heap.c:149": {
+          "PASS": 1
+        },
+        "heap.c:154": {
+          "PASS": 1
+        },
+        "heap.c:159": {
+          "PASS": 1
+        },
+        "heap.c:165": {
+          "PASS": 1
+        },
+        "heap.c:175": {
+          "PASS": 1
+        },
+        "heap.c:183": {
+          "PASS": 1
+        },
+        "heap.c:188": {
+          "PASS": 1
+        },
+        "heap.c:203": {
+          "PASS": 1
+        },
+        "heap.c:204": {
+          "PASS": 1
+        },
+        "heap.c:210": {
+          "PASS": 1
+        },
+        "heap.c:213": {
+          "PASS": 1
+        },
+        "heap.c:215": {
+          "PASS": 1
+        },
+        "heap.c:218": {
+          "PASS": 1
+        },
+        "heap.c:221": {
+          "PASS": 1
+        },
+        "heap.c:222": {
+          "PASS": 1
+        },
+        "heap.c:224": {
+          "PASS": 1
+        },
+        "heap.c:227": {
+          "PASS": 1
+        },
+        "heap.c:233": {
+          "PASS": 1
+        },
+        "heap.c:236": {
+          "PASS": 1
+        },
+        "heap.c:241": {
+          "PASS": 1
+        },
+        "heap.c:245": {
+          "PASS": 1
+        },
+        "heap.c:251": {
+          "PASS": 1
+        },
+        "heap.c:254": {
+          "PASS": 1
+        },
+        "heap.c:260": {
+          "PASS": 1
+        },
+        "heap.c:265": {
+          "PASS": 1
+        },
+        "heap.c:272": {
+          "PASS": 1
+        },
+        "heap.c:281": {
+          "PASS": 1
+        },
+        "heap.c:286": {
+          "PASS": 1
+        },
+        "heap.c:291": {
+          "PASS": 1
+        },
+        "heap.c:297": {
+          "PASS": 1
+        },
+        "heap.c:304": {
+          "PASS": 1
+        },
+        "heap.c:310": {
+          "PASS": 1
+        },
+        "heap.c:314": {
+          "PASS": 1
+        },
+        "heap.c:49": {
+          "PASS": 1
+        },
+        "heap.c:52": {
+          "PASS": 1
+        },
+        "heap.c:59": {
+          "PASS": 257
+        },
+        "heap.c:66": {
+          "PASS": 1
+        },
+        "heap.c:68": {
+          "PASS": 1
+        },
+        "heap.c:70": {
+          "PASS": 1
+        },
+        "heap.c:73": {
+          "PASS": 1
+        },
+        "heap.c:77": {
+          "PASS": 1
+        },
+        "heap.c:80": {
+          "PASS": 1
+        },
+        "heap.c:82": {
+          "PASS": 1
+        },
+        "heap.c:85": {
+          "PASS": 1
+        },
+        "heap.c:88": {
+          "PASS": 1
+        },
+        "heap.c:89": {
+          "PASS": 1
+        },
+        "heap.c:91": {
+          "PASS": 1
+        },
+        "heap.c:94": {
+          "PASS": 1
+        }
+      },
+      "sha256": "20d4dd97667d9623395766d71c62518c97c9484899aed08e7ed209df88324294",
+      "skips": {}
+    },
+    "process": {
+      "advisory": {
+        "process.c:1183": {
+          "FAIL": 1
+        },
+        "process.c:1189": {
+          "FAIL": 1
+        },
+        "process.c:1232": {
+          "FAIL": 1
+        },
+        "process.c:1233": {
+          "FAIL": 1
+        },
+        "process.c:351": {
+          "FAIL": 1
+        },
+        "process.c:352": {
+          "FAIL": 1
+        },
+        "process.c:775": {
+          "FAIL": 1
+        },
+        "process.c:781": {
+          "FAIL": 1
+        },
+        "process.c:790": {
+          "FAIL": 1
+        },
+        "process.c:796": {
+          "FAIL": 1
+        },
+        "process.c:810": {
+          "FAIL": 1
+        },
+        "process.c:816": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "process.c:1000": {
+          "PASS": 1
+        },
+        "process.c:1002": {
+          "PASS": 1
+        },
+        "process.c:1028": {
+          "PASS": 1
+        },
+        "process.c:1030": {
+          "PASS": 1
+        },
+        "process.c:1032": {
+          "PASS": 1
+        },
+        "process.c:1033": {
+          "PASS": 1
+        },
+        "process.c:1036": {
+          "PASS": 1
+        },
+        "process.c:1042": {
+          "PASS": 1
+        },
+        "process.c:1043": {
+          "PASS": 1
+        },
+        "process.c:1044": {
+          "PASS": 1
+        },
+        "process.c:1046": {
+          "PASS": 1
+        },
+        "process.c:1047": {
+          "PASS": 1
+        },
+        "process.c:1048": {
+          "PASS": 1
+        },
+        "process.c:1049": {
+          "PASS": 1
+        },
+        "process.c:1050": {
+          "PASS": 1
+        },
+        "process.c:1051": {
+          "PASS": 1
+        },
+        "process.c:1052": {
+          "PASS": 1
+        },
+        "process.c:1053": {
+          "PASS": 1
+        },
+        "process.c:1054": {
+          "PASS": 1
+        },
+        "process.c:1075": {
+          "PASS": 1
+        },
+        "process.c:1080": {
+          "PASS": 5
+        },
+        "process.c:1085": {
+          "PASS": 1
+        },
+        "process.c:1087": {
+          "PASS": 1
+        },
+        "process.c:1093": {
+          "PASS": 1
+        },
+        "process.c:1094": {
+          "PASS": 1
+        },
+        "process.c:1095": {
+          "PASS": 1
+        },
+        "process.c:1097": {
+          "PASS": 1
+        },
+        "process.c:1098": {
+          "PASS": 1
+        },
+        "process.c:1099": {
+          "PASS": 1
+        },
+        "process.c:1100": {
+          "PASS": 1
+        },
+        "process.c:1101": {
+          "PASS": 1
+        },
+        "process.c:1102": {
+          "PASS": 1
+        },
+        "process.c:1103": {
+          "PASS": 1
+        },
+        "process.c:1104": {
+          "PASS": 1
+        },
+        "process.c:1105": {
+          "PASS": 1
+        },
+        "process.c:1150": {
+          "PASS": 1
+        },
+        "process.c:1151": {
+          "PASS": 1
+        },
+        "process.c:1154": {
+          "PASS": 1
+        },
+        "process.c:1155": {
+          "PASS": 1
+        },
+        "process.c:1162": {
+          "PASS": 1
+        },
+        "process.c:1165": {
+          "PASS": 1
+        },
+        "process.c:1170": {
+          "PASS": 1
+        },
+        "process.c:1171": {
+          "PASS": 1
+        },
+        "process.c:1182": {
+          "PASS": 1
+        },
+        "process.c:1188": {
+          "PASS": 1
+        },
+        "process.c:1198": {
+          "PASS": 1
+        },
+        "process.c:1199": {
+          "PASS": 1
+        },
+        "process.c:1200": {
+          "PASS": 1
+        },
+        "process.c:1202": {
+          "PASS": 1
+        },
+        "process.c:1203": {
+          "PASS": 1
+        },
+        "process.c:1204": {
+          "PASS": 1
+        },
+        "process.c:1205": {
+          "PASS": 1
+        },
+        "process.c:1206": {
+          "PASS": 1
+        },
+        "process.c:1207": {
+          "PASS": 1
+        },
+        "process.c:1208": {
+          "PASS": 1
+        },
+        "process.c:1209": {
+          "PASS": 1
+        },
+        "process.c:1210": {
+          "PASS": 1
+        },
+        "process.c:1213": {
+          "PASS": 1
+        },
+        "process.c:1214": {
+          "PASS": 1
+        },
+        "process.c:1215": {
+          "PASS": 1
+        },
+        "process.c:1216": {
+          "PASS": 1
+        },
+        "process.c:1217": {
+          "PASS": 1
+        },
+        "process.c:1218": {
+          "PASS": 1
+        },
+        "process.c:1219": {
+          "PASS": 1
+        },
+        "process.c:1220": {
+          "PASS": 1
+        },
+        "process.c:1221": {
+          "PASS": 1
+        },
+        "process.c:1222": {
+          "PASS": 1
+        },
+        "process.c:1223": {
+          "PASS": 1
+        },
+        "process.c:1224": {
+          "PASS": 1
+        },
+        "process.c:1225": {
+          "PASS": 1
+        },
+        "process.c:1226": {
+          "PASS": 1
+        },
+        "process.c:1227": {
+          "PASS": 1
+        },
+        "process.c:1228": {
+          "PASS": 1
+        },
+        "process.c:1229": {
+          "PASS": 1
+        },
+        "process.c:1230": {
+          "PASS": 1
+        },
+        "process.c:1234": {
+          "PASS": 1
+        },
+        "process.c:1235": {
+          "PASS": 1
+        },
+        "process.c:1237": {
+          "PASS": 1
+        },
+        "process.c:1242": {
+          "PASS": 1
+        },
+        "process.c:1243": {
+          "PASS": 1
+        },
+        "process.c:1248": {
+          "PASS": 1
+        },
+        "process.c:1249": {
+          "PASS": 1
+        },
+        "process.c:1264": {
+          "PASS": 1
+        },
+        "process.c:1265": {
+          "PASS": 1
+        },
+        "process.c:1266": {
+          "PASS": 1
+        },
+        "process.c:1269": {
+          "PASS": 1
+        },
+        "process.c:1270": {
+          "PASS": 1
+        },
+        "process.c:1272": {
+          "PASS": 1
+        },
+        "process.c:1273": {
+          "PASS": 1
+        },
+        "process.c:1276": {
+          "PASS": 1
+        },
+        "process.c:1280": {
+          "PASS": 1
+        },
+        "process.c:1301": {
+          "PASS": 1
+        },
+        "process.c:1304": {
+          "PASS": 1
+        },
+        "process.c:1308": {
+          "PASS": 1
+        },
+        "process.c:1309": {
+          "PASS": 1
+        },
+        "process.c:1330": {
+          "PASS": 1
+        },
+        "process.c:1334": {
+          "PASS": 1
+        },
+        "process.c:1403": {
+          "PASS": 17
+        },
+        "process.c:354": {
+          "PASS": 1
+        },
+        "process.c:356": {
+          "PASS": 1
+        },
+        "process.c:360": {
+          "PASS": 1
+        },
+        "process.c:372": {
+          "PASS": 1
+        },
+        "process.c:374": {
+          "PASS": 1
+        },
+        "process.c:464": {
+          "PASS": 1
+        },
+        "process.c:466": {
+          "PASS": 1
+        },
+        "process.c:471": {
+          "PASS": 1
+        },
+        "process.c:472": {
+          "PASS": 1
+        },
+        "process.c:473": {
+          "PASS": 1
+        },
+        "process.c:474": {
+          "PASS": 1
+        },
+        "process.c:475": {
+          "PASS": 1
+        },
+        "process.c:476": {
+          "PASS": 1
+        },
+        "process.c:477": {
+          "PASS": 1
+        },
+        "process.c:478": {
+          "PASS": 1
+        },
+        "process.c:479": {
+          "PASS": 1
+        },
+        "process.c:480": {
+          "PASS": 1
+        },
+        "process.c:481": {
+          "PASS": 1
+        },
+        "process.c:502": {
+          "PASS": 1
+        },
+        "process.c:504": {
+          "PASS": 1
+        },
+        "process.c:508": {
+          "PASS": 1
+        },
+        "process.c:509": {
+          "PASS": 1
+        },
+        "process.c:510": {
+          "PASS": 1
+        },
+        "process.c:511": {
+          "PASS": 1
+        },
+        "process.c:512": {
+          "PASS": 1
+        },
+        "process.c:513": {
+          "PASS": 1
+        },
+        "process.c:514": {
+          "PASS": 1
+        },
+        "process.c:515": {
+          "PASS": 1
+        },
+        "process.c:516": {
+          "PASS": 1
+        },
+        "process.c:517": {
+          "PASS": 1
+        },
+        "process.c:518": {
+          "PASS": 1
+        },
+        "process.c:519": {
+          "PASS": 1
+        },
+        "process.c:540": {
+          "PASS": 1
+        },
+        "process.c:542": {
+          "PASS": 1
+        },
+        "process.c:546": {
+          "PASS": 1
+        },
+        "process.c:547": {
+          "PASS": 1
+        },
+        "process.c:548": {
+          "PASS": 1
+        },
+        "process.c:549": {
+          "PASS": 1
+        },
+        "process.c:550": {
+          "PASS": 1
+        },
+        "process.c:551": {
+          "PASS": 1
+        },
+        "process.c:552": {
+          "PASS": 1
+        },
+        "process.c:553": {
+          "PASS": 1
+        },
+        "process.c:554": {
+          "PASS": 1
+        },
+        "process.c:555": {
+          "PASS": 1
+        },
+        "process.c:556": {
+          "PASS": 1
+        },
+        "process.c:557": {
+          "PASS": 1
+        },
+        "process.c:578": {
+          "PASS": 1
+        },
+        "process.c:580": {
+          "PASS": 1
+        },
+        "process.c:584": {
+          "PASS": 1
+        },
+        "process.c:585": {
+          "PASS": 1
+        },
+        "process.c:586": {
+          "PASS": 1
+        },
+        "process.c:587": {
+          "PASS": 1
+        },
+        "process.c:588": {
+          "PASS": 1
+        },
+        "process.c:589": {
+          "PASS": 1
+        },
+        "process.c:590": {
+          "PASS": 1
+        },
+        "process.c:591": {
+          "PASS": 1
+        },
+        "process.c:592": {
+          "PASS": 1
+        },
+        "process.c:593": {
+          "PASS": 1
+        },
+        "process.c:594": {
+          "PASS": 1
+        },
+        "process.c:595": {
+          "PASS": 1
+        },
+        "process.c:616": {
+          "PASS": 1
+        },
+        "process.c:618": {
+          "PASS": 1
+        },
+        "process.c:622": {
+          "PASS": 1
+        },
+        "process.c:623": {
+          "PASS": 1
+        },
+        "process.c:624": {
+          "PASS": 1
+        },
+        "process.c:626": {
+          "PASS": 1
+        },
+        "process.c:627": {
+          "PASS": 1
+        },
+        "process.c:628": {
+          "PASS": 1
+        },
+        "process.c:629": {
+          "PASS": 1
+        },
+        "process.c:630": {
+          "PASS": 1
+        },
+        "process.c:631": {
+          "PASS": 1
+        },
+        "process.c:632": {
+          "PASS": 1
+        },
+        "process.c:633": {
+          "PASS": 1
+        },
+        "process.c:634": {
+          "PASS": 1
+        },
+        "process.c:655": {
+          "PASS": 1
+        },
+        "process.c:657": {
+          "PASS": 1
+        },
+        "process.c:661": {
+          "PASS": 1
+        },
+        "process.c:662": {
+          "PASS": 1
+        },
+        "process.c:663": {
+          "PASS": 1
+        },
+        "process.c:664": {
+          "PASS": 1
+        },
+        "process.c:665": {
+          "PASS": 1
+        },
+        "process.c:666": {
+          "PASS": 1
+        },
+        "process.c:667": {
+          "PASS": 1
+        },
+        "process.c:668": {
+          "PASS": 1
+        },
+        "process.c:669": {
+          "PASS": 1
+        },
+        "process.c:670": {
+          "PASS": 1
+        },
+        "process.c:671": {
+          "PASS": 1
+        },
+        "process.c:672": {
+          "PASS": 1
+        },
+        "process.c:693": {
+          "PASS": 1
+        },
+        "process.c:695": {
+          "PASS": 1
+        },
+        "process.c:699": {
+          "PASS": 1
+        },
+        "process.c:700": {
+          "PASS": 1
+        },
+        "process.c:701": {
+          "PASS": 1
+        },
+        "process.c:702": {
+          "PASS": 1
+        },
+        "process.c:703": {
+          "PASS": 1
+        },
+        "process.c:704": {
+          "PASS": 1
+        },
+        "process.c:705": {
+          "PASS": 1
+        },
+        "process.c:706": {
+          "PASS": 1
+        },
+        "process.c:707": {
+          "PASS": 1
+        },
+        "process.c:708": {
+          "PASS": 1
+        },
+        "process.c:709": {
+          "PASS": 1
+        },
+        "process.c:710": {
+          "PASS": 1
+        },
+        "process.c:733": {
+          "PASS": 1
+        },
+        "process.c:735": {
+          "PASS": 1
+        },
+        "process.c:739": {
+          "PASS": 1
+        },
+        "process.c:740": {
+          "PASS": 1
+        },
+        "process.c:741": {
+          "PASS": 1
+        },
+        "process.c:742": {
+          "PASS": 1
+        },
+        "process.c:754": {
+          "PASS": 1
+        },
+        "process.c:756": {
+          "PASS": 1
+        },
+        "process.c:760": {
+          "PASS": 1
+        },
+        "process.c:761": {
+          "PASS": 1
+        },
+        "process.c:762": {
+          "PASS": 1
+        },
+        "process.c:763": {
+          "PASS": 1
+        },
+        "process.c:764": {
+          "PASS": 1
+        },
+        "process.c:765": {
+          "PASS": 1
+        },
+        "process.c:777": {
+          "PASS": 1
+        },
+        "process.c:792": {
+          "PASS": 1
+        },
+        "process.c:812": {
+          "PASS": 1
+        },
+        "process.c:839": {
+          "PASS": 1
+        },
+        "process.c:841": {
+          "PASS": 1
+        },
+        "process.c:845": {
+          "PASS": 1
+        },
+        "process.c:850": {
+          "PASS": 1
+        },
+        "process.c:851": {
+          "PASS": 1
+        },
+        "process.c:856": {
+          "PASS": 1
+        },
+        "process.c:858": {
+          "PASS": 1
+        },
+        "process.c:859": {
+          "PASS": 1
+        },
+        "process.c:894": {
+          "PASS": 29
+        },
+        "process.c:919": {
+          "PASS": 28
+        },
+        "process.c:944": {
+          "PASS": 1
+        },
+        "process.c:946": {
+          "PASS": 1
+        }
+      },
+      "sha256": "de52e056eaf7169403f5d8c6331b3938d6c8da34957578cc80f420e3bdef9378",
+      "skips": {
+        "process.c:1338": 1
+      },
+      "variable_counts": {
+        "process.c:894": "One assertion per inherited environment string, checked in both directions between parent and child. Win98 and NEO98 have different environment sizes; every checked string must pass and both sites must be reached.",
+        "process.c:919": "One assertion per inherited environment string, checked in both directions between parent and child. Win98 and NEO98 have different environment sizes; every checked string must pass and both sites must be reached."
+      }
+    },
+    "profile": {
+      "advisory": {
+        "profile.c:177": {
+          "FAIL": 1
+        },
+        "profile.c:183": {
+          "FAIL": 1
+        },
+        "profile.c:192": {
+          "FAIL": 1
+        },
+        "profile.c:218": {
+          "FAIL": 1
+        },
+        "profile.c:219": {
+          "FAIL": 1
+        },
+        "profile.c:223": {
+          "FAIL": 1
+        },
+        "profile.c:224": {
+          "FAIL": 1
+        },
+        "profile.c:229": {
+          "FAIL": 1
+        },
+        "profile.c:234": {
+          "FAIL": 1
+        },
+        "profile.c:310": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "profile.c:313": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "profile.c:343": {
+          "FAIL": 5,
+          "PASS": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "profile.c:106": {
+          "PASS": 1
+        },
+        "profile.c:117": {
+          "PASS": 1
+        },
+        "profile.c:126": {
+          "PASS": 1
+        },
+        "profile.c:145": {
+          "PASS": 1
+        },
+        "profile.c:153": {
+          "PASS": 1
+        },
+        "profile.c:154": {
+          "PASS": 1
+        },
+        "profile.c:161": {
+          "PASS": 1
+        },
+        "profile.c:162": {
+          "PASS": 1
+        },
+        "profile.c:176": {
+          "PASS": 1
+        },
+        "profile.c:181": {
+          "PASS": 1
+        },
+        "profile.c:189": {
+          "PASS": 1
+        },
+        "profile.c:191": {
+          "PASS": 1
+        },
+        "profile.c:211": {
+          "PASS": 1
+        },
+        "profile.c:228": {
+          "PASS": 1
+        },
+        "profile.c:235": {
+          "PASS": 1
+        },
+        "profile.c:236": {
+          "PASS": 1
+        },
+        "profile.c:304": {
+          "PASS": 9
+        },
+        "profile.c:318": {
+          "PASS": 6
+        },
+        "profile.c:320": {
+          "PASS": 6
+        },
+        "profile.c:324": {
+          "PASS": 6
+        },
+        "profile.c:327": {
+          "PASS": 9
+        },
+        "profile.c:332": {
+          "PASS": 1
+        },
+        "profile.c:339": {
+          "PASS": 9
+        },
+        "profile.c:345": {
+          "PASS": 3
+        },
+        "profile.c:348": {
+          "PASS": 1
+        },
+        "profile.c:85": {
+          "PASS": 25
+        }
+      },
+      "sha256": "2283d4777c30a841e4c46736d80d1b2ddd380c92fbe2f8d508e4e16bdd4d3d4d",
+      "skips": {
+        "profile.c:243": 1
+      }
+    },
+    "sync": {
+      "advisory": {
+        "sync.c:159": {
+          "FAIL": 1
+        },
+        "sync.c:164": {
+          "FAIL": 1
+        },
+        "sync.c:337": {
+          "FAIL": 1
+        },
+        "sync.c:373": {
+          "FAIL": 1
+        },
+        "sync.c:415": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "sync.c:140": {
+          "PASS": 1
+        },
+        "sync.c:142": {
+          "PASS": 1
+        },
+        "sync.c:147": {
+          "PASS": 1
+        },
+        "sync.c:149": {
+          "PASS": 1
+        },
+        "sync.c:151": {
+          "PASS": 1
+        },
+        "sync.c:158": {
+          "PASS": 1
+        },
+        "sync.c:163": {
+          "PASS": 1
+        },
+        "sync.c:168": {
+          "PASS": 1
+        },
+        "sync.c:169": {
+          "PASS": 1
+        },
+        "sync.c:174": {
+          "PASS": 1
+        },
+        "sync.c:175": {
+          "PASS": 1
+        },
+        "sync.c:283": {
+          "PASS": 1
+        },
+        "sync.c:294": {
+          "PASS": 1
+        },
+        "sync.c:300": {
+          "PASS": 1
+        },
+        "sync.c:307": {
+          "PASS": 1
+        },
+        "sync.c:314": {
+          "PASS": 1
+        },
+        "sync.c:315": {
+          "PASS": 1
+        },
+        "sync.c:319": {
+          "PASS": 1
+        },
+        "sync.c:320": {
+          "PASS": 1
+        },
+        "sync.c:325": {
+          "PASS": 1
+        },
+        "sync.c:326": {
+          "PASS": 1
+        },
+        "sync.c:331": {
+          "PASS": 1
+        },
+        "sync.c:336": {
+          "PASS": 1
+        },
+        "sync.c:350": {
+          "PASS": 1
+        },
+        "sync.c:351": {
+          "PASS": 1
+        },
+        "sync.c:355": {
+          "PASS": 1
+        },
+        "sync.c:356": {
+          "PASS": 1
+        },
+        "sync.c:361": {
+          "PASS": 1
+        },
+        "sync.c:362": {
+          "PASS": 1
+        },
+        "sync.c:367": {
+          "PASS": 1
+        },
+        "sync.c:372": {
+          "PASS": 1
+        },
+        "sync.c:392": {
+          "PASS": 1
+        },
+        "sync.c:393": {
+          "PASS": 1
+        },
+        "sync.c:397": {
+          "PASS": 1
+        },
+        "sync.c:398": {
+          "PASS": 1
+        },
+        "sync.c:403": {
+          "PASS": 1
+        },
+        "sync.c:404": {
+          "PASS": 1
+        },
+        "sync.c:409": {
+          "PASS": 1
+        },
+        "sync.c:414": {
+          "PASS": 1
+        }
+      },
+      "sha256": "08370fc41b2ce4efd37bfffb4ea495055a8dd84418017d803b818964a036b1cd",
+      "skips": {
+        "sync.c:212": 1,
+        "sync.c:444": 1
+      }
+    },
+    "thread": {
+      "advisory": {},
+      "alternatives": {
+        "thread.c:392": {
+          "reason": "CreateThread accepts a NULL thread-id output; require the complete successful-thread branch instead of reproducing the Win9x rejection.",
+          "requires": [
+            "thread.c:383",
+            "thread.c:385",
+            "thread.c:387",
+            "thread.c:388",
+            "thread.c:389"
+          ]
+        }
+      },
+      "required": {
+        "thread.c:134": {
+          "PASS": 4
+        },
+        "thread.c:149": {
+          "PASS": 4
+        },
+        "thread.c:152": {
+          "PASS": 4
+        },
+        "thread.c:231": {
+          "PASS": 1
+        },
+        "thread.c:325": {
+          "PASS": 1
+        },
+        "thread.c:330": {
+          "PASS": 1
+        },
+        "thread.c:347": {
+          "PASS": 4
+        },
+        "thread.c:352": {
+          "PASS": 4
+        },
+        "thread.c:356": {
+          "PASS": 4
+        },
+        "thread.c:357": {
+          "PASS": 4
+        },
+        "thread.c:372": {
+          "PASS": 4
+        },
+        "thread.c:374": {
+          "PASS": 4
+        },
+        "thread.c:376": {
+          "PASS": 1
+        },
+        "thread.c:392": {
+          "PASS": 1
+        },
+        "thread.c:405": {
+          "PASS": 1
+        },
+        "thread.c:407": {
+          "PASS": 1
+        },
+        "thread.c:408": {
+          "PASS": 1
+        },
+        "thread.c:413": {
+          "PASS": 1
+        },
+        "thread.c:416": {
+          "PASS": 1
+        },
+        "thread.c:417": {
+          "PASS": 1
+        },
+        "thread.c:422": {
+          "PASS": 1
+        },
+        "thread.c:434": {
+          "PASS": 1
+        },
+        "thread.c:449": {
+          "PASS": 1
+        },
+        "thread.c:462": {
+          "PASS": 1
+        },
+        "thread.c:465": {
+          "PASS": 1
+        },
+        "thread.c:466": {
+          "PASS": 1
+        },
+        "thread.c:473": {
+          "PASS": 1
+        },
+        "thread.c:474": {
+          "PASS": 1
+        },
+        "thread.c:476": {
+          "PASS": 1
+        },
+        "thread.c:488": {
+          "PASS": 1
+        },
+        "thread.c:494": {
+          "PASS": 1
+        },
+        "thread.c:507": {
+          "PASS": 1
+        },
+        "thread.c:508": {
+          "PASS": 1
+        },
+        "thread.c:510": {
+          "PASS": 1
+        },
+        "thread.c:512": {
+          "PASS": 1
+        },
+        "thread.c:513": {
+          "PASS": 1
+        },
+        "thread.c:562": {
+          "PASS": 1
+        },
+        "thread.c:582": {
+          "PASS": 5
+        },
+        "thread.c:584": {
+          "PASS": 5
+        },
+        "thread.c:587": {
+          "PASS": 1
+        },
+        "thread.c:589": {
+          "PASS": 1
+        },
+        "thread.c:591": {
+          "PASS": 1
+        },
+        "thread.c:593": {
+          "PASS": 1
+        },
+        "thread.c:595": {
+          "PASS": 1
+        },
+        "thread.c:603": {
+          "PASS": 1
+        },
+        "thread.c:604": {
+          "PASS": 1
+        },
+        "thread.c:608": {
+          "PASS": 1
+        },
+        "thread.c:615": {
+          "PASS": 1
+        },
+        "thread.c:616": {
+          "PASS": 1
+        },
+        "thread.c:620": {
+          "PASS": 1
+        },
+        "thread.c:674": {
+          "PASS": 1
+        },
+        "thread.c:682": {
+          "PASS": 1
+        },
+        "thread.c:683": {
+          "PASS": 1
+        },
+        "thread.c:727": {
+          "PASS": 1
+        },
+        "thread.c:731": {
+          "PASS": 1
+        },
+        "thread.c:733": {
+          "PASS": 1
+        },
+        "thread.c:735": {
+          "PASS": 1
+        },
+        "thread.c:737": {
+          "PASS": 1
+        },
+        "thread.c:739": {
+          "PASS": 1
+        },
+        "thread.c:769": {
+          "PASS": 1
+        },
+        "thread.c:771": {
+          "PASS": 1
+        },
+        "thread.c:775": {
+          "PASS": 1
+        },
+        "thread.c:777": {
+          "PASS": 1
+        },
+        "thread.c:779": {
+          "PASS": 1
+        },
+        "thread.c:780": {
+          "PASS": 1
+        },
+        "thread.c:813": {
+          "PASS": 1
+        },
+        "thread.c:826": {
+          "PASS": 1
+        },
+        "thread.c:837": {
+          "PASS": 1
+        },
+        "thread.c:842": {
+          "PASS": 1
+        },
+        "thread.c:846": {
+          "PASS": 1
+        },
+        "thread.c:87": {
+          "PASS": 1
+        },
+        "thread.c:89": {
+          "PASS": 1
+        },
+        "thread.c:966": {
+          "PASS": 1
+        }
+      },
+      "sha256": "200d3b5814383a396f0d5ca2548580ac0a0089f0649060dd569d2f03d27cd5f4",
+      "skips": {
+        "thread.c:239": 1,
+        "thread.c:914": 1
+      }
+    },
+    "virtual": {
+      "advisory": {
+        "virtual.c:461": {
+          "FAIL": 1
+        },
+        "virtual.c:462": {
+          "FAIL": 1
+        },
+        "virtual.c:471": {
+          "FAIL": 1
+        },
+        "virtual.c:474": {
+          "FAIL": 1
+        },
+        "virtual.c:483": {
+          "FAIL": 1
+        },
+        "virtual.c:484": {
+          "FAIL": 1
+        },
+        "virtual.c:493": {
+          "FAIL": 1
+        },
+        "virtual.c:513": {
+          "FAIL": 1
+        },
+        "virtual.c:518": {
+          "FAIL": 1
+        },
+        "virtual.c:519": {
+          "FAIL": 1
+        },
+        "virtual.c:528": {
+          "FAIL": 1
+        },
+        "virtual.c:533": {
+          "FAIL": 1
+        },
+        "virtual.c:547": {
+          "FAIL": 1
+        },
+        "virtual.c:552": {
+          "FAIL": 1
+        },
+        "virtual.c:659": {
+          "FAIL": 1
+        },
+        "virtual.c:668": {
+          "FAIL": 1
+        },
+        "virtual.c:669": {
+          "FAIL": 1
+        },
+        "virtual.c:670": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {
+        "virtual.c:379": {
+          "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+          "requires": [
+            "virtual.c:374"
+          ]
+        },
+        "virtual.c:384": {
+          "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+          "requires": [
+            "virtual.c:374"
+          ]
+        },
+        "virtual.c:385": {
+          "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+          "requires": [
+            "virtual.c:374"
+          ]
+        },
+        "virtual.c:389": {
+          "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+          "requires": [
+            "virtual.c:374"
+          ]
+        },
+        "virtual.c:394": {
+          "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+          "requires": [
+            "virtual.c:374"
+          ]
+        },
+        "virtual.c:395": {
+          "reason": "Reject PAGE_NOACCESS file mappings with ERROR_INVALID_PARAMETER rather than making a supposedly inaccessible mapping readable as Win98 does. Require the explicit rejection check.",
+          "requires": [
+            "virtual.c:374"
+          ]
+        }
+      },
+      "required": {
+        "virtual.c:196": {
+          "PASS": 1
+        },
+        "virtual.c:197": {
+          "PASS": 1
+        },
+        "virtual.c:202": {
+          "PASS": 1
+        },
+        "virtual.c:205": {
+          "PASS": 1
+        },
+        "virtual.c:207": {
+          "PASS": 1
+        },
+        "virtual.c:208": {
+          "PASS": 1
+        },
+        "virtual.c:209": {
+          "PASS": 1
+        },
+        "virtual.c:210": {
+          "PASS": 1
+        },
+        "virtual.c:211": {
+          "PASS": 1
+        },
+        "virtual.c:213": {
+          "PASS": 1
+        },
+        "virtual.c:216": {
+          "PASS": 1
+        },
+        "virtual.c:219": {
+          "PASS": 1
+        },
+        "virtual.c:221": {
+          "PASS": 1
+        },
+        "virtual.c:226": {
+          "PASS": 1
+        },
+        "virtual.c:229": {
+          "PASS": 1
+        },
+        "virtual.c:231": {
+          "PASS": 1
+        },
+        "virtual.c:232": {
+          "PASS": 1
+        },
+        "virtual.c:233": {
+          "PASS": 1
+        },
+        "virtual.c:234": {
+          "PASS": 1
+        },
+        "virtual.c:235": {
+          "PASS": 1
+        },
+        "virtual.c:237": {
+          "PASS": 1
+        },
+        "virtual.c:238": {
+          "PASS": 1
+        },
+        "virtual.c:242": {
+          "PASS": 1
+        },
+        "virtual.c:244": {
+          "PASS": 1
+        },
+        "virtual.c:248": {
+          "PASS": 1
+        },
+        "virtual.c:249": {
+          "PASS": 1
+        },
+        "virtual.c:252": {
+          "PASS": 1
+        },
+        "virtual.c:253": {
+          "PASS": 1
+        },
+        "virtual.c:256": {
+          "PASS": 1
+        },
+        "virtual.c:257": {
+          "PASS": 1
+        },
+        "virtual.c:260": {
+          "PASS": 1
+        },
+        "virtual.c:263": {
+          "PASS": 1
+        },
+        "virtual.c:264": {
+          "PASS": 1
+        },
+        "virtual.c:267": {
+          "PASS": 1
+        },
+        "virtual.c:280": {
+          "PASS": 1
+        },
+        "virtual.c:288": {
+          "PASS": 1
+        },
+        "virtual.c:292": {
+          "PASS": 1
+        },
+        "virtual.c:299": {
+          "PASS": 1
+        },
+        "virtual.c:303": {
+          "PASS": 1
+        },
+        "virtual.c:308": {
+          "PASS": 1
+        },
+        "virtual.c:316": {
+          "PASS": 1
+        },
+        "virtual.c:320": {
+          "PASS": 1
+        },
+        "virtual.c:327": {
+          "PASS": 1
+        },
+        "virtual.c:331": {
+          "PASS": 1
+        },
+        "virtual.c:336": {
+          "PASS": 1
+        },
+        "virtual.c:337": {
+          "PASS": 1
+        },
+        "virtual.c:345": {
+          "PASS": 1
+        },
+        "virtual.c:349": {
+          "PASS": 1
+        },
+        "virtual.c:354": {
+          "PASS": 1
+        },
+        "virtual.c:359": {
+          "PASS": 1
+        },
+        "virtual.c:364": {
+          "PASS": 1
+        },
+        "virtual.c:365": {
+          "PASS": 1
+        },
+        "virtual.c:379": {
+          "PASS": 1
+        },
+        "virtual.c:384": {
+          "PASS": 1
+        },
+        "virtual.c:385": {
+          "PASS": 1
+        },
+        "virtual.c:389": {
+          "PASS": 1
+        },
+        "virtual.c:394": {
+          "PASS": 1
+        },
+        "virtual.c:395": {
+          "PASS": 1
+        },
+        "virtual.c:406": {
+          "PASS": 1
+        },
+        "virtual.c:410": {
+          "PASS": 1
+        },
+        "virtual.c:411": {
+          "PASS": 1
+        },
+        "virtual.c:416": {
+          "PASS": 1
+        },
+        "virtual.c:421": {
+          "PASS": 1
+        },
+        "virtual.c:429": {
+          "PASS": 1
+        },
+        "virtual.c:433": {
+          "PASS": 1
+        },
+        "virtual.c:434": {
+          "PASS": 1
+        },
+        "virtual.c:439": {
+          "PASS": 1
+        },
+        "virtual.c:440": {
+          "PASS": 1
+        },
+        "virtual.c:445": {
+          "PASS": 1
+        },
+        "virtual.c:446": {
+          "PASS": 1
+        },
+        "virtual.c:454": {
+          "PASS": 1
+        },
+        "virtual.c:458": {
+          "PASS": 1
+        },
+        "virtual.c:465": {
+          "PASS": 1
+        },
+        "virtual.c:467": {
+          "PASS": 1
+        },
+        "virtual.c:469": {
+          "PASS": 1
+        },
+        "virtual.c:470": {
+          "PASS": 1
+        },
+        "virtual.c:472": {
+          "PASS": 1
+        },
+        "virtual.c:473": {
+          "PASS": 1
+        },
+        "virtual.c:48": {
+          "PASS": 1
+        },
+        "virtual.c:480": {
+          "PASS": 1
+        },
+        "virtual.c:487": {
+          "PASS": 1
+        },
+        "virtual.c:489": {
+          "PASS": 1
+        },
+        "virtual.c:491": {
+          "PASS": 1
+        },
+        "virtual.c:492": {
+          "PASS": 1
+        },
+        "virtual.c:494": {
+          "PASS": 1
+        },
+        "virtual.c:495": {
+          "PASS": 1
+        },
+        "virtual.c:496": {
+          "PASS": 1
+        },
+        "virtual.c:50": {
+          "PASS": 1
+        },
+        "virtual.c:504": {
+          "PASS": 1
+        },
+        "virtual.c:507": {
+          "PASS": 1
+        },
+        "virtual.c:510": {
+          "PASS": 1
+        },
+        "virtual.c:511": {
+          "PASS": 1
+        },
+        "virtual.c:512": {
+          "PASS": 1
+        },
+        "virtual.c:514": {
+          "PASS": 1
+        },
+        "virtual.c:516": {
+          "PASS": 1
+        },
+        "virtual.c:522": {
+          "PASS": 1
+        },
+        "virtual.c:525": {
+          "PASS": 1
+        },
+        "virtual.c:526": {
+          "PASS": 1
+        },
+        "virtual.c:527": {
+          "PASS": 1
+        },
+        "virtual.c:530": {
+          "PASS": 1
+        },
+        "virtual.c:531": {
+          "PASS": 1
+        },
+        "virtual.c:532": {
+          "PASS": 1
+        },
+        "virtual.c:537": {
+          "PASS": 1
+        },
+        "virtual.c:544": {
+          "PASS": 1
+        },
+        "virtual.c:545": {
+          "PASS": 1
+        },
+        "virtual.c:546": {
+          "PASS": 1
+        },
+        "virtual.c:549": {
+          "PASS": 1
+        },
+        "virtual.c:550": {
+          "PASS": 1
+        },
+        "virtual.c:551": {
+          "PASS": 1
+        },
+        "virtual.c:555": {
+          "PASS": 1
+        },
+        "virtual.c:557": {
+          "PASS": 1
+        },
+        "virtual.c:634": {
+          "PASS": 1
+        },
+        "virtual.c:635": {
+          "PASS": 1
+        },
+        "virtual.c:640": {
+          "PASS": 1
+        },
+        "virtual.c:641": {
+          "PASS": 1
+        },
+        "virtual.c:647": {
+          "PASS": 1
+        },
+        "virtual.c:648": {
+          "PASS": 1
+        },
+        "virtual.c:653": {
+          "PASS": 1
+        },
+        "virtual.c:658": {
+          "PASS": 1
+        },
+        "virtual.c:72": {
+          "PASS": 1
+        }
+      },
+      "sha256": "045c5c094df31c72961b5f997b8f9c43f0a49197a35d5d99a68d0bb2e71c6b6e",
+      "skips": {
+        "virtual.c:585": 1,
+        "virtual.c:79": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "e814b7bf02bbff5b7a066715aedfbc4c78b36f93f7ed458f9c09fb34a8ac5837",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "efea009955db838b91c12dfdd36a7b7f394a97cd26809521266f8750e1200473",
+  "variable_counts_sha256": "fa1eef3715ef341c59a96ae8b75a58800d9df9f1e59e6f151ad6ff568d2079a2",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

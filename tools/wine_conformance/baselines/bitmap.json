@@ -1,0 +1,1137 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "gdi32_bitmap": {
+      "advisory": {
+        "bitmap.c:1018": {
+          "FAIL": 1
+        },
+        "bitmap.c:1019": {
+          "FAIL": 1
+        },
+        "bitmap.c:104": {
+          "FAIL": 10
+        },
+        "bitmap.c:1040": {
+          "FAIL": 1
+        },
+        "bitmap.c:1048": {
+          "FAIL": 1
+        },
+        "bitmap.c:1066": {
+          "FAIL": 1
+        },
+        "bitmap.c:1326": {
+          "FAIL": 1
+        },
+        "bitmap.c:1468": {
+          "FAIL": 1
+        },
+        "bitmap.c:1494": {
+          "FAIL": 1
+        },
+        "bitmap.c:1519": {
+          "FAIL": 1
+        },
+        "bitmap.c:1526": {
+          "FAIL": 1
+        },
+        "bitmap.c:1527": {
+          "FAIL": 1
+        },
+        "bitmap.c:1546": {
+          "FAIL": 1
+        },
+        "bitmap.c:1575": {
+          "FAIL": 1
+        },
+        "bitmap.c:1584": {
+          "FAIL": 1
+        },
+        "bitmap.c:1605": {
+          "FAIL": 1
+        },
+        "bitmap.c:1629": {
+          "FAIL": 1
+        },
+        "bitmap.c:1636": {
+          "FAIL": 1
+        },
+        "bitmap.c:1637": {
+          "FAIL": 1
+        },
+        "bitmap.c:1656": {
+          "FAIL": 1
+        },
+        "bitmap.c:1736": {
+          "FAIL": 1
+        },
+        "bitmap.c:1747": {
+          "FAIL": 1
+        },
+        "bitmap.c:1752": {
+          "FAIL": 1
+        },
+        "bitmap.c:1754": {
+          "FAIL": 1
+        },
+        "bitmap.c:1755": {
+          "FAIL": 1
+        },
+        "bitmap.c:1756": {
+          "FAIL": 1
+        },
+        "bitmap.c:1757": {
+          "FAIL": 1
+        },
+        "bitmap.c:1832": {
+          "FAIL": 1,
+          "PASS": 4
+        },
+        "bitmap.c:1838": {
+          "FAIL": 1
+        },
+        "bitmap.c:1957": {
+          "FAIL": 1
+        },
+        "bitmap.c:1958": {
+          "FAIL": 1
+        },
+        "bitmap.c:1976": {
+          "FAIL": 26,
+          "PASS": 6
+        },
+        "bitmap.c:2011": {
+          "FAIL": 1
+        },
+        "bitmap.c:2018": {
+          "FAIL": 1
+        },
+        "bitmap.c:2025": {
+          "FAIL": 1
+        },
+        "bitmap.c:2101": {
+          "FAIL": 1
+        },
+        "bitmap.c:312": {
+          "FAIL": 9
+        },
+        "bitmap.c:339": {
+          "FAIL": 9
+        },
+        "bitmap.c:367": {
+          "FAIL": 9
+        },
+        "bitmap.c:376": {
+          "FAIL": 9
+        },
+        "bitmap.c:658": {
+          "FAIL": 1
+        },
+        "bitmap.c:750": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "bitmap.c:1009": {
+          "PASS": 1
+        },
+        "bitmap.c:1026": {
+          "PASS": 1
+        },
+        "bitmap.c:1028": {
+          "PASS": 1
+        },
+        "bitmap.c:1029": {
+          "PASS": 1
+        },
+        "bitmap.c:103": {
+          "PASS": 10
+        },
+        "bitmap.c:1030": {
+          "PASS": 1
+        },
+        "bitmap.c:1031": {
+          "PASS": 1
+        },
+        "bitmap.c:1032": {
+          "PASS": 1
+        },
+        "bitmap.c:1033": {
+          "PASS": 1
+        },
+        "bitmap.c:1034": {
+          "PASS": 1
+        },
+        "bitmap.c:1047": {
+          "PASS": 1
+        },
+        "bitmap.c:1053": {
+          "PASS": 1
+        },
+        "bitmap.c:1055": {
+          "PASS": 1
+        },
+        "bitmap.c:1056": {
+          "PASS": 1
+        },
+        "bitmap.c:1057": {
+          "PASS": 1
+        },
+        "bitmap.c:1058": {
+          "PASS": 1
+        },
+        "bitmap.c:1059": {
+          "PASS": 1
+        },
+        "bitmap.c:1060": {
+          "PASS": 1
+        },
+        "bitmap.c:1061": {
+          "PASS": 1
+        },
+        "bitmap.c:1065": {
+          "PASS": 1
+        },
+        "bitmap.c:1069": {
+          "PASS": 1
+        },
+        "bitmap.c:1073": {
+          "PASS": 1
+        },
+        "bitmap.c:1076": {
+          "PASS": 1
+        },
+        "bitmap.c:1079": {
+          "PASS": 1
+        },
+        "bitmap.c:108": {
+          "PASS": 10
+        },
+        "bitmap.c:1082": {
+          "PASS": 1
+        },
+        "bitmap.c:1096": {
+          "PASS": 1
+        },
+        "bitmap.c:1099": {
+          "PASS": 1
+        },
+        "bitmap.c:1101": {
+          "PASS": 1
+        },
+        "bitmap.c:111": {
+          "PASS": 10
+        },
+        "bitmap.c:114": {
+          "PASS": 10
+        },
+        "bitmap.c:1167": {
+          "PASS": 3
+        },
+        "bitmap.c:117": {
+          "PASS": 10
+        },
+        "bitmap.c:1182": {
+          "PASS": 3
+        },
+        "bitmap.c:1194": {
+          "PASS": 2
+        },
+        "bitmap.c:1196": {
+          "PASS": 1
+        },
+        "bitmap.c:1269": {
+          "PASS": 2
+        },
+        "bitmap.c:1278": {
+          "PASS": 2
+        },
+        "bitmap.c:1288": {
+          "PASS": 2
+        },
+        "bitmap.c:1305": {
+          "PASS": 1
+        },
+        "bitmap.c:1316": {
+          "PASS": 2
+        },
+        "bitmap.c:1338": {
+          "PASS": 2
+        },
+        "bitmap.c:1454": {
+          "PASS": 1
+        },
+        "bitmap.c:1458": {
+          "PASS": 1
+        },
+        "bitmap.c:1459": {
+          "PASS": 1
+        },
+        "bitmap.c:1460": {
+          "PASS": 1
+        },
+        "bitmap.c:1461": {
+          "PASS": 1
+        },
+        "bitmap.c:1462": {
+          "PASS": 1
+        },
+        "bitmap.c:1463": {
+          "PASS": 1
+        },
+        "bitmap.c:1464": {
+          "PASS": 1
+        },
+        "bitmap.c:1465": {
+          "PASS": 1
+        },
+        "bitmap.c:1470": {
+          "PASS": 1
+        },
+        "bitmap.c:1471": {
+          "PASS": 1
+        },
+        "bitmap.c:1485": {
+          "PASS": 1
+        },
+        "bitmap.c:1486": {
+          "PASS": 1
+        },
+        "bitmap.c:1487": {
+          "PASS": 1
+        },
+        "bitmap.c:1492": {
+          "PASS": 1
+        },
+        "bitmap.c:1497": {
+          "PASS": 1
+        },
+        "bitmap.c:1503": {
+          "PASS": 1
+        },
+        "bitmap.c:1510": {
+          "PASS": 254
+        },
+        "bitmap.c:152": {
+          "PASS": 1
+        },
+        "bitmap.c:1529": {
+          "PASS": 254
+        },
+        "bitmap.c:1544": {
+          "PASS": 1
+        },
+        "bitmap.c:1551": {
+          "PASS": 256
+        },
+        "bitmap.c:1560": {
+          "PASS": 1
+        },
+        "bitmap.c:1565": {
+          "PASS": 1
+        },
+        "bitmap.c:1569": {
+          "PASS": 1
+        },
+        "bitmap.c:1574": {
+          "PASS": 1
+        },
+        "bitmap.c:1576": {
+          "PASS": 1
+        },
+        "bitmap.c:1577": {
+          "PASS": 1
+        },
+        "bitmap.c:1578": {
+          "PASS": 1
+        },
+        "bitmap.c:1579": {
+          "PASS": 1
+        },
+        "bitmap.c:1580": {
+          "PASS": 1
+        },
+        "bitmap.c:1581": {
+          "PASS": 1
+        },
+        "bitmap.c:1587": {
+          "PASS": 1
+        },
+        "bitmap.c:159": {
+          "PASS": 1
+        },
+        "bitmap.c:1603": {
+          "PASS": 1
+        },
+        "bitmap.c:1608": {
+          "PASS": 1
+        },
+        "bitmap.c:1613": {
+          "PASS": 1
+        },
+        "bitmap.c:1620": {
+          "PASS": 254
+        },
+        "bitmap.c:1639": {
+          "PASS": 254
+        },
+        "bitmap.c:1654": {
+          "PASS": 1
+        },
+        "bitmap.c:166": {
+          "PASS": 1
+        },
+        "bitmap.c:1661": {
+          "PASS": 256
+        },
+        "bitmap.c:1669": {
+          "PASS": 1
+        },
+        "bitmap.c:1696": {
+          "PASS": 1
+        },
+        "bitmap.c:1698": {
+          "PASS": 1
+        },
+        "bitmap.c:1702": {
+          "PASS": 1
+        },
+        "bitmap.c:1707": {
+          "PASS": 1
+        },
+        "bitmap.c:1710": {
+          "PASS": 1
+        },
+        "bitmap.c:1711": {
+          "PASS": 1
+        },
+        "bitmap.c:1712": {
+          "PASS": 1
+        },
+        "bitmap.c:1717": {
+          "PASS": 1
+        },
+        "bitmap.c:1719": {
+          "PASS": 1
+        },
+        "bitmap.c:1720": {
+          "PASS": 1
+        },
+        "bitmap.c:1721": {
+          "PASS": 1
+        },
+        "bitmap.c:1722": {
+          "PASS": 1
+        },
+        "bitmap.c:1728": {
+          "PASS": 1
+        },
+        "bitmap.c:1731": {
+          "PASS": 1
+        },
+        "bitmap.c:1733": {
+          "PASS": 1
+        },
+        "bitmap.c:1734": {
+          "PASS": 1
+        },
+        "bitmap.c:1735": {
+          "PASS": 1
+        },
+        "bitmap.c:1744": {
+          "PASS": 1
+        },
+        "bitmap.c:1745": {
+          "PASS": 1
+        },
+        "bitmap.c:1746": {
+          "PASS": 1
+        },
+        "bitmap.c:176": {
+          "PASS": 1
+        },
+        "bitmap.c:1775": {
+          "PASS": 1
+        },
+        "bitmap.c:1777": {
+          "PASS": 1
+        },
+        "bitmap.c:1780": {
+          "PASS": 1
+        },
+        "bitmap.c:1786": {
+          "PASS": 1
+        },
+        "bitmap.c:1788": {
+          "PASS": 1
+        },
+        "bitmap.c:1791": {
+          "PASS": 1
+        },
+        "bitmap.c:1793": {
+          "PASS": 1
+        },
+        "bitmap.c:1802": {
+          "PASS": 1
+        },
+        "bitmap.c:1805": {
+          "PASS": 1
+        },
+        "bitmap.c:1807": {
+          "PASS": 1
+        },
+        "bitmap.c:1817": {
+          "PASS": 5
+        },
+        "bitmap.c:1823": {
+          "PASS": 1
+        },
+        "bitmap.c:1826": {
+          "PASS": 4
+        },
+        "bitmap.c:183": {
+          "PASS": 1
+        },
+        "bitmap.c:1831": {
+          "PASS": 5
+        },
+        "bitmap.c:1833": {
+          "PASS": 5
+        },
+        "bitmap.c:1834": {
+          "PASS": 5
+        },
+        "bitmap.c:1835": {
+          "PASS": 5
+        },
+        "bitmap.c:1836": {
+          "PASS": 5
+        },
+        "bitmap.c:1840": {
+          "PASS": 4
+        },
+        "bitmap.c:1842": {
+          "PASS": 5
+        },
+        "bitmap.c:190": {
+          "PASS": 1
+        },
+        "bitmap.c:1904": {
+          "PASS": 1
+        },
+        "bitmap.c:1907": {
+          "PASS": 1
+        },
+        "bitmap.c:1908": {
+          "PASS": 1
+        },
+        "bitmap.c:1910": {
+          "PASS": 1
+        },
+        "bitmap.c:1912": {
+          "PASS": 10
+        },
+        "bitmap.c:1913": {
+          "PASS": 10
+        },
+        "bitmap.c:1914": {
+          "PASS": 10
+        },
+        "bitmap.c:1915": {
+          "PASS": 10
+        },
+        "bitmap.c:1916": {
+          "PASS": 10
+        },
+        "bitmap.c:1917": {
+          "PASS": 10
+        },
+        "bitmap.c:1918": {
+          "PASS": 10
+        },
+        "bitmap.c:1919": {
+          "PASS": 10
+        },
+        "bitmap.c:1920": {
+          "PASS": 10
+        },
+        "bitmap.c:1941": {
+          "PASS": 1
+        },
+        "bitmap.c:1942": {
+          "PASS": 10
+        },
+        "bitmap.c:1961": {
+          "PASS": 32
+        },
+        "bitmap.c:1998": {
+          "PASS": 1
+        },
+        "bitmap.c:2004": {
+          "PASS": 1
+        },
+        "bitmap.c:203": {
+          "PASS": 1
+        },
+        "bitmap.c:2032": {
+          "PASS": 1
+        },
+        "bitmap.c:2039": {
+          "PASS": 1
+        },
+        "bitmap.c:2051": {
+          "PASS": 1
+        },
+        "bitmap.c:2057": {
+          "PASS": 1
+        },
+        "bitmap.c:2063": {
+          "PASS": 1
+        },
+        "bitmap.c:2068": {
+          "PASS": 1
+        },
+        "bitmap.c:2086": {
+          "PASS": 1
+        },
+        "bitmap.c:210": {
+          "PASS": 1
+        },
+        "bitmap.c:2106": {
+          "PASS": 1
+        },
+        "bitmap.c:217": {
+          "PASS": 1
+        },
+        "bitmap.c:249": {
+          "PASS": 1
+        },
+        "bitmap.c:254": {
+          "PASS": 1
+        },
+        "bitmap.c:293": {
+          "PASS": 9
+        },
+        "bitmap.c:295": {
+          "PASS": 9
+        },
+        "bitmap.c:296": {
+          "PASS": 9
+        },
+        "bitmap.c:297": {
+          "PASS": 9
+        },
+        "bitmap.c:303": {
+          "PASS": 9
+        },
+        "bitmap.c:304": {
+          "PASS": 9
+        },
+        "bitmap.c:305": {
+          "PASS": 9
+        },
+        "bitmap.c:306": {
+          "PASS": 9
+        },
+        "bitmap.c:316": {
+          "PASS": 9
+        },
+        "bitmap.c:323": {
+          "PASS": 9
+        },
+        "bitmap.c:324": {
+          "PASS": 9
+        },
+        "bitmap.c:325": {
+          "PASS": 9
+        },
+        "bitmap.c:326": {
+          "PASS": 9
+        },
+        "bitmap.c:329": {
+          "PASS": 9
+        },
+        "bitmap.c:332": {
+          "PASS": 9
+        },
+        "bitmap.c:335": {
+          "PASS": 9
+        },
+        "bitmap.c:342": {
+          "PASS": 9
+        },
+        "bitmap.c:346": {
+          "PASS": 9
+        },
+        "bitmap.c:348": {
+          "PASS": 9
+        },
+        "bitmap.c:350": {
+          "PASS": 3
+        },
+        "bitmap.c:352": {
+          "PASS": 9
+        },
+        "bitmap.c:355": {
+          "PASS": 9
+        },
+        "bitmap.c:356": {
+          "PASS": 9
+        },
+        "bitmap.c:357": {
+          "PASS": 9
+        },
+        "bitmap.c:358": {
+          "PASS": 9
+        },
+        "bitmap.c:359": {
+          "PASS": 9
+        },
+        "bitmap.c:360": {
+          "PASS": 9
+        },
+        "bitmap.c:361": {
+          "PASS": 9
+        },
+        "bitmap.c:362": {
+          "PASS": 9
+        },
+        "bitmap.c:363": {
+          "PASS": 9
+        },
+        "bitmap.c:368": {
+          "PASS": 9
+        },
+        "bitmap.c:369": {
+          "PASS": 9
+        },
+        "bitmap.c:370": {
+          "PASS": 9
+        },
+        "bitmap.c:373": {
+          "PASS": 9
+        },
+        "bitmap.c:437": {
+          "PASS": 1
+        },
+        "bitmap.c:440": {
+          "PASS": 1
+        },
+        "bitmap.c:441": {
+          "PASS": 1
+        },
+        "bitmap.c:442": {
+          "PASS": 1
+        },
+        "bitmap.c:445": {
+          "PASS": 1
+        },
+        "bitmap.c:447": {
+          "PASS": 1
+        },
+        "bitmap.c:448": {
+          "PASS": 1
+        },
+        "bitmap.c:449": {
+          "PASS": 1
+        },
+        "bitmap.c:450": {
+          "PASS": 1
+        },
+        "bitmap.c:451": {
+          "PASS": 1
+        },
+        "bitmap.c:452": {
+          "PASS": 1
+        },
+        "bitmap.c:453": {
+          "PASS": 1
+        },
+        "bitmap.c:462": {
+          "PASS": 1
+        },
+        "bitmap.c:463": {
+          "PASS": 1
+        },
+        "bitmap.c:472": {
+          "PASS": 1
+        },
+        "bitmap.c:475": {
+          "PASS": 1
+        },
+        "bitmap.c:477": {
+          "PASS": 1
+        },
+        "bitmap.c:478": {
+          "PASS": 1
+        },
+        "bitmap.c:479": {
+          "PASS": 1
+        },
+        "bitmap.c:480": {
+          "PASS": 1
+        },
+        "bitmap.c:481": {
+          "PASS": 1
+        },
+        "bitmap.c:482": {
+          "PASS": 1
+        },
+        "bitmap.c:483": {
+          "PASS": 1
+        },
+        "bitmap.c:503": {
+          "PASS": 1
+        },
+        "bitmap.c:504": {
+          "PASS": 1
+        },
+        "bitmap.c:505": {
+          "PASS": 1
+        },
+        "bitmap.c:545": {
+          "PASS": 1
+        },
+        "bitmap.c:546": {
+          "PASS": 1
+        },
+        "bitmap.c:554": {
+          "PASS": 1
+        },
+        "bitmap.c:555": {
+          "PASS": 1
+        },
+        "bitmap.c:556": {
+          "PASS": 1
+        },
+        "bitmap.c:557": {
+          "PASS": 1
+        },
+        "bitmap.c:558": {
+          "PASS": 1
+        },
+        "bitmap.c:559": {
+          "PASS": 1
+        },
+        "bitmap.c:560": {
+          "PASS": 1
+        },
+        "bitmap.c:562": {
+          "PASS": 1
+        },
+        "bitmap.c:564": {
+          "PASS": 1
+        },
+        "bitmap.c:565": {
+          "PASS": 1
+        },
+        "bitmap.c:566": {
+          "PASS": 1
+        },
+        "bitmap.c:579": {
+          "PASS": 1
+        },
+        "bitmap.c:586": {
+          "PASS": 1
+        },
+        "bitmap.c:587": {
+          "PASS": 1
+        },
+        "bitmap.c:603": {
+          "PASS": 1
+        },
+        "bitmap.c:604": {
+          "PASS": 1
+        },
+        "bitmap.c:605": {
+          "PASS": 1
+        },
+        "bitmap.c:621": {
+          "PASS": 1
+        },
+        "bitmap.c:622": {
+          "PASS": 1
+        },
+        "bitmap.c:623": {
+          "PASS": 1
+        },
+        "bitmap.c:629": {
+          "PASS": 256
+        },
+        "bitmap.c:631": {
+          "PASS": 256
+        },
+        "bitmap.c:653": {
+          "PASS": 1
+        },
+        "bitmap.c:656": {
+          "PASS": 1
+        },
+        "bitmap.c:657": {
+          "PASS": 1
+        },
+        "bitmap.c:669": {
+          "PASS": 1
+        },
+        "bitmap.c:670": {
+          "PASS": 1
+        },
+        "bitmap.c:679": {
+          "PASS": 1
+        },
+        "bitmap.c:680": {
+          "PASS": 1
+        },
+        "bitmap.c:681": {
+          "PASS": 1
+        },
+        "bitmap.c:682": {
+          "PASS": 1
+        },
+        "bitmap.c:683": {
+          "PASS": 1
+        },
+        "bitmap.c:684": {
+          "PASS": 1
+        },
+        "bitmap.c:685": {
+          "PASS": 1
+        },
+        "bitmap.c:687": {
+          "PASS": 1
+        },
+        "bitmap.c:689": {
+          "PASS": 1
+        },
+        "bitmap.c:690": {
+          "PASS": 1
+        },
+        "bitmap.c:691": {
+          "PASS": 1
+        },
+        "bitmap.c:692": {
+          "PASS": 1
+        },
+        "bitmap.c:693": {
+          "PASS": 1
+        },
+        "bitmap.c:694": {
+          "PASS": 1
+        },
+        "bitmap.c:705": {
+          "PASS": 1
+        },
+        "bitmap.c:711": {
+          "PASS": 1
+        },
+        "bitmap.c:712": {
+          "PASS": 1
+        },
+        "bitmap.c:745": {
+          "PASS": 1
+        },
+        "bitmap.c:748": {
+          "PASS": 1
+        },
+        "bitmap.c:749": {
+          "PASS": 1
+        },
+        "bitmap.c:760": {
+          "PASS": 1
+        },
+        "bitmap.c:762": {
+          "PASS": 256
+        },
+        "bitmap.c:770": {
+          "PASS": 256
+        },
+        "bitmap.c:772": {
+          "PASS": 256
+        },
+        "bitmap.c:774": {
+          "PASS": 256
+        },
+        "bitmap.c:79": {
+          "PASS": 10
+        },
+        "bitmap.c:81": {
+          "PASS": 10
+        },
+        "bitmap.c:82": {
+          "PASS": 10
+        },
+        "bitmap.c:821": {
+          "PASS": 1
+        },
+        "bitmap.c:826": {
+          "PASS": 1
+        },
+        "bitmap.c:827": {
+          "PASS": 1
+        },
+        "bitmap.c:83": {
+          "PASS": 10
+        },
+        "bitmap.c:835": {
+          "PASS": 1
+        },
+        "bitmap.c:847": {
+          "PASS": 1
+        },
+        "bitmap.c:85": {
+          "PASS": 10
+        },
+        "bitmap.c:86": {
+          "PASS": 10
+        },
+        "bitmap.c:864": {
+          "PASS": 1
+        },
+        "bitmap.c:869": {
+          "PASS": 1
+        },
+        "bitmap.c:87": {
+          "PASS": 10
+        },
+        "bitmap.c:870": {
+          "PASS": 1
+        },
+        "bitmap.c:875": {
+          "PASS": 1
+        },
+        "bitmap.c:88": {
+          "PASS": 10
+        },
+        "bitmap.c:887": {
+          "PASS": 1
+        },
+        "bitmap.c:900": {
+          "PASS": 1
+        },
+        "bitmap.c:905": {
+          "PASS": 1
+        },
+        "bitmap.c:906": {
+          "PASS": 1
+        },
+        "bitmap.c:914": {
+          "PASS": 1
+        },
+        "bitmap.c:926": {
+          "PASS": 1
+        },
+        "bitmap.c:943": {
+          "PASS": 1
+        },
+        "bitmap.c:948": {
+          "PASS": 1
+        },
+        "bitmap.c:949": {
+          "PASS": 1
+        },
+        "bitmap.c:96": {
+          "PASS": 10
+        },
+        "bitmap.c:961": {
+          "PASS": 1
+        },
+        "bitmap.c:973": {
+          "PASS": 1
+        },
+        "bitmap.c:998": {
+          "PASS": 1
+        }
+      },
+      "sha256": "78d44bf3bc050d8cba4a31510bde1314c242d5a22ef5d1ffb4ceb12a2d4c68e1",
+      "skips": {
+        "bitmap.c:2132": 1
+      }
+    }
+  },
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "8f360bf35c973a146fb606213f195133af9ff22330f7f38e995f5eba0857d0ba",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "df2fcc7c8e90178deb512818bd6d3a7c7d4eced76dadb764d0f3d91beefaf506",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

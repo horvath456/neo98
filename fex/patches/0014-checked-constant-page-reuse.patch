@@ -1,0 +1,112 @@
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -1011,6 +1011,7 @@
+ 
+   for (auto [BlockNode, BlockHeader] : IR->GetBlocks()) {
+     auto BlockIROp = BlockHeader->CW<FEXCore::IR::IROp_CodeBlock>();
++    NEO98CheckedPage = ~0U; // no cached permission result across control flow
+ #if defined(ASSERTIONS_ENABLED) && ASSERTIONS_ENABLED
+     LOGMAN_THROW_A_FMT(BlockIROp->Header.Op == IR::OP_CODEBLOCK, "IR type failed to be a code block");
+ #endif
+--- a/FEXCore/Source/Interface/Core/JIT/JITClass.h
++++ b/FEXCore/Source/Interface/Core/JIT/JITClass.h
+@@ -343,16 +343,39 @@
+   // address ends up in MEMTMP2; Addr is left alone and may be MEMTMP.
+   // NEO98: accesses at the current guest metadata boundary need checking.
+   bool NEO98Checked {};
+-  ARMEmitter::Register NEO98CheckedHost(ARMEmitter::Register Addr, bool Write) {
++  uint32_t NEO98CheckedPage {~0U};
++  bool NEO98CheckedWrite {};
++  // Only exact IR constants qualify. Register values are never inferred from
++  // a previous runtime fault, so changing an address cannot bypass checking.
++  uint64_t NEO98ConstantAddress(IR::OrderedNodeWrapper Addr, IR::OrderedNodeWrapper Offset) {
++    if (Addr.IsImmediate()) {
++      return ~0ULL;
++    }
++    auto Op = IR->GetOp<IR::IROp_Header>(Addr);
++    if (Op->Op != IR::OP_CONSTANT) {
++      return ~0ULL;
++    }
++    uint64_t Addend = 0;
++    if (!Offset.IsInvalid() && !IsInlineConstant(Offset, &Addend)) {
++      return ~0ULL;
++    }
++    return static_cast<uint32_t>(Op->C<IR::IROp_Constant>()->Constant + Addend);
++  }
++  ARMEmitter::Register NEO98CheckedBase(ARMEmitter::Register Addr, bool Write) {
++    NEO98CheckedPage = ~0U;
+     ubfx(ARMEmitter::Size::i64Bit, MEMTMP2.R(), Addr.X(), 12, 20);
+     orr(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMTMP2.R(), Write ? (1ULL << 33) : (1ULL << 32));
+     ldrb(MEMTMP2.W(), MEMBASE.R(), MEMTMP2.R(), ARMEmitter::ExtendedType::LSL_64);
+     add(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMBASE.R(), MEMTMP2.R(), ARMEmitter::ShiftType::LSL, 34);
++    return MEMTMP2.R();
++  }
++  ARMEmitter::Register NEO98CheckedHost(ARMEmitter::Register Addr, bool Write) {
++    NEO98CheckedBase(Addr, Write);
+     add(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMTMP2.R(), Addr, ARMEmitter::ExtendedType::UXTW, 0);
+     return MEMTMP2.R();
+   }
+   ARMEmitter::ExtendedMemOperand GenerateGuestMemOperand(IR::OpSize AccessSize, ARMEmitter::Register Base, IR::OrderedNodeWrapper Offset,
+-                                                         IR::MemOffsetType OffsetType, uint8_t OffsetScale, bool Write = true);
++                                                         IR::MemOffsetType OffsetType, uint8_t OffsetScale, bool Write = true, uint64_t KnownAddress = ~0ULL);
+   ARMEmitter::ExtendedMemOperand GenerateMemOperand(IR::OpSize AccessSize, ARMEmitter::Register Base, IR::OrderedNodeWrapper Offset,
+                                                     IR::MemOffsetType OffsetType, uint8_t OffsetScale);
+ 
+--- a/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp
+@@ -618,7 +618,7 @@
+ // goes to MEMBASE + zext32(MEMTMP).
+ ARMEmitter::ExtendedMemOperand Arm64JITCore::GenerateGuestMemOperand(IR::OpSize AccessSize, ARMEmitter::Register Base,
+                                                                     IR::OrderedNodeWrapper Offset, IR::MemOffsetType OffsetType,
+-                                                                    uint8_t OffsetScale, bool Write) {
++                                                                    uint8_t OffsetScale, bool Write, uint64_t KnownAddress) {
+   if (!GuestMemBaseActive) {
+     return GenerateMemOperand(AccessSize, Base, Offset, OffsetType, OffsetScale);
+   }
+@@ -646,7 +646,15 @@
+     }
+   }
+   if (NEO98Checked) {
+-    return ARMEmitter::ExtendedMemOperand(NEO98CheckedHost(Address, Write).X(), ARMEmitter::IndexType::OFFSET, 0);
++    const uint32_t Page = KnownAddress == ~0ULL ? ~0U : KnownAddress >> 12;
++    if (Page == ~0U || Page != NEO98CheckedPage || Write != NEO98CheckedWrite) {
++      NEO98CheckedBase(Address, Write);
++      NEO98CheckedPage = Page;
++      NEO98CheckedWrite = Write;
++    }
++    // Fold the guest address into the actual load/store. Exact constants on
++    // the same page share this runtime lookup within one basic block only.
++    return ARMEmitter::ExtendedMemOperand(MEMTMP2, Address.X(), ARMEmitter::ExtendedType::UXTW, 0);
+   }
+   return ARMEmitter::ExtendedMemOperand(MEMBASE, Address.X(), ARMEmitter::ExtendedType::UXTW, 0);
+ }
+@@ -745,7 +753,7 @@
+   const auto OpSize = IROp->Size;
+ 
+   const auto MemReg = GetReg(Op->Addr);
+-  const auto MemSrc = GenerateGuestMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale, false);
++  const auto MemSrc = GenerateGuestMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale, false, NEO98ConstantAddress(Op->Addr, Op->Offset));
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     const auto Dst = GetReg(Node);
+@@ -1744,7 +1752,7 @@
+   const auto OpSize = IROp->Size;
+ 
+   const auto MemReg = GetReg(Op->Addr);
+-  const auto MemSrc = GenerateGuestMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale);
++  const auto MemSrc = GenerateGuestMemOperand(OpSize, MemReg, Op->Offset, Op->OffsetType, Op->OffsetScale, true, NEO98ConstantAddress(Op->Addr, Op->Offset));
+ 
+   if (Op->Class == IR::RegClass::GPR) {
+     const auto Src = GetZeroableReg(Op->Value);
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -1070,6 +1070,9 @@
+     }
+ 
+     for (auto [CodeNode, IROp] : IR->GetCode(BlockNode)) {
++      if (IROp->Op == IR::OP_SYSCALL || IROp->Op == IR::OP_THUNK) {
++        NEO98CheckedPage = ~0U; // host callbacks may change memory rights
++      }
+       switch (IROp->Op) {
+ #define REGISTER_OP(op, x) \
+   case FEXCore::IR::IROps::OP_##op: Op_##x(IROp, CodeNode); break

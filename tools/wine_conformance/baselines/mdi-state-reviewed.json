@@ -1,0 +1,37 @@
+{
+  "group": "mdi_state",
+  "prefix": "MDI_STATE",
+  "binary_sha256": "b622ea09b4043c735d61eb251c4ee2d1f44d6fbe3491c93f957ee5ed757ce7f3",
+  "differences": [
+    {
+      "reference": "MDI_STATE step=hidden-again active=3 zoomed=0 focus=0 frame=1 one=1/0/0 two=0/0/0",
+      "candidate": "MDI_STATE step=hidden-again active=0 zoomed=0 focus=0 frame=1 one=1/0/0 two=0/0/0",
+      "reason": "Win98 retains the destroyed child pointer and treats the newly allocated hidden child at that address as active. NEO98 validates its generation-bearing handle and reports no active child. The ordinary-reuse control demonstrates that Win98 even accepts a child outside the MDI client at this address."
+    },
+    {
+      "reference": "MDI_STATE step=maximize-hidden active=3 zoomed=1 focus=0 frame=1 one=1/1/0 two=0/0/0",
+      "candidate": "MDI_STATE step=maximize-hidden active=3 zoomed=1 focus=3 frame=1 one=1/1/0 two=0/0/0",
+      "reason": "After hidden-again, Win98 thinks the replacement child is already active and skips activation/focus. NEO98 activates it normally. The fresh-hidden/fresh-maximize control agrees with NEO98 on both systems."
+    },
+    {
+      "reference": "MDI_STATE step=restore active=3 zoomed=0 focus=0 frame=1 one=1/0/0 two=0/0/0",
+      "candidate": "MDI_STATE step=restore active=3 zoomed=0 focus=3 frame=1 one=1/0/0 two=0/0/0",
+      "reason": "Focus remains different after maximize-hidden because Win98 skipped activation of the reused child. Neither restore introduces a further active/zoom/minimized-state difference. Keep the focus established by the validated activation."
+    },
+    {
+      "reference": "MDI_STATE step=minimize active=3 zoomed=0 focus=0 frame=1 one=1/0/1 two=0/0/0",
+      "candidate": "MDI_STATE step=minimize active=3 zoomed=0 focus=3 frame=1 one=1/0/1 two=0/0/0",
+      "reason": "This sequence retains the focus difference introduced at maximize-hidden; the active and minimized states match. This review is limited to this exact sequence and does not qualify focus behavior of arbitrary minimized children."
+    },
+    {
+      "reference": "MDI_STATE step=max-one active=3 zoomed=1 focus=0 frame=1 one=1/1/0 two=0/0/0",
+      "candidate": "MDI_STATE step=max-one active=3 zoomed=1 focus=3 frame=1 one=1/1/0 two=0/0/0",
+      "reason": "Win98 reuses another destroyed child pointer and skips activation during maximized creation. The fresh-create-max control agrees with NEO98: a new active maximized child receives focus."
+    },
+    {
+      "reference": "MDI_STATE step=ordinary-reuse active=4 zoomed=1 focus=0 frame=1 one=0/0/0 two=1/0/0",
+      "candidate": "MDI_STATE step=ordinary-reuse active=0 zoomed=1 focus=0 frame=1 one=0/0/0 two=1/0/0",
+      "reason": "The new ordinary child belongs to the frame, not the MDI client, and lacks WS_EX_MDICHILD. Win98 reports it as active through a reused internal pointer. NEO98 correctly reports no active MDI child."
+    }
+  ]
+}

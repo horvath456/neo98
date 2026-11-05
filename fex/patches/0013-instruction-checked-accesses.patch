@@ -1,0 +1,95 @@
+--- a/FEXCore/Source/Interface/Context/Context.h
++++ b/FEXCore/Source/Interface/Context/Context.h
+@@ -493,7 +493,6 @@
+   void* NEO98CodePageOpaque {};
+   NEO98CheckedFn NEO98Checked {};
+   void* NEO98CheckedOpaque {};
+-  bool NEO98CheckedCompile {};
+   void NEO98SetCheckedLookup(NEO98CheckedFn Lookup, void* Opaque) override {
+     NEO98Checked = Lookup;
+     NEO98CheckedOpaque = Opaque;
+--- a/FEXCore/Source/Interface/Core/Core.cpp
++++ b/FEXCore/Source/Interface/Core/Core.cpp
+@@ -922,10 +922,7 @@
+   // If the trap flag is set we generate single instruction blocks that each check to generate a single step exception.
+   bool TFSet = Thread->CurrentFrame->State.flags[X86State::RFLAG_TF_RAW_LOC];
+ 
+-  // NEO98: the embedder decides whether this block checks its pages.
+-  NEO98CheckedCompile = !Config.Is64BitMode && NEO98Checked && NEO98Checked(NEO98CheckedOpaque, GuestRIP);
+   auto CompiledCode = Thread->CPUBackend->CompileCode(GuestRIP, Length, TotalInstructions == 1, &*IRView, DebugData.get(), TFSet);
+-  NEO98CheckedCompile = false;
+ 
+   // Release the IR
+   Thread->OpDispatcher->DelayedDisownBuffer();
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -928,7 +928,7 @@
+   const auto PrevNumAllocations = Relocations.size();
+ 
+   this->Entry = Entry;
+-  NEO98Checked = CTX->NEO98CheckedCompile;
++  NEO98Checked = false;
+   this->DebugData = DebugData;
+   this->IR = IR;
+   RequiresFarARM64Jumps = false;
+@@ -1045,6 +1045,10 @@
+         BindOrRestart(&IsReturnTarget->second);
+         CodeData.EntryPoints.emplace(BlockStartRIP, GetCursorAddress<uint8_t*>());
+         DebugData->GuestOpcodes.push_back({BlockIROp->GuestEntryOffset, GetCursorAddress<uint8_t*>() - CodeData.BlockBegin});
++        // Match the exact metadata boundary used to restore a fault's RIP.
++        // Synthetic IR blocks without a boundary retain the current mode.
++        NEO98Checked = GuestMemBaseActive && CTX->NEO98Checked &&
++                       CTX->NEO98Checked(CTX->NEO98CheckedOpaque, BlockStartRIP);
+ 
+         EmitEntryPoint(JITCodeHeaderLabel, CheckTF, BlockStartRIP);
+       }
+--- a/FEXCore/Source/Interface/Core/JIT/MiscOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/MiscOps.cpp
+@@ -41,6 +41,10 @@
+ 
+ DEF_OP(GuestOpcode) {
+   auto Op = IROp->C<IR::IROp_GuestOpcode>();
++  // These boundaries also restore RIP after a host fault. Keep checked
++  // accesses local to the instruction that needed them.
++  NEO98Checked = GuestMemBaseActive && CTX->NEO98Checked &&
++                 CTX->NEO98Checked(CTX->NEO98CheckedOpaque, Entry + Op->GuestEntryOffset);
+   // metadata
+   DebugData->GuestOpcodes.push_back({Op->GuestEntryOffset, GetCursorAddress<uint8_t*>() - CodeData.BlockBegin});
+ }
+--- a/FEXCore/include/FEXCore/Core/Context.h
++++ b/FEXCore/include/FEXCore/Core/Context.h
+@@ -222,10 +222,10 @@
+   FEX_DEFAULT_VISIBILITY virtual void NEO98SetCodePageLookup(NEO98CodePageFn Lookup, void* Opaque) = 0;
+ 
+   /**
+-   * @brief NEO98: which blocks look up the rights of every page they touch
+-   *
+-   * Asked with the entry of every block that is compiled in 32-bit mode; a
+-   * true answer compiles its guest accesses through the page tables described
++   * @brief NEO98: which guest instructions look up the rights of the pages they touch
++   *
++   * Asked at entrypoint and GuestOpcode metadata boundaries in 32-bit mode;
++   * a true answer compiles accesses until the next boundary through the page tables described
+    * at Arm64JITCore::NEO98CheckedHost.
+    */
+   using NEO98CheckedFn = bool (*)(void* Opaque, uint64_t GuestRIP);
+--- a/FEXCore/Source/Interface/Core/JIT/JITClass.h
++++ b/FEXCore/Source/Interface/Core/JIT/JITClass.h
+@@ -334,14 +334,14 @@
+     add(ARMEmitter::Size::i64Bit, MEMTMP.R(), MEMBASE.R(), Addr, ARMEmitter::ExtendedType::UXTW, 0);
+     return MEMTMP.R();
+   }
+-  // NEO98: a block of the embedder's choice (Context::NEO98SetCheckedLookup)
+-  // looks up every guest page it touches. The embedder keeps two byte tables
++  // NEO98: instructions selected by Context::NEO98SetCheckedLookup
++  // look up every guest page they touch. The embedder keeps two byte tables
+   // at MEMBASE + 4 GiB (reads) and MEMBASE + 8 GiB (writes), one byte per
+   // 4 KiB page, 1 where the page may be used through its second view at
+   // MEMBASE + 16 GiB. Otherwise the access goes to MEMBASE + address, where
+   // the host page's rights let the embedder's fault handler decide. The host
+   // address ends up in MEMTMP2; Addr is left alone and may be MEMTMP.
+-  // NEO98: the block being compiled checks its pages, see NEO98CheckedHost.
++  // NEO98: accesses at the current guest metadata boundary need checking.
+   bool NEO98Checked {};
+   ARMEmitter::Register NEO98CheckedHost(ARMEmitter::Register Addr, bool Write) {
+     ubfx(ARMEmitter::Size::i64Bit, MEMTMP2.R(), Addr.X(), 12, 20);

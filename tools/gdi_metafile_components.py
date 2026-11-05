@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+IMPORTS={'KERNEL32':{'ExitProcess':4,'GetLastError':0,'SetLastError':4,'OutputDebugStringA':4},'USER32':{'wvsprintfA':12},
+         'GDI32':{'CreateCompatibleDC':4,'DeleteDC':4,'DeleteObject':4,'SelectObject':8,
+                  'CreateDIBSection':24,'CreateSolidBrush':4,'CreatePen':12,'PatBlt':24,
+                  'StretchBlt':44,'GetStockObject':4,'SetBkColor':8,'SetTextColor':8,'SetBkMode':8,
+                  'MoveToEx':16,'LineTo':12,'Rectangle':20,'Ellipse':20,'Polygon':12,
+                  'SetMapMode':8,'SetWindowExtEx':16,'SetViewportExtEx':16,
+                  'Polyline':12,'TextOutA':20,'ExtTextOutA':32,'SetTextAlign':8,'SaveDC':4,'RestoreDC':8,
+                  'CreateMetaFileA':4,'CloseMetaFile':4,'DeleteMetaFile':4,'CopyMetaFileA':8,
+                  'GetMetaFileA':4,'GetMetaFileBitsEx':12,'SetMetaFileBitsEx':8,
+                  'PlayMetaFile':8,'PlayMetaFileRecord':16,'EnumMetaFile':16,
+                  'CreateEnhMetaFileA':16,'CloseEnhMetaFile':4,'DeleteEnhMetaFile':4,
+                  'CopyEnhMetaFileA':8,'GetEnhMetaFileBits':12,'SetEnhMetaFileBits':8,'GetWinMetaFileBits':20,'SetWinMetaFileBits':16,
+                  'GetEnhMetaFileHeader':12,'GetEnhMetaFilePaletteEntries':12,
+                  'GetEnhMetaFileDescriptionA':12,'PlayEnhMetaFile':12,
+                  'PlayEnhMetaFileRecord':16,'EnumEnhMetaFile':20,'gdiPlaySpoolStream':20}}

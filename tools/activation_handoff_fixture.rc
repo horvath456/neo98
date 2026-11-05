@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// tools/test_activation_handoff_native.py: a modal dialog in MS Sans Serif 8
+// and a modeless pop-up that is created twice owned by it and once without
+// an owner.
+1 DIALOGEX 0, 0, 160, 80
+STYLE 0x80C800C0
+CAPTION "Handoff"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT "Text", 100, 10, 10, 60, 10
+END
+2 DIALOGEX 20, 20, 100, 40
+STYLE 0x90C800C0
+CAPTION "Tool"
+FONT 8, "MS Sans Serif"
+BEGIN
+END

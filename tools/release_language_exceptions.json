@@ -1,0 +1,273 @@
+{
+  "tools/test_file_title.py": {
+    "b94300b5c2ef8090ba95bc6ab94db9886110b18f107ab7904c11ad95d94093be": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "fb784c9c36a300900a826285050817fefb8d1925c8838ea03a9795186c4a73e3": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/import_census.py": {
+    "22e73b6fc8f303f05b750d267d90b1c8fad02ef85ca1450c4241ac65c57028b2": "Exact legacy document marker used to preserve a manually maintained work list.",
+    "365a669dc739eb2c12e9c716424b624b07a4a54d7ac8a903f50f51e7a421a460": "Exact legacy document marker used to preserve a manually maintained work list."
+  },
+  "tools/test_savestates_windows_host.py": {
+    "e05d53370ab072530d09b2a6e8ff6f99faa093a3695d4ee29ab3ccffc8b4bab6": "Existing saved-state directory name required for backward compatibility; not a displayed UI label."
+  },
+  "tools/neo98_host.cpp": {
+    "d8f3a2a4b80d03a4f8aad75591c1690f961f7b1c3f0f17303c56b7c5a49ab729": "Persisted DOS view key required for saved-state compatibility; not a displayed label.",
+    "8e93a4e71916e33a738a28d735da12fa900ff4b3d86f851cd69d059671195f41": "Persisted DOS view key required for saved-state compatibility; not a displayed label."
+  },
+  "tools/test_state_dos_pif_host.py": {
+    "477263db7a98a043a04a18a242861603fe527e6336d4225ce24c57a253ab253f": "Expectation for an explicitly supplied legacy host binary; its recorded diagnostic must remain unchanged."
+  },
+  "tools/host_savestate.h": {
+    "6a83cca7848b58305f4f9a3fada843df0e6fc9a46feadfb17e50915aa891847a": "Existing saved-state directory name required for backward compatibility; not a displayed UI label.",
+    "40bdc465a0c00eca8f7076ec2f8cdc01f2ba195e8d9e5b346a90f11a8b12051d": "Persisted DOS view key required for saved-state compatibility; not a displayed label."
+  },
+  "tools/test_linux_clipboard.py": {
+    "a66972a174e3d586b5015f8cc297ba8910655f77ba17e98c7e288810ca533d3f": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "3aa27c659a7885ab5d124b44e82c86483c21aa8ac195186f5f7bb7a8666abe75": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "335ed2a734105ae46c6a04e6af7a91964f902042780aa9dc43c2ca268d34b928": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "602865adcda76b17638cb61b751cec11d2a9a6696aae474b83bab62c6aff0b44": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "3a326b5d726c30e3e891fe27f6f853d5b2b51dde49058b4aceec50c90a77e38c": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "f89c24f7c346b1231aae52ae7ab3d6664a17ff4373e750f79aa32bb5dc684b41": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "79d0bb209d944158279eed16e01c8600414807756c57f4e80be23da0e0457657": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_setup_form_mac.mm": {
+    "773bed0baef3faae2dd809d279269834ed4f3935972b811c9a4c5c495d09be64": "Non-ASCII invalid-input fixture for the product-key validator."
+  },
+  "tools/test_linux_cli.py": {
+    "c3394ebaa146cd4a8b53c1236fecaa915cb0f42d9b6f85248da583a19765ee8c": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/listbox_fixture.c": {
+    "9f553a245d83618ac3811ccdef497045a50c6f0fb06d55838c1343f990badca0": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "fd887db32ca4d8f1cefd2f56e14383bdf0c2abe3f41254a301d485f7d1118d36": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "b2eab911687ae0ba509df33534c101c6616a1665cb80f9c92dca52521956c6aa": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_shell_copy_original.py": {
+    "838d2ea45654aa6ab07cbfadbe78888db6994f47741d47ef44087fe546b9eb09": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_host_devices_dbus.py": {
+    "2f15d74567ee82a1edbe5b89e7f41f299ea4d7dd7255eb0837ee82d2cfbd700c": "Unicode credential fixture for the host-to-DBus round trip."
+  },
+  "tools/host_seamless_fixture.c": {
+    "65e48e4eae0bc592cd7835ccd8b841b7e00a8d597e13304bad5f76e98e9b18da": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "97eb80a3a65f1b516d3975ff42875ccc4755c1db12102a9a69922b9a0578cedc": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "03cc1f22fad1561b19c768dc058e91726c23509a8cef2607864e219ba5106caf": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/check_release_language.py": {
+    "71ef411fcef8e19da3a375c87cdffa0f1e4f51ae4ed66a60bd90c01e3fcb1742": "The detector vocabulary itself."
+  },
+  "tools/test_translate_message_host.py": {
+    "fa04e1047b6bc2620deb1ec084a68d4781dd34b938c83fc5b1532e6684c67511": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "294f8727dfbead8cefed9ecbe980a556476dd966b89a973cd970b12bd668d614": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_host_clipboard.py": {
+    "16bf6f07f33d37a080f4401da9e8e8d202b72b6f1fa304fee6f50ffb564bb2d2": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "c715ca2f26fd5a2620c877c72e727517802e37566c620f34e35f1a413dccec80": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "da3fd2f68ef0f06d6ff2db158c860358078eec5ebd7d7d91de433be438480d4c": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "039746e2f3d213347c25f9bbecebc341cc846761f974ce35218f084d158b43d6": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "c8e2aec88275a13dd2684ecc401924a1697795ee797e441aeb59aa35b9a5f8b7": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "35a7049ae7063242f9c399ecfa76b01e49227ddd186eee0c1eeadd0b8e8266d5": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "7bc20e278af606728608e1febe1342309411182b100ea7d072ba723d7ad61765": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "2c1161f53d56ffc006a7f3bef70627ccf68a1335130bccc4144219025483bfa8": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "b235bfe65c88a2e050e868ceba650e7f3d6de86b864deeb4f2bc24f58d06eff3": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "37ccc1893c3bfac9c4d986c1e89307130f1652143497ece290b31e7cef8a995e": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "3349f0c7b1f21e7b28a2755bda66ffa6dc9df2ef5a687eb6c19c5908278a6021": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "bb84099d3de019efce5f30f0b157ca0943b1331b89e0b633ee01d7d95a217ab8": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "01d56ab1fe573dddfeff049f422a424d93f8bac7d86bdf9d17feb6e35043e35d": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "54735c21675f01fc1858ab4f4b0b20a5071ed38c4fd06aa3f87e8096adc78cec": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "50942ab7404a659cb8e723dc93737d1911546e3badec4a29a526bcc10a677b6d": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "cc1a31e2b057db250d2e395342ec0d72bc390ec64e2b40846254a20849db1a79": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "df3099ed512960ae658d6343effdfa80552edcfddce28c1a578e8cfe7bc0a5c5": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_savestates_games_host.py": {
+    "125e85ad7db2809f6abd006e0ac44df1fb417a40865fea8e40a5ff80fe55bf15": "Existing saved-state directory name required for backward compatibility; not a displayed UI label."
+  },
+  "tools/test_savestates_command.py": {
+    "56de8dd60c3325088b78e417fc3e33b3accb96689af1c2c663476ca426dae84e": "Existing saved-state directory name required for backward compatibility; not a displayed UI label.",
+    "7d88377a999ff6e2acb8037eb50e72dfb46ff9088badf00011d73ec81e8219ea": "Persisted guest file contents used to verify exact state restoration.",
+    "43d65d02c66ffe27a8a5971407f85a6d7206002e0359d8d435fb8e5d28e8cd07": "Existing saved-state directory name required for backward compatibility; not a displayed UI label.",
+    "b24fbba8c0df37dd29ca0afb8756031b4934ba0e45d807c4d2e46a9501ca68fd": "Existing saved-state directory name required for backward compatibility; not a displayed UI label.",
+    "0f63147abae4fdc014a4876c4eea6ede9846415e9e6c2769f212946fb9eef33a": "Existing saved-state directory name required for backward compatibility; not a displayed UI label.",
+    "f6e216b61c7fd64e5177fd8c7cd3ae2ef663935aa214b140cdb72019a1052446": "Existing saved-state directory name required for backward compatibility; not a displayed UI label.",
+    "d1863eab3ba9ade76fa11a58cb6de27e95265b4ad56343de25dd6239d1826e63": "Existing saved-state directory name required for backward compatibility; not a displayed UI label."
+  },
+  "tools/test_host_volume_guest.py": {
+    "071d9bf061c94a14b28b99df801ba67afe496133b94c354369f3deede6349a5a": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "5aed005467fa9ab72d62fc8ba4cf92a412fb7444d169ed3131d7d371f2525abe": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_savestates_dos_host.py": {
+    "e05d53370ab072530d09b2a6e8ff6f99faa093a3695d4ee29ab3ccffc8b4bab6": "Existing saved-state directory name required for backward compatibility; not a displayed UI label.",
+    "cb59a292fc6752a1838aeef6f79cab8db63121e5a08f7635941fdfcafaf717f9": "Persisted DOS view key required for saved-state compatibility; not a displayed label."
+  },
+  "tools/test_message_box_public_original.py": {
+    "19ad6e472cda1e5990877e23646678ef09566dcd3063d663d403c497b0be180f": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/host_volume_fixture.c": {
+    "811d0b11428be8ea57053a41cd89d4c294be1d763746aaf61fd325329ac662b9": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "767e457b2c7ca91336cb785b4cc6bd95da3694319627c89318dc79e138b21782": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "3c696862700b9e7ecbffb25cdb85c5aaa3ebbca8170355f497c33038b8eb1ff8": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "22f41d2755fee2db416cb329f228c4bd39c51d16ffc337d53424bec61925fa20": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "51a74580446bbc6fc0ec46938ae5a0e0e592f5298931fd2bea7a6cd989ab3216": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "a91cc928ad51245345f57cecfafb091c1fbf5b262dd5aefd1a22cf9814b88589": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "6591598eacf4c652cad925911bdfee798b47f198c0eb323a5496ae6db91cf252": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "f5e1d10fce2cd10c6518ce0da764a26efcb971c72fb2651f0aeaa9ca9598c7a1": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "a47b24e553930b5c7446db40293b6f970dd454962eaf6f09b802ac3a55be1224": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "2c75d5c484d33b6ec439539270acfd12c077ea12cbbdb9de349021d3c79325f5": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "2a41d888afb966cbd7a72223477c1e43a3761ace7f0399a3fdb3de3da261cbab": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "404019e3ebf71ba87d5741e1db16df77991f607a7942a2b854d3f61446fdc663": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "f6eb17a1dd016ec2cdf918500dff8ff3022f61760c3ee12cdf4da65400e9b27b": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "62afb743aad6bff0ffa88a3607978536040c1b462be63803e8538112d9e1ee88": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths.",
+    "52a613b9d84d605a3ada09574e754e4dc409b8b321d000e0774083746ece0ea0": "Deliberate localized guest file-name fixture.",
+    "0de49fb56080c99fbd008aa70423196129e20595b3135fb8b01cc794af26a1c5": "Deliberate localized guest file-name fixture."
+  },
+  "tools/state_layout_elf.py": {
+    "eae0a2ca1606bbaf8b4ad623d2e921a45cd0aab91ee8ef7743f8171262e68f4f": "DWARF debug information entry identifier; not German prose.",
+    "9b15bd968039c9f82942b9e37f46f38293f87fc126fa7f71890c323f20cf20e0": "DWARF debug information entry identifier; not German prose.",
+    "02cc95c651750279a79d95859c8cb25356f31754b574de05575807b81e90c10d": "DWARF debug information entry identifier; not German prose.",
+    "f7b27f903b9abe1f929403c03e1a0d1006806df7b2b6c927034b1d1da055a39b": "DWARF debug information entry identifier; not German prose.",
+    "d0ead19de63eec7e4731daeed3c2d34d1164aef52ac4e8d9e70c972315c4e0da": "DWARF debug information entry identifier; not German prose.",
+    "54e9ce03d95e0a7e6911da5d05f4b7d33fae4a226431075cee725efa765253a8": "DWARF debug information entry identifier; not German prose.",
+    "015c59c120722ee8d5d76c32b69d7ddb15b20ae7e9fba1cf0c3304b42f0522d3": "DWARF debug information entry identifier; not German prose.",
+    "f75a30806cfd4db424f0850b33043f355477e610221c5d833f69de7ae95c5a0a": "DWARF debug information entry identifier; not German prose.",
+    "3314a0968bf21e2550631b49d6c01a79bdcb3c4e62f0652ebb086f726109bb34": "DWARF debug information entry identifier; not German prose.",
+    "19604dfc9aec5473ce4ffec81cb93624888a9f5cab85b0e21cc26aa528f166cc": "DWARF debug information entry identifier; not German prose.",
+    "73bf52463297d5a14d07f5a3090eaaf696ef9bcd8634bd79532286420538c56a": "DWARF debug information entry identifier; not German prose.",
+    "27efc77e1d88d271a687da0e979333323c7ad04230554d81c09531f11502c736": "DWARF debug information entry identifier; not German prose.",
+    "fe34a49ea1ada536451fe8021ccbcc776c64950a595725a0105ba2770b2401aa": "DWARF debug information entry identifier; not German prose.",
+    "ebc08d7ce9248c5237ffd4632edc2801f0c7e3a90b80d69b9e5015a6379347a5": "DWARF debug information entry identifier; not German prose.",
+    "8ec102c561d035d3cc51d03a77cc9f457705964d3e393cb9e9bb1136afcb35b5": "DWARF debug information entry identifier; not German prose."
+  },
+  "tools/test_paths.py": {
+    "eeef759b81375c801c5daf4e37b6c27e3893957ed15e20b843d1dcb57c2cc747": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/state_layout.py": {
+    "7fc2bee7c215d93ba46eb91a3f62fe9a61ff80a694a25f2918163887aa3fa45f": "DWARF debug information entry identifier; not German prose.",
+    "9ac5b5141129efaf3f90e368159598b03357ae50d4f0afa95155562e123d5e73": "DWARF debug information entry identifier; not German prose.",
+    "bb573aea5f35d427c2ec239021b4dab14a7a126c3e140e1991aad8755a37750d": "DWARF debug information entry identifier; not German prose.",
+    "3bd4844205ef99f7c48c43fe5db29958f1ad07b796b98b3b68ab8f422cd7d304": "DWARF debug information entry identifier; not German prose.",
+    "f42b3c4a9f1f6ed80f32f89e3426598e2f857b35cea6ae69ffcd9aafb1bdaed6": "DWARF debug information entry identifier; not German prose.",
+    "239784cff06e86fd1de56228de97bc087347860dc01306b4082c52955aabc29b": "DWARF debug information entry identifier; not German prose.",
+    "cbdb3e1edccd53a0f3e5a677dd526998ddb76beb5aebffb4492f7f1cf888ebfe": "DWARF debug information entry identifier; not German prose.",
+    "d001a305ed0e2eeebe5baf26a3bbc2ebb3d009c1217ebb36f719ab1bffe1375b": "DWARF debug information entry identifier; not German prose.",
+    "ea48b203c4a4a1fd385681cab599a1b4ddbd5bbb7c516a8ea65beefc782c85fd": "DWARF debug information entry identifier; not German prose.",
+    "ce115beef20cb580628ca5b1fa9e70a6e7509785e05d6bc9669d1688203e5588": "DWARF debug information entry identifier; not German prose.",
+    "f603ad760448342a76ec99130a541c877e4968a74f2ae60f1419d00ffc193093": "DWARF debug information entry identifier; not German prose.",
+    "0bf5e9bc2b51e073ed3ae7884fae3f19d0ba1272b71994c217b8049ef426cb9a": "DWARF debug information entry identifier; not German prose.",
+    "321714077609d60cf915af296b876e781b6b86bdcc1f1fd35f20d460f15e44a1": "DWARF debug information entry identifier; not German prose.",
+    "eaced4b59d094d30a2514652360783ff2ca1e1173571207dbba4daa1d3b514c1": "DWARF debug information entry identifier; not German prose.",
+    "e0301cff081c62fc30bbe9d135d7f971cb1442dfc987cdc7d1699fbeab14ce4f": "DWARF debug information entry identifier; not German prose.",
+    "79c3b901e5eec18bee998f149e3cca6ff12cf9c79b1cd7ed88da8c378415c00b": "DWARF debug information entry identifier; not German prose.",
+    "b27082c64848d6f9f4b056176264e627c3c865225a085d73b8332218cf330f0a": "DWARF debug information entry identifier; not German prose.",
+    "bd85a70449955998508f94bce0937be9672454bfa1c39bab32357d30e9bf456f": "DWARF debug information entry identifier; not German prose.",
+    "d390792d83582ca31860e66882a32998b7034b47bbad53fbb8b0ed395a4afcb2": "DWARF debug information entry identifier; not German prose.",
+    "7c360d8078c89ea1388d52c18f566ca1164ba6cc53a0a88015951d4cf439d61a": "DWARF debug information entry identifier; not German prose.",
+    "76cb0398520d0f87123babce6cf8e04600648b8ae896f533f331c411c0feb9be": "DWARF debug information entry identifier; not German prose.",
+    "517799c8625bb5f815b98d5f47076420803b35298dce41f7f0930f5d40ed3af0": "DWARF debug information entry identifier; not German prose.",
+    "82f583bf8a4d29eca051c817eb9ffe09ec0d683b8e8f6fe41765cec233d61217": "DWARF debug information entry identifier; not German prose.",
+    "34e36aeed9a87af8d6e476d1ef0ad3baacec33fbd0fd17739bcab49d230ac72c": "DWARF debug information entry identifier; not German prose.",
+    "e1709ac3212bf801bedca1df63e441df3497f11f81601358a60f40ae8fe11a10": "DWARF debug information entry identifier; not German prose.",
+    "081eac55f4ffb7a1d84de57d075a955db9597d847ccdee49b170f1c270f694d9": "DWARF debug information entry identifier; not German prose.",
+    "d2906655f85d0f9eb2b4b9e422cb37a1793fc3f6638dffe740ddc6463e9216ea": "DWARF debug information entry identifier; not German prose.",
+    "b251762bee72614378b878d83556da6d65c40f64907bde69df44d228809d0352": "DWARF debug information entry identifier; not German prose.",
+    "e07a68401f020dd10ea89eeaf339dc9302dc7e942637cc7762c550d1d3a904e9": "DWARF debug information entry identifier; not German prose.",
+    "9b15bd968039c9f82942b9e37f46f38293f87fc126fa7f71890c323f20cf20e0": "DWARF debug information entry identifier; not German prose.",
+    "91bcdfeb436152431db4cfd297ad8b731a34920a7b75ecf423ac68c1fdb97715": "DWARF debug information entry identifier; not German prose.",
+    "0ba974d88a96a76b73ff8b8288a0e6d519a2057abbf8f7e5adec51693596c63a": "DWARF debug information entry identifier; not German prose.",
+    "4b2894ab40616234951a8396bda1c8906491ddf55b950bfdad4b1796d65f2908": "DWARF debug information entry identifier; not German prose.",
+    "d47ce01f2567165a44937584b0008a9050bb1e0c5eb357a941a6c420321a5a52": "DWARF debug information entry identifier; not German prose.",
+    "3d4a8043a0c73c630eab182fdfbecf726d8efc7b79ef0bf8daf8654fd462227d": "DWARF debug information entry identifier; not German prose.",
+    "f7b27f903b9abe1f929403c03e1a0d1006806df7b2b6c927034b1d1da055a39b": "DWARF debug information entry identifier; not German prose.",
+    "53f712f84e244390fe03209b79ae3982610b33c36ac5370eac86b8b78595717a": "DWARF debug information entry identifier; not German prose.",
+    "743ced7948285ade3bc53f63345ef46c0d7d4b014acdd7914b79758a76b67321": "DWARF debug information entry identifier; not German prose.",
+    "719293219833fba69ef76465edbda6c01a83e9361ee4d88a81ad8e7fa47c1004": "DWARF debug information entry identifier; not German prose.",
+    "bed8b7945f87eb8a014e7c14db6657294c32fac56f6a6d311326247ac18b1aae": "DWARF debug information entry identifier; not German prose.",
+    "ae4600b6652435d4b2e6a51bb4289d991a926642406ee7b1117a70e03333090f": "DWARF debug information entry identifier; not German prose.",
+    "970186dd6e664e70de37d0c5204d79926cf9c9910b806865fb9842c9de8d38c3": "DWARF debug information entry identifier; not German prose.",
+    "143cce32d514aaa38b554b3397d5af4257942e0ba7a3a82a5e5f7fbf5ff5ae88": "DWARF debug information entry identifier; not German prose.",
+    "dfded6be11693c2722d839e0ba03a463fd6c7663cc86d76c6bccca54e058ba2f": "DWARF debug information entry identifier; not German prose.",
+    "ea2cb0bbd261bcd05418485d63b2a269aed111de0985c03164d5d0c77a80a924": "DWARF debug information entry identifier; not German prose.",
+    "5a7b1a2d54a387bbe1c9b17194833858fbe9367882eec7fd29704d170bc27a88": "DWARF debug information entry identifier; not German prose.",
+    "3ec1a7f340f5df9c1ba669855d2df9950251946c319523be53c439711debdffb": "DWARF debug information entry identifier; not German prose.",
+    "4b19045dc9ace9a4fbb77c3611c82be54850532cb38894993bd622078a047311": "DWARF debug information entry identifier; not German prose.",
+    "178aa49496b8cc8a7b58572dffd057cdf68365a1f53d635be17701e4026e29c8": "DWARF debug information entry identifier; not German prose.",
+    "86f759510720626191b1791e25dda92094b684537ba9c93dba32e104a61eed00": "DWARF debug information entry identifier; not German prose.",
+    "6c84f71d3d10dba8361793f263f94a8dbe8936cefd991a9db29eea598f78ad2d": "DWARF debug information entry identifier; not German prose.",
+    "8f5c34d4679a9be99cddea7dbd78930d0be630373c59f93a531fd9b430070da6": "DWARF debug information entry identifier; not German prose.",
+    "3527f340726b6a9125729c15c52eef85273caef5d997af1d264ab6f6dd401c4d": "DWARF debug information entry identifier; not German prose.",
+    "efedb0ed43ce0fad935c95f70b97c5aa75e5bcc5810ffc90eae3d904051ddae4": "DWARF debug information entry identifier; not German prose.",
+    "8feb2d3aecd8d058d96418efd47dfc1659995e5ba7d5babf317814cff3871f75": "DWARF debug information entry identifier; not German prose.",
+    "2339d36a9135fc2abfa99c1bfeca7d30532f09643799f4ba2b30cb98b54ec18b": "DWARF debug information entry identifier; not German prose.",
+    "b6944397a279804613880fda0b8c0f787c0015d24f9b2563d3049e2384e1ee94": "DWARF debug information entry identifier; not German prose.",
+    "ebd19a0e812c521ba494188ba803bc8113181864d265b8907e70b76004a78233": "DWARF debug information entry identifier; not German prose.",
+    "73bf52463297d5a14d07f5a3090eaaf696ef9bcd8634bd79532286420538c56a": "DWARF debug information entry identifier; not German prose.",
+    "a4581240fa793c0267020ebed9791ae37a933955e04d00d60673800c6ecdf44b": "DWARF debug information entry identifier; not German prose.",
+    "7f3b30df202feb881b89d9dfebcf74c1bf5a9d2ee1ed2716ad3578f038394a34": "DWARF debug information entry identifier; not German prose.",
+    "e59218d28c1330bf1b4fcf06cdc40eb8ed69d134aa1178549dcfd56ad27915a4": "DWARF debug information entry identifier; not German prose.",
+    "e0346846544d3ed66e7a255c2bcae652bd59fc5f05b184847cf37e8c06d8c8c6": "DWARF debug information entry identifier; not German prose.",
+    "266544dc94fff0afde9e236ee5507203b19ec10ac79210f70dc127792e4b0b56": "DWARF debug information entry identifier; not German prose.",
+    "7b1d9bf0da0e8494055ed414fc6b0072565c45c866251d3ba9c71d42aa39cb59": "DWARF debug information entry identifier; not German prose.",
+    "66a840fc38fcc543f9945af3fcc6e774cf495bcc771fb58417c1210d85e4b05d": "DWARF debug information entry identifier; not German prose.",
+    "8584ba1d5ff77044b1037b972f9d4d45de8609dacddf24a4446975733a499c10": "DWARF debug information entry identifier; not German prose.",
+    "dd89bc54bd1a7548673bddec821525e7d6915642ad49c7fc4a648e1d4982ac37": "DWARF debug information entry identifier; not German prose.",
+    "d301398c0a097e4f6e0bfe29eb7ac8d9faed331a2690c2a73de1591da4cb772a": "DWARF debug information entry identifier; not German prose.",
+    "0ec78b289a2131a8d1656cddcacbe2576ecb6e5251cf8d5a2aa41d2882dd15ed": "DWARF debug information entry identifier; not German prose.",
+    "62df3c22b27bd55dc782a5721308ac50552074beeafd12e047e7c99bb76c8a2f": "DWARF debug information entry identifier; not German prose.",
+    "efa599f14281cfb2532eabbf65329fb3ae19def747b0e2e1f887b7f38c6553fa": "DWARF debug information entry identifier; not German prose.",
+    "3e20a42df8fe0de4124a6d0df31ae31f4d73a0800d95a694ce83fa81ba77a0b8": "DWARF debug information entry identifier; not German prose."
+  },
+  "tools/test_host_cd_joliet.py": {
+    "62a6f27b3f3694669a737f26853981cbcc695fbf60fd1575e7dc2a6c9b21de0a": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_savestate_store.cpp": {
+    "f3d1c5ac15b0f8a786cef59453c12d325dfdf4d05bff6cc75f98bd51e7d0e4bd": "Intentional Unicode saved-state name tests normalization and persistence."
+  },
+  "tools/test_dos_edit_clipboard_host.py": {
+    "045d18674aea30c7828b670f8ae4fd6e2f97dad945a55292f1de344fc2ad0c17": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/test_game_finder_host.py": {
+    "29b346a7568deefa54a3b10122968f49e42a46940715bb1ac836805aff6cdd2e": "Existing local test variable names; all displayed labels are English.",
+    "6a6c5b301829b7edb79f6d20af4710238c1f3de69cdc59d31e24042ac2b6fc7e": "Existing local test variable names; all displayed labels are English.",
+    "00b8c0b5b3b8e9a7f7bd5a1203a5f41b90e935cdf3e2e57ba56a745897b92444": "Existing local test variable names; all displayed labels are English.",
+    "3636627c113916f9dd585797d57b4f24ed7cd9194a94ef2a0e24629db3c92421": "Existing local test variable names; all displayed labels are English.",
+    "44dd3b28b96bcc3e6d041d1c8aeffb3c77a938f551d0a32a0f0ce4dc8a0b62c9": "Existing local test variable names; all displayed labels are English.",
+    "c20f6568c369129882a328e99cd5cdf0a8bdadba447e549fea6fcc5477ef7a68": "Existing local test variable names; all displayed labels are English."
+  },
+  "tools/test_linux_desktop.py": {
+    "4e66b01079bf862ee133fc7fcee65aee7310e22fc1159b2d5401db146fd7d409": "Intentional localized guest text, filename, or character-conversion fixture; preserve expectations and byte lengths."
+  },
+  "tools/host_states_linux.h": {
+    "ad5bc7bf80a66ed27d1b7643c21943900e59633fb94dc399415dbe9078cc6b14": "Persisted DOS view key required for saved-state compatibility; not a displayed label.",
+    "dc2d7ccaf7dd97e2b9b40176bed98415a8f824857228aa97548e51fc4922597e": "Persisted DOS view key required for saved-state compatibility; not a displayed label."
+  },
+  "tools/test_linux_savestates.py": {
+    "b09132d3226e62042badd8874cea3a72e380ca7c96cf841cd4c49af55192f6e0": "Existing saved-state directory name required for backward compatibility; not a displayed UI label."
+  },
+  "LICENSES/musl-source-notices.txt": {
+    "ed58a1046a5673bcc74aae58578ff8f47fdcb796d5c980ed57565c3941ef789e": "Unmodified third-party attribution or English semiconductor terminology.",
+    "a34a92adbcdce6558574fbddcb742fecbd539502a82edb6decab43be8ef9208a": "Unmodified third-party attribution or English semiconductor terminology."
+  },
+  "LICENSES/musl-COPYRIGHT.txt": {
+    "198bb270dbbacec5a1459af83b6f01503887d499e0517e07d6f2c0d71fdb834a": "Unmodified third-party attribution or English semiconductor terminology."
+  },
+  "LICENSES/DOSBox-Pure-source-notices.txt": {
+    "e645e33b11f279e69f4c52655ef9d4ad57e85b644309cb093d4494d6c5606564": "Unmodified third-party attribution or English semiconductor terminology."
+  },
+  "src/x86_kernel_objects.cpp": {
+    "e6a9840b6dca4a917e73a5607a976500ddd53bf28421e4669b5a3116cd57e98d": "English object-lifetime comment."
+  },
+  "src/x86_keyboard_layout.cpp": {
+    "e74b1cfcfa21bf1f406741ac87a1ff27f8b20c63fec429d004a3316541f8e9b0": "Guest GetKeyNameText localization for the selected German keyboard layout, not host UI.",
+    "ec55f9be376674be35f628a044a924005e4fe081f44f6a4f950bb4abfa386bb9": "Guest GetKeyNameText localization for the selected German keyboard layout, not host UI."
+  },
+  "src/x86_gdi.cpp": {
+    "67e1af0a67c635aff4d08921b89e6933c3f3a2c3f5718ea2d68cb61b88e062bb": "English object-lifetime comment."
+  },
+  "tools/host_settings.h": {
+    "7ad9d97617975287a1dabbe512d2b37f08710aae97920a5bdc7df107eb77fffa": "Legacy print folder compatibility."
+  },
+  "tools/test_release_migration.cpp": {
+    "ec628830eae8428994e15e18ecbf5db65b9bf83e0f72c3c2415cafd7b9a1777e": "Legacy print folder compatibility.",
+    "7bc3a8c928a48399a06b9bf4f8ffbc5c8ff170ec2b3f0f953535c3488a572a06": "Legacy print folder compatibility.",
+    "40ad3ae483144cccff270349df3a8fe505a5c0a00387c88e0303f647d67c3fb1": "Legacy print folder compatibility.",
+    "2ae6087f73dae9b3e8992005348374557b2929414148ad4b4156ca9527c4eb01": "Legacy print folder compatibility."
+  }
+}

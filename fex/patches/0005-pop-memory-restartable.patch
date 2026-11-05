@@ -1,0 +1,28 @@
+NEO98: POP into memory stores before it moves the stack pointer, so a store
+that faults can start over.
+
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -396,6 +396,21 @@
+ }
+ 
+ void OpDispatchBuilder::POPOp(OpcodeArgs) {
++  // NEO98: POP into memory stores first and moves the stack pointer after,
++  // as the processor does: a store that faults leaves ESP where it was, so
++  // the instruction can start over (a page fault the guest handles, or the
++  // host dropping translated code on the page written). An address formed
++  // with ESP itself uses the value after the pop and keeps the other order.
++  const bool ThroughSP = (Op->Dest.IsGPRIndirect() && Op->Dest.Data.GPRIndirect.GPR == X86State::REG_RSP) ||
++                         (Op->Dest.IsSIB() && (Op->Dest.Data.SIB.Base == X86State::REG_RSP || Op->Dest.Data.SIB.Index == X86State::REG_RSP));
++  if (!Op->Dest.IsGPR() && !ThroughSP) {
++    const auto Size = OpSizeFromSrc(Op);
++    Ref OldSP = LoadGPRRegister(X86State::REG_RSP);
++    Ref Value = _LoadMem(RegClass::GPR, Size, OldSP, Invalid(), OpSize::i8Bit, MemOffsetType::SXTX, 1);
++    StoreResultGPR(Op, Value);
++    StoreGPRRegister(X86State::REG_RSP, Add(GetGPROpSize(), LoadGPRRegister(X86State::REG_RSP), IR::OpSizeToSize(Size)));
++    return;
++  }
+   Ref Value = Pop(OpSizeFromSrc(Op));
+   StoreResultGPR(Op, Value);
+ }

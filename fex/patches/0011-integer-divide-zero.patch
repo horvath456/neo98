@@ -1,0 +1,83 @@
+NEO98: deliver x86 divide-by-zero faults before changing dividend registers.
+
+--- a/FEXCore/include/FEXCore/Core/SignalDelegator.h
++++ b/FEXCore/include/FEXCore/Core/SignalDelegator.h
+@@ -14,10 +14,12 @@
+     FAULT_SIGSEGV = SIGSEGV,
+     FAULT_SIGTRAP = SIGTRAP,
+     FAULT_SIGILL = SIGILL,
++    FAULT_SIGFPE = SIGFPE,
+ #else
+     FAULT_SIGSEGV = 11,
+     FAULT_SIGTRAP = 5,
+     FAULT_SIGILL = 4,
++    FAULT_SIGFPE = 8,
+ #endif
+   };
+ } // namespace Core
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.h
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.h
+@@ -465,6 +465,7 @@
+   void INCOp(OpcodeArgs);
+   void DECOp(OpcodeArgs);
+   void NEGOp(OpcodeArgs);
++  void CheckDivideByZero(OpcodeArgs, Ref Divisor);
+   void DIVOp(OpcodeArgs);
+   void IDIVOp(OpcodeArgs);
+   void BSFOp(OpcodeArgs);
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -3733,12 +3733,40 @@
+   }
+ }
+ 
++// NEO98: ARM division returns zero for a zero divisor; x86 raises #DE.
++// Keep the faulting RIP and all dividend registers for guest SEH to inspect
++// or repair. Materialize the old flags before splitting the IR block.
++void OpDispatchBuilder::CheckDivideByZero(OpcodeArgs, Ref Divisor) {
++  CalculateDeferredFlags();
++  auto Jump = CondJump(Divisor, CondClass::NEQ);
++  auto FaultBlock = CreateNewCodeBlockAfter(GetCurrentBlock());
++  SetFalseJumpTarget(Jump, FaultBlock);
++  SetCurrentCodeBlock(FaultBlock);
++  StartNewBlock();
++
++  _StoreContextGPR(GetGPROpSize(), GetRelocatedPC(Op, -Op->InstSize), offsetof(FEXCore::Core::CPUState, rip));
++  BreakDefinition Reason {};
++  Reason.Signal = Core::FAULT_SIGFPE;
++  Reason.TrapNumber = X86State::X86_TRAPNO_DE;
++  Reason.si_code = 1; // FPE_INTDIV
++  Break(Reason);
++
++  auto ContinueBlock = CreateNewCodeBlockAfter(FaultBlock);
++  SetTrueJumpTarget(Jump, ContinueBlock);
++  SetCurrentCodeBlock(ContinueBlock);
++  StartNewBlock();
++}
++
+ void OpDispatchBuilder::DIVOp(OpcodeArgs) {
+   const auto GPRSize = GetGPROpSize();
+   auto Size = OpSizeFromSrc(Op);
+ 
+-  // This loads the divisor. 32-bit/64-bit paths mask inside the JIT, 8/16 do not.
+-  Ref Divisor = LoadSourceGPR(Op, Op->Dest, Op->Flags, {.AllowUpperGarbage = Size >= OpSize::i32Bit});
++  // The zero check must not see garbage above the operand width.
++  Ref Divisor = LoadSourceGPR(Op, Op->Dest, Op->Flags);
++  CheckDivideByZero(Op, Divisor);
++  // SSA values do not survive FEX IR block boundaries. Reload from the
++  // unchanged guest state in the non-faulting block.
++  Divisor = LoadSourceGPR(Op, Op->Dest, Op->Flags);
+ 
+   if (Size == OpSize::i64Bit && !Is64BitMode) {
+     LogMan::Msg::EFmt("Doesn't exist in 32bit mode");
+@@ -3777,6 +3805,10 @@
+ void OpDispatchBuilder::IDIVOp(OpcodeArgs) {
+   // This loads the divisor
+   Ref Divisor = LoadSourceGPR(Op, Op->Dest, Op->Flags);
++  CheckDivideByZero(Op, Divisor);
++  // SSA values do not survive FEX IR block boundaries. Reload from the
++  // unchanged guest state in the non-faulting block.
++  Divisor = LoadSourceGPR(Op, Op->Dest, Op->Flags);
+ 
+   const auto GPRSize = GetGPROpSize();
+   auto Size = OpSizeFromSrc(Op);

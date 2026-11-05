@@ -1,0 +1,1106 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "ros_kernel32_FindFiles": {
+      "advisory": {
+        "FindFiles.c:138": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:142": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:153": {
+          "FAIL": 3
+        },
+        "FindFiles.c:156": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:160": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:182": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:200": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:201": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:247": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:251": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:268": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:326": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:328": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:329": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:330": {
+          "FAIL": 3
+        },
+        "FindFiles.c:332": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:333": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:334": {
+          "FAIL": 3
+        },
+        "FindFiles.c:344": {
+          "FAIL": 3
+        },
+        "FindFiles.c:346": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:347": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:348": {
+          "FAIL": 3
+        },
+        "FindFiles.c:350": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:351": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:352": {
+          "FAIL": 3
+        },
+        "FindFiles.c:371": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:372": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:373": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:374": {
+          "FAIL": 3
+        },
+        "FindFiles.c:376": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:377": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:378": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:379": {
+          "FAIL": 3
+        },
+        "FindFiles.c:389": {
+          "FAIL": 3
+        },
+        "FindFiles.c:391": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:392": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:393": {
+          "FAIL": 3
+        },
+        "FindFiles.c:395": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:397": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:398": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:399": {
+          "FAIL": 3
+        },
+        "FindFiles.c:406": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:407": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:408": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:409": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:410": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:413": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:414": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:415": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:416": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:418": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:419": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:420": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:421": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:425": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:429": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:434": {
+          "FAIL": 3
+        },
+        "FindFiles.c:438": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:442": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:446": {
+          "FAIL": 3
+        },
+        "FindFiles.c:450": {
+          "FAIL": 3
+        },
+        "FindFiles.c:454": {
+          "FAIL": 3
+        },
+        "FindFiles.c:459": {
+          "FAIL": 3
+        },
+        "FindFiles.c:463": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:467": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:471": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:475": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:479": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:483": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:487": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "FindFiles.c:513": {
+          "FAIL": 3
+        },
+        "FindFiles.c:514": {
+          "FAIL": 3
+        },
+        "FindFiles.c:530": {
+          "FAIL": 3
+        },
+        "FindFiles.c:531": {
+          "FAIL": 3
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "FindFiles.c:135": {
+          "PASS": 3
+        },
+        "FindFiles.c:137": {
+          "PASS": 3
+        },
+        "FindFiles.c:139": {
+          "PASS": 3
+        },
+        "FindFiles.c:141": {
+          "PASS": 3
+        },
+        "FindFiles.c:143": {
+          "PASS": 3
+        },
+        "FindFiles.c:155": {
+          "PASS": 3
+        },
+        "FindFiles.c:157": {
+          "PASS": 3
+        },
+        "FindFiles.c:159": {
+          "PASS": 3
+        },
+        "FindFiles.c:161": {
+          "PASS": 3
+        },
+        "FindFiles.c:180": {
+          "PASS": 3
+        },
+        "FindFiles.c:181": {
+          "PASS": 3
+        },
+        "FindFiles.c:183": {
+          "PASS": 3
+        },
+        "FindFiles.c:185": {
+          "PASS": 3
+        },
+        "FindFiles.c:186": {
+          "PASS": 3
+        },
+        "FindFiles.c:187": {
+          "PASS": 3
+        },
+        "FindFiles.c:188": {
+          "PASS": 3
+        },
+        "FindFiles.c:198": {
+          "PASS": 3
+        },
+        "FindFiles.c:202": {
+          "PASS": 3
+        },
+        "FindFiles.c:204": {
+          "PASS": 3
+        },
+        "FindFiles.c:206": {
+          "PASS": 3
+        },
+        "FindFiles.c:207": {
+          "PASS": 3
+        },
+        "FindFiles.c:208": {
+          "PASS": 3
+        },
+        "FindFiles.c:215": {
+          "PASS": 3
+        },
+        "FindFiles.c:216": {
+          "PASS": 3
+        },
+        "FindFiles.c:217": {
+          "PASS": 3
+        },
+        "FindFiles.c:218": {
+          "PASS": 3
+        },
+        "FindFiles.c:219": {
+          "PASS": 3
+        },
+        "FindFiles.c:222": {
+          "PASS": 3
+        },
+        "FindFiles.c:223": {
+          "PASS": 3
+        },
+        "FindFiles.c:224": {
+          "PASS": 3
+        },
+        "FindFiles.c:225": {
+          "PASS": 3
+        },
+        "FindFiles.c:227": {
+          "PASS": 3
+        },
+        "FindFiles.c:228": {
+          "PASS": 3
+        },
+        "FindFiles.c:229": {
+          "PASS": 3
+        },
+        "FindFiles.c:230": {
+          "PASS": 3
+        },
+        "FindFiles.c:234": {
+          "PASS": 3
+        },
+        "FindFiles.c:238": {
+          "PASS": 3
+        },
+        "FindFiles.c:243": {
+          "PASS": 3
+        },
+        "FindFiles.c:255": {
+          "PASS": 3
+        },
+        "FindFiles.c:259": {
+          "PASS": 3
+        },
+        "FindFiles.c:263": {
+          "PASS": 3
+        },
+        "FindFiles.c:272": {
+          "PASS": 3
+        },
+        "FindFiles.c:276": {
+          "PASS": 3
+        },
+        "FindFiles.c:280": {
+          "PASS": 3
+        },
+        "FindFiles.c:284": {
+          "PASS": 3
+        },
+        "FindFiles.c:288": {
+          "PASS": 3
+        },
+        "FindFiles.c:292": {
+          "PASS": 3
+        },
+        "FindFiles.c:296": {
+          "PASS": 3
+        },
+        "FindFiles.c:578": {
+          "PASS": 1
+        }
+      },
+      "sha256": "64444eae390f6d217cd13431b95796a301031020c6b7778490443b8b33eaafca",
+      "skips": {}
+    },
+    "ros_user32_GetDCEx": {
+      "advisory": {
+        "GetDCEx.c:127": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:129": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:130": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:296": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:298": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:303": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:311": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:328": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:329": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:342": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:351": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:356": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:365": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:369": {
+          "FAIL": 1
+        },
+        "GetDCEx.c:455": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetDCEx.c:102": {
+          "PASS": 1
+        },
+        "GetDCEx.c:106": {
+          "PASS": 1
+        },
+        "GetDCEx.c:110": {
+          "PASS": 1
+        },
+        "GetDCEx.c:115": {
+          "PASS": 1
+        },
+        "GetDCEx.c:117": {
+          "PASS": 1
+        },
+        "GetDCEx.c:121": {
+          "PASS": 1
+        },
+        "GetDCEx.c:122": {
+          "PASS": 1
+        },
+        "GetDCEx.c:134": {
+          "PASS": 1
+        },
+        "GetDCEx.c:137": {
+          "PASS": 1
+        },
+        "GetDCEx.c:152": {
+          "PASS": 1
+        },
+        "GetDCEx.c:155": {
+          "PASS": 1
+        },
+        "GetDCEx.c:158": {
+          "PASS": 1
+        },
+        "GetDCEx.c:160": {
+          "PASS": 1
+        },
+        "GetDCEx.c:161": {
+          "PASS": 1
+        },
+        "GetDCEx.c:162": {
+          "PASS": 1
+        },
+        "GetDCEx.c:163": {
+          "PASS": 1
+        },
+        "GetDCEx.c:166": {
+          "PASS": 1
+        },
+        "GetDCEx.c:167": {
+          "PASS": 1
+        },
+        "GetDCEx.c:170": {
+          "PASS": 1
+        },
+        "GetDCEx.c:171": {
+          "PASS": 1
+        },
+        "GetDCEx.c:174": {
+          "PASS": 1
+        },
+        "GetDCEx.c:175": {
+          "PASS": 1
+        },
+        "GetDCEx.c:178": {
+          "PASS": 1
+        },
+        "GetDCEx.c:180": {
+          "PASS": 1
+        },
+        "GetDCEx.c:181": {
+          "PASS": 1
+        },
+        "GetDCEx.c:184": {
+          "PASS": 1
+        },
+        "GetDCEx.c:186": {
+          "PASS": 1
+        },
+        "GetDCEx.c:187": {
+          "PASS": 1
+        },
+        "GetDCEx.c:190": {
+          "PASS": 1
+        },
+        "GetDCEx.c:192": {
+          "PASS": 1
+        },
+        "GetDCEx.c:193": {
+          "PASS": 1
+        },
+        "GetDCEx.c:198": {
+          "PASS": 1
+        },
+        "GetDCEx.c:213": {
+          "PASS": 1
+        },
+        "GetDCEx.c:216": {
+          "PASS": 1
+        },
+        "GetDCEx.c:223": {
+          "PASS": 1
+        },
+        "GetDCEx.c:225": {
+          "PASS": 1
+        },
+        "GetDCEx.c:226": {
+          "PASS": 1
+        },
+        "GetDCEx.c:227": {
+          "PASS": 1
+        },
+        "GetDCEx.c:231": {
+          "PASS": 1
+        },
+        "GetDCEx.c:232": {
+          "PASS": 1
+        },
+        "GetDCEx.c:235": {
+          "PASS": 1
+        },
+        "GetDCEx.c:239": {
+          "PASS": 1
+        },
+        "GetDCEx.c:243": {
+          "PASS": 1
+        },
+        "GetDCEx.c:244": {
+          "PASS": 1
+        },
+        "GetDCEx.c:250": {
+          "PASS": 1
+        },
+        "GetDCEx.c:265": {
+          "PASS": 1
+        },
+        "GetDCEx.c:269": {
+          "PASS": 1
+        },
+        "GetDCEx.c:272": {
+          "PASS": 1
+        },
+        "GetDCEx.c:277": {
+          "PASS": 1
+        },
+        "GetDCEx.c:278": {
+          "PASS": 1
+        },
+        "GetDCEx.c:282": {
+          "PASS": 1
+        },
+        "GetDCEx.c:283": {
+          "PASS": 1
+        },
+        "GetDCEx.c:287": {
+          "PASS": 1
+        },
+        "GetDCEx.c:288": {
+          "PASS": 1
+        },
+        "GetDCEx.c:292": {
+          "PASS": 1
+        },
+        "GetDCEx.c:297": {
+          "PASS": 1
+        },
+        "GetDCEx.c:302": {
+          "PASS": 1
+        },
+        "GetDCEx.c:306": {
+          "PASS": 1
+        },
+        "GetDCEx.c:307": {
+          "PASS": 1
+        },
+        "GetDCEx.c:312": {
+          "PASS": 1
+        },
+        "GetDCEx.c:315": {
+          "PASS": 1
+        },
+        "GetDCEx.c:316": {
+          "PASS": 1
+        },
+        "GetDCEx.c:320": {
+          "PASS": 1
+        },
+        "GetDCEx.c:321": {
+          "PASS": 1
+        },
+        "GetDCEx.c:322": {
+          "PASS": 1
+        },
+        "GetDCEx.c:323": {
+          "PASS": 1
+        },
+        "GetDCEx.c:327": {
+          "PASS": 1
+        },
+        "GetDCEx.c:330": {
+          "PASS": 1
+        },
+        "GetDCEx.c:333": {
+          "PASS": 1
+        },
+        "GetDCEx.c:334": {
+          "PASS": 1
+        },
+        "GetDCEx.c:337": {
+          "PASS": 1
+        },
+        "GetDCEx.c:341": {
+          "PASS": 1
+        },
+        "GetDCEx.c:345": {
+          "PASS": 1
+        },
+        "GetDCEx.c:346": {
+          "PASS": 1
+        },
+        "GetDCEx.c:350": {
+          "PASS": 1
+        },
+        "GetDCEx.c:355": {
+          "PASS": 1
+        },
+        "GetDCEx.c:359": {
+          "PASS": 1
+        },
+        "GetDCEx.c:360": {
+          "PASS": 1
+        },
+        "GetDCEx.c:364": {
+          "PASS": 1
+        },
+        "GetDCEx.c:370": {
+          "PASS": 1
+        },
+        "GetDCEx.c:376": {
+          "PASS": 1
+        },
+        "GetDCEx.c:381": {
+          "PASS": 1
+        },
+        "GetDCEx.c:384": {
+          "PASS": 1
+        },
+        "GetDCEx.c:388": {
+          "PASS": 1
+        },
+        "GetDCEx.c:389": {
+          "PASS": 1
+        },
+        "GetDCEx.c:392": {
+          "PASS": 1
+        },
+        "GetDCEx.c:393": {
+          "PASS": 1
+        },
+        "GetDCEx.c:397": {
+          "PASS": 1
+        },
+        "GetDCEx.c:401": {
+          "PASS": 1
+        },
+        "GetDCEx.c:402": {
+          "PASS": 1
+        },
+        "GetDCEx.c:403": {
+          "PASS": 1
+        },
+        "GetDCEx.c:408": {
+          "PASS": 1
+        },
+        "GetDCEx.c:423": {
+          "PASS": 1
+        },
+        "GetDCEx.c:427": {
+          "PASS": 1
+        },
+        "GetDCEx.c:429": {
+          "PASS": 1
+        },
+        "GetDCEx.c:435": {
+          "PASS": 1
+        },
+        "GetDCEx.c:436": {
+          "PASS": 1
+        },
+        "GetDCEx.c:439": {
+          "PASS": 1
+        },
+        "GetDCEx.c:440": {
+          "PASS": 1
+        },
+        "GetDCEx.c:443": {
+          "PASS": 1
+        },
+        "GetDCEx.c:445": {
+          "PASS": 1
+        },
+        "GetDCEx.c:453": {
+          "PASS": 1
+        },
+        "GetDCEx.c:456": {
+          "PASS": 1
+        },
+        "GetDCEx.c:459": {
+          "PASS": 1
+        },
+        "GetDCEx.c:460": {
+          "PASS": 1
+        },
+        "GetDCEx.c:464": {
+          "PASS": 1
+        },
+        "GetDCEx.c:465": {
+          "PASS": 1
+        },
+        "GetDCEx.c:469": {
+          "PASS": 1
+        },
+        "GetDCEx.c:82": {
+          "PASS": 1
+        },
+        "GetDCEx.c:85": {
+          "PASS": 1
+        },
+        "GetDCEx.c:88": {
+          "PASS": 1
+        },
+        "GetDCEx.c:91": {
+          "PASS": 1
+        },
+        "GetDCEx.c:94": {
+          "PASS": 1
+        },
+        "GetDCEx.c:96": {
+          "PASS": 1
+        },
+        "GetDCEx.c:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "1e760036e1d25ae2018dc1a9429dc025ed5a53c38a13654bc5e1753814be9a57",
+      "skips": {}
+    },
+    "ros_user32_GetKeyState": {
+      "advisory": {
+        "GetKeyState.c:111": {
+          "FAIL": 1
+        },
+        "GetKeyState.c:19": {
+          "FAIL": 1
+        },
+        "GetKeyState.c:20": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetKeyState.c:110": {
+          "PASS": 1
+        },
+        "GetKeyState.c:21": {
+          "PASS": 1
+        }
+      },
+      "sha256": "7ed36ed92d1578fd4030e7fde455c2528b187e07c06ee59b759a3d46decedd78",
+      "skips": {}
+    },
+    "ros_user32_RegisterHotKey": {
+      "advisory": {
+        "RegisterHotKey.c:114": {
+          "FAIL": 1
+        },
+        "RegisterHotKey.c:124": {
+          "FAIL": 1
+        },
+        "RegisterHotKey.c:134": {
+          "FAIL": 1
+        },
+        "RegisterHotKey.c:144": {
+          "FAIL": 1
+        },
+        "RegisterHotKey.c:194": {
+          "FAIL": 1
+        },
+        "RegisterHotKey.c:208": {
+          "FAIL": 1
+        },
+        "RegisterHotKey.c:66": {
+          "FAIL": 1
+        },
+        "RegisterHotKey.c:94": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "RegisterHotKey.c:164": {
+          "PASS": 5
+        },
+        "RegisterHotKey.c:178": {
+          "PASS": 5
+        },
+        "RegisterHotKey.c:190": {
+          "PASS": 5
+        },
+        "RegisterHotKey.c:72": {
+          "PASS": 5
+        },
+        "RegisterHotKey.c:82": {
+          "PASS": 5
+        }
+      },
+      "sha256": "34c8fb69b305e3025b94f1d3bb075dc8680cc719250c0889a242ab45be8320ef",
+      "skips": {}
+    },
+    "ros_user32_SetWindowPlacement": {
+      "advisory": {
+        "SetWindowPlacement.c:22": {
+          "FAIL": 1
+        },
+        "SetWindowPlacement.c:23": {
+          "FAIL": 1
+        },
+        "SetWindowPlacement.c:28": {
+          "FAIL": 1
+        },
+        "SetWindowPlacement.c:35": {
+          "FAIL": 1
+        },
+        "SetWindowPlacement.c:40": {
+          "FAIL": 1
+        },
+        "SetWindowPlacement.c:41": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "SetWindowPlacement.c:29": {
+          "PASS": 1
+        },
+        "SetWindowPlacement.c:34": {
+          "PASS": 1
+        }
+      },
+      "sha256": "e124e22e9f07e5ad4536541e4e1cbc6a17e9d3aebdd9171925dfb02520a19c05",
+      "skips": {}
+    },
+    "ros_user32_SystemParametersInfo": {
+      "advisory": {
+        "SystemParametersInfo.c:123": {
+          "FAIL": 8,
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:128": {
+          "FAIL": 10,
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:134": {
+          "FAIL": 10,
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:140": {
+          "FAIL": 10,
+          "PASS": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "SystemParametersInfo.c:118": {
+          "PASS": 2
+        },
+        "SystemParametersInfo.c:149": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:150": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:154": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:156": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:157": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:161": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:163": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:164": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:168": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:170": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:171": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:175": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:177": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:178": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:181": {
+          "PASS": 1
+        },
+        "SystemParametersInfo.c:194": {
+          "PASS": 1
+        }
+      },
+      "sha256": "9a9efbd49e80dd1ea67670e1b8809076c71a83b937ab03101a2c9a7ddd5d6455",
+      "skips": {
+        "SystemParametersInfo.c:217": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "fa07c4b339350b6454a53475b487f0d0ae1e623da0240e3b87de07535be60983",
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "f94a28b4b28b8f9f2c7c69e40bd66a89aaa5cbb3caca9bb9b0a6ecd9fad78680",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

@@ -1,0 +1,377 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "ros_gdi32_SetWindowExtEx": {
+      "reference_status": "FAIL",
+      "sha256": "44ea23b1c21e7dd0945f5b42b45b7f6962804c9755f16c6b7ab5edc101ad3556"
+    },
+    "ros_gdi32_SetWorldTransform": {
+      "reference_status": "FAIL",
+      "sha256": "522606d74cecc48e3805968f2392d3866349d98eda512070bc734f26508b7c6c"
+    },
+    "ros_gdi32_TextTransform": {
+      "reference_status": "FAIL",
+      "sha256": "669efc44ec6f8d5677135da674be5751e4934afffc10f81e7b731bf7e3ad930d"
+    },
+    "ros_imm32_ImmEnumInputContext": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "fd1a2d410ae0f5c21fa81abe6a4a6d32336255106afabf0790f391ef57a42720"
+    },
+    "ros_kernel32_FindActCtxSectionStringW": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "27988c57d93e14e6b65a916dc008140656566393115b3fda122db11f4dbf1918"
+    },
+    "ros_kernel32_FindFiles": {
+      "reference_status": "FAIL",
+      "sha256": "64444eae390f6d217cd13431b95796a301031020c6b7778490443b8b33eaafca"
+    },
+    "ros_kernel32_GetCurrentDirectory": {
+      "reference_status": "FAIL",
+      "sha256": "3a3c631615e6da325f57eeb8dcd3a956379ffd8c6b6fd2ed0094dd3d3aa1e88c"
+    },
+    "ros_kernel32_GetDriveType": {
+      "reference_status": "FAIL",
+      "sha256": "aabdd9623a7c5cff310e8e483d02d6ec01b10dc416c9b9d9b14d3bdeef29138f"
+    },
+    "ros_kernel32_GetModuleFileName": {
+      "reference_status": "FAIL",
+      "sha256": "7f187cfcd2bd4882a66b5009710fc60a7c1e118e58ee2bc5d737acd2b372b002"
+    },
+    "ros_kernel32_GetVolumeInformation": {
+      "reference_status": "FAIL",
+      "sha256": "e43c570171b269d034bb2d52fe35a63be404b41fab42dc8434fa5319cbbce41a"
+    },
+    "ros_kernel32_IsDBCSLeadByteEx": {
+      "reference_status": "FAIL",
+      "sha256": "4f0a9736a7a3954f7b3d42c99ccfa9efb29ce2f915cfc6f0d9d1654f465df845"
+    },
+    "ros_kernel32_LCMapString": {
+      "reference_status": "FAIL",
+      "sha256": "eadfa98c1840e66044a4aedcec9d9dedd3766ee64f82be92faa779449fba6241"
+    },
+    "ros_kernel32_Mailslot": {
+      "reference_status": "PASS",
+      "sha256": "f2422264b76e5303db803f60272ae73b5d4a790bb253efebb47cb9bade872451"
+    },
+    "ros_kernel32_QueueUserAPC": {
+      "reference_status": "FAIL",
+      "sha256": "53a6f8e7a42c41d594f8c9ab9a16289566c5d8c3919afe579bca3be4654693db"
+    },
+    "ros_kernel32_SetConsoleWindowInfo": {
+      "reference_status": "FAIL",
+      "sha256": "14f53a53b4b0fec971d195a20b7b6a5cc5db344050851fd87535121ce3a6f6e5"
+    },
+    "ros_kernel32_SetCurrentDirectory": {
+      "reference_status": "FAIL",
+      "sha256": "0c7dcaf82847c53f48b57fd2187d3d41a69bae0e9ac095fd58f8dd8b55ce2543"
+    },
+    "ros_kernel32_SetUnhandledExceptionFilter": {
+      "reference_status": "CRASH",
+      "sha256": "b9b7721950f40684f850611b68dc7e869bb7c71c9db56a4648a73b7cb727d4ff"
+    },
+    "ros_kernel32_TunnelCache": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "1445ed132d880e19b5af8e99005e60dc2ec9cff4544e6976bd10b5639ab351ce"
+    },
+    "ros_kernel32_dosdev": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "93306c5e99da638afc0a1504f8576d1e0287bf4e03a6896cd70b03758fff94af"
+    }
+  },
+  "groups": {
+    "ros_kernel32_JapaneseCalendar": {
+      "advisory": {
+        "JapaneseCalendar.c:101": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:107": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:112": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:119": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:128": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:129": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:138": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:139": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:152": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:153": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:159": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:160": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:166": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:167": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:173": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:174": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:181": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:182": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:186": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:191": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:192": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:211": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:218": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:219": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:226": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:227": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:233": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:234": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:65": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:66": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:72": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:73": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:79": {
+          "FAIL": 1
+        },
+        "JapaneseCalendar.c:87": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "JapaneseCalendar.c:100": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:106": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:113": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:120": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:133": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:134": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:145": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:146": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:187": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:198": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:199": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:212": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:80": {
+          "PASS": 1
+        },
+        "JapaneseCalendar.c:88": {
+          "PASS": 1
+        }
+      },
+      "sha256": "c37ec5b3cbfebc9623ceebd69a6ecd359e97bf12c2961cc48024a2133962fbaf",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "723588e19dfe195bdf5a9d442e58edcbeb45f0394bf57f8e56c6ab9365953720",
+  "reference_selection": {
+    "excluded": {
+      "ros_gdi32_SetWindowExtEx": "FAIL",
+      "ros_gdi32_SetWorldTransform": "FAIL",
+      "ros_gdi32_TextTransform": "FAIL",
+      "ros_imm32_ImmEnumInputContext": "LOAD_ERROR",
+      "ros_kernel32_FindActCtxSectionStringW": "LOAD_ERROR",
+      "ros_kernel32_FindFiles": "FAIL",
+      "ros_kernel32_GetCurrentDirectory": "FAIL",
+      "ros_kernel32_GetDriveType": "FAIL",
+      "ros_kernel32_GetModuleFileName": "FAIL",
+      "ros_kernel32_GetVolumeInformation": "FAIL",
+      "ros_kernel32_IsDBCSLeadByteEx": "FAIL",
+      "ros_kernel32_LCMapString": "FAIL",
+      "ros_kernel32_Mailslot": "PASS",
+      "ros_kernel32_QueueUserAPC": "FAIL",
+      "ros_kernel32_SetConsoleWindowInfo": "FAIL",
+      "ros_kernel32_SetCurrentDirectory": "FAIL",
+      "ros_kernel32_SetUnhandledExceptionFilter": "CRASH",
+      "ros_kernel32_TunnelCache": "LOAD_ERROR",
+      "ros_kernel32_dosdev": "LOAD_ERROR"
+    },
+    "selected": [
+      "ros_kernel32_JapaneseCalendar"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "661f1b7cbc4be44bc12e747b20423ca5d4a3bea4ce724b89f518fb50452f187e",
+  "variable_counts_sha256": "fa1eef3715ef341c59a96ae8b75a58800d9df9f1e59e6f151ad6ff568d2079a2",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "IMM32.DLL": {
+      "sha256": "d9a5aa2431f0a603e23b6acc5ef9c254d983580cd779998c85b1fefcf5ea81a0",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "NTDLL.DLL": {
+      "sha256": "ac9109cca4f50c8a7070efd48059f1ecfdab743ee79e98d0ba91cb653fc1a6d7",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "SHLWAPI.DLL": {
+      "sha256": "731b1ffdcb821a87e8ef1aa92fc956a0c385eaa6b8f4ad20c89db8b923f1aeae",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

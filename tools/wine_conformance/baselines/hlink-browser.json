@@ -1,0 +1,406 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "hlink_hlink": {
+      "advisory": {
+        "hlink.c:286": {
+          "FAIL": 4,
+          "PASS": 2
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "hlink.c:111": {
+          "PASS": 9
+        },
+        "hlink.c:127": {
+          "PASS": 1
+        },
+        "hlink.c:132": {
+          "PASS": 1
+        },
+        "hlink.c:135": {
+          "PASS": 1
+        },
+        "hlink.c:136": {
+          "PASS": 1
+        },
+        "hlink.c:137": {
+          "PASS": 1
+        },
+        "hlink.c:140": {
+          "PASS": 1
+        },
+        "hlink.c:143": {
+          "PASS": 1
+        },
+        "hlink.c:147": {
+          "PASS": 1
+        },
+        "hlink.c:149": {
+          "PASS": 1
+        },
+        "hlink.c:154": {
+          "PASS": 1
+        },
+        "hlink.c:157": {
+          "PASS": 1
+        },
+        "hlink.c:158": {
+          "PASS": 1
+        },
+        "hlink.c:270": {
+          "PASS": 6
+        },
+        "hlink.c:273": {
+          "PASS": 6
+        },
+        "hlink.c:276": {
+          "PASS": 6
+        },
+        "hlink.c:279": {
+          "PASS": 6
+        },
+        "hlink.c:304": {
+          "PASS": 6
+        },
+        "hlink.c:335": {
+          "PASS": 1
+        },
+        "hlink.c:345": {
+          "PASS": 1
+        },
+        "hlink.c:351": {
+          "PASS": 1
+        },
+        "hlink.c:357": {
+          "PASS": 1
+        },
+        "hlink.c:363": {
+          "PASS": 1
+        },
+        "hlink.c:365": {
+          "PASS": 1
+        },
+        "hlink.c:371": {
+          "PASS": 1
+        },
+        "hlink.c:382": {
+          "PASS": 1
+        },
+        "hlink.c:383": {
+          "PASS": 1
+        },
+        "hlink.c:387": {
+          "PASS": 1
+        },
+        "hlink.c:388": {
+          "PASS": 1
+        },
+        "hlink.c:393": {
+          "PASS": 1
+        },
+        "hlink.c:394": {
+          "PASS": 1
+        },
+        "hlink.c:398": {
+          "PASS": 1
+        },
+        "hlink.c:399": {
+          "PASS": 1
+        },
+        "hlink.c:417": {
+          "PASS": 1
+        },
+        "hlink.c:418": {
+          "PASS": 1
+        },
+        "hlink.c:423": {
+          "PASS": 1
+        },
+        "hlink.c:424": {
+          "PASS": 1
+        },
+        "hlink.c:425": {
+          "PASS": 1
+        },
+        "hlink.c:426": {
+          "PASS": 1
+        },
+        "hlink.c:429": {
+          "PASS": 1
+        },
+        "hlink.c:434": {
+          "PASS": 1
+        },
+        "hlink.c:435": {
+          "PASS": 1
+        },
+        "hlink.c:439": {
+          "PASS": 1
+        },
+        "hlink.c:443": {
+          "PASS": 1
+        },
+        "hlink.c:444": {
+          "PASS": 1
+        },
+        "hlink.c:452": {
+          "PASS": 1
+        },
+        "hlink.c:453": {
+          "PASS": 1
+        },
+        "hlink.c:458": {
+          "PASS": 1
+        },
+        "hlink.c:459": {
+          "PASS": 1
+        },
+        "hlink.c:460": {
+          "PASS": 1
+        },
+        "hlink.c:461": {
+          "PASS": 1
+        },
+        "hlink.c:468": {
+          "PASS": 1
+        },
+        "hlink.c:469": {
+          "PASS": 1
+        },
+        "hlink.c:470": {
+          "PASS": 1
+        },
+        "hlink.c:473": {
+          "PASS": 1
+        },
+        "hlink.c:478": {
+          "PASS": 1
+        },
+        "hlink.c:479": {
+          "PASS": 1
+        },
+        "hlink.c:484": {
+          "PASS": 1
+        },
+        "hlink.c:485": {
+          "PASS": 1
+        },
+        "hlink.c:511": {
+          "PASS": 1
+        },
+        "hlink.c:512": {
+          "PASS": 1
+        },
+        "hlink.c:513": {
+          "PASS": 1
+        },
+        "hlink.c:516": {
+          "PASS": 1
+        },
+        "hlink.c:517": {
+          "PASS": 1
+        },
+        "hlink.c:521": {
+          "PASS": 1
+        },
+        "hlink.c:522": {
+          "PASS": 1
+        },
+        "hlink.c:527": {
+          "PASS": 1
+        },
+        "hlink.c:528": {
+          "PASS": 1
+        },
+        "hlink.c:529": {
+          "PASS": 1
+        },
+        "hlink.c:532": {
+          "PASS": 1
+        },
+        "hlink.c:533": {
+          "PASS": 1
+        },
+        "hlink.c:538": {
+          "PASS": 1
+        },
+        "hlink.c:539": {
+          "PASS": 1
+        },
+        "hlink.c:540": {
+          "PASS": 1
+        },
+        "hlink.c:543": {
+          "PASS": 1
+        },
+        "hlink.c:544": {
+          "PASS": 1
+        },
+        "hlink.c:548": {
+          "PASS": 1
+        },
+        "hlink.c:549": {
+          "PASS": 1
+        },
+        "hlink.c:741": {
+          "PASS": 1
+        },
+        "hlink.c:743": {
+          "PASS": 1
+        },
+        "hlink.c:744": {
+          "PASS": 1
+        },
+        "hlink.c:745": {
+          "PASS": 1
+        },
+        "hlink.c:746": {
+          "PASS": 1
+        },
+        "hlink.c:747": {
+          "PASS": 1
+        },
+        "hlink.c:750": {
+          "PASS": 1
+        },
+        "hlink.c:751": {
+          "PASS": 1
+        },
+        "hlink.c:831": {
+          "PASS": 1
+        },
+        "hlink.c:833": {
+          "PASS": 1
+        },
+        "hlink.c:834": {
+          "PASS": 1
+        },
+        "hlink.c:835": {
+          "PASS": 1
+        },
+        "hlink.c:851": {
+          "PASS": 2
+        },
+        "hlink.c:898": {
+          "PASS": 1
+        },
+        "hlink.c:900": {
+          "PASS": 1
+        },
+        "hlink.c:901": {
+          "PASS": 1
+        },
+        "hlink.c:902": {
+          "PASS": 1
+        }
+      },
+      "sha256": "863781d80494cd47dc1ab2b0700813c8ce9c8afe16c635b21355d201e6f1a084",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "8cdf01c74e10c8da4c7aeccbd37d208582aec075417c1b8a874141963b270e3f",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "e043a9f356bb8fb87199cbf86e7246549ca93367e5a49f51bcb19af175b33769",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "HLINK.DLL": {
+      "sha256": "d631f21b01c85175036b79663bc5defe4e14b88bd6be70de5f399b06b6cf0dfe",
+      "version": [
+        5,
+        0,
+        0,
+        2512
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

@@ -1,0 +1,1054 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "ros_gdi32_CreateIconIndirect": {
+      "advisory": {
+        "CreateIconIndirect.c:117": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:125": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:126": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:66": {
+          "FAIL": 1
+        },
+        "CreateIconIndirect.c:67": {
+          "FAIL": 1
+        },
+        "CreateIconIndirect.c:76": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:81": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:82": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:88": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:90": {
+          "FAIL": 2
+        },
+        "CreateIconIndirect.c:91": {
+          "FAIL": 2
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CreateIconIndirect.c:102": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:107": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:111": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:113": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:115": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:116": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:118": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:119": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:120": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:121": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:122": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:124": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:127": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:128": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:129": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:130": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:133": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:149": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:150": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:151": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:152": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:154": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:155": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:156": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:157": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:158": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:159": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:160": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:161": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:163": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:164": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:167": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:168": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:169": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:170": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:171": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:172": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:173": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:175": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:176": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:177": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:178": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:179": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:180": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:181": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:182": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:186": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:188": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:189": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:190": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:191": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:192": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:193": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:20": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:24": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:26": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:27": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:30": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:31": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:35": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:36": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:38": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:39": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:40": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:42": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:43": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:46": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:47": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:51": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:52": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:54": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:55": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:56": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:60": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:62": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:63": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:71": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:72": {
+          "PASS": 1
+        },
+        "CreateIconIndirect.c:74": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:75": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:77": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:79": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:80": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:83": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:84": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:85": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:86": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:89": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:92": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:93": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:94": {
+          "PASS": 2
+        },
+        "CreateIconIndirect.c:97": {
+          "PASS": 2
+        }
+      },
+      "sha256": "d469df35afdc0f24910ad80fc82fbf5256452b6ddab6cad1e1c315e1a06b82be",
+      "skips": {}
+    },
+    "ros_gdi32_ExcludeClipRect": {
+      "advisory": {
+        "ExcludeClipRect.c:24": {
+          "FAIL": 1
+        },
+        "ExcludeClipRect.c:29": {
+          "FAIL": 1
+        },
+        "ExcludeClipRect.c:39": {
+          "FAIL": 1
+        },
+        "ExcludeClipRect.c:44": {
+          "FAIL": 1
+        },
+        "ExcludeClipRect.c:49": {
+          "FAIL": 1
+        },
+        "ExcludeClipRect.c:67": {
+          "FAIL": 1
+        },
+        "ExcludeClipRect.c:74": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "ExcludeClipRect.c:16": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:23": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:28": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:34": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:35": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:36": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:40": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:41": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:45": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:46": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:50": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:51": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:54": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:55": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:56": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:59": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:60": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:61": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:62": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:63": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:66": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:68": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:70": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:73": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:75": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:77": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:81": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:82": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:83": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:85": {
+          "PASS": 1
+        },
+        "ExcludeClipRect.c:87": {
+          "PASS": 1
+        }
+      },
+      "sha256": "1307317c7167c1e3e7e27abca2cb0d38f7b78895c0f99e5672092f0b881d274a",
+      "skips": {}
+    },
+    "ros_gdi32_FrameRgn": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "FrameRgn.c:121": {
+          "PASS": 1
+        },
+        "FrameRgn.c:124": {
+          "PASS": 1
+        },
+        "FrameRgn.c:129": {
+          "PASS": 1
+        },
+        "FrameRgn.c:132": {
+          "PASS": 1
+        },
+        "FrameRgn.c:91": {
+          "PASS": 64
+        }
+      },
+      "sha256": "7abc3947c74723d0f87a2aea0ecffdb372a5868f513c35dc093ecb1202c2cfb3",
+      "skips": {}
+    },
+    "ros_user32_CreateIconFromResourceEx": {
+      "advisory": {
+        "CreateIconFromResourceEx.c:35": {
+          "FAIL": 1
+        },
+        "CreateIconFromResourceEx.c:38": {
+          "FAIL": 1
+        },
+        "CreateIconFromResourceEx.c:39": {
+          "FAIL": 1
+        },
+        "CreateIconFromResourceEx.c:42": {
+          "FAIL": 1
+        },
+        "CreateIconFromResourceEx.c:43": {
+          "FAIL": 1
+        },
+        "CreateIconFromResourceEx.c:44": {
+          "FAIL": 1
+        },
+        "CreateIconFromResourceEx.c:45": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CreateIconFromResourceEx.c:15": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:18": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:24": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:27": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:30": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:36": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:50": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:52": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:56": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:60": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:63": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:66": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:71": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:72": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:74": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:75": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:78": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:79": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:80": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:81": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:86": {
+          "PASS": 1
+        },
+        "CreateIconFromResourceEx.c:88": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2754ab0e4faeff505cb9767eff0f3af7976e97e30a75568456b4a77ebdd571d0",
+      "skips": {}
+    },
+    "ros_user32_DrawIconEx": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "DrawIconEx.c:16": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:18": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:23": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:25": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:29": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:32": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:35": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:40": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:42": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:44": {
+          "PASS": 1
+        },
+        "DrawIconEx.c:49": {
+          "PASS": 1
+        }
+      },
+      "sha256": "e6e55db8e63a00395936cab09eec8aad7c4d4bde1bcb93168f43f34d26184a02",
+      "skips": {}
+    },
+    "ros_user32_GetIconInfo": {
+      "advisory": {
+        "GetIconInfo.c:121": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:129": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:130": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:132": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:134": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:155": {
+          "FAIL": 1
+        },
+        "GetIconInfo.c:233": {
+          "FAIL": 9
+        },
+        "GetIconInfo.c:238": {
+          "FAIL": 4,
+          "PASS": 5
+        },
+        "GetIconInfo.c:69": {
+          "FAIL": 1
+        },
+        "GetIconInfo.c:70": {
+          "FAIL": 1
+        },
+        "GetIconInfo.c:79": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:84": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:85": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:91": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:93": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:94": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:95": {
+          "FAIL": 2
+        },
+        "GetIconInfo.c:97": {
+          "FAIL": 2
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetIconInfo.c:101": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:106": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:111": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:115": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:117": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:119": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:120": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:122": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:123": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:124": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:125": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:126": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:128": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:131": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:133": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:135": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:138": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:166": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:167": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:168": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:169": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:170": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:171": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:172": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:20": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:204": {
+          "PASS": 3
+        },
+        "GetIconInfo.c:216": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:217": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:218": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:219": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:220": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:221": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:223": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:224": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:225": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:226": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:227": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:228": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:229": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:230": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:232": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:234": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:235": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:236": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:237": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:239": {
+          "PASS": 9
+        },
+        "GetIconInfo.c:24": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:245": {
+          "PASS": 3
+        },
+        "GetIconInfo.c:253": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:254": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:255": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:256": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:257": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:258": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:259": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:26": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:261": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:262": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:263": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:264": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:265": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:266": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:267": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:268": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:27": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:30": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:31": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:35": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:36": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:38": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:39": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:40": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:43": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:44": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:47": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:48": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:52": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:53": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:55": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:56": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:57": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:59": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:63": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:65": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:66": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:74": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:75": {
+          "PASS": 1
+        },
+        "GetIconInfo.c:77": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:78": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:80": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:82": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:83": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:86": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:87": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:88": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:89": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:92": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:96": {
+          "PASS": 2
+        },
+        "GetIconInfo.c:98": {
+          "PASS": 2
+        }
+      },
+      "sha256": "fd1eddfa33881c30869159e90896a66af8e7e02aba6e72c0d80336159fdc7193",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "df89d0e34725b5eacad50c6484f6d31b820c4baade19c0f0f4631957e9e2b5b3",
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "719afe3a4616d296c60e1d799a272bdb857dabf80d35bd68bf6b39b4bd07cf20",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

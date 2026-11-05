@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+ClassFamilyNamedMenu MENU
+BEGIN
+    POPUP "File"
+    BEGIN
+        MENUITEM "Open", 123
+    END
+END

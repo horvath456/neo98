@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+// The freestanding <new> of the bare-metal kernel. Circle builds with
+// -nostdinc++ and STDLIB_SUPPORT = 0, so no C++ library header exists; the
+// shared sources use new (std::nothrow) for tables that grow with the guest
+// (fonts, registry, files). Placement new comes from Circle's own new.h; the
+// nothrow forms are defined in platform/circle/host.cpp and return null when
+// the heap is exhausted, as the host's library does.
+#pragma once
+#include <circle/new.h>
+
+namespace std
+{
+struct nothrow_t
+{
+    explicit nothrow_t() = default;
+};
+extern const nothrow_t nothrow;
+}
+
+void *operator new(size_t size, const std::nothrow_t &) noexcept;
+void *operator new[](size_t size, const std::nothrow_t &) noexcept;
+void operator delete(void *block, const std::nothrow_t &) noexcept;
+void operator delete[](void *block, const std::nothrow_t &) noexcept;

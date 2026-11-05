@@ -1,0 +1,54 @@
+NEO98: RDTSC and RDTSCP read the cycle counter less an offset the embedder
+keeps, so the counter stands through a pause of the machine.
+RDTSCP, which CPUID offers, no longer ends as an invalid instruction
+on a host without a processor number: IA32_TSC_AUX is zero there.
+
+diff --git a/FEXCore/include/FEXCore/Core/CoreState.h b/FEXCore/include/FEXCore/Core/CoreState.h
+--- a/FEXCore/include/FEXCore/Core/CoreState.h
++++ b/FEXCore/include/FEXCore/Core/CoreState.h
+@@ -255,6 +255,10 @@
+   constexpr static uint32_t SEGMENT_ARRAY_INDEX_GDT = 0;
+   constexpr static uint32_t SEGMENT_ARRAY_INDEX_LDT = 1;
+   Core::CPUState::gdt_segment private_gdt[32] {};
++  // NEO98: what RDTSC and RDTSCP take off the host's cycle counter, in its
++  // ticks: the sum of the pauses of the machine, so the guest's counter
++  // stands while the machine does. The embedder stores it before a run.
++  uint64_t NEO98CycleOffset {};
+ };
+ static_assert(std::is_trivially_copyable_v<CPUState>, "Needs to be trivial");
+ static_assert(std::is_standard_layout_v<CPUState>, "This needs to be standard layout");
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -3127,7 +3127,10 @@
+ OpDispatchBuilder::CycleCounterPair OpDispatchBuilder::CycleCounter(bool SelfSynchronizingLoads) {
+   Ref CounterLow {};
+   Ref CounterHigh {};
+-  auto Counter = _CycleCounter(SelfSynchronizingLoads);
++  // NEO98: the guest's counter is the host's less the pauses of the machine
++  // (CPUState::NEO98CycleOffset); one load and one subtraction.
++  Ref Counter = _CycleCounter(SelfSynchronizingLoads);
++  Counter = _Sub(OpSize::i64Bit, Counter, _LoadContextGPR(OpSize::i64Bit, offsetof(FEXCore::Core::CPUState, NEO98CycleOffset)));
+   if (CTX->Config.TSCScale) {
+     CounterLow = _Lshl(OpSize::i32Bit, Counter, Constant(CTX->Config.TSCScale));
+     CounterHigh = _Lshr(OpSize::i64Bit, Counter, Constant(32 - CTX->Config.TSCScale));
+@@ -5100,14 +5103,13 @@
+   //  - Explicitly use an MFENCE before this instruction if you want this behaviour
+   // This instruction is not an execution fence, so subsequent instructions can execute after this
+   //  - Explicitly use an LFENCE after RDTSCP if you want to block this behaviour
+-  if (CTX->HostFeatures.HostType != FEXCore::HostFeatures::HostTypeEnum::Linux && !CTX->HostFeatures.SupportsCPUIndexInTPIDRRO) {
+-    // RDTSCP is unsupported on Win32 platforms if TPIDRRO isn't supported.
+-    UnimplementedOp(Op);
+-    return;
+-  }
++  // NEO98: CPUID offers RDTSCP, and the machine has one processor: where the
++  // host has no processor number to give, IA32_TSC_AUX is zero.
++  const bool NoProcessorID =
++    CTX->HostFeatures.HostType != FEXCore::HostFeatures::HostTypeEnum::Linux && !CTX->HostFeatures.SupportsCPUIndexInTPIDRRO;
+   auto Counter = CycleCounter(true);
+ 
+-  auto ID = _ProcessorID();
++  Ref ID = NoProcessorID ? Constant(0) : _ProcessorID();
+   StoreGPRRegister(X86State::REG_RAX, Counter.CounterLow);
+   StoreGPRRegister(X86State::REG_RCX, ID);
+   StoreGPRRegister(X86State::REG_RDX, Counter.CounterHigh);

@@ -1,0 +1,887 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "ros_atl_CComVariant": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "3aa8f293042b5264b959b50877e0fc728076e68c324b0787ca1c2dbf8093d81e"
+    }
+  },
+  "groups": {
+    "ros_atl_CAtlFileMapping": {
+      "advisory": {
+        "CAtlFileMapping.cpp:110": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:114": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:118": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:119": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:120": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:122": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:125": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:126": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:159": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:160": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:161": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:162": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:165": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:166": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:167": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:169": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:175": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:178": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:179": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:180": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:181": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:44": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:57": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:58": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:59": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:61": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:69": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:70": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:71": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:75": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:76": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:80": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:81": {
+          "FAIL": 1
+        },
+        "CAtlFileMapping.cpp:96": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CAtlFileMapping.cpp:102": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:103": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:104": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:105": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:111": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:112": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:113": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:121": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:152": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:172": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:173": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:174": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:29": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:30": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:31": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:32": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:33": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:34": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:40": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:45": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:46": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:47": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:50": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:51": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:52": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:53": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:60": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:72": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:77": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:97": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:98": {
+          "PASS": 1
+        },
+        "CAtlFileMapping.cpp:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "fa75fb49c0d3393be782a2b98dba94b9909a93600c05a1c5727ebad3dab95e88",
+      "skips": {}
+    },
+    "ros_atl_CComHeapPtr": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "CComHeapPtr.cpp:100": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:102": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:104": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:105": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:106": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:109": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:111": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:113": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:114": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:115": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:118": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:119": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:120": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:121": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:123": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:126": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:77": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:80": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:82": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:84": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:86": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:87": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:88": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:91": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:93": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:94": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:95": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:97": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:98": {
+          "PASS": 1
+        },
+        "CComHeapPtr.cpp:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "18c92ef1e8f2d9debd21ecb21fa6a6971e91e45ee5a40f42efbe3887a91733de",
+      "skips": {}
+    },
+    "ros_atl_CComObject": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "CComObject.cpp:102": {
+          "PASS": 1
+        },
+        "CComObject.cpp:103": {
+          "PASS": 1
+        },
+        "CComObject.cpp:104": {
+          "PASS": 1
+        },
+        "CComObject.cpp:105": {
+          "PASS": 1
+        },
+        "CComObject.cpp:112": {
+          "PASS": 1
+        },
+        "CComObject.cpp:113": {
+          "PASS": 1
+        },
+        "CComObject.cpp:114": {
+          "PASS": 1
+        },
+        "CComObject.cpp:115": {
+          "PASS": 1
+        },
+        "CComObject.cpp:119": {
+          "PASS": 1
+        },
+        "CComObject.cpp:120": {
+          "PASS": 1
+        },
+        "CComObject.cpp:121": {
+          "PASS": 1
+        },
+        "CComObject.cpp:122": {
+          "PASS": 1
+        },
+        "CComObject.cpp:81": {
+          "PASS": 1
+        },
+        "CComObject.cpp:83": {
+          "PASS": 1
+        },
+        "CComObject.cpp:84": {
+          "PASS": 1
+        },
+        "CComObject.cpp:85": {
+          "PASS": 1
+        },
+        "CComObject.cpp:90": {
+          "PASS": 1
+        },
+        "CComObject.cpp:95": {
+          "PASS": 1
+        },
+        "CComObject.cpp:96": {
+          "PASS": 1
+        },
+        "CComObject.cpp:97": {
+          "PASS": 1
+        },
+        "CComObject.cpp:98": {
+          "PASS": 1
+        }
+      },
+      "sha256": "87405858390d21f8d605370e6583a1f6e776aff5cec49891b517936e70688b6e",
+      "skips": {}
+    },
+    "ros_atl_CComQIPtr": {
+      "advisory": {
+        "CComQIPtr.cpp:137": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "CComQIPtr.cpp:102": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:103": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:105": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:108": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:109": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:112": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:113": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:116": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:117": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:120": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:121": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:124": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:125": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:128": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:129": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:132": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:93": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:94": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:98": {
+          "PASS": 1
+        },
+        "CComQIPtr.cpp:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "6d89a24276c64f7651ec8d568df63652726e9c3969b85951a9b3dde86cee764d",
+      "skips": {}
+    },
+    "ros_atl_atlconv": {
+      "advisory": {
+        "atlconv.cpp:108": {
+          "FAIL": 1
+        },
+        "atlconv.cpp:109": {
+          "FAIL": 1
+        },
+        "atlconv.cpp:133": {
+          "FAIL": 1
+        },
+        "atlconv.cpp:134": {
+          "FAIL": 1
+        },
+        "atlconv.cpp:82": {
+          "FAIL": 1
+        },
+        "atlconv.cpp:83": {
+          "FAIL": 1
+        },
+        "atlconv.cpp:84": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "atlconv.cpp:100": {
+          "PASS": 1
+        },
+        "atlconv.cpp:103": {
+          "PASS": 1
+        },
+        "atlconv.cpp:104": {
+          "PASS": 1
+        },
+        "atlconv.cpp:105": {
+          "PASS": 1
+        },
+        "atlconv.cpp:110": {
+          "PASS": 1
+        },
+        "atlconv.cpp:118": {
+          "PASS": 1
+        },
+        "atlconv.cpp:119": {
+          "PASS": 1
+        },
+        "atlconv.cpp:120": {
+          "PASS": 1
+        },
+        "atlconv.cpp:123": {
+          "PASS": 1
+        },
+        "atlconv.cpp:124": {
+          "PASS": 1
+        },
+        "atlconv.cpp:128": {
+          "PASS": 1
+        },
+        "atlconv.cpp:129": {
+          "PASS": 1
+        },
+        "atlconv.cpp:130": {
+          "PASS": 1
+        },
+        "atlconv.cpp:135": {
+          "PASS": 1
+        },
+        "atlconv.cpp:143": {
+          "PASS": 1
+        },
+        "atlconv.cpp:144": {
+          "PASS": 1
+        },
+        "atlconv.cpp:145": {
+          "PASS": 1
+        },
+        "atlconv.cpp:146": {
+          "PASS": 1
+        },
+        "atlconv.cpp:147": {
+          "PASS": 1
+        },
+        "atlconv.cpp:150": {
+          "PASS": 1
+        },
+        "atlconv.cpp:151": {
+          "PASS": 1
+        },
+        "atlconv.cpp:152": {
+          "PASS": 1
+        },
+        "atlconv.cpp:153": {
+          "PASS": 1
+        },
+        "atlconv.cpp:154": {
+          "PASS": 1
+        },
+        "atlconv.cpp:157": {
+          "PASS": 1
+        },
+        "atlconv.cpp:158": {
+          "PASS": 1
+        },
+        "atlconv.cpp:159": {
+          "PASS": 1
+        },
+        "atlconv.cpp:160": {
+          "PASS": 1
+        },
+        "atlconv.cpp:161": {
+          "PASS": 1
+        },
+        "atlconv.cpp:164": {
+          "PASS": 1
+        },
+        "atlconv.cpp:165": {
+          "PASS": 1
+        },
+        "atlconv.cpp:166": {
+          "PASS": 1
+        },
+        "atlconv.cpp:167": {
+          "PASS": 1
+        },
+        "atlconv.cpp:168": {
+          "PASS": 1
+        },
+        "atlconv.cpp:176": {
+          "PASS": 1
+        },
+        "atlconv.cpp:177": {
+          "PASS": 1
+        },
+        "atlconv.cpp:178": {
+          "PASS": 1
+        },
+        "atlconv.cpp:179": {
+          "PASS": 1
+        },
+        "atlconv.cpp:180": {
+          "PASS": 1
+        },
+        "atlconv.cpp:183": {
+          "PASS": 1
+        },
+        "atlconv.cpp:184": {
+          "PASS": 1
+        },
+        "atlconv.cpp:185": {
+          "PASS": 1
+        },
+        "atlconv.cpp:186": {
+          "PASS": 1
+        },
+        "atlconv.cpp:187": {
+          "PASS": 1
+        },
+        "atlconv.cpp:190": {
+          "PASS": 1
+        },
+        "atlconv.cpp:191": {
+          "PASS": 1
+        },
+        "atlconv.cpp:192": {
+          "PASS": 1
+        },
+        "atlconv.cpp:193": {
+          "PASS": 1
+        },
+        "atlconv.cpp:194": {
+          "PASS": 1
+        },
+        "atlconv.cpp:197": {
+          "PASS": 1
+        },
+        "atlconv.cpp:198": {
+          "PASS": 1
+        },
+        "atlconv.cpp:199": {
+          "PASS": 1
+        },
+        "atlconv.cpp:200": {
+          "PASS": 1
+        },
+        "atlconv.cpp:201": {
+          "PASS": 1
+        },
+        "atlconv.cpp:209": {
+          "PASS": 1
+        },
+        "atlconv.cpp:210": {
+          "PASS": 1
+        },
+        "atlconv.cpp:211": {
+          "PASS": 1
+        },
+        "atlconv.cpp:214": {
+          "PASS": 1
+        },
+        "atlconv.cpp:215": {
+          "PASS": 1
+        },
+        "atlconv.cpp:216": {
+          "PASS": 1
+        },
+        "atlconv.cpp:39": {
+          "PASS": 1
+        },
+        "atlconv.cpp:40": {
+          "PASS": 1
+        },
+        "atlconv.cpp:41": {
+          "PASS": 1
+        },
+        "atlconv.cpp:44": {
+          "PASS": 1
+        },
+        "atlconv.cpp:45": {
+          "PASS": 1
+        },
+        "atlconv.cpp:46": {
+          "PASS": 1
+        },
+        "atlconv.cpp:49": {
+          "PASS": 1
+        },
+        "atlconv.cpp:50": {
+          "PASS": 1
+        },
+        "atlconv.cpp:51": {
+          "PASS": 1
+        },
+        "atlconv.cpp:54": {
+          "PASS": 1
+        },
+        "atlconv.cpp:55": {
+          "PASS": 1
+        },
+        "atlconv.cpp:56": {
+          "PASS": 1
+        },
+        "atlconv.cpp:64": {
+          "PASS": 1
+        },
+        "atlconv.cpp:65": {
+          "PASS": 1
+        },
+        "atlconv.cpp:66": {
+          "PASS": 1
+        },
+        "atlconv.cpp:67": {
+          "PASS": 1
+        },
+        "atlconv.cpp:70": {
+          "PASS": 1
+        },
+        "atlconv.cpp:71": {
+          "PASS": 1
+        },
+        "atlconv.cpp:72": {
+          "PASS": 1
+        },
+        "atlconv.cpp:73": {
+          "PASS": 1
+        },
+        "atlconv.cpp:76": {
+          "PASS": 1
+        },
+        "atlconv.cpp:77": {
+          "PASS": 1
+        },
+        "atlconv.cpp:78": {
+          "PASS": 1
+        },
+        "atlconv.cpp:79": {
+          "PASS": 1
+        },
+        "atlconv.cpp:85": {
+          "PASS": 1
+        },
+        "atlconv.cpp:93": {
+          "PASS": 1
+        },
+        "atlconv.cpp:94": {
+          "PASS": 1
+        },
+        "atlconv.cpp:95": {
+          "PASS": 1
+        },
+        "atlconv.cpp:98": {
+          "PASS": 1
+        },
+        "atlconv.cpp:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "3fa37f468a9e4a016e4226b9ae8f3c69ece091c7319bf6f108244bcd5a2203e8",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "b984c0f331a20bf9a1dad0697ba7d33fe2c69da652f1d2e1e8201960d6885e27",
+  "reference_selection": {
+    "excluded": {
+      "ros_atl_CComVariant": "LOAD_ERROR"
+    },
+    "selected": [
+      "ros_atl_CAtlFileMapping",
+      "ros_atl_CComHeapPtr",
+      "ros_atl_CComObject",
+      "ros_atl_CComQIPtr",
+      "ros_atl_atlconv"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "dbc104f1d524a956342ef7f0772208cebe4b2c6f1a4066bfdded78d8faa5c60e",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "ATL.DLL": {
+      "sha256": "e911ff1063d16348f353ee9001fbd43e04a3c8514028d964967d32dd87d83cca",
+      "version": [
+        3,
+        0,
+        8449,
+        0
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "OLEAUT32.DLL": {
+      "sha256": "baeb2f7c1b8be56738d34e1d1ddf8e0eebd3a633215dc1575e14656be38b939d",
+      "version": [
+        2,
+        40,
+        4275,
+        1
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

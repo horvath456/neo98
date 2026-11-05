@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Copyright (C) 2026 Andreas Horvath
+# Exceptions and unwinding, as KERNEL32 of Windows on ARM64 exports them. The
+# processor of an ARM64 process answers these itself (attribute core,
+# src/arm64_seh.inc): they work on the registers and the frames of the program,
+# which no 32-bit provider sees. The records (CONTEXT, EXCEPTION_RECORD,
+# RUNTIME_FUNCTION, DISPATCHER_CONTEXT) and the pointer types are written out
+# in exceptions.h; a type whose C text is its own name gets no typedef from
+# the generator. docs/ARM64-APPS.md, "Exceptions".
+dll KERNEL32;
+type DWORD64            u64 "unsigned long long";
+type PEXCEPTION_RECORD  ptr "PEXCEPTION_RECORD";
+type PCONTEXT           ptr "PCONTEXT";
+type PRUNTIME_FUNCTION  ptr "PRUNTIME_FUNCTION";
+type PUNWIND_HISTORY_TABLE ptr "PUNWIND_HISTORY_TABLE";
+type PKNONVOLATILE_CONTEXT_POINTERS ptr "PKNONVOLATILE_CONTEXT_POINTERS";
+type PEXCEPTION_ROUTINE ptr "PEXCEPTION_ROUTINE";
+type LPTOP_LEVEL_EXCEPTION_FILTER ptr "LPTOP_LEVEL_EXCEPTION_FILTER";
+
+void RaiseException(DWORD dwExceptionCode, DWORD dwExceptionFlags, DWORD nNumberOfArguments, in ULONG_PTR* lpArguments) core;
+void RtlCaptureContext(PCONTEXT ContextRecord) core;
+PRUNTIME_FUNCTION RtlLookupFunctionEntry(DWORD64 ControlPc, DWORD64* ImageBase, PUNWIND_HISTORY_TABLE HistoryTable) core;
+PEXCEPTION_ROUTINE RtlVirtualUnwind(DWORD HandlerType, DWORD64 ImageBase, DWORD64 ControlPc, PRUNTIME_FUNCTION FunctionEntry, PCONTEXT ContextRecord, out PVOID* HandlerData, DWORD64* EstablisherFrame, PKNONVOLATILE_CONTEXT_POINTERS ContextPointers) core;
+void RtlUnwindEx(PVOID TargetFrame, PVOID TargetIp, PEXCEPTION_RECORD ExceptionRecord, PVOID ReturnValue, PCONTEXT ContextRecord, PUNWIND_HISTORY_TABLE HistoryTable) core;
+void RtlUnwind(PVOID TargetFrame, PVOID TargetIp, PEXCEPTION_RECORD ExceptionRecord, PVOID ReturnValue) core;
+void RtlRestoreContext(PCONTEXT ContextRecord, PEXCEPTION_RECORD ExceptionRecord) core;
+PVOID RtlPcToFileHeader(PVOID PcValue, out PVOID* BaseOfImage) core;
+LPTOP_LEVEL_EXCEPTION_FILTER SetUnhandledExceptionFilter(LPTOP_LEVEL_EXCEPTION_FILTER lpTopLevelExceptionFilter) core;

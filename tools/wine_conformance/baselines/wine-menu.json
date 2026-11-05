@@ -1,0 +1,1219 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "user32_menu": {
+      "advisory": {
+        "menu.c:1000": {
+          "FAIL": 1
+        },
+        "menu.c:1019": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1034": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1039": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1046": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1052": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1058": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1063": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1068": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1074": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1079": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1084": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1090": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1097": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1104": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:1110": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1114": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1121": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1128": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1135": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1141": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1147": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1152": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1157": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:1162": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1167": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1172": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:1178": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1183": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1188": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1195": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1205": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:1212": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1219": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:1227": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1233": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1240": {
+          "FAIL": 1,
+          "PASS": 11
+        },
+        "menu.c:1247": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1254": {
+          "FAIL": 1,
+          "PASS": 11
+        },
+        "menu.c:1257": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1260": {
+          "FAIL": 1,
+          "PASS": 11
+        },
+        "menu.c:1264": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1272": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1278": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1285": {
+          "FAIL": 1,
+          "PASS": 11
+        },
+        "menu.c:1292": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1299": {
+          "FAIL": 1,
+          "PASS": 11
+        },
+        "menu.c:1302": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:1305": {
+          "FAIL": 1,
+          "PASS": 11
+        },
+        "menu.c:1309": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:2211": {
+          "FAIL": 1,
+          "PASS": 11
+        },
+        "menu.c:2223": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "menu.c:2241": {
+          "FAIL": 3,
+          "PASS": 8
+        },
+        "menu.c:2243": {
+          "FAIL": 1,
+          "PASS": 10
+        },
+        "menu.c:2250": {
+          "FAIL": 1,
+          "PASS": 3
+        },
+        "menu.c:432": {
+          "FAIL": 350,
+          "PASS": 28
+        },
+        "menu.c:443": {
+          "FAIL": 24,
+          "PASS": 354
+        },
+        "menu.c:452": {
+          "FAIL": 40,
+          "PASS": 88
+        },
+        "menu.c:628": {
+          "FAIL": 1
+        },
+        "menu.c:838": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:843": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:848": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:853": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:859": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:864": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:869": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:874": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:879": {
+          "FAIL": 1
+        },
+        "menu.c:885": {
+          "FAIL": 1
+        },
+        "menu.c:889": {
+          "FAIL": 1
+        },
+        "menu.c:895": {
+          "FAIL": 1
+        },
+        "menu.c:899": {
+          "FAIL": 1
+        },
+        "menu.c:906": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:911": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:916": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:921": {
+          "FAIL": 2,
+          "PASS": 12
+        },
+        "menu.c:928": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:934": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:939": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:944": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:949": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:955": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:961": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "menu.c:966": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:971": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:978": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "menu.c:983": {
+          "FAIL": 1,
+          "PASS": 13
+        },
+        "menu.c:988": {
+          "FAIL": 1
+        },
+        "menu.c:995": {
+          "FAIL": 1,
+          "PASS": 13
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "menu.c:1007": {
+          "PASS": 1
+        },
+        "menu.c:1008": {
+          "PASS": 14
+        },
+        "menu.c:1012": {
+          "PASS": 1
+        },
+        "menu.c:1013": {
+          "PASS": 14
+        },
+        "menu.c:1018": {
+          "PASS": 1
+        },
+        "menu.c:1022": {
+          "PASS": 14
+        },
+        "menu.c:1027": {
+          "PASS": 1
+        },
+        "menu.c:1033": {
+          "PASS": 1
+        },
+        "menu.c:1038": {
+          "PASS": 1
+        },
+        "menu.c:1045": {
+          "PASS": 1
+        },
+        "menu.c:1051": {
+          "PASS": 1
+        },
+        "menu.c:1057": {
+          "PASS": 1
+        },
+        "menu.c:1062": {
+          "PASS": 1
+        },
+        "menu.c:1067": {
+          "PASS": 1
+        },
+        "menu.c:1073": {
+          "PASS": 1
+        },
+        "menu.c:1078": {
+          "PASS": 1
+        },
+        "menu.c:1083": {
+          "PASS": 1
+        },
+        "menu.c:1089": {
+          "PASS": 1
+        },
+        "menu.c:1095": {
+          "PASS": 1
+        },
+        "menu.c:1096": {
+          "PASS": 1
+        },
+        "menu.c:1102": {
+          "PASS": 1
+        },
+        "menu.c:1103": {
+          "PASS": 1
+        },
+        "menu.c:1109": {
+          "PASS": 1
+        },
+        "menu.c:1113": {
+          "PASS": 1
+        },
+        "menu.c:1119": {
+          "PASS": 1
+        },
+        "menu.c:1120": {
+          "PASS": 1
+        },
+        "menu.c:1126": {
+          "PASS": 1
+        },
+        "menu.c:1127": {
+          "PASS": 1
+        },
+        "menu.c:1133": {
+          "PASS": 1
+        },
+        "menu.c:1134": {
+          "PASS": 1
+        },
+        "menu.c:1140": {
+          "PASS": 1
+        },
+        "menu.c:1146": {
+          "PASS": 1
+        },
+        "menu.c:1151": {
+          "PASS": 1
+        },
+        "menu.c:1156": {
+          "PASS": 1
+        },
+        "menu.c:1161": {
+          "PASS": 1
+        },
+        "menu.c:1166": {
+          "PASS": 1
+        },
+        "menu.c:1171": {
+          "PASS": 1
+        },
+        "menu.c:1177": {
+          "PASS": 1
+        },
+        "menu.c:1182": {
+          "PASS": 1
+        },
+        "menu.c:1187": {
+          "PASS": 1
+        },
+        "menu.c:1193": {
+          "PASS": 1
+        },
+        "menu.c:1194": {
+          "PASS": 1
+        },
+        "menu.c:1200": {
+          "PASS": 1
+        },
+        "menu.c:1201": {
+          "PASS": 1
+        },
+        "menu.c:1202": {
+          "PASS": 14
+        },
+        "menu.c:1210": {
+          "PASS": 1
+        },
+        "menu.c:1211": {
+          "PASS": 1
+        },
+        "menu.c:1217": {
+          "PASS": 1
+        },
+        "menu.c:1218": {
+          "PASS": 1
+        },
+        "menu.c:1226": {
+          "PASS": 1
+        },
+        "menu.c:1232": {
+          "PASS": 1
+        },
+        "menu.c:1238": {
+          "PASS": 1
+        },
+        "menu.c:1239": {
+          "PASS": 1
+        },
+        "menu.c:1245": {
+          "PASS": 1
+        },
+        "menu.c:1246": {
+          "PASS": 1
+        },
+        "menu.c:1252": {
+          "PASS": 1
+        },
+        "menu.c:1253": {
+          "PASS": 1
+        },
+        "menu.c:1263": {
+          "PASS": 1
+        },
+        "menu.c:1271": {
+          "PASS": 1
+        },
+        "menu.c:1277": {
+          "PASS": 1
+        },
+        "menu.c:1283": {
+          "PASS": 1
+        },
+        "menu.c:1284": {
+          "PASS": 1
+        },
+        "menu.c:1290": {
+          "PASS": 1
+        },
+        "menu.c:1291": {
+          "PASS": 1
+        },
+        "menu.c:1297": {
+          "PASS": 1
+        },
+        "menu.c:1298": {
+          "PASS": 1
+        },
+        "menu.c:1308": {
+          "PASS": 1
+        },
+        "menu.c:1344": {
+          "PASS": 1
+        },
+        "menu.c:1347": {
+          "PASS": 1
+        },
+        "menu.c:1358": {
+          "PASS": 1
+        },
+        "menu.c:1359": {
+          "PASS": 1
+        },
+        "menu.c:1360": {
+          "PASS": 1
+        },
+        "menu.c:1371": {
+          "PASS": 1
+        },
+        "menu.c:1372": {
+          "PASS": 1
+        },
+        "menu.c:1373": {
+          "PASS": 1
+        },
+        "menu.c:1383": {
+          "PASS": 1
+        },
+        "menu.c:1386": {
+          "PASS": 1
+        },
+        "menu.c:1398": {
+          "PASS": 1
+        },
+        "menu.c:1399": {
+          "PASS": 1
+        },
+        "menu.c:1400": {
+          "PASS": 1
+        },
+        "menu.c:1411": {
+          "PASS": 1
+        },
+        "menu.c:1412": {
+          "PASS": 1
+        },
+        "menu.c:1413": {
+          "PASS": 1
+        },
+        "menu.c:1426": {
+          "PASS": 1
+        },
+        "menu.c:1437": {
+          "PASS": 1
+        },
+        "menu.c:1438": {
+          "PASS": 1
+        },
+        "menu.c:1439": {
+          "PASS": 1
+        },
+        "menu.c:1452": {
+          "PASS": 1
+        },
+        "menu.c:1463": {
+          "PASS": 1
+        },
+        "menu.c:1464": {
+          "PASS": 1
+        },
+        "menu.c:1465": {
+          "PASS": 1
+        },
+        "menu.c:1486": {
+          "PASS": 1
+        },
+        "menu.c:1489": {
+          "PASS": 1
+        },
+        "menu.c:1499": {
+          "PASS": 1
+        },
+        "menu.c:1503": {
+          "PASS": 1
+        },
+        "menu.c:1514": {
+          "PASS": 1
+        },
+        "menu.c:1515": {
+          "PASS": 1
+        },
+        "menu.c:1516": {
+          "PASS": 1
+        },
+        "menu.c:1529": {
+          "PASS": 1
+        },
+        "menu.c:1532": {
+          "PASS": 1
+        },
+        "menu.c:1542": {
+          "PASS": 1
+        },
+        "menu.c:1552": {
+          "PASS": 1
+        },
+        "menu.c:1563": {
+          "PASS": 1
+        },
+        "menu.c:1564": {
+          "PASS": 1
+        },
+        "menu.c:1565": {
+          "PASS": 1
+        },
+        "menu.c:1575": {
+          "PASS": 1
+        },
+        "menu.c:1576": {
+          "PASS": 1
+        },
+        "menu.c:1577": {
+          "PASS": 1
+        },
+        "menu.c:1594": {
+          "PASS": 1
+        },
+        "menu.c:1597": {
+          "PASS": 1
+        },
+        "menu.c:1605": {
+          "PASS": 1
+        },
+        "menu.c:1610": {
+          "PASS": 1
+        },
+        "menu.c:1611": {
+          "PASS": 1
+        },
+        "menu.c:1622": {
+          "PASS": 1
+        },
+        "menu.c:1623": {
+          "PASS": 1
+        },
+        "menu.c:1624": {
+          "PASS": 1
+        },
+        "menu.c:1635": {
+          "PASS": 1
+        },
+        "menu.c:1636": {
+          "PASS": 1
+        },
+        "menu.c:1637": {
+          "PASS": 1
+        },
+        "menu.c:1847": {
+          "PASS": 1
+        },
+        "menu.c:1849": {
+          "PASS": 1
+        },
+        "menu.c:1851": {
+          "PASS": 1
+        },
+        "menu.c:1854": {
+          "PASS": 1
+        },
+        "menu.c:1856": {
+          "PASS": 1
+        },
+        "menu.c:1858": {
+          "PASS": 1
+        },
+        "menu.c:1898": {
+          "PASS": 1
+        },
+        "menu.c:1904": {
+          "PASS": 1
+        },
+        "menu.c:1907": {
+          "PASS": 1
+        },
+        "menu.c:1912": {
+          "PASS": 1
+        },
+        "menu.c:1914": {
+          "PASS": 1
+        },
+        "menu.c:1918": {
+          "PASS": 1
+        },
+        "menu.c:1924": {
+          "PASS": 1
+        },
+        "menu.c:1926": {
+          "PASS": 1
+        },
+        "menu.c:1929": {
+          "PASS": 1
+        },
+        "menu.c:1935": {
+          "PASS": 1
+        },
+        "menu.c:1938": {
+          "PASS": 1
+        },
+        "menu.c:1941": {
+          "PASS": 1
+        },
+        "menu.c:1947": {
+          "PASS": 1
+        },
+        "menu.c:1949": {
+          "PASS": 1
+        },
+        "menu.c:1954": {
+          "PASS": 1
+        },
+        "menu.c:1961": {
+          "PASS": 1
+        },
+        "menu.c:1963": {
+          "PASS": 1
+        },
+        "menu.c:1966": {
+          "PASS": 1
+        },
+        "menu.c:1972": {
+          "PASS": 1
+        },
+        "menu.c:1974": {
+          "PASS": 1
+        },
+        "menu.c:1979": {
+          "PASS": 1
+        },
+        "menu.c:1986": {
+          "PASS": 1
+        },
+        "menu.c:1988": {
+          "PASS": 1
+        },
+        "menu.c:1991": {
+          "PASS": 1
+        },
+        "menu.c:2013": {
+          "PASS": 117
+        },
+        "menu.c:2020": {
+          "PASS": 18
+        },
+        "menu.c:2027": {
+          "PASS": 4
+        },
+        "menu.c:2028": {
+          "PASS": 4
+        },
+        "menu.c:2029": {
+          "PASS": 4
+        },
+        "menu.c:2033": {
+          "PASS": 95
+        },
+        "menu.c:2037": {
+          "PASS": 18
+        },
+        "menu.c:2038": {
+          "PASS": 18
+        },
+        "menu.c:2042": {
+          "PASS": 77
+        },
+        "menu.c:2043": {
+          "PASS": 77
+        },
+        "menu.c:2059": {
+          "PASS": 2
+        },
+        "menu.c:2073": {
+          "PASS": 1
+        },
+        "menu.c:2078": {
+          "PASS": 1
+        },
+        "menu.c:2087": {
+          "PASS": 1
+        },
+        "menu.c:2091": {
+          "PASS": 1
+        },
+        "menu.c:2096": {
+          "PASS": 1
+        },
+        "menu.c:2105": {
+          "PASS": 1
+        },
+        "menu.c:2147": {
+          "PASS": 1
+        },
+        "menu.c:2150": {
+          "PASS": 1
+        },
+        "menu.c:2152": {
+          "PASS": 1
+        },
+        "menu.c:2154": {
+          "PASS": 1
+        },
+        "menu.c:2157": {
+          "PASS": 1
+        },
+        "menu.c:2172": {
+          "PASS": 7
+        },
+        "menu.c:2177": {
+          "PASS": 7
+        },
+        "menu.c:2179": {
+          "PASS": 7
+        },
+        "menu.c:2181": {
+          "PASS": 7
+        },
+        "menu.c:2183": {
+          "PASS": 7
+        },
+        "menu.c:2185": {
+          "PASS": 7
+        },
+        "menu.c:223": {
+          "PASS": 1
+        },
+        "menu.c:2236": {
+          "PASS": 11
+        },
+        "menu.c:225": {
+          "PASS": 1
+        },
+        "menu.c:2255": {
+          "PASS": 7
+        },
+        "menu.c:2257": {
+          "PASS": 7
+        },
+        "menu.c:227": {
+          "PASS": 1
+        },
+        "menu.c:229": {
+          "PASS": 1
+        },
+        "menu.c:231": {
+          "PASS": 1
+        },
+        "menu.c:235": {
+          "PASS": 1
+        },
+        "menu.c:238": {
+          "PASS": 1
+        },
+        "menu.c:244": {
+          "PASS": 1
+        },
+        "menu.c:259": {
+          "PASS": 1
+        },
+        "menu.c:263": {
+          "PASS": 1
+        },
+        "menu.c:271": {
+          "PASS": 4
+        },
+        "menu.c:279": {
+          "PASS": 1
+        },
+        "menu.c:282": {
+          "PASS": 1
+        },
+        "menu.c:286": {
+          "PASS": 1
+        },
+        "menu.c:291": {
+          "PASS": 1
+        },
+        "menu.c:302": {
+          "PASS": 1
+        },
+        "menu.c:306": {
+          "PASS": 1
+        },
+        "menu.c:310": {
+          "PASS": 1
+        },
+        "menu.c:316": {
+          "PASS": 1
+        },
+        "menu.c:318": {
+          "PASS": 1
+        },
+        "menu.c:323": {
+          "PASS": 2
+        },
+        "menu.c:327": {
+          "PASS": 1
+        },
+        "menu.c:329": {
+          "PASS": 1
+        },
+        "menu.c:333": {
+          "PASS": 1
+        },
+        "menu.c:339": {
+          "PASS": 1
+        },
+        "menu.c:380": {
+          "PASS": 378
+        },
+        "menu.c:385": {
+          "PASS": 378
+        },
+        "menu.c:396": {
+          "PASS": 252
+        },
+        "menu.c:399": {
+          "PASS": 378
+        },
+        "menu.c:415": {
+          "PASS": 108
+        },
+        "menu.c:457": {
+          "PASS": 128
+        },
+        "menu.c:476": {
+          "PASS": 378
+        },
+        "menu.c:478": {
+          "PASS": 378
+        },
+        "menu.c:505": {
+          "PASS": 1
+        },
+        "menu.c:521": {
+          "PASS": 8
+        },
+        "menu.c:582": {
+          "PASS": 1
+        },
+        "menu.c:592": {
+          "PASS": 1
+        },
+        "menu.c:595": {
+          "PASS": 1
+        },
+        "menu.c:596": {
+          "PASS": 1
+        },
+        "menu.c:615": {
+          "PASS": 1
+        },
+        "menu.c:618": {
+          "PASS": 1
+        },
+        "menu.c:619": {
+          "PASS": 1
+        },
+        "menu.c:634": {
+          "PASS": 1
+        },
+        "menu.c:637": {
+          "PASS": 1
+        },
+        "menu.c:638": {
+          "PASS": 1
+        },
+        "menu.c:647": {
+          "PASS": 1
+        },
+        "menu.c:649": {
+          "PASS": 1
+        },
+        "menu.c:650": {
+          "PASS": 1
+        },
+        "menu.c:658": {
+          "PASS": 1
+        },
+        "menu.c:659": {
+          "PASS": 1
+        },
+        "menu.c:837": {
+          "PASS": 1
+        },
+        "menu.c:842": {
+          "PASS": 1
+        },
+        "menu.c:847": {
+          "PASS": 1
+        },
+        "menu.c:852": {
+          "PASS": 1
+        },
+        "menu.c:858": {
+          "PASS": 1
+        },
+        "menu.c:863": {
+          "PASS": 1
+        },
+        "menu.c:868": {
+          "PASS": 1
+        },
+        "menu.c:873": {
+          "PASS": 1
+        },
+        "menu.c:884": {
+          "PASS": 1
+        },
+        "menu.c:894": {
+          "PASS": 1
+        },
+        "menu.c:905": {
+          "PASS": 1
+        },
+        "menu.c:910": {
+          "PASS": 1
+        },
+        "menu.c:915": {
+          "PASS": 1
+        },
+        "menu.c:920": {
+          "PASS": 1
+        },
+        "menu.c:927": {
+          "PASS": 1
+        },
+        "menu.c:933": {
+          "PASS": 1
+        },
+        "menu.c:938": {
+          "PASS": 1
+        },
+        "menu.c:943": {
+          "PASS": 1
+        },
+        "menu.c:948": {
+          "PASS": 1
+        },
+        "menu.c:954": {
+          "PASS": 1
+        },
+        "menu.c:960": {
+          "PASS": 1
+        },
+        "menu.c:965": {
+          "PASS": 1
+        },
+        "menu.c:970": {
+          "PASS": 1
+        },
+        "menu.c:977": {
+          "PASS": 1
+        },
+        "menu.c:982": {
+          "PASS": 1
+        },
+        "menu.c:994": {
+          "PASS": 1
+        }
+      },
+      "sha256": "324c7a72e5fd900daaad7db4f68f070687d599df69cf33522adf9049c29d3ef6",
+      "skips": {
+        "menu.c:601": 1,
+        "menu.c:664": 1,
+        "menu.c:837": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "be9d2ec9c1441859e851e8b7be46b1e45fd62ea1db661164a80b1b6b3be1c41e",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "01812b84c985eac3c779454e70986cf9c619d484c5b8afc79f56fb3865984c86",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

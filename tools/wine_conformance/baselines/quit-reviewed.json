@@ -1,0 +1,17 @@
+{
+  "group": "quit_contract",
+  "prefix": "QUIT_",
+  "binary_sha256": "fd034a305f4e32a4a28397bc8cc5c8a3bab4591a27af799c5f03ebc94afee549",
+  "differences": [
+    {
+      "reference": "QUIT_PEEK name=quit-peek found=1 message=0012 wp=0000abcd lp=00000000",
+      "candidate": "QUIT_PEEK name=quit-peek found=1 message=0012 wp=1234abcd lp=00000000",
+      "reason": "NEO98 preserves the full 32-bit PostQuitMessage exit code; Win98 truncates it to an unsigned 16-bit value. Message order, first pending code and queue state must still match."
+    },
+    {
+      "reference": "QUIT_PEEK name=quit-last found=1 message=0012 wp=0000abcd lp=00000000",
+      "candidate": "QUIT_PEEK name=quit-last found=1 message=0012 wp=1234abcd lp=00000000",
+      "reason": "NEO98 preserves the full 32-bit PostQuitMessage exit code; Win98 truncates it to an unsigned 16-bit value. Message order, first pending code and queue state must still match."
+    }
+  ]
+}

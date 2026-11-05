@@ -1,0 +1,27 @@
+{
+ "unicorn": {
+  "version": "2.1.4",
+  "revision": "8028ec436f2d9376525352dd38ed9ed6b9f6be10",
+  "url": "https://codeload.github.com/unicorn-engine/unicorn/tar.gz/8028ec436f2d9376525352dd38ed9ed6b9f6be10",
+  "sha256": "9d2a2003f0307d0fc239af439654564fe6ef17b67f7c5a39b45fad4c69d6aec2"
+ },
+ "newlib": {
+  "version": "Arm GNU Toolchain 14.2.Rel1, aarch64-none-elf LP64",
+  "url": "https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-darwin-arm64-aarch64-none-elf.tar.xz",
+  "sha256": "fc111bb4bb4871e521e3c8a89bd0af51cddfd00fe3f526f4faa09398b7c613f5"
+ },
+ "dosbox-pure": {
+  "version": "DOSBox Pure 73e03aa145e0549ed4d5a20f8e65532714da33f5 (2026-09)",
+  "revision": "73e03aa145e0549ed4d5a20f8e65532714da33f5",
+  "url": "https://codeload.github.com/schellingb/dosbox-pure/tar.gz/73e03aa145e0549ed4d5a20f8e65532714da33f5",
+  "sha256": "0fbc441291c71ea2c568e7b59d6243aa9b2adf093bac15292f02b8ca09701fe2",
+  "license": "GPL-2.0-or-later"
+ },
+ "stb": {
+  "version": "stb 2c980bb59875b0d32144a71867fbdebb2f77cd20 (stb_truetype.h only)",
+  "revision": "2c980bb59875b0d32144a71867fbdebb2f77cd20",
+  "url": "https://codeload.github.com/nothings/stb/tar.gz/2c980bb59875b0d32144a71867fbdebb2f77cd20",
+  "sha256": "9a955b1b49a4410088a2e0ee2a9c057c3c907d0c1d75454144cb980aca0ba515",
+  "license": "MIT or Unlicense (public domain), the choice of LICENSE"
+ }
+}

@@ -1,0 +1,17 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+typedef unsigned U;
+#define API __declspec(dllimport) __stdcall
+API void ExitProcess(U);API U GetModuleHandleA(const char*);API U RegisterClassA(void*);API U CreateWindowExA(U,const char*,const char*,U,int,int,int,int,U,U,U,U);API U DestroyWindow(U);API U SendMessageA(U,U,U,U);API U GetWindowTextA(U,char*,U);API U UpdateWindow(U);API U GetWindowLongA(U,int);API U GetDlgItem(U,U);API U GetDC(U);API U ReleaseDC(U,U);API U GetPixel(U,int,int);API U ScreenToClient(U,void*);API U CreateSolidBrush(U);API U DeleteObject(U);API U FillRect(U,void*,U);API U DefWindowProcA(U,U,U,U);
+static U measured,drawn,notified,draw_state;static void check(int ok,U n){if(!ok)ExitProcess(n);}
+static U __stdcall proc(U h,U m,U w,U l){if(m==0x2c){U*v=(U*)l;check(v[0]==3,15500);v[4]=14;++measured;return 1;}if(m==0x2b){U*v=(U*)l;check(v[0]==3,15501);U brush=CreateSolidBrush(0x00ff00);check(brush&&FillRect(v[6],v+7,brush)&&DeleteObject(brush),15502);draw_state=v[4];++drawn;return 1;}if(m==0x111){++notified;return 0;}return DefWindowProcA(h,m,w,l);}
+static int same(const char*a,const char*b){while(*a&&*a==*b){++a;++b;}return*a==*b;}
+void run_combobox_test(void){U instance=GetModuleHandleA(0);U wc[10]={0,(U)proc,0,0,instance,0,0,0,0,(U)"ComboTest"};check(RegisterClassA(wc),15503);U p=CreateWindowExA(0,"ComboTest","Combo family",0x90000000,30,30,400,260,0,0,instance,0);check(p,15504);
+ U c=CreateWindowExA(0,"COMBOBOX","",0x50000302,10,10,150,120,p,77,instance,0);check(c,15505);check(GetDlgItem(c,1001),15506);check(SendMessageA(c,0x143,0,(U)"Beta")==0&&SendMessageA(c,0x143,0,(U)"Alpha")==0&&SendMessageA(c,0x146,0,0)==2,15507);check(SendMessageA(c,0x14e,0,0)==0&&SendMessageA(c,0x147,0,0)==0,15508);char out[32];check(GetWindowTextA(c,out,sizeof out)==5&&same(out,"Alpha"),15509);check(SendMessageA(c,0x148,1,(U)out)==4&&same(out,"Beta"),15510);
+ check(SendMessageA(c,0x151,0,0x12345678)==1&&SendMessageA(c,0x150,0,0)==0x12345678,15511);check(SendMessageA(c,0x15f,0,0)==150&&SendMessageA(c,0x160,210,0)==210,15512);check(SendMessageA(c,0x155,1,0)==0&&SendMessageA(c,0x156,0,0)==1,15513);check(SendMessageA(c,0x14f,1,0)==1&&SendMessageA(c,0x157,0,0)==1,15514);check(SendMessageA(c,0x14f,0,0)==1&&SendMessageA(c,0x157,0,0)==0,15515);check(SendMessageA(c,0x153,0xffffffff,18)==0&&SendMessageA(c,0x154,0xffffffff,0)==18,15516);check(SendMessageA(c,0x14b,0,0)==1&&SendMessageA(c,0x146,0,0)==0&&GetWindowTextA(c,out,sizeof out)==0,15517);
+ check(SendMessageA(c,0x141,3,0)==0,15524);U edit=GetDlgItem(c,1001);check(SendMessageA(edit,0xd5,0,0)==3,15525);SendMessageA(edit,0x102,'A',0);SendMessageA(edit,0x102,'B',0);SendMessageA(edit,0x102,'C',0);SendMessageA(edit,0x102,'D',0);check(GetWindowTextA(c,out,sizeof out)==3&&same(out,"ABC"),15526);
+ U owner=CreateWindowExA(0,"COMBOBOX","",0x50000313,10,60,150,120,p,78,instance,0);check(owner&&measured>=2&&!GetDlgItem(owner,1001),15518);check(SendMessageA(owner,0x143,0,(U)"Owner item")==0&&SendMessageA(owner,0x14e,0,0)==0,15519);check(draw_state&0x1000,15527);check(SendMessageA(owner,0x140,0,0)==0xffffffff,15520);int origin[2]={0,0};check(ScreenToClient(owner,origin),15521);UpdateWindow(owner);U dc=GetDC(0);check(dc&&GetPixel(dc,-origin[0]+5,-origin[1]+5)==0x00ff00&&drawn,15522);ReleaseDC(0,dc);
+ check(DestroyWindow(c)&&DestroyWindow(owner)&&DestroyWindow(p),15523);
+}
+#ifdef COMBOBOX_STANDALONE
+void mainCRTStartup(void){run_combobox_test();ExitProcess(0);}
+#endif

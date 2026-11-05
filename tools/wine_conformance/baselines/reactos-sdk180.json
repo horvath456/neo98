@@ -1,0 +1,647 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "ros_advapi32_HKEY_CLASSES_ROOT": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "109286cce720aaac219e00908238e2311d39592b80965eab05613c93585cc22a"
+    },
+    "ros_advapi32_Hash": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "115b33b5f9de6063750a55db74593e904b7c398ed0126cba4d94e8636099ae74"
+    },
+    "ros_advapi32_IsTextUnicode": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "5bcc418b97d53ffcbf3a31d575b3090070d1a7c2b77a12b33cf906dc4e879a32"
+    },
+    "ros_advapi32_RtlEncryptMemory": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "f4f09eb1596fe17ca601714947ee3134e8ba24dd506c8dcfc04ea747cf522371"
+    },
+    "ros_advapi32_SaferIdentifyLevel": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "74650f093a5ab82d553563c28b8ec25937934cb9c77241c301a48e0ddcf19400"
+    },
+    "ros_kernel32_CreateProcess": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "27dc9b1c06fb93e547583b868d872cc6eb86f58ec745be76dde73280f7eaed9c"
+    },
+    "ros_kernel32_InitOnce": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "a554a3fed9a9e7d6f8244f11070bd67a2130ab19d6114278879da542e1fe5ff3"
+    },
+    "ros_kernel32_PrivMoveFileIdentityW": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "211513590a43d0d27259b015c9c978e0354e094a2fdf1902de9ef3b3d7b6693c"
+    },
+    "ros_kernel32_TerminateProcess": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "6954154e06eea58a10368ee3dfa673c6e433c189cc34eb1f02dec6c6fb31e9e7"
+    },
+    "ros_ntdll_LdrEnumResources": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "f725e1fcdf313625960ade9c603c9c2317ecae9d4284d1814ec295184f72da94"
+    },
+    "ros_ntdll_LdrLoadDll": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "8c5410a5461a4d08a57e765a690bf6d4622b663c7a94679d17122bae25c1666c"
+    },
+    "ros_ntdll_NtAcceptConnectPort": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "d6a3da409b5f13a91b1695031cf754fa4c65a76eae59c7a3b0b66c0517e912ae"
+    },
+    "ros_ntdll_NtAccessCheck": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "f4baa25e0ef64a68cd843ef4275ad6aa986ef4d8f8e2099ba774b02156122540"
+    },
+    "ros_ntdll_NtAccessCheckByType": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "83a28bdfa099c1d0f1e1660b71d026b1da9d3e8f22397966c3b752d5979a1e64"
+    },
+    "ros_ntdll_NtAccessCheckByTypeResultList": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "1245ef968e10968690f784e38c6fbc7aaa8afc4d814644bd918e5aae52af0958"
+    },
+    "ros_ntdll_NtAdjustGroupsToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "a5e58eeb833d3f90149ab63eed58c4556c81528a3d827bdf9ed8e1ac68a518f5"
+    },
+    "ros_ntdll_NtAdjustPrivilegesToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "23d9d013155e074fe066334243ee2f47ec616518c29f14cf13a47727747d2fea"
+    },
+    "ros_ntdll_NtAllocateVirtualMemory": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "72364adbcc33f1c1261fc25709bb98f87a82221bfcbde9207c2caf3862cfecaf"
+    },
+    "ros_ntdll_NtApphelpCacheControl": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "1c8dde030b21dbcb0f9eba27ff8cab52482a09d4f3577e6fa7a3460fabcf1b5a"
+    },
+    "ros_ntdll_NtCompareTokens": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "aa85ac0a1ed3059f4a7e00c466cd8b7a6bcfc63ba4cfef81d7235dc044b7f39c"
+    },
+    "ros_ntdll_NtCreateKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "48e79e03153a9a06d13ac08ff0a33d60dc639e65579f8d88a619e2b3e549b347"
+    },
+    "ros_ntdll_NtCreateThread": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "567e4ed7ad0ae03028e7bdf62a20bf78afc0dc1bf1b6a14aba7547df7af93cf5"
+    },
+    "ros_ntdll_NtDeleteKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "f5c31bf817edb7e062269930cb377a2b67e37e32a5b85406831868d695e3adf4"
+    },
+    "ros_ntdll_NtDuplicateObject": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "8e0c24b3e1250d0bc64dfcad6abe711b0499a982a08c2cce6a4b6aeb4fb9a8e6"
+    },
+    "ros_ntdll_NtDuplicateToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "1111a28b3d913d666796245deb081d3fcaa31aa0482531e0b06de93d05ad3a6a"
+    },
+    "ros_ntdll_NtFilterToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "2bde106d31ddcb507f2e916c3e456673b9355be69d6a7b3f76d072962e3d900e"
+    },
+    "ros_ntdll_NtFreeVirtualMemory": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "6ad656902d9c29382760e39e2665b59e34e41bb57bde8b10586edf029580662e"
+    },
+    "ros_ntdll_NtImpersonateAnonymousToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "7dad32d6f8c3de27adb7426af427e5079c708b4c3b996ea4d63855c92d79ff6b"
+    },
+    "ros_ntdll_NtLoadUnloadKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "9dd62fd99809a0c9b61f2f896ff8a5be0e879fd1996b2e707d266333a5d25de8"
+    },
+    "ros_ntdll_NtMapViewOfSection": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "141f72b2ee3da96fe187bee6691fd05e8eaaaa0f443fbaaeb3d7f0da8b6a1659"
+    },
+    "ros_ntdll_NtMutant": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "5f9bdfcc6a35d0b4956136a38cf1a80d1fe0cce685ff15720d8957c091f707b1"
+    },
+    "ros_ntdll_NtOpenKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "0d3d98822b1dd1d92adac835ccd6d8e103dc85a63075bf6e0069294efd5b53dc"
+    },
+    "ros_ntdll_NtOpenProcessToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "01d6d79041a743d5e079a35f872ccad24b3c85b9c0d59ce6cd6e15dac941e076"
+    },
+    "ros_ntdll_NtOpenThreadToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "11c9b5f4e5f2dd5d5802e1409517170ae8d11d2f357005878a21dd234497f2c1"
+    },
+    "ros_ntdll_NtProtectVirtualMemory": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "f69ba4ee4958f5e4e6cec41cb5f85796bac76cd825bc3c57a3465965ebb3a655"
+    },
+    "ros_ntdll_NtQueryInformationToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "efbfc480c7c2f9dec106276bd46e32f993e5325a9144119d3cc062c5e43936a9"
+    },
+    "ros_ntdll_NtQueryKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "710665fb25f2212b7de0cd0b5ddfab0a3ddcfd775f42565f08347ce3d6ac4d87"
+    },
+    "ros_ntdll_NtQueryOpenSubKeys": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "f3d47ef08248145568bc0b071f0d685aa13356021f7e6327c5498695baff4174"
+    },
+    "ros_ntdll_NtQuerySystemEnvironmentValue": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "9c1520d2cf0d033a4b542c62338263887fce80328901c3050c82a857bcf2c40c"
+    },
+    "ros_ntdll_NtQueryValueKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "f716b8ea6b8474c5052ca18930924776f2dcf104fe4442d77790f7eb14ad0a3a"
+    },
+    "ros_ntdll_NtReadFile": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "5381921fbc049b417922ad69c7df6334a7619ac56499801341bb5fcdb7018d49"
+    },
+    "ros_ntdll_NtSaveKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "06c3cb9e6070aff366c0d941634bbd23d01be11d9bd792843efd7431703d55ec"
+    },
+    "ros_ntdll_NtSetDefaultLocale": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "029ad68e1bc618636bbc73bbab2d6a9a69f3783d15a18f03b115c8241a306201"
+    },
+    "ros_ntdll_NtSetInformationToken": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "fee6953fa4c2aa5dd09063d904f4970d560814536a00029909960e6e509fecd4"
+    },
+    "ros_ntdll_NtSetValueKey": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "cee7c188ff979ed9f6fd3f34d9ebc04fe5f063e80c5fdd610b4554ee6931bcfd"
+    },
+    "ros_ntdll_NtWriteFile": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "b3373f67fe08e244f7db4518c4d5c9b3d309bb1b1cebe270af9d44e562333539"
+    },
+    "ros_ntdll_RtlAllocateHeap": {
+      "reference_status": "CRASH",
+      "sha256": "4df4e2953f1c1d529547e971e3d27f7a061d8e8995b10f70e70bcc3fbc5a94ed"
+    },
+    "ros_ntdll_RtlComputePrivatizedDllName_U": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "067225c69436c34fba303d3030b38a113ef121dbad2c578e954ea782d0bd505c"
+    },
+    "ros_ntdll_RtlCopyMappedMemory": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "c7e7c9f03a1ce28120240e98c3e52b61a835811d3c4d87809a296c342bf3ffc5"
+    },
+    "ros_ntdll_RtlCriticalSection": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "b4a86a92b23d54015eecc90ab0255784d74aad2fdf2cd82d00f404bf10015436"
+    },
+    "ros_ntdll_RtlDebugInformation": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "2a5239d247681f87a9324b440ea6dc7ef485e4ae3e7187839774ed1d591d8273"
+    },
+    "ros_ntdll_RtlDoesFileExists": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "d40bfebaf59de0f01e448835f7cfa81ecc5cca577165d297883563b01e67d07e"
+    },
+    "ros_ntdll_RtlDosApplyFileIsolationRedirection_Ustr": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "b3d4559db6616a768f932ea38f87c52b6cc59c39713a72061be5976f57d10ded"
+    },
+    "ros_ntdll_RtlDosPathNameToNtPathName_U": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "b22149c19159b81d86cd3627d81f376b9f0e60baaa5bd93f048269bb3e455531"
+    },
+    "ros_ntdll_RtlDosSearchPath_U": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "a92ce5f47afcd3e710e2de76ffab15b517cd463b1198997b4b33717ad5d99b01"
+    },
+    "ros_ntdll_RtlDosSearchPath_Ustr": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "edac6a806759d6fb00aac0d370e28a1de3fc8e94da4753f57750e660c5c652f0"
+    },
+    "ros_ntdll_RtlGetFullPathName_U": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "a3d799a4bb72713bfb9f71de3ab9fc013e9f8c30aed15771ea3108085cf36432"
+    },
+    "ros_ntdll_RtlGetFullPathName_Ustr": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "af7546ab4e6405b65470188cab7f54f590c6bc871665d6cb18a2c006becbe19e"
+    },
+    "ros_ntdll_RtlGetFullPathName_UstrEx": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "7a1899552924df4eb6e08ea6b25565de7975c128d18dd898c06525b4c180f4e3"
+    },
+    "ros_ntdll_RtlGetLengthWithoutTrailingPathSeperators": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "35577f982d1f4862cd6b8656ca4f05c153e77659f8b5fd5eee80a9694c3d93ba"
+    },
+    "ros_ntdll_RtlGetLongestNtPathLength": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "ad54974111b89ec0e6c0fa1b27db8a90689b52549f376d51dda233bc63aeb8fd"
+    },
+    "ros_ntdll_RtlGetNtProductType": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "68a63aa0614beeb0c79eea1a153a4933b624c719e80b801d952b008c9a92b9cf"
+    },
+    "ros_ntdll_RtlGetProcessHeaps": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "6638489b1e47586cd840adaae2009a6474f0bf6a7d28e16630e038871e20a14a"
+    },
+    "ros_ntdll_RtlGetUnloadEventTrace": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "7184b165039d110f6227e824502199af338533515f03f989873bf234172ecd94"
+    },
+    "ros_ntdll_RtlHandle": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "dc63d7db53c4958a85254dada251a4a91c27840da1db0fbb5fa157ee04603e00"
+    },
+    "ros_ntdll_RtlImageDirectoryEntryToData": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "5456a1bc01fd817d28f8c4009a26b499fcb317ff8840c121b9cb9b736c43774d"
+    },
+    "ros_ntdll_RtlMultipleAllocateHeap": {
+      "reference_status": "PASS",
+      "sha256": "63dcf91d984a7b84e661d29d3b0fdfa53998b642c49405f30a66e0050bdc2fae"
+    },
+    "ros_ntdll_RtlNtPathNameToDosPathName": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "17c80c685499731f35c37aa0298c5c4a005793b0f0244c3796668527d31c95d7"
+    },
+    "ros_ntdll_RtlReAllocateHeap": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "0634fb17b90bae68c96bc5cb81f93968f6bd9b35b21e190c61d42876e7cd34aa"
+    },
+    "ros_ntdll_RtlUpcaseUnicodeStringToCountedOemString": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "87dc85b7f487825ee60641ac7a1a878ee9152f3227c86dcdaaf2a4e0a1d84ab0"
+    },
+    "ros_ntdll_RtlValidateUnicodeString": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "204724504a3cdac4a2d6d5d3333bc366f50fffd5620604b449f7f0c075af12e0"
+    },
+    "ros_ntdll_RtlpApplyLengthFunction": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "016486f3859656fa530ced475e977a7a057232f0e8be60471453f7dfec1a9e97"
+    },
+    "ros_ntdll_RtlpEnsureBufferSize": {
+      "reference_status": "PASS",
+      "sha256": "c5b1804a615f838ddb6ea566e59ac0f9bbffc1ae5ff949685861b1204e8d2b91"
+    },
+    "ros_ntdll_SystemInfo": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "3bcf53041aa7ee33edc60dd382b236db770f8562d4e5aa2a15f60babcc17030a"
+    },
+    "ros_ntdll_Timer": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "8345923576e739eff9d7c0120597afc1a6926594386cc0a45a255d07fff3ee9e"
+    },
+    "ros_ntdll_UserModeException": {
+      "reference_status": "TIMEOUT",
+      "sha256": "0344f129d9e19f50eaa31589bdbbe6bb64725ea0ec5f8d848b925115833edfd8"
+    },
+    "ros_ntdll_load_notifications": {
+      "reference_status": "FAIL",
+      "sha256": "4c62259a01bf9de1526c12976bf90258a14e98a1c7212cda5822017caac4d502"
+    },
+    "ros_user32_CharFuncs": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "7b4d91c4cb02b4a135e3de0f1f36e4e67928d866575a6abdd7b1a84406f01d2b"
+    },
+    "ros_user32_GetUserObjectInformation": {
+      "reference_status": "LOAD_ERROR",
+      "sha256": "b1174e2d6faf2228415d42adaa93852c35e6e5a4476928e433792e87eca94968"
+    }
+  },
+  "groups": {
+    "ros_advapi32_DuplicateTokenEx": {
+      "advisory": {
+        "DuplicateTokenEx.c:26": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:33": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:34": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:38": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:45": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:46": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:49": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:50": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:51": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:53": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:54": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:55": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:56": {
+          "FAIL": 1
+        },
+        "DuplicateTokenEx.c:57": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "DuplicateTokenEx.c:48": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2bcdda3648ea4fe5fe8a09106a9d9a46514e3c9b6bd0f26fdac23aa7fcf3768a",
+      "skips": {}
+    },
+    "ros_advapi32_RegCreateKeyEx": {
+      "advisory": {
+        "RegCreateKeyEx.c:84": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "RegCreateKeyEx.c:222": {
+          "PASS": 1
+        },
+        "RegCreateKeyEx.c:225": {
+          "PASS": 1
+        },
+        "RegCreateKeyEx.c:228": {
+          "PASS": 1
+        },
+        "RegCreateKeyEx.c:44": {
+          "PASS": 1
+        },
+        "RegCreateKeyEx.c:56": {
+          "PASS": 1
+        },
+        "RegCreateKeyEx.c:68": {
+          "PASS": 1
+        }
+      },
+      "sha256": "56956a46db2ee4e74994d01e1d9b3844fc3efd7206aee3e5ccb3ab4ae7476c39",
+      "skips": {
+        "RegCreateKeyEx.c:87": 1
+      }
+    },
+    "ros_kernel32_ConsoleCP": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "ConsoleCP.c:1522": {
+          "PASS": 1
+        },
+        "ConsoleCP.c:1526": {
+          "PASS": 1
+        },
+        "ConsoleCP.c:1527": {
+          "PASS": 1
+        },
+        "ConsoleCP.c:1565": {
+          "PASS": 1
+        }
+      },
+      "sha256": "4574839b2f0e83f4fe92325f5666cf25c41e9ae10bb08be73fb2ddde9d05fee8",
+      "skips": {
+        "ConsoleCP.c:1559": 1,
+        "ConsoleCP.c:175": 2,
+        "ConsoleCP.c:190": 1,
+        "ConsoleCP.c:220": 1,
+        "ConsoleCP.c:222": 1
+      }
+    },
+    "ros_ntdll_RtlQueryTimeZoneInfo": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "RtlQueryTimeZoneInfo.c:100": {
+          "PASS": 1
+        },
+        "RtlQueryTimeZoneInfo.c:103": {
+          "PASS": 1
+        },
+        "RtlQueryTimeZoneInfo.c:106": {
+          "PASS": 1
+        },
+        "RtlQueryTimeZoneInfo.c:60": {
+          "PASS": 1
+        },
+        "RtlQueryTimeZoneInfo.c:85": {
+          "PASS": 1
+        }
+      },
+      "sha256": "a44dffba5f2c154b5e2777886e5d156306e47792e6a3f47355e2916f3b8d8a4d",
+      "skips": {
+        "RtlQueryTimeZoneInfo.c:113": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "691708176f775780abe9186f3fea09d72f06649429eb29ed2e76bbea5265d467",
+  "reference_selection": {
+    "excluded": {
+      "ros_advapi32_HKEY_CLASSES_ROOT": "LOAD_ERROR",
+      "ros_advapi32_Hash": "LOAD_ERROR",
+      "ros_advapi32_IsTextUnicode": "LOAD_ERROR",
+      "ros_advapi32_RtlEncryptMemory": "LOAD_ERROR",
+      "ros_advapi32_SaferIdentifyLevel": "LOAD_ERROR",
+      "ros_kernel32_CreateProcess": "LOAD_ERROR",
+      "ros_kernel32_InitOnce": "LOAD_ERROR",
+      "ros_kernel32_PrivMoveFileIdentityW": "LOAD_ERROR",
+      "ros_kernel32_TerminateProcess": "LOAD_ERROR",
+      "ros_ntdll_LdrEnumResources": "LOAD_ERROR",
+      "ros_ntdll_LdrLoadDll": "LOAD_ERROR",
+      "ros_ntdll_NtAcceptConnectPort": "LOAD_ERROR",
+      "ros_ntdll_NtAccessCheck": "LOAD_ERROR",
+      "ros_ntdll_NtAccessCheckByType": "LOAD_ERROR",
+      "ros_ntdll_NtAccessCheckByTypeResultList": "LOAD_ERROR",
+      "ros_ntdll_NtAdjustGroupsToken": "LOAD_ERROR",
+      "ros_ntdll_NtAdjustPrivilegesToken": "LOAD_ERROR",
+      "ros_ntdll_NtAllocateVirtualMemory": "LOAD_ERROR",
+      "ros_ntdll_NtApphelpCacheControl": "LOAD_ERROR",
+      "ros_ntdll_NtCompareTokens": "LOAD_ERROR",
+      "ros_ntdll_NtCreateKey": "LOAD_ERROR",
+      "ros_ntdll_NtCreateThread": "LOAD_ERROR",
+      "ros_ntdll_NtDeleteKey": "LOAD_ERROR",
+      "ros_ntdll_NtDuplicateObject": "LOAD_ERROR",
+      "ros_ntdll_NtDuplicateToken": "LOAD_ERROR",
+      "ros_ntdll_NtFilterToken": "LOAD_ERROR",
+      "ros_ntdll_NtFreeVirtualMemory": "LOAD_ERROR",
+      "ros_ntdll_NtImpersonateAnonymousToken": "LOAD_ERROR",
+      "ros_ntdll_NtLoadUnloadKey": "LOAD_ERROR",
+      "ros_ntdll_NtMapViewOfSection": "LOAD_ERROR",
+      "ros_ntdll_NtMutant": "LOAD_ERROR",
+      "ros_ntdll_NtOpenKey": "LOAD_ERROR",
+      "ros_ntdll_NtOpenProcessToken": "LOAD_ERROR",
+      "ros_ntdll_NtOpenThreadToken": "LOAD_ERROR",
+      "ros_ntdll_NtProtectVirtualMemory": "LOAD_ERROR",
+      "ros_ntdll_NtQueryInformationToken": "LOAD_ERROR",
+      "ros_ntdll_NtQueryKey": "LOAD_ERROR",
+      "ros_ntdll_NtQueryOpenSubKeys": "LOAD_ERROR",
+      "ros_ntdll_NtQuerySystemEnvironmentValue": "LOAD_ERROR",
+      "ros_ntdll_NtQueryValueKey": "LOAD_ERROR",
+      "ros_ntdll_NtReadFile": "LOAD_ERROR",
+      "ros_ntdll_NtSaveKey": "LOAD_ERROR",
+      "ros_ntdll_NtSetDefaultLocale": "LOAD_ERROR",
+      "ros_ntdll_NtSetInformationToken": "LOAD_ERROR",
+      "ros_ntdll_NtSetValueKey": "LOAD_ERROR",
+      "ros_ntdll_NtWriteFile": "LOAD_ERROR",
+      "ros_ntdll_RtlAllocateHeap": "CRASH",
+      "ros_ntdll_RtlComputePrivatizedDllName_U": "LOAD_ERROR",
+      "ros_ntdll_RtlCopyMappedMemory": "LOAD_ERROR",
+      "ros_ntdll_RtlCriticalSection": "LOAD_ERROR",
+      "ros_ntdll_RtlDebugInformation": "LOAD_ERROR",
+      "ros_ntdll_RtlDoesFileExists": "LOAD_ERROR",
+      "ros_ntdll_RtlDosApplyFileIsolationRedirection_Ustr": "LOAD_ERROR",
+      "ros_ntdll_RtlDosPathNameToNtPathName_U": "LOAD_ERROR",
+      "ros_ntdll_RtlDosSearchPath_U": "LOAD_ERROR",
+      "ros_ntdll_RtlDosSearchPath_Ustr": "LOAD_ERROR",
+      "ros_ntdll_RtlGetFullPathName_U": "LOAD_ERROR",
+      "ros_ntdll_RtlGetFullPathName_Ustr": "LOAD_ERROR",
+      "ros_ntdll_RtlGetFullPathName_UstrEx": "LOAD_ERROR",
+      "ros_ntdll_RtlGetLengthWithoutTrailingPathSeperators": "LOAD_ERROR",
+      "ros_ntdll_RtlGetLongestNtPathLength": "LOAD_ERROR",
+      "ros_ntdll_RtlGetNtProductType": "LOAD_ERROR",
+      "ros_ntdll_RtlGetProcessHeaps": "LOAD_ERROR",
+      "ros_ntdll_RtlGetUnloadEventTrace": "LOAD_ERROR",
+      "ros_ntdll_RtlHandle": "LOAD_ERROR",
+      "ros_ntdll_RtlImageDirectoryEntryToData": "LOAD_ERROR",
+      "ros_ntdll_RtlMultipleAllocateHeap": "PASS",
+      "ros_ntdll_RtlNtPathNameToDosPathName": "LOAD_ERROR",
+      "ros_ntdll_RtlReAllocateHeap": "LOAD_ERROR",
+      "ros_ntdll_RtlUpcaseUnicodeStringToCountedOemString": "LOAD_ERROR",
+      "ros_ntdll_RtlValidateUnicodeString": "LOAD_ERROR",
+      "ros_ntdll_RtlpApplyLengthFunction": "LOAD_ERROR",
+      "ros_ntdll_RtlpEnsureBufferSize": "PASS",
+      "ros_ntdll_SystemInfo": "LOAD_ERROR",
+      "ros_ntdll_Timer": "LOAD_ERROR",
+      "ros_ntdll_UserModeException": "TIMEOUT",
+      "ros_ntdll_load_notifications": "FAIL",
+      "ros_user32_CharFuncs": "LOAD_ERROR",
+      "ros_user32_GetUserObjectInformation": "LOAD_ERROR"
+    },
+    "selected": [
+      "ros_advapi32_DuplicateTokenEx",
+      "ros_advapi32_RegCreateKeyEx",
+      "ros_kernel32_ConsoleCP",
+      "ros_ntdll_RtlQueryTimeZoneInfo"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "c9f6e4c7b56418ba183a4d6a617172cf3e719639a4d76ace2ff3be278d8feb5d",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "NTDLL.DLL": {
+      "sha256": "ac9109cca4f50c8a7070efd48059f1ecfdab743ee79e98d0ba91cb653fc1a6d7",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

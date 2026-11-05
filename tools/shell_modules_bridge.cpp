@@ -1,0 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+#include "../src/win98_shell_modules.h"
+using U=unsigned;using Callback=U(*)(U,U,U,U,U);
+struct E {Callback f;bool IsNt(){return f(1,0,0,0,0);}U NativeWide(U a,U b,U c,U d){return f(2,a,b,c,d);}U Alloc(U n,U flags){return f(3,n,flags,0,0);}void Free(U p){f(4,p,0,0,0);}U Byte(U p){return f(5,p,0,0,0);}void Byte(U p,U v){f(6,p,v,0,0);}U Word(U p){return f(7,p,0,0,0);}void Word(U p,U v){f(8,p,v,0,0);}U Wide(U p,U n,U o,U c){return f(9,p,n,o,c);}U Multi(U p,U n,U o,U c){return f(10,p,n,o,c);}U Error(){return f(11,0,0,0,0);}void Error(U n){f(12,n,0,0,0);}U Length(U p){return f(13,p,0,0,0);}void ConversionFailure(){f(14,0,0,0,0);}U Module(U op,U a,U b,U c){return f(15,op,a,b,c);}U Get(U p,U n){return n==2?Word(p):Byte(p);}void Put(U p,U v,U n){if(n==2)Word(p,v);else Byte(p,v);}};
+extern "C" U shell_modules_run(Callback f,U op,U a,U b,U c,U local){E e{f};return op==80?Win98ShellModules::FileName(e,a,b,c,local):Win98ShellModules::InputCall(e,op,a,b,c,local);}

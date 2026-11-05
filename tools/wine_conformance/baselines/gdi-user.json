@@ -1,0 +1,534 @@
+{
+  "alternatives_sha256": "0d060bd6901ab73f6f3f275d34c0542428532d9b131d6ac3e1a3a8f5dac40a86",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "gdi_brush": {
+      "advisory": {
+        "brush.c:55": {
+          "FAIL": 4
+        },
+        "brush.c:73": {
+          "FAIL": 5
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "brush.c:61": {
+          "PASS": 5
+        },
+        "brush.c:62": {
+          "PASS": 5
+        },
+        "brush.c:63": {
+          "PASS": 5
+        },
+        "brush.c:68": {
+          "PASS": 4
+        },
+        "brush.c:69": {
+          "PASS": 4
+        }
+      },
+      "sha256": "f11bc0902425179debcb572f5baf0c1b855a389aef0eadefd5a879778120c346",
+      "skips": {}
+    },
+    "gdi_pen": {
+      "advisory": {
+        "pen.c:114": {
+          "FAIL": 12
+        },
+        "pen.c:133": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "pen.c:134": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "pen.c:136": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "pen.c:145": {
+          "FAIL": 2
+        },
+        "pen.c:147": {
+          "FAIL": 2
+        },
+        "pen.c:148": {
+          "FAIL": 2
+        },
+        "pen.c:150": {
+          "FAIL": 2
+        },
+        "pen.c:151": {
+          "FAIL": 2
+        },
+        "pen.c:157": {
+          "FAIL": 2,
+          "PASS": 8
+        },
+        "pen.c:158": {
+          "FAIL": 1,
+          "PASS": 9
+        },
+        "pen.c:173": {
+          "FAIL": 10,
+          "PASS": 1
+        },
+        "pen.c:174": {
+          "FAIL": 11
+        },
+        "pen.c:180": {
+          "FAIL": 8,
+          "PASS": 1
+        },
+        "pen.c:181": {
+          "FAIL": 9
+        },
+        "pen.c:191": {
+          "FAIL": 1
+        },
+        "pen.c:199": {
+          "FAIL": 1
+        },
+        "pen.c:202": {
+          "FAIL": 2,
+          "PASS": 9
+        },
+        "pen.c:209": {
+          "FAIL": 9
+        },
+        "pen.c:222": {
+          "FAIL": 1
+        },
+        "pen.c:227": {
+          "FAIL": 8
+        },
+        "pen.c:236": {
+          "FAIL": 9,
+          "PASS": 2
+        },
+        "pen.c:249": {
+          "FAIL": 2
+        },
+        "pen.c:251": {
+          "FAIL": 2
+        },
+        "pen.c:257": {
+          "FAIL": 2
+        },
+        "pen.c:264": {
+          "FAIL": 1
+        },
+        "pen.c:266": {
+          "FAIL": 1
+        },
+        "pen.c:267": {
+          "FAIL": 1
+        },
+        "pen.c:268": {
+          "FAIL": 1
+        },
+        "pen.c:269": {
+          "FAIL": 1
+        },
+        "pen.c:273": {
+          "FAIL": 8
+        },
+        "pen.c:275": {
+          "FAIL": 8
+        },
+        "pen.c:276": {
+          "FAIL": 8
+        },
+        "pen.c:283": {
+          "FAIL": 1
+        },
+        "pen.c:286": {
+          "FAIL": 1,
+          "PASS": 9
+        },
+        "pen.c:287": {
+          "FAIL": 11
+        },
+        "pen.c:288": {
+          "FAIL": 4,
+          "PASS": 7
+        },
+        "pen.c:289": {
+          "FAIL": 2,
+          "PASS": 9
+        },
+        "pen.c:302": {
+          "FAIL": 8,
+          "PASS": 3
+        },
+        "pen.c:312": {
+          "FAIL": 3,
+          "PASS": 8
+        },
+        "pen.c:317": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "pen.c:319": {
+          "FAIL": 9
+        },
+        "pen.c:326": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "pen.c:331": {
+          "FAIL": 1
+        },
+        "pen.c:336": {
+          "FAIL": 8
+        },
+        "pen.c:345": {
+          "FAIL": 8,
+          "PASS": 3
+        },
+        "pen.c:353": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "pen.c:354": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "pen.c:355": {
+          "FAIL": 2
+        },
+        "pen.c:356": {
+          "FAIL": 2
+        },
+        "pen.c:357": {
+          "FAIL": 2
+        },
+        "pen.c:361": {
+          "FAIL": 7,
+          "PASS": 2
+        },
+        "pen.c:371": {
+          "FAIL": 2
+        },
+        "pen.c:373": {
+          "FAIL": 2
+        },
+        "pen.c:374": {
+          "FAIL": 2
+        },
+        "pen.c:379": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "pen.c:381": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "pen.c:382": {
+          "FAIL": 2
+        },
+        "pen.c:383": {
+          "FAIL": 2
+        },
+        "pen.c:384": {
+          "FAIL": 2
+        },
+        "pen.c:391": {
+          "FAIL": 1
+        },
+        "pen.c:393": {
+          "FAIL": 1
+        },
+        "pen.c:394": {
+          "FAIL": 1
+        },
+        "pen.c:395": {
+          "FAIL": 1
+        },
+        "pen.c:396": {
+          "FAIL": 1
+        },
+        "pen.c:400": {
+          "FAIL": 8
+        },
+        "pen.c:402": {
+          "FAIL": 8
+        },
+        "pen.c:403": {
+          "FAIL": 8
+        },
+        "pen.c:409": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "pen.c:412": {
+          "FAIL": 9
+        },
+        "pen.c:416": {
+          "FAIL": 2
+        },
+        "pen.c:418": {
+          "FAIL": 2,
+          "PASS": 7
+        },
+        "pen.c:419": {
+          "FAIL": 4,
+          "PASS": 7
+        },
+        "pen.c:420": {
+          "FAIL": 10,
+          "PASS": 1
+        },
+        "pen.c:501": {
+          "FAIL": 1
+        },
+        "pen.c:513": {
+          "FAIL": 1
+        },
+        "pen.c:525": {
+          "FAIL": 1
+        },
+        "pen.c:531": {
+          "FAIL": 1
+        },
+        "pen.c:536": {
+          "FAIL": 1
+        },
+        "pen.c:539": {
+          "FAIL": 1
+        },
+        "pen.c:542": {
+          "FAIL": 16
+        },
+        "pen.c:91": {
+          "FAIL": 2,
+          "PASS": 10
+        },
+        "pen.c:92": {
+          "FAIL": 3,
+          "PASS": 9
+        },
+        "pen.c:93": {
+          "FAIL": 12
+        },
+        "pen.c:94": {
+          "FAIL": 2,
+          "PASS": 10
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "pen.c:101": {
+          "PASS": 12
+        },
+        "pen.c:104": {
+          "PASS": 12
+        },
+        "pen.c:108": {
+          "PASS": 12
+        },
+        "pen.c:120": {
+          "PASS": 12
+        },
+        "pen.c:126": {
+          "PASS": 12
+        },
+        "pen.c:131": {
+          "PASS": 12
+        },
+        "pen.c:135": {
+          "PASS": 12
+        },
+        "pen.c:146": {
+          "PASS": 2
+        },
+        "pen.c:149": {
+          "PASS": 2
+        },
+        "pen.c:155": {
+          "PASS": 10
+        },
+        "pen.c:159": {
+          "PASS": 10
+        },
+        "pen.c:160": {
+          "PASS": 10
+        },
+        "pen.c:190": {
+          "PASS": 1
+        },
+        "pen.c:207": {
+          "PASS": 2
+        },
+        "pen.c:217": {
+          "PASS": 2
+        },
+        "pen.c:245": {
+          "PASS": 2
+        },
+        "pen.c:248": {
+          "PASS": 2
+        },
+        "pen.c:250": {
+          "PASS": 2
+        },
+        "pen.c:259": {
+          "PASS": 2
+        },
+        "pen.c:260": {
+          "PASS": 2
+        },
+        "pen.c:309": {
+          "PASS": 1
+        },
+        "pen.c:388": {
+          "PASS": 1
+        },
+        "pen.c:500": {
+          "PASS": 1
+        },
+        "pen.c:506": {
+          "PASS": 1
+        },
+        "pen.c:507": {
+          "PASS": 1
+        },
+        "pen.c:512": {
+          "PASS": 1
+        },
+        "pen.c:518": {
+          "PASS": 1
+        },
+        "pen.c:519": {
+          "PASS": 1
+        },
+        "pen.c:524": {
+          "PASS": 1
+        },
+        "pen.c:530": {
+          "PASS": 1
+        },
+        "pen.c:81": {
+          "PASS": 12
+        },
+        "pen.c:84": {
+          "PASS": 12
+        },
+        "pen.c:89": {
+          "PASS": 12
+        }
+      },
+      "sha256": "cb8a022d86f5f320e9e4ec60ff778bae0b0a627f0a3ef7ce38236279b602102e",
+      "skips": {
+        "pen.c:454": 1
+      }
+    },
+    "user_fmt": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "wsprintf.c:33": {
+          "PASS": 1
+        },
+        "wsprintf.c:34": {
+          "PASS": 1
+        },
+        "wsprintf.c:75": {
+          "PASS": 1
+        },
+        "wsprintf.c:93": {
+          "PASS": 1
+        }
+      },
+      "sha256": "987070338839dee333307961946611629dbcb0468a7008840e3ad0b37f9cab70",
+      "skips": {
+        "wsprintf.c:48": 1
+      }
+    }
+  },
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "935d430e665f3b90ebf007a8872e08e0088e0eb69127a7db635ede763fe42fda",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "63adfaee24b246e948f9a43b0cc6588b9be622e6b2e3b3057c3ac79538e4a612",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

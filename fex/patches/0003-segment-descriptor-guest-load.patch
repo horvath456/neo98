@@ -1,0 +1,20 @@
+diff --git a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher.cpp
+@@ -4214,6 +4214,16 @@
+   // Fun quirk, if we mask the selector then it is premultiplied by 8 which we need to do for accessing anyway.
+   auto SegmentOffset = _And(OpSize::i32Bit, Segment, _Constant(0xfff8));
+   Ref SegmentBase = _LoadContextGPRIndexed(GDT, OpSize::i64Bit, offsetof(FEXCore::Core::CPUState, segment_arrays[0]), 8);
++  // NEO98: in 32-bit mode every load below is a guest access, GuestMemBase +
++  // zext32(address). The segment arrays stay host pointers, because the
++  // frontend reads the CS descriptor through them; they point into a view of
++  // guest memory that lies a multiple of 4 GiB above GuestMemBase (or at it),
++  // so the pointer minus GuestMemBase is the table's guest address modulo
++  // 4 GiB. Without this every MOV Sreg, POP Sreg and far transfer read the
++  // descriptor at the low 32 bits of the host pointer instead.
++  if (!Is64BitMode) {
++    SegmentBase = _Sub(OpSize::i64Bit, SegmentBase, _LoadContextGPR(OpSize::i64Bit, offsetof(FEXCore::Core::CPUState, GuestMemBase)));
++  }
+   Ref NewSegment = _LoadMemGPR(OpSize::i64Bit, SegmentBase, SegmentOffset, OpSize::i8Bit, MemOffsetType::UXTW, 1);
+   CheckLegacySegmentWrite(NewSegment, SegmentReg);
+ 

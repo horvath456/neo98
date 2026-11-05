@@ -1,0 +1,274 @@
+[
+  {
+    "file": "list.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/glib_compat.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/gtestutils.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/garray.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/gtree.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/grand.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/glist.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/gmem.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/gpattern.c",
+    "guest": false
+  },
+  {
+    "file": "glib_compat/gslice.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/bitmap.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/bitops.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/crc32c.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/cutils.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/getauxval.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/guest-random.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/host-utils.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/qdist.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/qemu-timer.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/qemu-timer-common.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/range.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/qht.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/pagesize.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/util/cacheinfo.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/crypto/aes.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/exec.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/exec-vary.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/softmmu/cpus.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/softmmu/ioport.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/softmmu/memory.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/softmmu/memory_mapping.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/fpu/softfloat.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/tcg/optimize.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/tcg/tcg.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/tcg/tcg-op.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/tcg/tcg-op-gvec.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/tcg/tcg-op-vec.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/cpu-exec.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/cpu-exec-common.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/cputlb.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/tcg-all.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/tcg-runtime.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/tcg-runtime-gvec.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/translate-all.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/accel/tcg/translator.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/softmmu/unicorn_vtlb.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/hw/i386/x86.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/arch_memory_mapping.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/bpt_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/cc_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/cpu.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/excp_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/fpu_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/int_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/machine.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/mem_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/misc_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/mpx_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/seg_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/smm_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/svm_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/translate.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/xsave_helper.c",
+    "guest": true
+  },
+  {
+    "file": "qemu/target/i386/unicorn.c",
+    "guest": true
+  },
+  {
+    "file": "uc.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/softmmu/vl.c",
+    "guest": false
+  },
+  {
+    "file": "qemu/hw/core/cpu.c",
+    "guest": false
+  }
+]

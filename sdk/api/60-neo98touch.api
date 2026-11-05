@@ -1,0 +1,6 @@
+# Optional extension DLL. Buffers have the same fixed-width layout in Win32/64.
+dll NEO98TOUCH;
+BOOL Neo98TouchGetCaps(DWORD version, LPVOID caps, DWORD bytes);
+BOOL Neo98TouchRegister(HWND window, UINT message, DWORD flags);
+BOOL Neo98TouchUnregister(HWND window);
+INT Neo98TouchRead(HWND window, LPVOID events, UINT capacity);

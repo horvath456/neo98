@@ -1,0 +1,1276 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "comctl32_imagelist": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "imagelist.c:283": {
+          "PASS": 16
+        },
+        "imagelist.c:289": {
+          "PASS": 16
+        },
+        "imagelist.c:296": {
+          "PASS": 16
+        },
+        "imagelist.c:303": {
+          "PASS": 16
+        },
+        "imagelist.c:331": {
+          "PASS": 1
+        },
+        "imagelist.c:335": {
+          "PASS": 1
+        },
+        "imagelist.c:337": {
+          "PASS": 1
+        },
+        "imagelist.c:339": {
+          "PASS": 1
+        },
+        "imagelist.c:342": {
+          "PASS": 1
+        },
+        "imagelist.c:344": {
+          "PASS": 1
+        },
+        "imagelist.c:347": {
+          "PASS": 1
+        },
+        "imagelist.c:348": {
+          "PASS": 1
+        },
+        "imagelist.c:349": {
+          "PASS": 1
+        },
+        "imagelist.c:352": {
+          "PASS": 1
+        },
+        "imagelist.c:355": {
+          "PASS": 1
+        },
+        "imagelist.c:356": {
+          "PASS": 1
+        },
+        "imagelist.c:357": {
+          "PASS": 1
+        },
+        "imagelist.c:360": {
+          "PASS": 1
+        },
+        "imagelist.c:365": {
+          "PASS": 1
+        },
+        "imagelist.c:366": {
+          "PASS": 1
+        },
+        "imagelist.c:367": {
+          "PASS": 1
+        },
+        "imagelist.c:368": {
+          "PASS": 1
+        },
+        "imagelist.c:369": {
+          "PASS": 1
+        },
+        "imagelist.c:370": {
+          "PASS": 1
+        },
+        "imagelist.c:378": {
+          "PASS": 1
+        },
+        "imagelist.c:380": {
+          "PASS": 1
+        },
+        "imagelist.c:381": {
+          "PASS": 1
+        },
+        "imagelist.c:382": {
+          "PASS": 1
+        },
+        "imagelist.c:397": {
+          "PASS": 1
+        },
+        "imagelist.c:401": {
+          "PASS": 1
+        },
+        "imagelist.c:403": {
+          "PASS": 1
+        },
+        "imagelist.c:405": {
+          "PASS": 1
+        },
+        "imagelist.c:408": {
+          "PASS": 1
+        },
+        "imagelist.c:409": {
+          "PASS": 1
+        },
+        "imagelist.c:410": {
+          "PASS": 1
+        },
+        "imagelist.c:413": {
+          "PASS": 1
+        },
+        "imagelist.c:415": {
+          "PASS": 1
+        },
+        "imagelist.c:416": {
+          "PASS": 1
+        },
+        "imagelist.c:417": {
+          "PASS": 1
+        },
+        "imagelist.c:442": {
+          "PASS": 1
+        },
+        "imagelist.c:446": {
+          "PASS": 1
+        },
+        "imagelist.c:450": {
+          "PASS": 1
+        },
+        "imagelist.c:452": {
+          "PASS": 1
+        },
+        "imagelist.c:454": {
+          "PASS": 1
+        },
+        "imagelist.c:457": {
+          "PASS": 1
+        },
+        "imagelist.c:458": {
+          "PASS": 1
+        },
+        "imagelist.c:462": {
+          "PASS": 1
+        },
+        "imagelist.c:464": {
+          "PASS": 1
+        },
+        "imagelist.c:468": {
+          "PASS": 1
+        },
+        "imagelist.c:470": {
+          "PASS": 1
+        },
+        "imagelist.c:472": {
+          "PASS": 1
+        },
+        "imagelist.c:478": {
+          "PASS": 1
+        },
+        "imagelist.c:488": {
+          "PASS": 1
+        },
+        "imagelist.c:490": {
+          "PASS": 1
+        },
+        "imagelist.c:492": {
+          "PASS": 1
+        },
+        "imagelist.c:494": {
+          "PASS": 1
+        },
+        "imagelist.c:497": {
+          "PASS": 1
+        },
+        "imagelist.c:498": {
+          "PASS": 1
+        },
+        "imagelist.c:499": {
+          "PASS": 1
+        },
+        "imagelist.c:502": {
+          "PASS": 1
+        },
+        "imagelist.c:505": {
+          "PASS": 1
+        },
+        "imagelist.c:506": {
+          "PASS": 1
+        },
+        "imagelist.c:507": {
+          "PASS": 1
+        },
+        "imagelist.c:522": {
+          "PASS": 1
+        },
+        "imagelist.c:525": {
+          "PASS": 1
+        },
+        "imagelist.c:528": {
+          "PASS": 1
+        },
+        "imagelist.c:533": {
+          "PASS": 1
+        },
+        "imagelist.c:538": {
+          "PASS": 1
+        },
+        "imagelist.c:543": {
+          "PASS": 1
+        },
+        "imagelist.c:550": {
+          "PASS": 1
+        },
+        "imagelist.c:555": {
+          "PASS": 1
+        },
+        "imagelist.c:560": {
+          "PASS": 1
+        },
+        "imagelist.c:565": {
+          "PASS": 1
+        },
+        "imagelist.c:568": {
+          "PASS": 1
+        },
+        "imagelist.c:573": {
+          "PASS": 1
+        },
+        "imagelist.c:576": {
+          "PASS": 1
+        },
+        "imagelist.c:581": {
+          "PASS": 1
+        },
+        "imagelist.c:799": {
+          "PASS": 9
+        },
+        "imagelist.c:800": {
+          "PASS": 9
+        },
+        "imagelist.c:801": {
+          "PASS": 9
+        },
+        "imagelist.c:802": {
+          "PASS": 9
+        },
+        "imagelist.c:803": {
+          "PASS": 9
+        },
+        "imagelist.c:805": {
+          "PASS": 9
+        },
+        "imagelist.c:806": {
+          "PASS": 9
+        },
+        "imagelist.c:807": {
+          "PASS": 9
+        },
+        "imagelist.c:808": {
+          "PASS": 9
+        },
+        "imagelist.c:809": {
+          "PASS": 9
+        },
+        "imagelist.c:812": {
+          "PASS": 9
+        },
+        "imagelist.c:829": {
+          "PASS": 9
+        },
+        "imagelist.c:830": {
+          "PASS": 9
+        },
+        "imagelist.c:831": {
+          "PASS": 9
+        },
+        "imagelist.c:832": {
+          "PASS": 9
+        },
+        "imagelist.c:833": {
+          "PASS": 9
+        },
+        "imagelist.c:834": {
+          "PASS": 9
+        },
+        "imagelist.c:835": {
+          "PASS": 9
+        },
+        "imagelist.c:836": {
+          "PASS": 9
+        },
+        "imagelist.c:837": {
+          "PASS": 9
+        },
+        "imagelist.c:838": {
+          "PASS": 9
+        },
+        "imagelist.c:839": {
+          "PASS": 9
+        },
+        "imagelist.c:840": {
+          "PASS": 9
+        },
+        "imagelist.c:841": {
+          "PASS": 9
+        },
+        "imagelist.c:909": {
+          "PASS": 9
+        },
+        "imagelist.c:912": {
+          "PASS": 9
+        },
+        "imagelist.c:913": {
+          "PASS": 9
+        },
+        "imagelist.c:914": {
+          "PASS": 9
+        },
+        "imagelist.c:918": {
+          "PASS": 9
+        },
+        "imagelist.c:920": {
+          "PASS": 9
+        },
+        "imagelist.c:921": {
+          "PASS": 9
+        },
+        "imagelist.c:935": {
+          "PASS": 1
+        },
+        "imagelist.c:943": {
+          "PASS": 1
+        },
+        "imagelist.c:947": {
+          "PASS": 1
+        },
+        "imagelist.c:951": {
+          "PASS": 1
+        },
+        "imagelist.c:955": {
+          "PASS": 1
+        },
+        "imagelist.c:959": {
+          "PASS": 1
+        },
+        "imagelist.c:963": {
+          "PASS": 1
+        },
+        "imagelist.c:967": {
+          "PASS": 1
+        },
+        "imagelist.c:971": {
+          "PASS": 1
+        }
+      },
+      "sha256": "53e46591d031042bc5124c05fc38ff38f6908e8d4ed410d479ad2379771a4831",
+      "skips": {}
+    },
+    "comctl32_misc": {
+      "advisory": {
+        "misc.c:139": {
+          "FAIL": 1
+        },
+        "misc.c:142": {
+          "FAIL": 1
+        },
+        "misc.c:144": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "misc.c:104": {
+          "PASS": 1
+        },
+        "misc.c:105": {
+          "PASS": 1
+        },
+        "misc.c:109": {
+          "PASS": 1
+        },
+        "misc.c:113": {
+          "PASS": 1
+        },
+        "misc.c:114": {
+          "PASS": 1
+        },
+        "misc.c:119": {
+          "PASS": 1
+        },
+        "misc.c:120": {
+          "PASS": 1
+        },
+        "misc.c:125": {
+          "PASS": 1
+        },
+        "misc.c:126": {
+          "PASS": 1
+        },
+        "misc.c:127": {
+          "PASS": 1
+        },
+        "misc.c:134": {
+          "PASS": 1
+        },
+        "misc.c:135": {
+          "PASS": 1
+        },
+        "misc.c:137": {
+          "PASS": 1
+        },
+        "misc.c:141": {
+          "PASS": 1
+        },
+        "misc.c:143": {
+          "PASS": 1
+        },
+        "misc.c:146": {
+          "PASS": 1
+        },
+        "misc.c:147": {
+          "PASS": 1
+        },
+        "misc.c:84": {
+          "PASS": 1
+        },
+        "misc.c:99": {
+          "PASS": 1
+        }
+      },
+      "sha256": "5fbdeebbde917951cbc24bfdd886f27ab9dc5f4db4a8ed1943fda2daa83f36fb",
+      "skips": {}
+    },
+    "comctl32_mru": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "mru.c:148": {
+          "PASS": 1
+        }
+      },
+      "sha256": "f45b7b522e20ed7d2c78bdff6a515f9e28fb9fa2dafcae423d44e2ec61178c23",
+      "skips": {
+        "mru.c:237": 1
+      }
+    },
+    "comctl32_progress": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "progress.c:139": {
+          "PASS": 1
+        },
+        "progress.c:173": {
+          "PASS": 1
+        },
+        "progress.c:174": {
+          "PASS": 1
+        },
+        "progress.c:177": {
+          "PASS": 1
+        },
+        "progress.c:178": {
+          "PASS": 1
+        },
+        "progress.c:181": {
+          "PASS": 1
+        },
+        "progress.c:182": {
+          "PASS": 1
+        },
+        "progress.c:185": {
+          "PASS": 1
+        },
+        "progress.c:186": {
+          "PASS": 1
+        },
+        "progress.c:187": {
+          "PASS": 1
+        },
+        "progress.c:202": {
+          "PASS": 1
+        },
+        "progress.c:207": {
+          "PASS": 1
+        },
+        "progress.c:214": {
+          "PASS": 1
+        },
+        "progress.c:219": {
+          "PASS": 1
+        },
+        "progress.c:87": {
+          "PASS": 5
+        }
+      },
+      "sha256": "efda997ba8c5d46622e9f4d1e03d5701c2179b4c905050de588ceb8cd651b664",
+      "skips": {}
+    },
+    "comctl32_propsheet": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "propsheet.c:33": {
+          "PASS": 2
+        },
+        "propsheet.c:50": {
+          "PASS": 2
+        }
+      },
+      "sha256": "4231c59e65d169af2ee57bdbe25be039c286039120fbf09d7ec59b5a47c1708a",
+      "skips": {}
+    },
+    "gdi32_mapping": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "mapping.c:104": {
+          "PASS": 7
+        },
+        "mapping.c:109": {
+          "PASS": 7
+        },
+        "mapping.c:114": {
+          "PASS": 7
+        },
+        "mapping.c:68": {
+          "PASS": 6
+        },
+        "mapping.c:73": {
+          "PASS": 6
+        },
+        "mapping.c:78": {
+          "PASS": 6
+        },
+        "mapping.c:83": {
+          "PASS": 6
+        },
+        "mapping.c:99": {
+          "PASS": 7
+        }
+      },
+      "sha256": "58c6e89ae4fa13b8b2246e3284a4c3a5b39f51da45242e6cb0e0cf0c72234630",
+      "skips": {}
+    },
+    "gdi32_metafile": {
+      "advisory": {
+        "metafile.c:1008": {
+          "FAIL": 5
+        },
+        "metafile.c:1020": {
+          "FAIL": 5
+        },
+        "metafile.c:1102": {
+          "FAIL": 5
+        },
+        "metafile.c:1117": {
+          "FAIL": 5
+        },
+        "metafile.c:1125": {
+          "FAIL": 5
+        },
+        "metafile.c:1132": {
+          "FAIL": 3,
+          "PASS": 2
+        },
+        "metafile.c:1215": {
+          "FAIL": 1
+        },
+        "metafile.c:1218": {
+          "FAIL": 1
+        },
+        "metafile.c:1230": {
+          "FAIL": 1
+        },
+        "metafile.c:1264": {
+          "FAIL": 1
+        },
+        "metafile.c:1269": {
+          "FAIL": 1
+        },
+        "metafile.c:1283": {
+          "FAIL": 1
+        },
+        "metafile.c:1471": {
+          "FAIL": 1
+        },
+        "metafile.c:2120": {
+          "FAIL": 1
+        },
+        "metafile.c:2142": {
+          "FAIL": 1
+        },
+        "metafile.c:2149": {
+          "FAIL": 1
+        },
+        "metafile.c:317": {
+          "FAIL": 3,
+          "PASS": 1
+        },
+        "metafile.c:318": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "metafile.c:816": {
+          "FAIL": 2,
+          "PASS": 2
+        },
+        "metafile.c:847": {
+          "FAIL": 1,
+          "PASS": 10
+        },
+        "metafile.c:849": {
+          "FAIL": 2,
+          "PASS": 9
+        },
+        "metafile.c:863": {
+          "FAIL": 1,
+          "PASS": 8
+        },
+        "metafile.c:888": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "metafile.c:1092": {
+          "PASS": 5
+        },
+        "metafile.c:1111": {
+          "PASS": 5
+        },
+        "metafile.c:1112": {
+          "PASS": 5
+        },
+        "metafile.c:1113": {
+          "PASS": 5
+        },
+        "metafile.c:1114": {
+          "PASS": 5
+        },
+        "metafile.c:1116": {
+          "PASS": 5
+        },
+        "metafile.c:1118": {
+          "PASS": 5
+        },
+        "metafile.c:1161": {
+          "PASS": 1
+        },
+        "metafile.c:1166": {
+          "PASS": 1
+        },
+        "metafile.c:1170": {
+          "PASS": 1
+        },
+        "metafile.c:1172": {
+          "PASS": 1
+        },
+        "metafile.c:1173": {
+          "PASS": 1
+        },
+        "metafile.c:1183": {
+          "PASS": 1
+        },
+        "metafile.c:1196": {
+          "PASS": 1
+        },
+        "metafile.c:1200": {
+          "PASS": 1
+        },
+        "metafile.c:1202": {
+          "PASS": 1
+        },
+        "metafile.c:1221": {
+          "PASS": 1
+        },
+        "metafile.c:1244": {
+          "PASS": 1
+        },
+        "metafile.c:1246": {
+          "PASS": 1
+        },
+        "metafile.c:125": {
+          "PASS": 2
+        },
+        "metafile.c:1255": {
+          "PASS": 1
+        },
+        "metafile.c:1263": {
+          "PASS": 1
+        },
+        "metafile.c:1270": {
+          "PASS": 1
+        },
+        "metafile.c:1282": {
+          "PASS": 1
+        },
+        "metafile.c:1291": {
+          "PASS": 1
+        },
+        "metafile.c:130": {
+          "PASS": 2
+        },
+        "metafile.c:1300": {
+          "PASS": 1
+        },
+        "metafile.c:1308": {
+          "PASS": 1
+        },
+        "metafile.c:131": {
+          "PASS": 2
+        },
+        "metafile.c:1317": {
+          "PASS": 1
+        },
+        "metafile.c:1331": {
+          "PASS": 1
+        },
+        "metafile.c:1335": {
+          "PASS": 1
+        },
+        "metafile.c:1337": {
+          "PASS": 1
+        },
+        "metafile.c:1339": {
+          "PASS": 1
+        },
+        "metafile.c:135": {
+          "PASS": 86
+        },
+        "metafile.c:1350": {
+          "PASS": 1
+        },
+        "metafile.c:1353": {
+          "PASS": 1
+        },
+        "metafile.c:1354": {
+          "PASS": 1
+        },
+        "metafile.c:1364": {
+          "PASS": 1
+        },
+        "metafile.c:1381": {
+          "PASS": 1
+        },
+        "metafile.c:1384": {
+          "PASS": 1
+        },
+        "metafile.c:1387": {
+          "PASS": 1
+        },
+        "metafile.c:1391": {
+          "PASS": 1
+        },
+        "metafile.c:1394": {
+          "PASS": 1
+        },
+        "metafile.c:1395": {
+          "PASS": 1
+        },
+        "metafile.c:1405": {
+          "PASS": 1
+        },
+        "metafile.c:1407": {
+          "PASS": 1
+        },
+        "metafile.c:1409": {
+          "PASS": 1
+        },
+        "metafile.c:1422": {
+          "PASS": 1
+        },
+        "metafile.c:1426": {
+          "PASS": 1
+        },
+        "metafile.c:1429": {
+          "PASS": 1
+        },
+        "metafile.c:1432": {
+          "PASS": 1
+        },
+        "metafile.c:1435": {
+          "PASS": 1
+        },
+        "metafile.c:1445": {
+          "PASS": 1
+        },
+        "metafile.c:1459": {
+          "PASS": 1
+        },
+        "metafile.c:1462": {
+          "PASS": 1
+        },
+        "metafile.c:1465": {
+          "PASS": 1
+        },
+        "metafile.c:1468": {
+          "PASS": 1
+        },
+        "metafile.c:1474": {
+          "PASS": 1
+        },
+        "metafile.c:1477": {
+          "PASS": 1
+        },
+        "metafile.c:1490": {
+          "PASS": 1
+        },
+        "metafile.c:1492": {
+          "PASS": 1
+        },
+        "metafile.c:1570": {
+          "PASS": 1
+        },
+        "metafile.c:1571": {
+          "PASS": 1
+        },
+        "metafile.c:1584": {
+          "PASS": 1
+        },
+        "metafile.c:1588": {
+          "PASS": 1
+        },
+        "metafile.c:1590": {
+          "PASS": 1
+        },
+        "metafile.c:1591": {
+          "PASS": 1
+        },
+        "metafile.c:1592": {
+          "PASS": 1
+        },
+        "metafile.c:1593": {
+          "PASS": 1
+        },
+        "metafile.c:1607": {
+          "PASS": 1
+        },
+        "metafile.c:1612": {
+          "PASS": 1
+        },
+        "metafile.c:166": {
+          "PASS": 1
+        },
+        "metafile.c:1665": {
+          "PASS": 1
+        },
+        "metafile.c:1672": {
+          "PASS": 1
+        },
+        "metafile.c:1676": {
+          "PASS": 1
+        },
+        "metafile.c:169": {
+          "PASS": 1
+        },
+        "metafile.c:1690": {
+          "PASS": 1
+        },
+        "metafile.c:1695": {
+          "PASS": 1
+        },
+        "metafile.c:1726": {
+          "PASS": 1
+        },
+        "metafile.c:1733": {
+          "PASS": 3
+        },
+        "metafile.c:1751": {
+          "PASS": 3
+        },
+        "metafile.c:1753": {
+          "PASS": 3
+        },
+        "metafile.c:1755": {
+          "PASS": 3
+        },
+        "metafile.c:1764": {
+          "PASS": 3
+        },
+        "metafile.c:184": {
+          "PASS": 1
+        },
+        "metafile.c:1865": {
+          "PASS": 20
+        },
+        "metafile.c:1868": {
+          "PASS": 20
+        },
+        "metafile.c:1905": {
+          "PASS": 15
+        },
+        "metafile.c:1906": {
+          "PASS": 15
+        },
+        "metafile.c:1907": {
+          "PASS": 15
+        },
+        "metafile.c:1908": {
+          "PASS": 15
+        },
+        "metafile.c:1909": {
+          "PASS": 15
+        },
+        "metafile.c:1910": {
+          "PASS": 15
+        },
+        "metafile.c:1911": {
+          "PASS": 15
+        },
+        "metafile.c:1912": {
+          "PASS": 15
+        },
+        "metafile.c:192": {
+          "PASS": 43
+        },
+        "metafile.c:1931": {
+          "PASS": 1
+        },
+        "metafile.c:1939": {
+          "PASS": 1
+        },
+        "metafile.c:1943": {
+          "PASS": 1
+        },
+        "metafile.c:1951": {
+          "PASS": 1
+        },
+        "metafile.c:1959": {
+          "PASS": 1
+        },
+        "metafile.c:197": {
+          "PASS": 1
+        },
+        "metafile.c:1971": {
+          "PASS": 1
+        },
+        "metafile.c:1975": {
+          "PASS": 1
+        },
+        "metafile.c:1976": {
+          "PASS": 1
+        },
+        "metafile.c:1979": {
+          "PASS": 1
+        },
+        "metafile.c:1990": {
+          "PASS": 1
+        },
+        "metafile.c:2002": {
+          "PASS": 1
+        },
+        "metafile.c:201": {
+          "PASS": 1
+        },
+        "metafile.c:2034": {
+          "PASS": 1
+        },
+        "metafile.c:2036": {
+          "PASS": 1
+        },
+        "metafile.c:2042": {
+          "PASS": 1
+        },
+        "metafile.c:2044": {
+          "PASS": 1
+        },
+        "metafile.c:2050": {
+          "PASS": 1
+        },
+        "metafile.c:2055": {
+          "PASS": 1
+        },
+        "metafile.c:208": {
+          "PASS": 1
+        },
+        "metafile.c:2119": {
+          "PASS": 1
+        },
+        "metafile.c:212": {
+          "PASS": 1
+        },
+        "metafile.c:2135": {
+          "PASS": 1
+        },
+        "metafile.c:216": {
+          "PASS": 1
+        },
+        "metafile.c:219": {
+          "PASS": 1
+        },
+        "metafile.c:221": {
+          "PASS": 1
+        },
+        "metafile.c:224": {
+          "PASS": 1
+        },
+        "metafile.c:238": {
+          "PASS": 1
+        },
+        "metafile.c:240": {
+          "PASS": 1
+        },
+        "metafile.c:242": {
+          "PASS": 1
+        },
+        "metafile.c:243": {
+          "PASS": 1
+        },
+        "metafile.c:244": {
+          "PASS": 1
+        },
+        "metafile.c:245": {
+          "PASS": 1
+        },
+        "metafile.c:246": {
+          "PASS": 1
+        },
+        "metafile.c:247": {
+          "PASS": 1
+        },
+        "metafile.c:249": {
+          "PASS": 1
+        },
+        "metafile.c:251": {
+          "PASS": 1
+        },
+        "metafile.c:258": {
+          "PASS": 1
+        },
+        "metafile.c:260": {
+          "PASS": 1
+        },
+        "metafile.c:308": {
+          "PASS": 4
+        },
+        "metafile.c:309": {
+          "PASS": 4
+        },
+        "metafile.c:311": {
+          "PASS": 4
+        },
+        "metafile.c:312": {
+          "PASS": 4
+        },
+        "metafile.c:314": {
+          "PASS": 4
+        },
+        "metafile.c:315": {
+          "PASS": 4
+        },
+        "metafile.c:339": {
+          "PASS": 38
+        },
+        "metafile.c:341": {
+          "PASS": 38
+        },
+        "metafile.c:343": {
+          "PASS": 38
+        },
+        "metafile.c:345": {
+          "PASS": 38
+        },
+        "metafile.c:371": {
+          "PASS": 1
+        },
+        "metafile.c:422": {
+          "PASS": 1
+        },
+        "metafile.c:426": {
+          "PASS": 1
+        },
+        "metafile.c:430": {
+          "PASS": 1
+        },
+        "metafile.c:434": {
+          "PASS": 3
+        },
+        "metafile.c:439": {
+          "PASS": 1
+        },
+        "metafile.c:448": {
+          "PASS": 38
+        },
+        "metafile.c:450": {
+          "PASS": 38
+        },
+        "metafile.c:452": {
+          "PASS": 38
+        },
+        "metafile.c:454": {
+          "PASS": 38
+        },
+        "metafile.c:477": {
+          "PASS": 1
+        },
+        "metafile.c:480": {
+          "PASS": 1
+        },
+        "metafile.c:483": {
+          "PASS": 1
+        },
+        "metafile.c:499": {
+          "PASS": 1
+        },
+        "metafile.c:510": {
+          "PASS": 1
+        },
+        "metafile.c:521": {
+          "PASS": 1
+        },
+        "metafile.c:532": {
+          "PASS": 1
+        },
+        "metafile.c:535": {
+          "PASS": 1
+        },
+        "metafile.c:538": {
+          "PASS": 1
+        },
+        "metafile.c:549": {
+          "PASS": 1
+        },
+        "metafile.c:552": {
+          "PASS": 1
+        },
+        "metafile.c:555": {
+          "PASS": 1
+        },
+        "metafile.c:558": {
+          "PASS": 1
+        },
+        "metafile.c:561": {
+          "PASS": 1
+        },
+        "metafile.c:563": {
+          "PASS": 1
+        },
+        "metafile.c:69": {
+          "PASS": 1
+        },
+        "metafile.c:79": {
+          "PASS": 1
+        },
+        "metafile.c:80": {
+          "PASS": 1
+        },
+        "metafile.c:81": {
+          "PASS": 1
+        },
+        "metafile.c:82": {
+          "PASS": 1
+        },
+        "metafile.c:83": {
+          "PASS": 1
+        },
+        "metafile.c:84": {
+          "PASS": 1
+        },
+        "metafile.c:85": {
+          "PASS": 1
+        },
+        "metafile.c:88": {
+          "PASS": 1
+        },
+        "metafile.c:884": {
+          "PASS": 1
+        },
+        "metafile.c:916": {
+          "PASS": 5
+        },
+        "metafile.c:941": {
+          "PASS": 5
+        }
+      },
+      "sha256": "43aa95f85a2fd928f0e9b234151a209a4c3928afe52671eca9f7b577c42276cf",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {
+    "gdi32_generated": {
+      "assessment": "ABI_LAYOUT",
+      "reason": "Compiled structure/layout checks do not qualify OS behavior",
+      "sha256": "514240bf170f5e117777c17e48d385e5e6e94d9e87b29f0665c6a173a5da9e5b"
+    }
+  },
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "ff51e9ef63b4de899cd4f1f10ce336d230083c386f0ccb4dc38f96c127a813c4",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "226be039274d8f7bd5218cad0bf3e8207c0b30d273c6bc1c323138e4b398f6be",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

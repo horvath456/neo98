@@ -1,0 +1,2 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+IMPORTS={'KERNEL32':{'ExitProcess':4,'GetLastError':0,'SetLastError':4,'SetErrorMode':4,'CreateDirectoryA':8,'RemoveDirectoryA':4,'CreateFileA':28,'CloseHandle':4,'DeleteFileA':4},'SHELL32':{'ordinal_45':4},'SHLWAPI':{'PathFileExistsA':4,'PathFileExistsW':4,'PathIsDirectoryA':4,'PathIsDirectoryW':4,'PathIsDirectoryEmptyA':4,'PathIsDirectoryEmptyW':4,'PathIsUNCServerA':4,'PathIsUNCServerW':4,'PathIsUNCServerShareA':4,'PathIsUNCServerShareW':4}}

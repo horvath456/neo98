@@ -1,0 +1,2 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+IMPORTS={'KERNEL32':{'ExitProcess':4,'GetLastError':0},'GDI32':{'CreateCompatibleDC':4,'DeleteDC':4,'DeleteObject':4,'SelectObject':8,'CreateDIBSection':24,'CreateSolidBrush':4,'CreatePen':12,'PatBlt':24,'MoveToEx':16,'GetCurrentPositionEx':8,'GetStockObject':4,'SaveDC':4,'RestoreDC':8,'IntersectClipRect':20,'SetViewportOrgEx':16,'Arc':36,'Pie':36,'Chord':36,'RoundRect':28,'ArcTo':36,'AngleArc':24}}

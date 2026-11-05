@@ -1,0 +1,263 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "kernel32_pipe": {
+      "reference_status": "PASS",
+      "sha256": "5b2f18db5ca6d8286ee274e5e4615a3aa88a82c1c23259e26f81b34a15709283"
+    },
+    "kernel32_process": {
+      "reference_status": "FAIL",
+      "sha256": "ffeb8e2c5c04f73005c7d94a70dc11344f5068f02bcbf691655b756b22684d36"
+    },
+    "kernel32_profile": {
+      "reference_status": "FAIL",
+      "sha256": "3545febad5215f8aa55f6a7a0262157c7a1209573b73f09c37bab2df7cc07f43"
+    },
+    "kernel32_resource": {
+      "reference_status": "PASS",
+      "sha256": "1c443c26acab8adf9dea6ae3a69569ad359bb9d8f105b4dc2add347ec6317b1c"
+    },
+    "kernel32_sync": {
+      "reference_status": "FAIL",
+      "sha256": "894eb3cb731cd57c98ef8487bd46e89b82343df7b3b3d22deff2f01d1b56edec"
+    },
+    "kernel32_thread": {
+      "reference_status": "PASS",
+      "sha256": "8f406ce619fdcde81a42f37b7d3433045f0759ce4064e0149df5a76469e71f91"
+    },
+    "kernel32_time": {
+      "reference_status": "PASS",
+      "sha256": "29325dd5cdc106ac84e1d12e7ac5a637e2e1d2c00827666863eb3e0adda3891f"
+    },
+    "kernel32_timer": {
+      "reference_status": "PASS",
+      "sha256": "9884ef5e8355267d98614b7976d094ca338c123c60fcdd3fa8f18edfb9c5e6ff"
+    },
+    "kernel32_toolhelp": {
+      "reference_status": "FAIL",
+      "sha256": "9c3e83ef770ad2516eb2e4ee0acc3abe5005f922abb5c64df9831e1a9e679395"
+    },
+    "kernel32_version": {
+      "reference_status": "PASS",
+      "sha256": "5cf9db5ffbb3dfb743f72794788cb0b64d6b17d3b2c4b04fffc70107046cfbd7"
+    },
+    "kernel32_virtual": {
+      "reference_status": "FAIL",
+      "sha256": "5f48d75672b85c4956570b6085fddb27fab115c126e46a12058794a5fa6ad9d5"
+    },
+    "kernel32_volume": {
+      "reference_status": "FAIL",
+      "sha256": "f6276627d6765339de405e10653003afd1f384fe2b63be99146fbc8355f3f9c6"
+    },
+    "user32_broadcast": {
+      "reference_status": "FAIL",
+      "sha256": "f7abc91d35d2c9acbcbe3aae997e7cf451a93a25dd187ec100b764260b0f9ba9"
+    },
+    "user32_class": {
+      "reference_status": "PASS",
+      "sha256": "2c288af438e09e25f60f8f32b312d83d70a8a5474f0c8a21d6e77cc901fdef61"
+    },
+    "user32_clipboard": {
+      "reference_status": "PASS",
+      "sha256": "62f1af7450c8c6c276d8a0f513a739d00abfa8f0e97cadafc8ef8a8c8bd9b261"
+    },
+    "user32_cursoricon": {
+      "reference_status": "FAIL",
+      "sha256": "7cef34e079535ca4537ffd040a0203e1107ed9a52828a5bd53c001f2b8c87df3"
+    },
+    "user32_dce": {
+      "reference_status": "PASS",
+      "sha256": "a3914a7844e40be283d79b95eafd4bd1d2cd2bedbfded55aed7e5628b3df4dce"
+    },
+    "user32_dde": {
+      "reference_status": "CRASH",
+      "sha256": "4b568af4dbb928bcfabe95ccce106d40fa901ca5ef6aa32e8e0693c55cb46128"
+    },
+    "user32_dialog": {
+      "reference_status": "FAIL",
+      "sha256": "a94fac4d7abca46a497ff44f1153b8c43c2eb35296bff1e10c20e3bb1b3b8dc5"
+    }
+  },
+  "groups": {
+    "user32_combo": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "combo.c:105": {
+          "PASS": 2
+        },
+        "combo.c:108": {
+          "PASS": 2
+        },
+        "combo.c:123": {
+          "PASS": 2
+        },
+        "combo.c:126": {
+          "PASS": 2
+        },
+        "combo.c:130": {
+          "PASS": 2
+        },
+        "combo.c:133": {
+          "PASS": 2
+        },
+        "combo.c:137": {
+          "PASS": 2
+        },
+        "combo.c:140": {
+          "PASS": 2
+        },
+        "combo.c:152": {
+          "PASS": 58
+        },
+        "combo.c:187": {
+          "PASS": 9
+        },
+        "combo.c:189": {
+          "PASS": 9
+        },
+        "combo.c:217": {
+          "PASS": 3
+        },
+        "combo.c:225": {
+          "PASS": 3
+        },
+        "combo.c:231": {
+          "PASS": 3
+        },
+        "combo.c:237": {
+          "PASS": 3
+        },
+        "combo.c:245": {
+          "PASS": 3
+        },
+        "combo.c:251": {
+          "PASS": 3
+        },
+        "combo.c:80": {
+          "PASS": 2
+        },
+        "combo.c:83": {
+          "PASS": 2
+        },
+        "combo.c:89": {
+          "PASS": 58
+        }
+      },
+      "sha256": "17af6f1dde7525dcfa39f39a3f9bcad30e954720ad89ae0d891091e5277c91e9",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "4f60d4cd17da2178233334b7adc309baf70207c0d7882fa34437360d98413511",
+  "reference_selection": {
+    "excluded": {
+      "kernel32_pipe": "PASS",
+      "kernel32_process": "FAIL",
+      "kernel32_profile": "FAIL",
+      "kernel32_resource": "PASS",
+      "kernel32_sync": "FAIL",
+      "kernel32_thread": "PASS",
+      "kernel32_time": "PASS",
+      "kernel32_timer": "PASS",
+      "kernel32_toolhelp": "FAIL",
+      "kernel32_version": "PASS",
+      "kernel32_virtual": "FAIL",
+      "kernel32_volume": "FAIL",
+      "user32_broadcast": "FAIL",
+      "user32_class": "PASS",
+      "user32_clipboard": "PASS",
+      "user32_cursoricon": "FAIL",
+      "user32_dce": "PASS",
+      "user32_dde": "CRASH",
+      "user32_dialog": "FAIL"
+    },
+    "selected": [
+      "user32_combo"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "49c367c27304892a299e973a31e4d473bbce50d1c65aab2ee00fe0b97b0963e1",
+  "variable_counts_sha256": "fa1eef3715ef341c59a96ae8b75a58800d9df9f1e59e6f151ad6ff568d2079a2",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

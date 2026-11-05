@@ -1,0 +1,1846 @@
+{
+  "schema_version": 1,
+  "selection_source": {
+    "url": "https://github.com/vgrichina/berrry-wine",
+    "revision": "98d132898c963790f797ef3d00c812964e413cab"
+  },
+  "games": [
+    {
+      "id": "skifree",
+      "title": "SkiFree v1.04 Freeware",
+      "renderer": "GDI",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/chrispirih/ski32.zip",
+      "source_page": "https://www.classicdosgames.com/game/SkiFree.html",
+      "filename": "ski32.zip",
+      "license": "Freeware",
+      "license_evidence": "https://www.classicdosgames.com/game/SkiFree.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "74b39af5a3d7d1e96db70d4946326d0d88a51b34cb9eb86f316efcc0d44133d3",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\ski32.exe",
+        "phase": "game"
+      },
+      "expected_state": "White ski slope with skier, trees and start gates.",
+      "size_bytes": 39409,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "microman",
+      "title": "Adventures of MicroMan, The v2.0 Shareware Episode",
+      "renderer": "GDI / DIB",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/brianlgoble/micro1s.exe",
+      "source_page": "https://www.classicdosgames.com/game/The_Adventures_of_MicroMan.html",
+      "filename": "micro1s.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/The_Adventures_of_MicroMan.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "3b85dcffefe6f38a7150d64ae4454db7f5a1699e7f3208327c2ae3fbd8c9b364",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "via_explorer": true,
+        "input": "8:button=Next >;15:button=Yes;22:button=Yes;28:button=Next >;35:button=Next >;42:button=Next >;50:button=Install;70:button=Finish;80:button=OK;85:button=Finish",
+        "discover_exe": [
+          "MicroMan.exe",
+          "Micro1.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "input": "5:button=OK;10:click=88,85;12:key=28;14:key=0d",
+        "seconds": 25
+      },
+      "expected_state": "Windowed game scene with player, platforms and ladder after the welcome dialog and Game menu start.",
+      "size_bytes": 2798404,
+      "renderer_status": "Validated windowed game scene with CreateDIBSection/SetDIBitsToDevice; loading DDRAW.DLL alone does not establish DirectDraw rendering.",
+      "recipe_review": "Host-validated on 873de4d2: complete original installation, welcome dialog OK, Game menu first entry; visible player/platform scene. Historical validation retained in the working repository."
+    },
+    {
+      "id": "aoe",
+      "title": "Age of Empires English Shareware Demo",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/ensemble/MSAoE.exe",
+      "source_page": "https://www.classicdosgames.com/game/Age_of_Empires.html",
+      "filename": "MSAoE.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Age_of_Empires.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "cbcf501a11c82c2b0a0c8d65f690814ea3e384be29889da850e62479b188f709",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:click=448,405;14:button=I Agree;18:button=Yes;22:button=Next >;27:button=Next >;32:button=Install;55:button=OK;75:button=Finish;85:button=OK",
+        "via_explorer": true,
+        "required": true,
+        "discover_exe": [
+          "empires.exe"
+        ],
+        "seconds": 90
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "input": "10:click=512,318;15:click=512,300;18:type=NEO98;20:key=0d;24:click=200,384;28:click=300,728;35:click=900,742",
+        "seconds": 60
+      },
+      "expected_state": "Bronze Age Art of War campaign scene with units, resource bar and minimap.",
+      "size_bytes": 24785176,
+      "renderer_status": "DirectDraw gameplay confirmed by scene, DDHAL activity and presentations.",
+      "recipe_review": "Host-validated fresh installation and Bronze Age Art of War game scene, sweep-final. Historical validation retained in the working repository."
+    },
+    {
+      "id": "aoe2",
+      "title": "Age of Empires II: The Age of Kings English Shareware Demo",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/ensemble/AoE2demo.exe",
+      "source_page": "https://www.classicdosgames.com/game/Age_of_Empires_II%3A_The_Age_of_Kings.html",
+      "filename": "AoE2demo.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Age_of_Empires_II%3A_The_Age_of_Kings.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "0f5df430b54a377a6cfd1e253169de2cf8a60a1751d6e8b72718d297bd45174c",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:click=415,549;55:button=OK;105:button=Yes;120:button=OK",
+        "via_explorer": true,
+        "required": true,
+        "discover_exe": [
+          "EMPIRES2.EXE"
+        ],
+        "seconds": 130
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "input": "5:button=Accept;15:key=1b;20:key=1b;40:click=80,32;44:type=NEO98;46:key=0d;50:click=155,65;70:key=20;73:key=20;76:key=20;79:key=20;82:key=20;85:key=20;88:key=20;91:key=20",
+        "seconds": 115
+      },
+      "expected_state": "William Wallace tutorial scene with soldier, road, blue flag and resource HUD.",
+      "size_bytes": 49083656,
+      "renderer_status": "Validated DirectDraw tutorial gameplay with DDHAL surface allocation and presents on the host.",
+      "recipe_review": "Host-validated on 873de4d2 with a fresh original installation: EMPIRES2.EXE, setup confirmations, first-start Accept, Learn to Play, player name, first mission and narration advance. Historical validation retained in the working repository."
+    },
+    {
+      "id": "diablo",
+      "title": "Diablo v1.00 Shareware",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/blizzard/diablosw.exe",
+      "source_page": "https://www.classicdosgames.com/game/Diablo.html",
+      "filename": "diablosw.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Diablo.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "d2bbdc06850303a936b0184c8cf47a3df61b107fdc600720a4322ea9f862d3b6",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "5:click=440,264;6:keydown=11;6:key=41;6:keyup=11;7:type=C:\\NEO98REP\\Diablo;9:button=OK;12:button=Yes;20:button=OK",
+        "via_explorer": true,
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "installed_exe": "Diablo_s.exe",
+        "input": "3:key=1b;6:key=1b;10:key=0d"
+      },
+      "expected_state": "Complete animated Diablo Shareware logo above New Game/Load Game menu.",
+      "size_bytes": 52223944,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "jazz2",
+      "title": "Jazz Jackrabbit 2 v1.23 Shareware Episode",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/epic/J2swc123.exe",
+      "source_page": "https://www.classicdosgames.com/game/Jazz_Jackrabbit_2.html",
+      "filename": "J2swc123.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Jazz_Jackrabbit_2.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "ad06659d6057b7c696889fc194d2c651320b8a2ed8d989d4a602df4b0df551f7",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "4:button=Yes;7:button=Next >;10:button=No, continue without installing DirectX 5;13:button=Next >;16:button=Next >;19:button=Next >;22:button=Finish;36:button=OK",
+        "via_explorer": true,
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "installed_exe": "Jazz2.exe",
+        "input": "5:key=1b;10:key=1b;16:key=0d;22:key=0d;28:key=0d;34:key=0d",
+        "seconds": 50
+      },
+      "expected_state": "Visible level with player, enemy and HUD after the intro and menu selections.",
+      "size_bytes": 20069847,
+      "renderer_status": "DirectDraw scene validated by level screenshot, DDHAL activity and continuing presentations.",
+      "recipe_review": "Host-validated on 873de4d2: original installer and launch sequence reach a level with player, enemy and HUD. Historical validation retained in the working repository."
+    },
+    {
+      "id": "worms2",
+      "title": "Worms 2 Demo",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/team17/Worms2Demo10Oct.zip",
+      "source_page": "https://www.classicdosgames.com/game/Worms_2.html",
+      "filename": "Worms2Demo10Oct.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Worms_2.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "c65d36cef69437f066a3d50d8ff26d43d228a0595d7bcc106d541375e1d3cfd8",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\SETUP.EXE",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "via_explorer": true,
+        "input": "8:button=Next >;15:button=Yes;22:button=Yes;28:button=Next >;35:button=Next >;42:button=Next >;50:button=Install;70:button=Finish;80:button=OK",
+        "discover_exe": [
+          "Worms2Demo.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\SETUP.EXE",
+        "phase": "installer",
+        "input": "5:key=20;10:key=20;15:key=0d",
+        "seconds": 45
+      },
+      "expected_state": "Two-player demo match with terrain, water, background, worms, aiming crosshair and player HUD.",
+      "size_bytes": 7299379,
+      "renderer_status": "DirectDraw match with terrain, water and background confirmed after the partial-palette correction.",
+      "recipe_review": "Fresh original installation and FEX match passed with partial-palette updates; the palette regression passes with FEX and Unicorn. A private original Win98 game run also shows terrain, water and background. Historical validation retained in the working repository."
+    },
+    {
+      "id": "doom95",
+      "title": "Doom for Windows 95 v1.9 Shareware Episode",
+      "renderer": "DirectDraw software 3D",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/id/doom95.zip",
+      "source_page": "https://www.classicdosgames.com/game/Doom.html",
+      "filename": "doom95.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Doom.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "7771ebd38d5099aee20a03103ff934e27bfe86693f11224f60a30cf41552dbed",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\DOOM95.EXE",
+        "phase": "game",
+        "command": "DOOM95.EXE -nosound -warp 1 1",
+        "input": "7:button=New Game"
+      },
+      "expected_state": "Doom for Windows 95 v1.9 Shareware Episode title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 4459049,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "pinball",
+      "title": "3D Ultra Pinball Demo",
+      "renderer": "GDI",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/sierra/pbdemo.exe",
+      "source_page": "https://www.classicdosgames.com/game/3D_Ultra_Pinball.html",
+      "filename": "pbdemo.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/3D_Ultra_Pinball.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "2c2a34fcc5392a633e78cdcc601d104b14ba72f6381ffe1ee494ea4a07a1e404",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\PINBALL.EXE",
+        "phase": "game",
+        "input": "25:button=OK;35:button=OK;38:keydown=28;40:keyup=28"
+      },
+      "expected_state": "3D Ultra Pinball Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 2171673,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "simcity2000",
+      "title": "SimCity 2000 for Windows 95 Interactive Demo",
+      "renderer": "GDI",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/maxis/sc295dmo.zip",
+      "source_page": "https://www.classicdosgames.com/game/SimCity_2000.html",
+      "filename": "sc295dmo.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/SimCity_2000.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "607fc8923e694a347bb22185a607bd3456575ecfa5986c6d41466e60ef09ccd4",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\SETUP.EXE",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "via_explorer": true,
+        "input": "8:button=Next >;15:button=Yes;22:button=Yes;28:button=Next >;35:button=Next >;42:button=Next >;50:button=Install;70:button=Finish;80:button=OK",
+        "discover_exe": [
+          "simdemo.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\SETUP.EXE",
+        "phase": "installer",
+        "input": "12:button=OK;32:button=Load Demo City;42:key=0d",
+        "via_explorer": true,
+        "seconds": 75
+      },
+      "expected_state": "Loaded demo city with river, buildings, roads, railway and tool palette.",
+      "size_bytes": 1729064,
+      "renderer_status": "Validated GDI city scene with DIB and StretchBlt after a fresh original installation and Explorer launch.",
+      "recipe_review": "Host-validated on 873de4d2: original simdemo.exe installation, Explorer startup, video warning OK and Load Demo City. Direct startup passes 10, which the original game ORs with 3 into ignored ShowWindow command 11; Explorer supplies 1 and reaches the city."
+    },
+    {
+      "id": "starcraft",
+      "title": "StarCraft v1.01 Shareware Demo",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/blizzard/SCDemo.exe",
+      "source_page": "https://www.classicdosgames.com/game/StarCraft.html",
+      "filename": "SCDemo.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/StarCraft.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "c979399d8543917bb091266fbd12c1e1d8631647231163cf5ac931ef4de9cb83",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:click=500,393;14:button=Agree;18:button=Yes;22:button=Next >;27:button=Next >;32:button=Install;55:button=OK;75:button=No",
+        "via_explorer": true,
+        "required": true,
+        "discover_exe": [
+          "StarCraft.exe"
+        ],
+        "seconds": 90
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "input": "10:click=350,192;16:type=NEO98;18:key=0d;24:click=824,630;30:key=20;36:key=20;42:key=0d;50:click=320,420",
+        "seconds": 65
+      },
+      "expected_state": "Terran prequel mission with command center, units, blue minerals and HUD after player creation and the startup tip.",
+      "size_bytes": 29569755,
+      "renderer_status": "Validated DirectDraw gameplay in the Terran prequel mission after a fresh original installation.",
+      "recipe_review": "Host-validated on 873de4d2: Agree in setup, No to online registration, Single Player, new NEO98 profile, campaign entry, narration advance and startup tip OK. Fresh install/play reaches the mission. Historical validation retained in the working repository."
+    },
+    {
+      "id": "fulltilt",
+      "title": "Full Tilt! Pinball v.006 Windows 95 Demo",
+      "renderer": "GDI",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/cinematronics/fulltilt.zip",
+      "source_page": "https://www.classicdosgames.com/game/Full_Tilt!_Pinball.html",
+      "filename": "fulltilt.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Full_Tilt!_Pinball.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "4dfb994fbaab5f869c99a5d735ee518a9b041c7b6fc9730a681d79ef44ce3a9f",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\DEMO.EXE",
+        "phase": "game"
+      },
+      "expected_state": "Space Cadet pinball table with ball and score panel.",
+      "size_bytes": 1182087,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "fury3",
+      "title": "Fury3 Trial Version",
+      "renderer": "GDI software 3D",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/terminalreality/fury3x.zip",
+      "source_page": "https://www.classicdosgames.com/game/Fury3.html",
+      "filename": "fury3x.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Fury3.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "79dffbf35711281a6ec006a7dcafff472825e2dbdee35de25b1f83871e21f28a",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\FURY3X\\FURY3X.EXE",
+        "phase": "game",
+        "input": "4:button=OK;8:key=0d"
+      },
+      "expected_state": "Fury3 Trial Version title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 4827942,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "hellbender",
+      "title": "Hellbender Trial Version v1.02",
+      "renderer": "Software 3D / GDI",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/terminalreality/heltrial.exe",
+      "source_page": "https://www.classicdosgames.com/game/Hellbender.html",
+      "filename": "heltrial.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Hellbender.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "4bdf5a59ad7846df51a7fb9eb9563349949ffeba58f70ecb95bdc1d25bf6e0c9",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "7:button=Yes;16:button=Yes;40:button=OK;50:button=Yes;80:button=OK",
+        "via_explorer": true,
+        "required": true,
+        "discover_exe": [
+          "HELLBNDX.EXE"
+        ],
+        "seconds": 100
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "input": "5:click=258,554;8:click=560,446",
+        "seconds": 35
+      },
+      "expected_state": "Windowed flight scene with cockpit, radar, terrain and lava; disable Full Screen in Quick Configuration before New Game.",
+      "size_bytes": 11147776,
+      "renderer_status": "Windowed cockpit and terrain confirmed with GDI blits; original useDirect3D=0. The default software fullscreen path faults after DISPDIB initialization failure.",
+      "recipe_review": "Host-validated on 873de4d2 after fresh original installation: folder confirmation, HELLBNDX.EXE discovery, Quick Configuration Full Screen off and New Game reach the flight scene. DISPDIB fullscreen behavior still requires review."
+    },
+    {
+      "id": "mtm2",
+      "title": "Monster Truck Madness 2 v2.00.41 MMX Trial Version",
+      "renderer": "Direct3D 5",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/terminalreality/MtM2trial.exe",
+      "source_page": "https://www.classicdosgames.com/game/Monster_Truck_Madness_2.html",
+      "filename": "MtM2trial.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Monster_Truck_Madness_2.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "aeaceb155b6a8c3fde61b571b9f095acaa7e98e54250c6e89e49a3c0595ceb4f",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:click=425,567;14:button=Accept;55:button=OK;65:button=No;75:button=OK",
+        "via_explorer": true,
+        "required": true,
+        "discover_exe": [
+          "MONSTERX.EXE"
+        ],
+        "seconds": 90
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "input": "8:key=0d;16:key=0d;24:key=0d",
+        "seconds": 60
+      },
+      "expected_state": "Monster Truck Madness 2 v2.00.41 MMX Trial Version title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 18491952,
+      "renderer_status": "Original installation and a visible race scene passed with shared memory support. The selected game renderer is not yet classified.",
+      "recipe_review": "Host-tested in fix-sweep-bugs: accepts the licence, confirms the path, declines the private desktop icon and closes the success dialog; discovers MONSTERX.EXE. Enter advances to a cockpit race scene. Historical validation retained in the working repository."
+    },
+    {
+      "id": "tombraider2",
+      "title": "Tomb Raider II Great Wall Demo",
+      "renderer": "Direct3D 5",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/eidos/tr2demo1.exe",
+      "source_page": "https://www.classicdosgames.com/game/Tomb_Raider_II.html",
+      "filename": "tr2demo1.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Tomb_Raider_II.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "8c73266fd5b7a350354ae654fff41156f24bec7b734e0ada95c99bb5f40f4dd9",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\TOMB2.EXE",
+        "phase": "game",
+        "input": "7:button=OK;16:key=0d;24:key=0d",
+        "seconds": 50
+      },
+      "expected_state": "Tomb Raider II Great Wall Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 3624960,
+      "renderer_status": "Direct3D HAL confirmed; Lara and the Great Wall scene are textured after the legacy texture-state fix.",
+      "recipe_review": "Fresh FEX scene passed in fix-sweep-bugs; original D3DIM RGB and HAL pixel tests pass with FEX and Unicorn. Manual gameplay review remains open. Historical validation retained in the working repository."
+    },
+    {
+      "id": "nfs2se",
+      "title": "Need for Speed II: Special Edition Demo",
+      "renderer": "Glide",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/electronicarts/nfs2sea.zip",
+      "source_page": "https://www.classicdosgames.com/game/Need_for_Speed_II.html",
+      "filename": "nfs2sea.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Need_for_Speed_II.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "614875b33de12565fa395bc05070c0bb83b5905acf4eb8b39f7bed060d0b4d2e",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\NFS2SEA.EXE",
+        "phase": "game"
+      },
+      "expected_state": "Race track, red car and HUD using Glide.",
+      "size_bytes": 6642913,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "turok",
+      "title": "Turok: Dinosaur Hunter 3Dfx Demo",
+      "renderer": "Glide",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/acclaim/turok3dfx.exe",
+      "source_page": "https://www.classicdosgames.com/game/Turok%3A_Dinosaur_Hunter.html",
+      "filename": "turok3dfx.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Turok%3A_Dinosaur_Hunter.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "340c67692279c94c5d83a6622b7f63be469b484fb8e32594cd5579af21a1f18e",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\Setup.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:button=Next >;15:button=Yes;22:button=Yes;28:button=Next >;35:button=Next >;42:button=Next >;50:button=Install;70:button=Finish;80:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "Turok3DfxDemo.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\Setup.exe",
+        "phase": "installer",
+        "input": "5:button=Start Turok",
+        "seconds": 25
+      },
+      "expected_state": "Turok: Dinosaur Hunter 3Dfx Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 10382356,
+      "renderer_status": "Glide initialization reached; stops at unsupported _guTexMemReset@0 before a game scene.",
+      "recipe_review": "Original installation and Turok3DfxDemo.exe launcher validated; Start Turok reproducibly reaches the deliberately unsupported guTex utility layer. See sweep report."
+    },
+    {
+      "id": "roguesquadron",
+      "title": "Star Wars: Rogue Squadron 3D Demo v1.0",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/lucasarts/roguedemo.exe",
+      "source_page": "https://www.classicdosgames.com/game/Star_Wars%3A_Rogue_Squadron_3D.html",
+      "filename": "roguedemo.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Star_Wars%3A_Rogue_Squadron_3D.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "7fd2e897ef61a9e8e3ddad85a237ea00deaeacadda373755fb32f5a3a8dba3e2",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\Rogue Squadron Demo.exe",
+        "phase": "game"
+      },
+      "expected_state": "Rogue Squadron demo title/menu without access violation.",
+      "size_bytes": 26821120,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "shadows",
+      "title": "Star Wars: Shadows of the Empire Shareware Demo",
+      "renderer": "Direct3D 5",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/lucasarts/shadowsdemo.exe",
+      "source_page": "https://www.classicdosgames.com/game/Star_Wars%3A_Shadows_of_the_Empire.html",
+      "filename": "shadowsdemo.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Star_Wars%3A_Shadows_of_the_Empire.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "bfd2ff35469e4c6fb4f4276d7e622c6488896a449b4e59ef4abf9ac8dbfc3090",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\shadows.exe",
+        "phase": "game",
+        "input": "6:button=New Player;10:type=NEO98;12:key=0d;18:button=Play;26:key=0d",
+        "seconds": 50
+      },
+      "expected_state": "Star Wars: Shadows of the Empire Shareware Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 6965760,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Candidate based on original package and first-run evidence; scene verification pending."
+    },
+    {
+      "id": "descent3",
+      "title": "Descent 3 Demo 2 Version 1.2",
+      "renderer": "OpenGL / Glide / Direct3D 6",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/outrage/descent3demo2.exe",
+      "source_page": "https://www.classicdosgames.com/game/Descent_3.html",
+      "filename": "descent3demo2.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Descent_3.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "6f90e82018f9b039fe04219013701f6b51fdc3c8c21c1d522a331aca65c39dac",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\Setup.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:button=Next >;15:button=Yes;22:button=Yes;28:button=Next >;35:button=Next >;42:button=Next >;50:button=Next >;60:button=Next >;70:button=Next >;90:button=Finish;100:button=No;110:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "Descent 3 Demo 2.exe",
+          "d3demo2.exe",
+          "descent3.exe",
+          "main.exe"
+        ],
+        "required": true,
+        "seconds": 120
+      },
+      "launch": {
+        "exe": "E:\\Setup.exe",
+        "phase": "installer",
+        "via_explorer": true,
+        "input": "8:button=OK;10:button=SETUP;14:click=410,234;17:button=Redetect Available Rendering Devices;20:button=3Dfx Glide;21:button=OpenGL;24:button=Scan for the Selected Video Devices;32:click=546,234;36:button=Detect System Properties;40:button=Yes;45:button=OK;50:button=PLAY;54:button=No;65:type=NEO98;70:key=0d;76:down=780,455;77:up=780,455;82:key=0d;92:key=0d;102:key=0d;112:key=0d;122:key=1b;132:key=0d;145:key=20;155:keydown=1b;156:keyup=1b;190:menu=report",
+        "seconds": 205
+      },
+      "expected_state": "Descent 3 Demo 2 Version 1.2 title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 38149632,
+      "renderer_status": "Direct3D HAL reaches the menu and briefing; level entry hits the original demo bumpmap table/type defect. No flight scene verified.",
+      "recipe_review": "Fresh FEX and Unicorn game runs reproduce the level-entry fault. The original demo creates a bump surface in its lightmap table, then uploads it as a bitmap from another table (closed as an original program defect). Unchanged dispatch code tested on both engines; eight DirectDraw surface cases match original Win98. No game patch or capability workaround. Historical validation retained in the working repository."
+    },
+    {
+      "id": "duke-manhattan",
+      "title": "Duke Nukem: Manhattan Project v1.01 Shareware Episode",
+      "renderer": "Direct3D 8",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/sunstorm/dnmp_demo_101.exe",
+      "source_page": "https://www.classicdosgames.com/game/Duke_Nukem%3A_Manhattan_Project.html",
+      "filename": "dnmp_demo_101.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Duke_Nukem%3A_Manhattan_Project.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "0b08ba34448a523d32104b61e949e3806766e648ff3f4843cabd84a03d7f351a",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "28:button=Next >;35:button=Yes;42:button=Yes;50:button=Next >;60:button=Next >;70:button=Next >;80:button=Next >;95:button=Finish;105:button=No;110:button=Finish",
+        "via_explorer": true,
+        "required": true,
+        "discover_exe": [
+          "DukeNukemMP.exe",
+          "prism3d.exe"
+        ],
+        "seconds": 120
+      },
+      "launch": {
+        "exe": "C:\\Program Files\\Duke Nukem - Manhattan Project (DEMO)\\DukeNukemMP.exe",
+        "phase": "game",
+        "via_explorer": true,
+        "input": "10:button=Windowed;15:button=Play!;160:down=510,350;163:up=510,350;180:down=580,240;183:up=580,240;195:down=450,240;198:up=450,240;240:keydown=20;242:keyup=20;275:keydown=27;278:keyup=27;280:keydown=11;282:keyup=11",
+        "seconds": 321
+      },
+      "expected_state": "Duke Nukem: Manhattan Project v1.01 Shareware Episode title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 52785207,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "original installer completes with MSI code 0 on FEX and Unicorn. Windowed play reaches the first level after selecting New Game and a save slot, then confirming the introduction. Scene evidence at 290 seconds on FEX and 320 seconds on Unicorn: Historical validation retained in the working repository."
+    },
+    {
+      "id": "halo",
+      "title": "Halo: Combat Evolved Shareware",
+      "renderer": "Direct3D 9",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/bungie/HaloTrial.exe",
+      "source_page": "https://www.classicdosgames.com/game/Halo%3A_Combat_Evolved.html",
+      "filename": "HaloTrial.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Halo%3A_Combat_Evolved.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "c08ef3f4a261a747ab45889b1c11c8dbe2e651657186d937818399ce14689bee",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "7:button=Next >;10:button=Yes;12:button=I Agree;15:button=Next >;18:button=Next >;21:button=Next >;24:button=Next >;27:button=Install;30:button=Next >;35:button=Finish;40:button=OK;45:button=No;50:button=Finish;55:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "halo.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer"
+      },
+      "expected_state": "Halo: Combat Evolved Shareware title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 137398872,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "segarally",
+      "title": "Sega Rally Championship Demo",
+      "renderer": "DirectDraw software 3D",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/sega/sega_rally.exe",
+      "source_page": "https://www.classicdosgames.com/game/Sega_Rally_Championship.html",
+      "filename": "sega_rally.exe",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Sega_Rally_Championship.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "d0c8739a9c270ba5f4c9b3342d3891ae2d81b3c145e045b9e1f31f216400f84d",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\SRALLY\\RALLY.EXE",
+        "phase": "game"
+      },
+      "expected_state": "Sega Rally Championship Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 8754249,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "virtualchess",
+      "title": "Virtual Chess Shareware v1.03 for Windows 95",
+      "renderer": "GDI",
+      "dimension": "2D",
+      "source_url": "https://www.classicdosgames.com/files/games/titus/vcwin95.zip",
+      "source_page": "https://www.classicdosgames.com/game/Virtual_Chess.html",
+      "filename": "vcwin95.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Virtual_Chess.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "099f74a08a26f1340e564d5357486069abb6adf42ee26ff5ca27dfff4c00d9e9",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\VCWIN95\\VCHESSW.EXE",
+        "phase": "game",
+        "system_libraries": [
+          "VCWIN95/INSTALL/DLL/WING32.DLL",
+          "VCWIN95/INSTALL/DLL/WING.DLL",
+          "VCWIN95/INSTALL/DLL/WINGDIB.DRV",
+          "VCWIN95/INSTALL/DLL/WINGPAL.WND",
+          "VCWIN95/INSTALL/DLL/WINGDE.DLL",
+          "VCWIN95/INSTALL/DLL/BWCC32.DLL"
+        ],
+        "input": "7:button=Ok;24:choose=;25:close=*;27:choose=Virtual Chess;28:click=18,32;31:click=55,53",
+        "seconds": 40
+      },
+      "expected_state": "Virtual Chess Shareware v1.03 for Windows 95 title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 1711483,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "With the corrected DLL loader, fresh FEX and Unicorn starts show both game boards after dismissing the intro and selecting File / New Game. The original startup failure was not caused by missing recipe libraries. Historical validation retained in the working repository."
+    },
+    {
+      "id": "aliencabal",
+      "title": "Alien Cabal DirectX 6.0 Shareware Version",
+      "renderer": "DirectDraw software 3D (DX6)",
+      "dimension": "3D",
+      "source_url": "https://www.classicdosgames.com/files/games/qasoft/acabalx.zip",
+      "source_page": "https://www.classicdosgames.com/game/Alien_Cabal.html",
+      "filename": "acabalx.zip",
+      "license": "Shareware / official demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Alien_Cabal.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "f993b90b6d0c9fc3ccf6ae8ecd084cff2b66709218e1d885dbde2f4375585253",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\ACabal95.exe",
+        "phase": "game",
+        "input": "6:key=0d;12:key=0d;20:key=0d",
+        "seconds": 50
+      },
+      "expected_state": "Textured street scene with weapon, enemies and HUD after the Enter sequence.",
+      "size_bytes": 4245080,
+      "renderer_status": "Direct3D HAL ContextCreate and DrawPrimitives2 confirmed; textured gameplay scene visible.",
+      "recipe_review": "Host-validated original portable demo, sweep-1: Enter sequence reaches street gameplay. Historical validation retained in the working repository."
+    },
+    {
+      "id": "quake2",
+      "title": "Quake II Demo",
+      "renderer": "OpenGL",
+      "dimension": "3D",
+      "source_url": "https://raw.githubusercontent.com/Jason2Brownlee/Quake2OfficialArchive/main/bin/q2-314-demo-x86.exe",
+      "source_page": "https://github.com/Jason2Brownlee/Quake2OfficialArchive",
+      "filename": "q2-314-demo-x86.exe",
+      "license": "commercial demo; keep as a local candidate fixture and review bundled terms before public deployment",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/sources.md",
+      "distribution_conditions": "Preserve original package and its notices; noncommercial distribution only.",
+      "sha256": "7ace5a43983f10d6bdc9d9b6e17a1032ba6223118d389bd170df89b945a04a1e",
+      "upstream_sha1": "5b4dedc59ceee306956a3e48a8bdf6dd33bc91ed",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\Install\\Data\\quake2.exe",
+        "phase": "game",
+        "command": "quake2.exe +set vid_ref gl +set gl_driver opengl32 +map demo1"
+      },
+      "expected_state": "Quake II demo1 level with weapon and HUD using ref_gl.",
+      "size_bytes": 39015499,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "quake3",
+      "title": "Quake III Arena Demo",
+      "renderer": "OpenGL",
+      "dimension": "3D",
+      "source_url": "https://raw.githubusercontent.com/Jason2Brownlee/Quake3OfficialArchive/main/bin/Q3ADemo.exe",
+      "source_page": "https://github.com/Jason2Brownlee/Quake3OfficialArchive",
+      "filename": "Q3ADemo.exe",
+      "license": "id Software Limited Use Software License Agreement for the demo, shown by the installer: s.3 allows free non-commercial copying and distribution with the agreement attached and copies labelled SHAREWARE/DEMO; s.2(j) forbids public display. Keep as a local candidate fixture; not a public deployment input.",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/sources.md",
+      "distribution_conditions": "Preserve original package and its notices; noncommercial distribution only.",
+      "sha256": "6af96cb1b5c97535c9923d8855ca85ec21b21b65b48738b2c5e674e17c65835d",
+      "upstream_sha1": "95fb0e8f595506dd30b57635db151f2e0762be02",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "7:button=Next >;9:click=760,417;10:click=760,417;11:click=760,417;13:button=Yes;16:button=Next >;19:button=Next >;55:button=Finish;60:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "quake3.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer"
+      },
+      "expected_state": "Quake III Arena main menu with animated logo; later demo map.",
+      "size_bytes": 48907862,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "dxball",
+      "title": "DX-Ball",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://archive.org/download/DX-Ball_game/dxball.zip",
+      "source_page": "https://archive.org/details/DX-Ball_game",
+      "filename": "dxball.zip",
+      "license": "freeware; verify the bundled terms before public deployment",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/sources.md",
+      "distribution_conditions": "Preserve original package and its notices; noncommercial distribution only.",
+      "sha256": "c228f0fd2868f901480a485c24252a1073a6d104af0d417f2734d78bb405bd81",
+      "upstream_sha1": "37e3d984366cdd683c3ad509d4df298521ab303b",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\dxball19.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "7:button=Next >;10:button=Yes;12:button=I Agree;15:button=Next >;18:button=Next >;21:button=Next >;24:button=Next >;27:button=Install;30:button=Next >;35:button=Finish;40:button=OK;45:button=No;50:button=Finish;55:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "dxball.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\dxball19.exe",
+        "phase": "installer",
+        "input": "7:down=512,384;8:up=512,384;12:down=512,384;13:up=512,384"
+      },
+      "expected_state": "DX-Ball title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 826935,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "blobby",
+      "title": "Blobby Volley",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://archive.org/download/volley/volley.zip",
+      "source_page": "https://archive.org/details/volley",
+      "filename": "volley.zip",
+      "license": "freeware; verify the original package terms before public deployment",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/sources.md",
+      "distribution_conditions": "Preserve original package and its notices; noncommercial distribution only.",
+      "sha256": "b5407f4a4a4b9ddb6521c9a39ad2df05af7b8dd2d63043366157c06756cfecfc",
+      "upstream_sha1": "8d22d8918960dec5cda1abc3b5e97eb83aca982d",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\volley.exe",
+        "phase": "game"
+      },
+      "expected_state": "Blobby Volley title menu, then volleyball court.",
+      "size_bytes": 807240,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "nethack",
+      "title": "NetHack for Windows",
+      "renderer": "GDI",
+      "dimension": "2D",
+      "source_url": "https://www.nethack.org/download/3.4.3/nethack-343-win.zip",
+      "source_page": "https://www.nethack.org/v343/ports/download-win.html",
+      "filename": "nethack-343-win.zip",
+      "license": "NetHack General Public License",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/sources.md",
+      "distribution_conditions": "Preserve original package and its notices; noncommercial distribution only.",
+      "sha256": "c067acbca513961640e0064da21ec41359fda5150533ed53132012d188184ff7",
+      "upstream_sha1": "5b8e4717fb18d7888678f54b47aafd0060bf576b",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\NetHackW.exe",
+        "phase": "game"
+      },
+      "expected_state": "NetHack graphical start window, then character selection.",
+      "size_bytes": 2046488,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "icytower",
+      "title": "Icy Tower",
+      "renderer": "DirectDraw",
+      "dimension": "2D",
+      "source_url": "https://archive.org/download/Icy_Tower/icytower13.rar",
+      "source_page": "https://archive.org/details/Icy_Tower",
+      "filename": "icytower13.rar",
+      "license": "freeware; verify original package terms before public deployment",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/sources.md",
+      "distribution_conditions": "Preserve original package and its notices; noncommercial distribution only.",
+      "sha256": "40fa8022f8829221569f785682ab38d38efd08aeaea6279e1441800e46a0db2e",
+      "upstream_sha1": "21aa4fb949c5f0718a59f922df6ad644a80e6715",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\icytower13_install.exe",
+        "description": "Run the original Inno installer silently in a private C: copy. The unpacked data remains available for an independent launch; a completed guest installation takes precedence.",
+        "command": "icytower13_install.exe /VERYSILENT /SP- /NORESTART /DIR=C:\\Games\\icytower",
+        "nested": [
+          {
+            "source": "icytower13_install.exe",
+            "target": "unpacked",
+            "format": "inno"
+          }
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\unpacked\\app\\icytower13.exe",
+        "phase": "game",
+        "installed_exe": "icytower13.exe",
+        "input": "7:keydown=0d;8:keyup=0d"
+      },
+      "expected_state": "Icy Tower title menu with legible choices.",
+      "size_bytes": 2627789,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "ut",
+      "title": "Unreal Tournament demo",
+      "renderer": "Glide / Direct3D 6 / software",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/unreal-tournament-demo-version-348/UTDEMO348.EXE",
+      "source_page": "https://archive.org/details/unreal-tournament-demo-version-348",
+      "filename": "UTDEMO348.EXE",
+      "license": "proprietary commercial demo; local ignored compatibility fixture only",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "59e65276c67af7859935d79001b93934928b3e1c3a8cc300807cdfa95208f708",
+      "upstream_sha1": "faf2c18852a1a53c59db490e044e0d3e100e8fed",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\System\\UnrealTournament.exe",
+        "phase": "game",
+        "command": "UnrealTournament.exe DM-MorpheusDEMO.unr?game=Botpack.DeathMatchPlus -windowed -nosound",
+        "input": "8:button=Next >;15:button=Next >;22:button=Next >;29:click=470,584",
+        "seconds": 65
+      },
+      "expected_state": "Unreal Tournament demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 55647232,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Host sweep 2026-10-30: Direct3D HAL renders textured Morpheus scene; match waits for ready signal."
+    },
+    {
+      "id": "serioussam",
+      "title": "Serious Sam: The First Encounter Demo",
+      "renderer": "OpenGL (Direct3D 8 requires a later version and is unverified)",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/SeriousSamDemo/SeriousSamDemo.exe",
+      "source_page": "https://archive.org/details/SeriousSamDemo",
+      "filename": "SeriousSamDemo.exe",
+      "license": "original Croteam playable demo; local compatibility fixture",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "029ec109adba4445e8c4365c88230c03fdad6abf98262a14c6fe88efdd686cd0",
+      "upstream_sha1": "9ba3a09da86754d27470c049a89e127959d1ecbe",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "15:button=OK;28:button=Next >;35:button=Yes;42:button=Next >;50:button=Next >;60:button=Next >;70:button=Next >;80:button=Next >;90:button=Next >;110:button=Finish;120:button=No;130:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "SeriousSam.exe"
+        ],
+        "required": true,
+        "seconds": 145
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "via_explorer": true,
+        "input": "15:key=1b;25:key=0d;35:key=0d;45:key=0d",
+        "seconds": 65
+      },
+      "expected_state": "Serious Sam: The First Encounter Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 82531165,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "notes": " Direct3D 8 support is unverified for this demo; coverage uses Duke Manhattan, Max Payne and 3DMark2001.",
+      "recipe_review": "Display flag selection matches Win98 on FEX/Unicorn. Fresh Unicorn start creates the Metal OpenGL context and starts Intro.wld, but a 420 s probe still shows Loading entities at 46 percent. No scene accepted. FEX 160 s probe remains in the stream loader. Historical validation retained in the working repository."
+    },
+    {
+      "id": "forsaken",
+      "title": "Forsaken Demo",
+      "renderer": "Direct3D 5",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/FORSAKEN_201610/FORSAKEN.zip",
+      "source_page": "https://archive.org/details/FORSAKEN_201610",
+      "filename": "FORSAKEN.zip",
+      "license": "proprietary Acclaim/Probe promotional demo with NO stated terms: readme.txt, readme.rtf, release.txt and the executable carry no licence, EULA or redistribution text (release.txt calls it the \"Forsaken Shareware Demo\"); absent an explicit grant it is a local ignored compatibility fixture only, never deploy or ship it",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "a651e634cada15cb596fb4fdf2f54ffecd4754dd29a8ee86fa79973a430c8c61",
+      "upstream_sha1": "2b8083248a8772710a0ae446e3442ca2b1ac5aab",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\SETUP.EXE",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:button=Next >;15:button=Yes;22:button=Yes;28:button=Next >;35:button=Next >;42:button=Next >;50:button=Install;70:button=Finish;80:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "ForsakenDemo.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\SETUP.EXE",
+        "phase": "installer",
+        "input": "12:keydown=0d;12.5:keyup=0d;20:keydown=0d;20.5:keyup=0d;28:keydown=0d;28.5:keyup=0d;36:keydown=0d;36.5:keyup=0d;44:keydown=0d;44.5:keyup=0d;52:keydown=0d;52.5:keyup=0d",
+        "seconds": 70
+      },
+      "expected_state": "Forsaken Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 42762069,
+      "renderer_status": "Fresh Unicorn run reaches a textured Direct3D scene and HUD after correcting hardware-voice capacity.",
+      "recipe_review": "Original FEX installation and 70-second Unicorn game run pass: 4851 presents, no audio buffer GetStatus null access. Hardware-voice and existing DirectSound tests pass on both CPUs. Historical validation retained in the working repository."
+    },
+    {
+      "id": "incoming",
+      "title": "Incoming Demo",
+      "renderer": "Direct3D 5",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/incoming_201401/incoming.exe",
+      "source_page": "https://archive.org/details/incoming_201401",
+      "filename": "incoming.exe",
+      "license": "proprietary Rage Games demo: readme.txt carries no redistribution grant, so a local ignored compatibility fixture only, never deploy or ship it",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "dcc55a269c33ea5363cd937284752d7ffe57f4774c55a38dfdd4a9172376563c",
+      "upstream_sha1": "c00f73f19088d50c8fb3690fc7a0fea503ea5f5f",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\incoming.exe",
+        "phase": "game"
+      },
+      "expected_state": "Incoming Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 3971633,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "expendable",
+      "title": "Expendable Demo",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/expendabledemo/expendabledemo.zip",
+      "source_page": "https://archive.org/details/expendabledemo",
+      "filename": "expendabledemo.zip",
+      "license": "proprietary Rage Games demo: the installer's licence dialog carries no text and the bundled manual (english/Maneng.doc) has the retail END USER LICENCE AGREEMENT, which forbids copying, electronic transfer and network use; no redistribution grant, so a local ignored compatibility fixture only, never deploy or ship it",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "a136f2f02181b8a67e998ec91a3a87efd3aa7414aaafe24097e9cdbb99f069c5",
+      "upstream_sha1": "fd8c182434fd0604f40c12c638fef3d45c408cba",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\SETUP.EXE",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:button=Next >;15:button=Yes;22:button=Yes;28:button=Next >;35:button=Next >;42:button=Next >;50:button=Install;70:button=Finish;80:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "go.exe",
+          "Expendable.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\SETUP.EXE",
+        "phase": "installer"
+      },
+      "expected_state": "Expendable Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 51392996,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Candidate based on original package and first-run evidence; scene verification pending."
+    },
+    {
+      "id": "nfs3",
+      "title": "Need for Speed III: Hot Pursuit Demo",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/need-for-speed-demo-coll-windows/nfs03demo.zip",
+      "source_page": "https://archive.org/details/need-for-speed-demo-coll-windows",
+      "filename": "nfs03demo.zip",
+      "license": "original EA playable demo; local compatibility fixture",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "f06e7a630f528d3f3b664fec37144f7a6f46cf0d8a1645e68b4943c7ada160c4",
+      "upstream_sha1": "c3f247d051cd347e2f0515d71d8e387f00a6f373",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\Setup\\english\\setup.exe",
+        "description": "Run the original setup, then use play to preserve its registry and original installation path.",
+        "required": true,
+        "via_explorer": true,
+        "discover_exe": [
+          "nfs3demo.exe"
+        ],
+        "seconds": 105,
+        "input": "15:button=Next >;25:button=Yes;35:button=Next >;45:button=Next >;60:button=No;70:button=OK;80:button=Finish;90:button=No",
+        "cdrom": true
+      },
+      "launch": {
+        "exe": "E:\\nfs3demo.exe",
+        "phase": "game",
+        "cdrom": true,
+        "input": "12:key=0d;22:key=0d;32:key=0d;42:key=0d",
+        "seconds": 60
+      },
+      "expected_state": "Need for Speed III: Hot Pursuit Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 17251623,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Host sweep 2026-10-30: private CD-ROM passes media check; installer helpers rejected for CreateProcess flag 0x800."
+    },
+    {
+      "id": "revolt",
+      "title": "Re-Volt Demo",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/Re-Volt/Re-voltDemo.zip",
+      "source_page": "https://archive.org/details/Re-Volt",
+      "filename": "Re-voltDemo.zip",
+      "license": "proprietary Acclaim promotional demo, NOT redistributable: its startup legal screen says it 'is intended for personal use only and may not be lent, copied, sold, published, duplicated onto CD, etc, without prior written approval from Acclaim'; local ignored compatibility fixture only, never deploy or ship it",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "4e0419d459ddc16f60958abc96c7ac5861da869634ff11f78f454d32e1e75cef",
+      "upstream_sha1": "19571c1f22345cd5b71b08f4ffa39366c3119186",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\SETUP.EXE",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "20:button=Next >;30:button=Yes;40:button=Next >;50:button=Next >;60:button=Next >;70:button=Next >;85:button=Finish;95:button=No;105:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "revolt.exe"
+        ],
+        "required": true,
+        "seconds": 120
+      },
+      "launch": {
+        "exe": "E:\\SETUP.EXE",
+        "phase": "installer",
+        "input": "12:keydown=0d;12.5:keyup=0d;22:keydown=0d;22.5:keyup=0d;32:keydown=0d;32.5:keyup=0d;42:keydown=0d;42.5:keyup=0d;52:keydown=0d;52.5:keyup=0d;62:keydown=0d;62.5:keyup=0d",
+        "seconds": 150
+      },
+      "expected_state": "Re-Volt Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 28760678,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Sweep 2026-10-31: heap and legacy blend-state fixes verified. Six held Enter presses reach a rendered race with track, vehicle and HUD; FEX 150-second run. Historical validation retained in the working repository."
+    },
+    {
+      "id": "rollcage",
+      "title": "Rollcage Demo",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/RollcageDemo/RollcageDemo.zip",
+      "source_page": "https://archive.org/details/RollcageDemo",
+      "filename": "RollcageDemo.zip",
+      "license": "proprietary Psygnosis promotional demo with NO licence or redistribution grant: README.TXT says only '(c) 1999 Psygnosis Ltd/Attention To Detail ... All rights reserved'; the InstallShield setup names a license.txt that is on neither the disc nor DATA1.CAB; local ignored compatibility fixture only, never deploy or ship it",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "3a864b5f34bc3e4300bcda22671b479ea36e7473a5650a5bc3ca0245bc1d6517",
+      "upstream_sha1": "3e95613233ac21d2543d999c5f86fb5d98ea8f45",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\DISK1\\ROLLCAGE\\DIRECT3D\\ROLLCAGE.EXE",
+        "phase": "game",
+        "input": "7:button=Play;16:key=0d;24:key=0d;32:key=0d",
+        "seconds": 50
+      },
+      "expected_state": "Rollcage Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 25918163,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Candidate based on original package and first-run evidence; scene verification pending."
+    },
+    {
+      "id": "rayman2",
+      "title": "Rayman 2: The Great Escape Demo",
+      "renderer": "Direct3D 6 / Glide",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/Rayman2TheGreatEscape/Rayman2Demo.zip",
+      "source_page": "https://archive.org/details/Rayman2TheGreatEscape",
+      "filename": "Rayman2Demo.zip",
+      "license": "proprietary Ubisoft demo: no redistribution grant in its Readme.txt or installer, so a local ignored compatibility fixture only, never deploy or ship it",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "14740f2bf8bd07435c5866bc757d789be31e8180d55423b013449f67874a987e",
+      "upstream_sha1": "b133d45c0b388c43e0466af2813f460895655f8c",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\SetupUbi.exe",
+        "description": "Run the original setup, then use play to preserve its registry and original installation path.",
+        "required": true,
+        "via_explorer": false,
+        "discover_exe": [
+          "Rayman2Demo.exe"
+        ],
+        "seconds": 110,
+        "input": "3:button=OK;10:button=BUTTON_INSTALL;20:button=Install;30:button=OK;40:button=OK;50:button=OK;65:tops=2;80:button=OK;95:button=Exit"
+      },
+      "launch": {
+        "exe": "E:\\Rayman2Demo.exe",
+        "phase": "game",
+        "input": "12:keydown=0d;12.5:keyup=0d;20:keydown=0d;20.5:keyup=0d;28:keydown=0d;28.5:keyup=0d;36:keydown=0d;36.5:keyup=0d;44:keydown=0d;44.5:keyup=0d;52:keydown=0d;52.5:keyup=0d",
+        "seconds": 70
+      },
+      "expected_state": "Rayman 2: The Great Escape Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 59378961,
+      "renderer_status": "Fresh Unicorn run reaches a textured landscape and Rayman scene with non-silent mixer output after the wave queue fix.",
+      "recipe_review": "Fresh original installation and 70-second game probe on fix-sweep-b: 3855 presents, no waveOutWrite rejection or DebugBreak. Targeted wave tests pass on FEX and Unicorn; Historical validation retained in the working repository."
+    },
+    {
+      "id": "midtown",
+      "title": "Midtown Madness Trial",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "source_url": "https://archive.org/download/MidtownMadness_1020/MMDemo.zip",
+      "source_page": "https://archive.org/details/MidtownMadness_1020",
+      "filename": "MMDemo.zip",
+      "license": "Microsoft trial EULA (EULA.RTF, shipped in the package): 'You may reproduce and distribute copies of the SOFTWARE PRODUCT; provided that a) each copy shall be a true and complete copy, including all copyright and trademark notices; b) each copy shall be accompanied by a copy of this EULA; and c) such distribution shall not be for commercial purposes.' Kept localOnly until a deployment decision is made",
+      "license_evidence": "https://github.com/vgrichina/berrry-wine/blob/98d132898c963790f797ef3d00c812964e413cab/test/candidate-corpus/manifest.json",
+      "distribution_conditions": "Local compatibility tests only. Original demo; redistribution not assumed. Explicitly requested in brief addendum.",
+      "sha256": "e79dffdd87cbcda67f38b018742ad3fdb2bd17f3cfe949601667837e27a7d804",
+      "upstream_sha1": "cea4d3346ab3635728ab32bd4029892bc12c8a09",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\MMDemo.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "8:button=Install;15:button=Accept;45:button=OK;90:button=No;100:button=Exit",
+        "via_explorer": true,
+        "discover_exe": [
+          "MIDTRIAL.EXE"
+        ],
+        "required": true,
+        "seconds": 110
+      },
+      "launch": {
+        "exe": "E:\\MMDemo.exe",
+        "phase": "installer",
+        "input": "15:key=1b;25:key=0d;35:key=0d;45:key=0d;55:key=0d;65:down=910,695;66:up=910,695;75:down=910,695;76:up=910,695;90:key=0d",
+        "seconds": 110
+      },
+      "expected_state": "Midtown Madness Trial title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 26984960,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Host sweep 2026-10-30: successful setup and Direct3D HAL race scene after held Go Drive click."
+    },
+    {
+      "id": "uplink",
+      "title": "Half-Life: Uplink",
+      "source_url": "https://archive.org/download/Half-lifeUplink/hluplink.exe",
+      "source_page": "https://archive.org/details/Half-lifeUplink",
+      "filename": "hluplink.exe",
+      "renderer": "Direct3D 6 / OpenGL / software",
+      "dimension": "3D",
+      "license": "commercial demo; keep as a local candidate fixture and review bundled terms before public deployment",
+      "license_evidence": "https://archive.org/details/Half-lifeUplink",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "9f236e9785980c127d46870a828ba4dac756308767ebd498b85bd7edff3305a8",
+      "upstream_sha1": "605e110670ca3d55b2093b7750d1d0138cbf1f4c",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "7:button=Next >;14:button=I Agree;20:button=Next >;26:button=Next >;32:button=Next >;70:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "hldemo.exe"
+        ],
+        "required": true,
+        "seconds": 90
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "installed_exe": "hldemo.exe",
+        "command": "\"C:\\SIERRA\\Half-LifeUplink\\hldemo.exe\" -console -window -sw +map hldemo1",
+        "seconds": 100,
+        "input": ""
+      },
+      "expected_state": "Half-Life: Uplink title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 50872079,
+      "renderer_status": "Validated sw.dll software renderer with DIB output: textured hldemo1 corridor and HUD.",
+      "recipe_review": "Host-validated original installation and -console -window -sw +map hldemo1 startup. Historical validation retained in the working repository."
+    },
+    {
+      "id": "heretic2",
+      "title": "Heretic II Demo",
+      "source_url": "https://archive.org/download/h2_demo_us/h2_demo_us.exe",
+      "source_page": "https://archive.org/details/h2_demo_us",
+      "filename": "h2_demo_us.exe",
+      "renderer": "OpenGL",
+      "dimension": "3D",
+      "license": "proprietary commercial demo; the bundled Activision licence (license.txt in _user1.cab) grants personal use of one copy and forbids distributing or copying it without Activision's written consent, so keep it a local ignored fixture and never deploy it",
+      "license_evidence": "https://archive.org/details/h2_demo_us",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "a7b29d478abfffc2221e2d713c2068d1e9f44292875db007160fefc7c0064307",
+      "upstream_sha1": "d6593f2a1a12e39edd92338f95566e9c360d0c4e",
+      "install": {
+        "method": "cab",
+        "exe": "E:\\SETUP.EXE",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "28:button=Next >;35:button=Yes;42:button=Next >;50:button=Next >;58:button=Next >;70:button=No;80:button=Next >;90:button=Next >;100:button=Next >;110:button=Next >;120:button=Finish;130:button=No;140:button=Finish;150:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "Heretic2.exe"
+        ],
+        "required": true,
+        "seconds": 160
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "seconds": 20,
+        "input": "",
+        "command": "\"C:\\Program Files\\Heretic II Demo\\Heretic2.exe\" +map demodocks"
+      },
+      "expected_state": "Heretic II Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 40079639,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Original Setup.exe from CAB completes after the contest and online-offer pages. ref_soft.dll renders the menu. The original quake2.dll rejects map startup outside its built-in time_t range 0x35649ff8..0x363c8deb, including the 2026 sweep date. No game or clock patch. Historical validation retained in the working repository."
+    },
+    {
+      "id": "hexen2",
+      "title": "Hexen II Demo",
+      "source_url": "https://archive.org/download/win-98-games-e-j.-7z/Win98_Games-E-J.7z/Hexen2%20demo-SW-OpenGL.exe",
+      "source_page": "https://archive.org/details/win-98-games-e-j.-7z",
+      "filename": "Hexen2%20demo-SW-OpenGL.exe",
+      "renderer": "OpenGL",
+      "dimension": "3D",
+      "license": "proprietary commercial demo; the bundled 'HEXEN II SUBLICENSE.doc' (Activision) grants personal use of one copy and forbids copying, distribution and reverse engineering, so keep it a local ignored fixture and never deploy it. The package is a collector's WinZip repack (with an installed Install/Hexen2 tree) served from inside the item's 7z; archive.org HexenII_1020 is mislabelled and holds the Heroes of Might and Magic II demo",
+      "license_evidence": "https://archive.org/details/win-98-games-e-j.-7z",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "b349824ba09ddf0e95ca8a0f1783640d745c560b67da20a9cc31d1e816e63ab8",
+      "upstream_sha1": "dcb5ab7c92352a8af4975151bd089354723d9417",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\Install\\Hexen2\\GLRoot\\glh2.exe",
+        "phase": "game",
+        "command": "glh2.exe -basedir E:\\Install\\Hexen2 -window +map demo1",
+        "seconds": 45,
+        "input": "5:button=OK;12:key=0d"
+      },
+      "expected_state": "Hexen II Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 15334912,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Host sweep 2026-10-30: textured demo1 scene and HUD via bundled OpenGL-to-Glide library."
+    },
+    {
+      "id": "shogo",
+      "title": "Shogo: Mobile Armor Division Demo",
+      "source_url": "https://archive.org/download/ShogoMobileArmorDivisionDemo/ShogoDemo.zip",
+      "source_page": "https://archive.org/details/ShogoMobileArmorDivisionDemo",
+      "filename": "ShogoDemo.zip",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "license": "proprietary Monolith promotional demo with NO licence or redistribution grant: Game/Readme.txt says only 'Copyright 1998 Monolith Productions, Inc.' for the PC Gamer Demo Version; local ignored compatibility fixture only, never deploy or ship it",
+      "license_evidence": "https://archive.org/details/ShogoMobileArmorDivisionDemo",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "3d03f881900081be1b5c45a95f9454b4226fc39e69ec9606c4865b685e548ca1",
+      "upstream_sha1": "f372ab1a822002107980e6648fe101d10c19fb19",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\Game\\ShogoDem.exe",
+        "phase": "game",
+        "input": "10:button=Play Demo;18:click=510,440;30:key=1b;38:key=0d;46:key=0d;58:key=0d;68:key=20;78:key=0d;88:key=20",
+        "seconds": 105,
+        "via_explorer": true
+      },
+      "expected_state": "Shogo: Mobile Armor Division Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 30823950,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
+      "recipe_review": "Host sweep 2026-10-30: Direct3D HAL city scene, weapon and HUD after Explorer launch and medium-detail selection."
+    },
+    {
+      "id": "3dmark99",
+      "title": "3dmark99 benchmark",
+      "source_url": "https://benchmarks.ul.com/downloads/3dmark99.exe",
+      "source_page": "https://benchmarks.ul.com/legacy-benchmarks",
+      "filename": "3dmark99.exe",
+      "renderer": "Direct3D 6",
+      "dimension": "3D",
+      "license": "Official legacy benchmark, unregistered/free mode",
+      "license_evidence": "https://benchmarks.ul.com/legacy-benchmarks",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "bee1ee6fa8737f2c3b991f992ea0712db3312cefafba271efd6a48ea846aa674",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\Setup.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "28:button=Next >;35:button=Yes;42:button=Next >;50:button=Next >;58:button=Next >;75:button=Purchase Later;85:button=Finish;95:button=No;100:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "3dmark.exe"
+        ],
+        "required": true,
+        "seconds": 110
+      },
+      "launch": {
+        "exe": "E:\\Setup.exe",
+        "phase": "installer",
+        "input": "25:key=0d;40:button=Benchmark",
+        "seconds": 85
+      },
+      "expected_state": "3dmark99 benchmark title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 18517151,
+      "renderer_status": "Validated Direct3D HAL benchmark scene with textured corridor, weapon and HUD.",
+      "recipe_review": "Host-validated installer including Purchase Later and Finish; Enter creates a new project, Benchmark starts the scene. Historical validation retained in the working repository."
+    },
+    {
+      "id": "3dmark2000",
+      "title": "3dmark2000 benchmark",
+      "source_url": "https://benchmarks.ul.com/downloads/3dmark2000.exe",
+      "source_page": "https://benchmarks.ul.com/legacy-benchmarks",
+      "filename": "3dmark2000.exe",
+      "renderer": "Direct3D 7",
+      "dimension": "3D",
+      "license": "Official legacy benchmark, unregistered/free mode",
+      "license_evidence": "https://benchmarks.ul.com/legacy-benchmarks",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "ddf2dd07f85b3b12803325840a77e78b254e758cdf0a86284ed2fa2b5dfef1e7",
+      "install": {
+        "method": "cab",
+        "exe": "E:\\Setup.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "28:button=Next >;35:button=Yes;42:button=Next >;50:button=Next >;58:button=Next >;80:button=Finish;90:button=OK;100:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "3dmark2000.exe"
+        ],
+        "required": true,
+        "seconds": 110
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "seconds": 80,
+        "input": "20:key=0d;35:button=Benchmark;45:button=OK"
+      },
+      "expected_state": "3dmark2000 benchmark title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 19950524,
+      "renderer_status": "Validated Direct3D HAL helicopter benchmark scene with terrain and HUD.",
+      "recipe_review": "Original Setup.exe from the validated CAB payload completes installation. Enter then Benchmark reaches the helicopter scene. Use a private reference clone without a pre-existing 3DMark2000 directory; Historical validation retained in the working repository."
+    },
+    {
+      "id": "3dmark2001",
+      "title": "3dmark2001 benchmark",
+      "source_url": "https://benchmarks.ul.com/downloads/3dmark2001.exe",
+      "source_page": "https://benchmarks.ul.com/legacy-benchmarks",
+      "filename": "3dmark2001.exe",
+      "renderer": "Direct3D 8",
+      "dimension": "3D",
+      "license": "Official legacy benchmark, unregistered/free mode",
+      "license_evidence": "https://benchmarks.ul.com/legacy-benchmarks",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "e34dfd32ef8fe8018a6f41f33fc3ab6dba45f2e90881688ac75a18b97dcd8813",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "12:button=OK;28:button=Next >;42:button=Next >;50:button=Yes;58:button=Next >;66:button=Next >;85:button=Purchase Later;100:button=Finish;110:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "3DMark2001SE.exe",
+          "3DMark2001.exe"
+        ],
+        "required": true,
+        "seconds": 120
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "input": "",
+        "seconds": 25
+      },
+      "expected_state": "3dmark2001 benchmark title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 41780867,
+      "renderer_status": "Hardware detection reaches the main window and lists the Direct3D 8 adapter; no benchmark scene verified.",
+      "recipe_review": "Fresh original installation and 60-second FEX startup reach the main window after the BIOS mapping fix. The BIOS regression passes on FEX and Unicorn against the original Win98 access contract. Benchmark was not started. Historical validation retained in the working repository."
+    },
+    {
+      "id": "3dmark03",
+      "title": "3dmark03 benchmark",
+      "source_url": "https://benchmarks.ul.com/downloads/3dmark03.exe",
+      "source_page": "https://benchmarks.ul.com/legacy-benchmarks",
+      "filename": "3dmark03.exe",
+      "renderer": "Direct3D 9",
+      "dimension": "3D",
+      "license": "Official legacy benchmark, unregistered/free mode",
+      "license_evidence": "https://benchmarks.ul.com/legacy-benchmarks",
+      "distribution_conditions": "Original package retained locally; no extracted payload redistribution, no keys or patches.",
+      "sha256": "86d7f73747944c553e47e6ab5a74138e8bbca07fab8216ae70a61ac7f9a1c468",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "7:button=Next >;10:button=Yes;12:button=I Agree;15:button=Next >;18:button=Next >;21:button=Next >;24:button=Next >;27:button=Install;30:button=Next >;35:button=Finish;40:button=OK;45:button=No;50:button=Finish;55:button=OK",
+        "via_explorer": true,
+        "discover_exe": [
+          "3DMark03.exe"
+        ],
+        "required": true,
+        "seconds": 95
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer"
+      },
+      "expected_state": "3dmark03 benchmark title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 190661344,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "maxpayne",
+      "title": "Max Payne demo",
+      "source_url": "https://www.classicdosgames.com/files/games/remedy/MaxPayneDemo.exe",
+      "source_page": "https://www.classicdosgames.com/game/Max_Payne.html",
+      "filename": "MaxPayneDemo.exe",
+      "renderer": "Direct3D 8",
+      "dimension": "3D",
+      "license": "Shareware demo",
+      "license_evidence": "https://www.classicdosgames.com/game/Max_Payne.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "19144c437cd30638b8ba5ff5e13b8ddcb49112afcb5fc1d3d1e0531191c10e78",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
+        "input": "12:button=OK;28:button=Next >;42:button=Yes;50:button=Next >;58:button=Next >;66:button=Next >;85:button=Finish;95:button=OK;105:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "MaxPayneDemo.exe"
+        ],
+        "required": true,
+        "seconds": 115
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "via_explorer": true,
+        "input": "15:button=Play;25:button=OK;35:key=1b;45:key=0d;55:key=0d",
+        "seconds": 80
+      },
+      "expected_state": "Max Payne demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 137163202,
+      "renderer_status": "Validated Direct3D 8 via Direct3D HAL: textured courtyard, Max, weapon and HUD.",
+      "recipe_review": "Host-validated original installation and Explorer launch of MaxPayneDemo.exe, Play then Escape/Enter reaches the courtyard. Historical validation retained in the working repository."
+    },
+    {
+      "id": "mdk",
+      "title": "MDK Windows demo",
+      "source_url": "https://www.classicdosgames.com/files/games/shiny/mdkzip95.exe",
+      "source_page": "https://www.classicdosgames.com/game/MDK.html",
+      "filename": "mdkzip95.exe",
+      "renderer": "DirectDraw software 3D",
+      "dimension": "3D",
+      "license": "Shareware demo",
+      "license_evidence": "https://www.classicdosgames.com/game/MDK.html",
+      "distribution_conditions": "Archive labels this package shareware/demo/freeware. Preserve original package and bundled terms. No blanket redistribution claim for extracted game files.",
+      "sha256": "e36144c34cb922ed3e5bbc783689be6001e305ae10487700b5f14b9771acbeb5",
+      "install": {
+        "method": "archive",
+        "exe": "E:\\_installer.exe",
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe.",
+        "required": false
+      },
+      "launch": {
+        "exe": "E:\\MDKDEM95.EXE",
+        "phase": "game"
+      },
+      "expected_state": "MDK intro followed by a rendered scene and HUD.",
+      "size_bytes": 7642438,
+      "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation."
+    },
+    {
+      "id": "quake",
+      "title": "WinQuake 1.0 + Quake 1.06 shareware",
+      "renderer": "DirectDraw / GDI software 3D",
+      "dimension": "3D",
+      "source_url": "https://www.gamers.org/pub/idgames/idstuff/quake/quake106.zip",
+      "source_page": "https://www.gamers.org/pub/idgames/idstuff/quake/",
+      "filename": "quake106.zip",
+      "license": "Original id Software shareware data + official WinQuake executable",
+      "license_evidence": "https://www.dosgamesarchive.com/download/quake/",
+      "distribution_conditions": "Preserve original shareware packages and license; no retail data.",
+      "sha256": "ec6c9d34b1ae0252ac0066045b6611a7919c2a0d78a3a66d9387a8f597553239",
+      "size_bytes": 9094045,
+      "install": {
+        "method": "archive",
+        "exe": "E:\\game\\WINQUAKE.EXE",
+        "nested": [
+          {
+            "source": "resource.1",
+            "target": "game"
+          }
+        ],
+        "required": false,
+        "description": "Prepare the original archive as data. The current launch recipe uses the unpacked executable; no guest installer is required by this recipe."
+      },
+      "launch": {
+        "exe": "E:\\game\\WINQUAKE.EXE",
+        "phase": "game",
+        "command": "WINQUAKE.EXE -dibonly -window -nosound +map start"
+      },
+      "expected_state": "WinQuake start map, weapon and HUD via -dibonly; no MGL error.",
+      "extra_assets": [
+        {
+          "id": "quake-engine",
+          "filename": "wq100.zip",
+          "source_url": "https://www.gamers.org/pub/idgames/idstuff/quake/wq100.zip",
+          "sha256": "5c8809247c65d627608a71bed3b1ca9ecabe06843051ba2c75b6753dba698944",
+          "size_bytes": 344416,
+          "staging": "engine",
+          "merge_into": "game"
+        }
+      ]
+    },
+    {
+      "id": "giants",
+      "title": "Giants: Citizen Kabuto Demo",
+      "source_url": "https://archive.org/download/giantsreaperdemoinstall/giantsreaperdemoinstall.exe",
+      "source_page": "https://archive.org/details/giantsreaperdemoinstall",
+      "filename": "giantsreaperdemoinstall.exe",
+      "renderer": "Direct3D 7",
+      "dimension": "3D",
+      "license": "Interplay/Planet Moon limited licence (license.txt, installed with the game): personal noncommercial home use only; may not be copied or distributed. Kept localOnly; not a deployment input. Investigate with API traces only.",
+      "license_evidence": "https://archive.org/details/giantsreaperdemoinstall",
+      "distribution_conditions": "Local original demo only; no redistribution.",
+      "sha256": "79d79803eef53ecf833f4915c116ac6c110c0c80ef3f45a60ffde4b772f5bf27",
+      "upstream_sha1": "9647ca577cb3db8e69e2717a129389cdf032fc76",
+      "install": {
+        "method": "guest",
+        "exe": "E:\\_installer.exe",
+        "input": "12:button=OK;28:button=Next >;42:button=Yes;50:button=Next >;58:button=Next >;66:button=Next >;85:button=Finish;95:button=OK;105:button=Finish",
+        "via_explorer": true,
+        "discover_exe": [
+          "GiantsReaperDemo.exe"
+        ],
+        "required": true,
+        "seconds": 115
+      },
+      "launch": {
+        "exe": "E:\\_installer.exe",
+        "phase": "installer",
+        "via_explorer": true,
+        "input": "15:key=1b;25:key=1b;35:key=0d;45:key=0d;55:key=0d;60:type=NEO98;65:key=0d;75:key=0d;85:key=0d;95:key=0d;105:key=20",
+        "seconds": 210
+      },
+      "expected_state": "Giants: Citizen Kabuto Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
+      "size_bytes": 105849143,
+      "renderer_status": "D3D7 candidate; scene not yet validated",
+      "recipe_review": "Host-validated fresh original installation, NEO98 player profile and mission scene with character, HUD and objective overlay after 210 seconds. Direct3D HAL confirmed by API traces only. Historical validation retained in the working repository."
+    }
+  ],
+  "coverage_candidates": {
+    "GDI": [
+      "skifree",
+      "nethack",
+      "fulltilt"
+    ],
+    "DirectDraw": [
+      "diablo",
+      "jazz2",
+      "blobby",
+      "icytower"
+    ],
+    "Direct3D 5": [
+      "tombraider2",
+      "mtm2",
+      "forsaken",
+      "incoming"
+    ],
+    "Direct3D 6": [
+      "nfs3",
+      "revolt",
+      "rollcage",
+      "roguesquadron",
+      "3dmark99"
+    ],
+    "Direct3D 7": [
+      "3dmark2000",
+      "giants"
+    ],
+    "Direct3D 8": [
+      "duke-manhattan",
+      "maxpayne",
+      "3dmark2001"
+    ],
+    "Direct3D 9": [
+      "halo",
+      "3dmark03"
+    ],
+    "OpenGL": [
+      "quake2",
+      "quake3",
+      "heretic2",
+      "hexen2"
+    ],
+    "Glide": [
+      "nfs2se",
+      "turok",
+      "ut",
+      "descent3"
+    ]
+  },
+  "coverage_note": "Candidate renderers, not successful runtime coverage. Installer/startup failures and first-time device selection are recorded separately in the report.",
+  "excluded_candidates": [
+    {
+      "title": "Standalone Unreal demo",
+      "reason": "Only OEM Special Edition found in the inspected source; public redistributable standalone package not established. UT demo included."
+    },
+    {
+      "title": "Microsoft Rodent\u2019s Revenge / Plus! Marbles",
+      "reason": "Commercial Windows/Plus! payloads without a free redistribution grant; not downloaded."
+    },
+    {
+      "title": "GLQuake / Heretic II / further addendum titles",
+      "reason": "Heretic II is included. WinQuake uses the official Windows executable with original shareware data. GLQuake and remaining optional titles deferred; OpenGL already has multiple candidates."
+    }
+  ]
+}

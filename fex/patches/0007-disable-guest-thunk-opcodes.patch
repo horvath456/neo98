@@ -1,0 +1,40 @@
+--- a/FEXCore/Source/Interface/Core/X86Tables/SecondaryTables.cpp
++++ b/FEXCore/Source/Interface/Core/X86Tables/SecondaryTables.cpp
+@@ -296,15 +296,10 @@
+     {0xFE, 1, X86InstInfo{"PADDD",    TYPE_INST, GenFlagsSameSize(SIZE_64BIT) | FLAGS_MODRM | FLAGS_XMM_FLAGS | FLAGS_SF_MMX,                                      0}},
+     {0xFF, 1, X86InstInfo{"UD0",      TYPE_INST, FLAGS_BLOCK_END,                                                                                           0}},
+ 
+-#ifndef _WIN32
+-    // FEX reserved instructions
+-    // Unused x86 encoding instruction.
+-
+-    {0x3E, 1, X86InstInfo{"CALLBACKRET",  TYPE_INST, FLAGS_BLOCK_END | FLAGS_NO_OVERLAY | FLAGS_SETS_RIP,                                                                          0}},
+-
+-    // This was originally used by VIA to jump to its alternative instruction set. Used for OP_THUNK
+-    {0x3F, 1, X86InstInfo{"ALTINST",      TYPE_INST, FLAGS_BLOCK_END | FLAGS_NO_OVERLAY | FLAGS_SETS_RIP,                                                            sizeof(IR::SHA256Sum)}},
+-#endif
++  // NEO98 never exposes FEX's Linux thunk/callback escape opcodes to guests.
++  // CPU-Z probes VIA ALTINST (0F 3F) under SEH. It must raise guest #UD,
++  // not read a thunk hash through an unrelocated guest PC.
++  // Leave both 0F 3E and 0F 3F undefined, including their decode lengths.
+   };
+ 
+   GenerateTable(Table.data(), TwoByteOpTable, std::size(TwoByteOpTable));
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher/SecondaryTables.h
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher/SecondaryTables.h
+@@ -142,11 +142,10 @@
+   {0xFD, 1, &OpDispatchBuilder::Bind<&OpDispatchBuilder::VectorALUOp, IR::OP_VADD, OpSize::i16Bit>},
+   {0xFE, 1, &OpDispatchBuilder::Bind<&OpDispatchBuilder::VectorALUOp, IR::OP_VADD, OpSize::i32Bit>},
+ 
+-#ifndef _WIN32
+-  // FEX reserved instructions
+-  {0x3E, 1, &OpDispatchBuilder::CallbackReturnOp},
+-  {0x3F, 1, &OpDispatchBuilder::ThunkOp},
+-#endif
++  // NEO98 never exposes FEX's Linux thunk/callback escape opcodes to guests.
++  // CPU-Z probes VIA ALTINST (0F 3F) under SEH. It must raise guest #UD,
++  // not read a thunk hash through an unrelocated guest PC.
++  // Leave both 0F 3E and 0F 3F undefined, including their decode lengths.
+ };
+ 
+ constexpr DispatchTableEntry OpDispatch_SecondaryRepModTables[] = {

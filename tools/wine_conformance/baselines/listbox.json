@@ -1,0 +1,747 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "user32_listbox": {
+      "advisory": {
+        "listbox.c:587": {
+          "FAIL": 1
+        },
+        "listbox.c:591": {
+          "FAIL": 1
+        },
+        "listbox.c:642": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "listbox.c:1062": {
+          "PASS": 1
+        },
+        "listbox.c:1089": {
+          "PASS": 1
+        },
+        "listbox.c:1092": {
+          "PASS": 1
+        },
+        "listbox.c:1098": {
+          "PASS": 1
+        },
+        "listbox.c:1102": {
+          "PASS": 1
+        },
+        "listbox.c:1110": {
+          "PASS": 1
+        },
+        "listbox.c:1118": {
+          "PASS": 1
+        },
+        "listbox.c:1121": {
+          "PASS": 1
+        },
+        "listbox.c:1127": {
+          "PASS": 1
+        },
+        "listbox.c:1134": {
+          "PASS": 1
+        },
+        "listbox.c:1145": {
+          "PASS": 2
+        },
+        "listbox.c:1155": {
+          "PASS": 1
+        },
+        "listbox.c:1158": {
+          "PASS": 1
+        },
+        "listbox.c:1164": {
+          "PASS": 1
+        },
+        "listbox.c:1172": {
+          "PASS": 1
+        },
+        "listbox.c:1180": {
+          "PASS": 1
+        },
+        "listbox.c:1190": {
+          "PASS": 3
+        },
+        "listbox.c:1191": {
+          "PASS": 3
+        },
+        "listbox.c:1192": {
+          "PASS": 3
+        },
+        "listbox.c:1204": {
+          "PASS": 1
+        },
+        "listbox.c:1207": {
+          "PASS": 1
+        },
+        "listbox.c:1214": {
+          "PASS": 1
+        },
+        "listbox.c:1221": {
+          "PASS": 1
+        },
+        "listbox.c:1235": {
+          "PASS": 3
+        },
+        "listbox.c:1237": {
+          "PASS": 2
+        },
+        "listbox.c:1248": {
+          "PASS": 1
+        },
+        "listbox.c:1251": {
+          "PASS": 1
+        },
+        "listbox.c:1261": {
+          "PASS": 1
+        },
+        "listbox.c:1265": {
+          "PASS": 1
+        },
+        "listbox.c:1271": {
+          "PASS": 1
+        },
+        "listbox.c:1278": {
+          "PASS": 1
+        },
+        "listbox.c:1281": {
+          "PASS": 1
+        },
+        "listbox.c:1288": {
+          "PASS": 1
+        },
+        "listbox.c:1292": {
+          "PASS": 1
+        },
+        "listbox.c:1302": {
+          "PASS": 3
+        },
+        "listbox.c:1304": {
+          "PASS": 1
+        },
+        "listbox.c:1312": {
+          "PASS": 1
+        },
+        "listbox.c:1315": {
+          "PASS": 1
+        },
+        "listbox.c:1323": {
+          "PASS": 1
+        },
+        "listbox.c:1329": {
+          "PASS": 1
+        },
+        "listbox.c:1332": {
+          "PASS": 1
+        },
+        "listbox.c:1346": {
+          "PASS": 4
+        },
+        "listbox.c:1351": {
+          "PASS": 3
+        },
+        "listbox.c:1354": {
+          "PASS": 3
+        },
+        "listbox.c:1357": {
+          "PASS": 3
+        },
+        "listbox.c:1363": {
+          "PASS": 1
+        },
+        "listbox.c:1366": {
+          "PASS": 1
+        },
+        "listbox.c:1370": {
+          "PASS": 1
+        },
+        "listbox.c:1375": {
+          "PASS": 1
+        },
+        "listbox.c:1407": {
+          "PASS": 2
+        },
+        "listbox.c:1424": {
+          "PASS": 1
+        },
+        "listbox.c:1427": {
+          "PASS": 1
+        },
+        "listbox.c:1431": {
+          "PASS": 1
+        },
+        "listbox.c:1436": {
+          "PASS": 1
+        },
+        "listbox.c:1441": {
+          "PASS": 1
+        },
+        "listbox.c:1444": {
+          "PASS": 1
+        },
+        "listbox.c:1451": {
+          "PASS": 1
+        },
+        "listbox.c:147": {
+          "PASS": 32
+        },
+        "listbox.c:153": {
+          "PASS": 32
+        },
+        "listbox.c:158": {
+          "PASS": 32
+        },
+        "listbox.c:165": {
+          "PASS": 32
+        },
+        "listbox.c:175": {
+          "PASS": 32
+        },
+        "listbox.c:193": {
+          "PASS": 8
+        },
+        "listbox.c:195": {
+          "PASS": 8
+        },
+        "listbox.c:197": {
+          "PASS": 8
+        },
+        "listbox.c:199": {
+          "PASS": 8
+        },
+        "listbox.c:214": {
+          "PASS": 1
+        },
+        "listbox.c:215": {
+          "PASS": 1
+        },
+        "listbox.c:216": {
+          "PASS": 1
+        },
+        "listbox.c:219": {
+          "PASS": 1
+        },
+        "listbox.c:222": {
+          "PASS": 1
+        },
+        "listbox.c:229": {
+          "PASS": 1
+        },
+        "listbox.c:231": {
+          "PASS": 1
+        },
+        "listbox.c:233": {
+          "PASS": 1
+        },
+        "listbox.c:248": {
+          "PASS": 4
+        },
+        "listbox.c:250": {
+          "PASS": 4
+        },
+        "listbox.c:257": {
+          "PASS": 4
+        },
+        "listbox.c:265": {
+          "PASS": 4
+        },
+        "listbox.c:316": {
+          "PASS": 1
+        },
+        "listbox.c:320": {
+          "PASS": 1
+        },
+        "listbox.c:321": {
+          "PASS": 1
+        },
+        "listbox.c:349": {
+          "PASS": 4
+        },
+        "listbox.c:352": {
+          "PASS": 1
+        },
+        "listbox.c:354": {
+          "PASS": 4
+        },
+        "listbox.c:358": {
+          "PASS": 4
+        },
+        "listbox.c:361": {
+          "PASS": 1
+        },
+        "listbox.c:363": {
+          "PASS": 4
+        },
+        "listbox.c:367": {
+          "PASS": 4
+        },
+        "listbox.c:370": {
+          "PASS": 1
+        },
+        "listbox.c:372": {
+          "PASS": 4
+        },
+        "listbox.c:376": {
+          "PASS": 4
+        },
+        "listbox.c:379": {
+          "PASS": 1
+        },
+        "listbox.c:381": {
+          "PASS": 4
+        },
+        "listbox.c:385": {
+          "PASS": 4
+        },
+        "listbox.c:388": {
+          "PASS": 1
+        },
+        "listbox.c:390": {
+          "PASS": 4
+        },
+        "listbox.c:394": {
+          "PASS": 4
+        },
+        "listbox.c:397": {
+          "PASS": 1
+        },
+        "listbox.c:399": {
+          "PASS": 4
+        },
+        "listbox.c:403": {
+          "PASS": 4
+        },
+        "listbox.c:406": {
+          "PASS": 1
+        },
+        "listbox.c:408": {
+          "PASS": 4
+        },
+        "listbox.c:420": {
+          "PASS": 1
+        },
+        "listbox.c:423": {
+          "PASS": 1
+        },
+        "listbox.c:426": {
+          "PASS": 1
+        },
+        "listbox.c:429": {
+          "PASS": 1
+        },
+        "listbox.c:432": {
+          "PASS": 1
+        },
+        "listbox.c:435": {
+          "PASS": 1
+        },
+        "listbox.c:438": {
+          "PASS": 1
+        },
+        "listbox.c:441": {
+          "PASS": 1
+        },
+        "listbox.c:444": {
+          "PASS": 1
+        },
+        "listbox.c:447": {
+          "PASS": 1
+        },
+        "listbox.c:466": {
+          "PASS": 1
+        },
+        "listbox.c:469": {
+          "PASS": 1
+        },
+        "listbox.c:472": {
+          "PASS": 1
+        },
+        "listbox.c:475": {
+          "PASS": 1
+        },
+        "listbox.c:477": {
+          "PASS": 1
+        },
+        "listbox.c:480": {
+          "PASS": 1
+        },
+        "listbox.c:483": {
+          "PASS": 1
+        },
+        "listbox.c:487": {
+          "PASS": 1
+        },
+        "listbox.c:489": {
+          "PASS": 1
+        },
+        "listbox.c:492": {
+          "PASS": 1
+        },
+        "listbox.c:494": {
+          "PASS": 1
+        },
+        "listbox.c:496": {
+          "PASS": 1
+        },
+        "listbox.c:498": {
+          "PASS": 1
+        },
+        "listbox.c:500": {
+          "PASS": 1
+        },
+        "listbox.c:502": {
+          "PASS": 1
+        },
+        "listbox.c:509": {
+          "PASS": 1
+        },
+        "listbox.c:512": {
+          "PASS": 1
+        },
+        "listbox.c:514": {
+          "PASS": 1
+        },
+        "listbox.c:517": {
+          "PASS": 1
+        },
+        "listbox.c:520": {
+          "PASS": 1
+        },
+        "listbox.c:523": {
+          "PASS": 1
+        },
+        "listbox.c:526": {
+          "PASS": 1
+        },
+        "listbox.c:529": {
+          "PASS": 1
+        },
+        "listbox.c:541": {
+          "PASS": 1
+        },
+        "listbox.c:544": {
+          "PASS": 1
+        },
+        "listbox.c:547": {
+          "PASS": 1
+        },
+        "listbox.c:550": {
+          "PASS": 1
+        },
+        "listbox.c:569": {
+          "PASS": 1
+        },
+        "listbox.c:593": {
+          "PASS": 1
+        },
+        "listbox.c:601": {
+          "PASS": 1
+        },
+        "listbox.c:605": {
+          "PASS": 1
+        },
+        "listbox.c:614": {
+          "PASS": 1
+        },
+        "listbox.c:617": {
+          "PASS": 1
+        },
+        "listbox.c:622": {
+          "PASS": 1
+        },
+        "listbox.c:624": {
+          "PASS": 1
+        },
+        "listbox.c:633": {
+          "PASS": 1
+        },
+        "listbox.c:648": {
+          "PASS": 1
+        },
+        "listbox.c:651": {
+          "PASS": 1
+        },
+        "listbox.c:659": {
+          "PASS": 1
+        },
+        "listbox.c:663": {
+          "PASS": 1
+        },
+        "listbox.c:670": {
+          "PASS": 1
+        },
+        "listbox.c:676": {
+          "PASS": 1
+        },
+        "listbox.c:679": {
+          "PASS": 1
+        },
+        "listbox.c:688": {
+          "PASS": 1
+        },
+        "listbox.c:699": {
+          "PASS": 1
+        },
+        "listbox.c:707": {
+          "PASS": 1
+        },
+        "listbox.c:711": {
+          "PASS": 1
+        },
+        "listbox.c:718": {
+          "PASS": 3
+        },
+        "listbox.c:719": {
+          "PASS": 3
+        },
+        "listbox.c:720": {
+          "PASS": 3
+        },
+        "listbox.c:732": {
+          "PASS": 1
+        },
+        "listbox.c:736": {
+          "PASS": 1
+        },
+        "listbox.c:746": {
+          "PASS": 1
+        },
+        "listbox.c:754": {
+          "PASS": 1
+        },
+        "listbox.c:757": {
+          "PASS": 1
+        },
+        "listbox.c:763": {
+          "PASS": 1
+        },
+        "listbox.c:767": {
+          "PASS": 1
+        },
+        "listbox.c:774": {
+          "PASS": 1
+        },
+        "listbox.c:782": {
+          "PASS": 1
+        },
+        "listbox.c:785": {
+          "PASS": 1
+        },
+        "listbox.c:794": {
+          "PASS": 3
+        },
+        "listbox.c:795": {
+          "PASS": 3
+        },
+        "listbox.c:797": {
+          "PASS": 1
+        },
+        "listbox.c:809": {
+          "PASS": 1
+        },
+        "listbox.c:815": {
+          "PASS": 1
+        },
+        "listbox.c:818": {
+          "PASS": 1
+        },
+        "listbox.c:830": {
+          "PASS": 3
+        },
+        "listbox.c:838": {
+          "PASS": 1
+        },
+        "listbox.c:842": {
+          "PASS": 1
+        },
+        "listbox.c:850": {
+          "PASS": 1
+        },
+        "listbox.c:856": {
+          "PASS": 1
+        },
+        "listbox.c:859": {
+          "PASS": 1
+        },
+        "listbox.c:871": {
+          "PASS": 3
+        },
+        "listbox.c:873": {
+          "PASS": 1
+        },
+        "listbox.c:884": {
+          "PASS": 1
+        },
+        "listbox.c:888": {
+          "PASS": 1
+        },
+        "listbox.c:891": {
+          "PASS": 1
+        },
+        "listbox.c:895": {
+          "PASS": 1
+        },
+        "listbox.c:901": {
+          "PASS": 1
+        },
+        "listbox.c:905": {
+          "PASS": 1
+        },
+        "listbox.c:912": {
+          "PASS": 1
+        },
+        "listbox.c:916": {
+          "PASS": 1
+        },
+        "listbox.c:924": {
+          "PASS": 1
+        },
+        "listbox.c:928": {
+          "PASS": 1
+        },
+        "listbox.c:931": {
+          "PASS": 1
+        },
+        "listbox.c:939": {
+          "PASS": 3
+        },
+        "listbox.c:941": {
+          "PASS": 1
+        },
+        "listbox.c:949": {
+          "PASS": 1
+        },
+        "listbox.c:953": {
+          "PASS": 1
+        },
+        "listbox.c:959": {
+          "PASS": 1
+        },
+        "listbox.c:963": {
+          "PASS": 1
+        },
+        "listbox.c:966": {
+          "PASS": 1
+        },
+        "listbox.c:973": {
+          "PASS": 3
+        },
+        "listbox.c:974": {
+          "PASS": 3
+        }
+      },
+      "sha256": "93949148a3dea9196318e0b794612e4cb167b6ca149312ad3e7e2eac5fe533e8",
+      "skips": {},
+      "variable_counts": {
+        "listbox.c:1190": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:1191": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:1192": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:1235": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:1302": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:1351": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:1354": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:1357": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:718": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:719": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:720": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:794": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:795": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:830": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:871": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:939": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:973": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached.",
+        "listbox.c:974": "One assertion per enumerated drive, or per drive selected by DlgDirSelectEx. The reference exposes A:, C:, D:; this NEO98 fixture exposes C: and D:. All observed checks must pass and the site must be reached."
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "aa1cd85518f5e9cbfd252fcd64b5e1c970e12029d105dd82f3f91f313272f57c",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "9aeb6ef66dccd1987df0d037dc44542ac43ceb7199993c31fe075bf3b0522235",
+  "variable_counts_sha256": "fa1eef3715ef341c59a96ae8b75a58800d9df9f1e59e6f151ad6ff568d2079a2",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

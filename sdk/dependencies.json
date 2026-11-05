@@ -1,0 +1,60 @@
+{
+  "musl-math": {
+    "version": "musl 1.2.5",
+    "url": "https://musl.libc.org/releases/musl-1.2.5.tar.gz",
+    "sha256": "a9a118bbe84d8764da0ea0d28b3ab3fae8477fc7e4085d90102b8596fc7c75e4",
+    "license": "MIT (COPYRIGHT; the math sources carry the permissive notices of FreeBSD msun/Sun Microsystems and of the ARM Optimized Routines)",
+    "use": "<math.h> and the algorithms of the static C runtime of ARM64 applications (sdk/crt): the stream layer and the printf and scanf families, number conversion, strings, wide and multibyte characters, character classes, dates as text, sorting, the allocator (mallocng) and its locks; linked into programs built with the SDK, never into the host",
+    "selection": 6
+  },
+  "pl_mpeg": {
+    "version": "pl_mpeg c871f2be (2025-12-30)",
+    "url": "https://github.com/phoboslab/pl_mpeg/archive/c871f2be022ece7ef4f64230b4fb8e1fb9eb6023.tar.gz",
+    "sha256": "7caee5a96118afde256146556f3f207b41d85b8c4f55fa5fb6b4759b06470fd1",
+    "license": "MIT (SPDX-License-Identifier in pl_mpeg.h and the statement in README.md; upstream ships no separate licence file)",
+    "use": "MPEG-1 video and MP2 audio decoder of the sample player sdk/samples/player; linked into that program, never into the host"
+  },
+  "libcxx": {
+    "version": "libc++ 21.1.8 (LLVM release llvmorg-21.1.8)",
+    "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/libcxx-21.1.8.src.tar.xz",
+    "sha256": "6422a58a5c29b7f4fda224cfdc07842be8a208a61301bbba7a219116e3351809",
+    "license": "Apache-2.0 WITH LLVM-exception (LICENSE.TXT)",
+    "use": "the C++ standard library of ARM64 applications; headers and sources, built into cxx.lib by tools/arm64_sdk.py and linked statically into programs built with the SDK, never into the host"
+  },
+  "libcxxabi": {
+    "version": "libc++abi 21.1.8 (LLVM release llvmorg-21.1.8)",
+    "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/libcxxabi-21.1.8.src.tar.xz",
+    "sha256": "709c9a63bde1e36a80d8675becc38073b85f0fa1b4111e34542b885c9e1239da",
+    "license": "Apache-2.0 WITH LLVM-exception (LICENSE.TXT)",
+    "use": "the C++ ABI runtime of ARM64 applications (exceptions, RTTI, guards, operator new); part of cxx.lib"
+  },
+  "libunwind": {
+    "version": "libunwind 21.1.8 (LLVM release llvmorg-21.1.8)",
+    "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/libunwind-21.1.8.src.tar.xz",
+    "sha256": "03e8adc6c3bdde657dcaedc94886ea70d1f7d551d622fcd8a36a8300e5c36cbc",
+    "license": "Apache-2.0 WITH LLVM-exception (LICENSE.TXT)",
+    "use": "the unwinder interface of the C++ ABI over the exception handling of Windows (RaiseException, RtlUnwindEx); part of cxx.lib"
+  },
+  "llvm-libc": {
+    "version": "LLVM libc 21.1.8, the headers libc++ builds std::from_chars for floating point with (llvmorg-21.1.8)",
+    "base": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-21.1.8/libc/",
+    "files": "llvm-libc-files.json",
+    "license": "Apache-2.0 WITH LLVM-exception (LICENSE.TXT)",
+    "use": "headers only, included by one source of libc++ (charconv.cpp); LLVM releases them only inside the whole source archive, so each file is pinned by its own SHA-256 in sdk/llvm-libc-files.json"
+  },
+  "tzdata": {
+    "selection": 2,
+    "version": "IANA tzdata 2025b",
+    "url": "https://data.iana.org/time-zones/releases/tzdata2025b.tar.gz",
+    "sha256": "11810413345fc7805017e27ea9fa4885fd74cd61b2911711ad038f5d28d71474",
+    "license": "public domain (LICENSE)",
+    "use": "IANA text data for libc++ chrono; install build/sdk/share/tzdata in C:\\WINDOWS\\TZDATA or set NEO98_TZDIR"
+  },
+  "compiler-rt": {
+    "version": "compiler-rt 21.1.8 (llvmorg-21.1.8)",
+    "base": "https://raw.githubusercontent.com/llvm/llvm-project/llvmorg-21.1.8/compiler-rt/",
+    "files": "compiler-rt-files.json",
+    "license": "Apache-2.0 WITH LLVM-exception (LICENSE.TXT)",
+    "use": "128-bit division compiler helpers required by libc++ filesystem clocks; built unchanged into cxx.lib"
+  }
+}

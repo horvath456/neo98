@@ -1,0 +1,758 @@
+[
+  {
+    "header": "build/generated/win98_message_table.h",
+    "symbol": "Data",
+    "bytes": 54264,
+    "sha256": "f50b8703fa4e21aebb507a619e2406f3b94c855aa158fd1865c061b30efcf874"
+  },
+  {
+    "header": "build/generated/nls_tables.h",
+    "symbol": "OriginalCodePage1252",
+    "bytes": 9866,
+    "sha256": "6ac031ebf6b0acb242f1791035614b691ecba93360ebb3ec2bed464379771470"
+  },
+  {
+    "header": "build/generated/nls_tables.h",
+    "symbol": "OriginalCodePage437",
+    "bytes": 8648,
+    "sha256": "2d2b49b58bfc5749df1ffa1c4c9c4069b0899d7e7d553899e5fcd3e539e3d56c"
+  },
+  {
+    "header": "build/generated/nls_tables.h",
+    "symbol": "OriginalCodePage850",
+    "bytes": 8648,
+    "sha256": "363c814a0740fb4e09d990811cabadc2d9eb2a48c8b806cdd1cc0433b366f911"
+  },
+  {
+    "header": "build/generated/nls_tables.h",
+    "symbol": "OriginalCodePage866",
+    "bytes": 7496,
+    "sha256": "1308b19b2405fd3d48db528fca343f2215732f5057b6e1f2917b5d29856ec90f"
+  },
+  {
+    "header": "build/generated/nls_unicode.h",
+    "symbol": "OriginalUnicodeComposition",
+    "bytes": 34676,
+    "sha256": "3d8d27915d9e0d7d9e5ae9fe31038239818f57a48471a933d4c5fc86d8c3492d"
+  },
+  {
+    "header": "build/generated/user_resources.h",
+    "symbol": "DefaultIcon10",
+    "bytes": 400,
+    "sha256": "2900a5e5527c80958f31d7c73e68864b69b6c3a1b568c9de429065f169c2b55c"
+  },
+  {
+    "header": "build/generated/user_resources.h",
+    "symbol": "DefaultIcon12",
+    "bytes": 576,
+    "sha256": "68725a196920ce592f17a51b9a81b7810761a31c961a891bfc5c41ee9b150525"
+  },
+  {
+    "header": "build/generated/user_resources.h",
+    "symbol": "DefaultIcon14",
+    "bytes": 784,
+    "sha256": "e7417ef7436dc8737fc0050dc336137e70dde780e357ffe06cdcfd90b2dd1c04"
+  },
+  {
+    "header": "build/generated/user_resources.h",
+    "symbol": "DefaultIcon16",
+    "bytes": 1024,
+    "sha256": "3b02bd0f1cd3a3a202f5b51febe8ce27c3eac894e1a48b61dfca5f2357d98f10"
+  },
+  {
+    "header": "build/generated/user_resources.h",
+    "symbol": "DefaultIcon22",
+    "bytes": 1936,
+    "sha256": "9a00a1b094c027e1adfb1ac08d8147a35fc04b29dc26c60f53e877b299e11b03"
+  },
+  {
+    "header": "build/generated/user_resources.h",
+    "symbol": "DefaultIcon32",
+    "bytes": 4096,
+    "sha256": "39bb5a5b97b34bed347ea80d9ef6cb9b59f419c431693c2958e2caa09b7382d6"
+  },
+  {
+    "header": "build/generated/user_resources.h",
+    "symbol": "StripCalls",
+    "bytes": 364,
+    "sha256": "9d286b16bab65bbda0c969522e86b834b19a0a99eaa0fc2eb5ccaad5a573214e"
+  },
+  {
+    "header": "build/generated/user_menus.h",
+    "symbol": "OriginalSystemMenu1",
+    "bytes": 150,
+    "sha256": "9686da48e719b020bcd29ce1dd0c2b05698e000b5347b13e2a1bbafe76ce0bc0"
+  },
+  {
+    "header": "build/generated/user_menus.h",
+    "symbol": "OriginalSystemMenu2",
+    "bytes": 190,
+    "sha256": "ba3945d5d37ef7bb2e9cc7a4778a93b3a222c3b2ee563ba912d4cb6a149fd278"
+  },
+  {
+    "header": "build/generated/atom_upper.h",
+    "symbol": "OriginalAtomUpper",
+    "bytes": 128,
+    "sha256": "005a24b81c4cb870cdb1b03eacb8e0314a87df8fdbcf16a7a0c8449448296dba"
+  },
+  {
+    "header": "build/generated/font_charset_info.h",
+    "symbol": "OriginalGdiCharsetInfo",
+    "bytes": 168,
+    "sha256": "8fa082a2c129813190aeda850154c02f385e950997dea22188941e7d19494421"
+  },
+  {
+    "header": "build/generated/font_charset_tables.h",
+    "symbol": "OriginalGdiAnsiCharset",
+    "bytes": 512,
+    "sha256": "63096e305a036596f2d28ea0a0056ce85b0af42531e499be95e34a7c4d6d12e9"
+  },
+  {
+    "header": "build/generated/computer_name_tables.h",
+    "symbol": "OriginalComputerAnsiHigh",
+    "bytes": 128,
+    "sha256": "3f1898b675cbd053d7421bfc2d6693d6de0668357ba5e19f01a2ffa3dbcd7a65"
+  },
+  {
+    "header": "build/generated/computer_name_tables.h",
+    "symbol": "OriginalComputerOemBytes",
+    "bytes": 160,
+    "sha256": "dc87bd9d5cfa93996faaf7ce4bf050d035d38a0581a832406d7c9aa47f9b9006"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes0",
+    "bytes": 32,
+    "sha256": "c9b145e0a775807b7b1c9251601189cc9e36a504a6c0c0562b8c7e3bbe19b6ff"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes1",
+    "bytes": 32,
+    "sha256": "e2d0676c42cde7573aad603af2e05b78df716fbcc35a341c3c750d21b6e46f34"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes2",
+    "bytes": 32,
+    "sha256": "86840bccf00f7b5be61e034def518b670bbf27a111a79a76371a78a0e9eb7fe4"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes3",
+    "bytes": 32,
+    "sha256": "8a4689b80a6e5a8f1fdfe0b2b9eb342f08fb555a41eb4a8778648b61c43a9305"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes4",
+    "bytes": 32,
+    "sha256": "b8ee2b4831a32674b00e1be3469e4da02e7492207e130ac63d1f5bc82bee0a4e"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes5",
+    "bytes": 32,
+    "sha256": "1ac489002b439c607414cee5cf1ccffe934a590a9c7087e7ab7afe8d5e4adbd4"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes6",
+    "bytes": 32,
+    "sha256": "1ff57a912d0d34055b3e81a3f4515b9fb430c7f43e7a8afd880727d3b8a68771"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes7",
+    "bytes": 32,
+    "sha256": "e9c00e909e95d3ff547ab2cafb2210c0fa331c14d31a099b8933f0d0d13afe32"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes8",
+    "bytes": 32,
+    "sha256": "c7199e5956d48908371d596002b898baa35ef287f42e97b6fa4ca4babc2487b1"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes9",
+    "bytes": 32,
+    "sha256": "1ef87fc176ec976c2e7fa53e5965dd360b313b1043365a959d267ed4db38ced4"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes10",
+    "bytes": 32,
+    "sha256": "2c7a254133e954cb3727b6e06ac4549a5cd5c63e8fc5e717b2a65280655e121d"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes11",
+    "bytes": 32,
+    "sha256": "054c61e84759db707b9ffc129771ac169c054bba37dc04a43d35cf7ce8942ff6"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes12",
+    "bytes": 32,
+    "sha256": "0e02b795aa285fc7dbeabbcbec64e6c445bfd8342e159418e729923507038ec5"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes13",
+    "bytes": 32,
+    "sha256": "63c8ffc80d6a6743aca7917b9667597843b4c505944d293013582cbcc785ae76"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes14",
+    "bytes": 32,
+    "sha256": "895b3fe1dd93a3dab493d390a49c312918a2412ca1606bac308ce3e409967872"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes15",
+    "bytes": 32,
+    "sha256": "ba1e1574dd5607e1677b4463113aea19d0bbae5f181cc02749fa47ff9480391d"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes16",
+    "bytes": 32,
+    "sha256": "27c480b1a0af3a98b0013c0078e9608b372eb6aca9b4769e27f93b7d469f7cbe"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes17",
+    "bytes": 32,
+    "sha256": "5fb291c802a4535b1e0cf3c62cbaa9c6a6988e1cecb35f22092ea4bbd993b829"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes18",
+    "bytes": 32,
+    "sha256": "b42dc1e25c375707ade32eae90c56c0d87e4e608c4392ccc94d4a4c417f14956"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes19",
+    "bytes": 32,
+    "sha256": "9bd33b568a1ef792697b0a57631a50af758967f8fc304f019cd88957a72e8130"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes20",
+    "bytes": 32,
+    "sha256": "c834d4084182631ce5927a60b42e036ef93ed2df50e9a96dbf4b031b0ecb9dea"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes21",
+    "bytes": 32,
+    "sha256": "d0cec41dd99a21bbb9443b74fbff89f4ffca058992bb6b80aaaeeba9e87da7d9"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes22",
+    "bytes": 32,
+    "sha256": "ecea85ae2af099bc7840d44f8bfc53ce823aac3e556e4025f55c38794ceacc27"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes23",
+    "bytes": 32,
+    "sha256": "7c6d5718d2571795aef905767dfd26fc813106d37e51f7ee86eb5f6bb0e820a7"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes24",
+    "bytes": 32,
+    "sha256": "664cda424ccb636bc0470ce10f0d8c2a6ecf5b6ffff8b35e5d7b32bc8e04bed9"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes25",
+    "bytes": 32,
+    "sha256": "17bc618f8cd1a15ebd8350cf3680eefa7a5da56340eafd832364d9573567c1ed"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes26",
+    "bytes": 32,
+    "sha256": "24532441a40059e3062ca70de4aa8d07d14454a0c6929767b6611b4e9a4b52b7"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes27",
+    "bytes": 96,
+    "sha256": "8b396db41333848db6b8029c3c8b3f2bdb3ad6c2aef5188fb5c6156da77d1153"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes28",
+    "bytes": 64,
+    "sha256": "b736ae63d0bc1410b8c45d8d39bc7fa3d8355eb3d0ccffc139dde28e3aebefcc"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes29",
+    "bytes": 64,
+    "sha256": "9ff1b768eda1716e8c2f3b1874909b52f12d3ba12d270fe1f084b1d9422b2527"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes30",
+    "bytes": 64,
+    "sha256": "fc10e7955bd68f028b2ecbf97d0c2d52dc3f30339c0c406e179df876e05791b2"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes31",
+    "bytes": 64,
+    "sha256": "298f6c0bd3a095f335f2157059c730241119958b10eb344a98961d5e9647cae3"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes32",
+    "bytes": 64,
+    "sha256": "52a71de177373161a6b64ee27a39e978a9daf581cf01e546fbaab8bedb664d13"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes33",
+    "bytes": 64,
+    "sha256": "76f25f69d4ec90f0b2ec03c3bf78e27c48785e3ea24f1a9ec59c3456a09964d3"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes34",
+    "bytes": 192,
+    "sha256": "0352c1569eb9aa13bea704acbd63a9718db89a15034bf862c18e87a27d637d00"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes35",
+    "bytes": 352,
+    "sha256": "927c37846e0e5c7e40ae280c91bd38a3017a3c7bf9d4effc65664d5c5a024b64"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes36",
+    "bytes": 384,
+    "sha256": "d28a0b8d12cc56faf3ed2b407246d8c8df3a76042648d2586acbec0daa503703"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes37",
+    "bytes": 416,
+    "sha256": "d4075271948f86c91d81dc8045d0a1d9bcacc1a0a67556a845343685327349ce"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes38",
+    "bytes": 160,
+    "sha256": "abfe6c6834c0e43d2cb91dfb6d4128bd1a901ce0dfdb9b776d0085e79e210d11"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes39",
+    "bytes": 160,
+    "sha256": "18e40e8d39117eab8e86231d23cbd5004612a131e892e3df9cd24a510393ebe2"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes40",
+    "bytes": 128,
+    "sha256": "0a1801ea7b7edb00e4108f9a190c0a68f722f9c77bc2c57a8ae60c7c296e5061"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes41",
+    "bytes": 160,
+    "sha256": "e92c7f3aa99b7fcf26e24bb5d963cd523e68f06ec6d2a5b5f5aed8c11e261b82"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes42",
+    "bytes": 352,
+    "sha256": "8a2d6381e17e131580e23c425845f0383ac692cfc94b3ac16da18da1ac66b42a"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes43",
+    "bytes": 640,
+    "sha256": "03db74d31c803ed7f8be3a2c9a80f52df7b6f3acd864ea1d295fd6f222388d34"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes44",
+    "bytes": 160,
+    "sha256": "8b7f4a42f514f832234644c69acacf2e49bae188348e62a9895024d7d84eac1c"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes45",
+    "bytes": 224,
+    "sha256": "3b3df2b37b0ae9deb8e58dbb5e7d6aa468318115d1a1b41991d2e93f151a0b47"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes46",
+    "bytes": 768,
+    "sha256": "4c6b050282a63844a1b67621e4a87f8e03b3475c7e2e9ed46e4c82d49b5bd240"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes47",
+    "bytes": 224,
+    "sha256": "d1ebfaecb99f4d6f83c83409b3b6a5d1ca955ffcca318da24ba506baf529b6c6"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes48",
+    "bytes": 288,
+    "sha256": "055430aa0bca05b9361da4b198a124d901ed50015c37f8e007bf10932d72247b"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes49",
+    "bytes": 256,
+    "sha256": "82ab2f5b6fca5b572c9201a5ee796111adb2e5d5fef8002a0d7e9a15016b1306"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes50",
+    "bytes": 320,
+    "sha256": "945ccd71d74cb901f9ef253d9e19cd7f2a1ad8fdf67ff21823b95efb5b50cc6f"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes51",
+    "bytes": 480,
+    "sha256": "0e8670aeec3aa6e7e1b6c854771bd349bead621354a4e158339e7f4ea7037367"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes52",
+    "bytes": 768,
+    "sha256": "3ae60117b7dff05a9acb46fcb5dfddb313173ad2700bc6d5fded99db160b2170"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes53",
+    "bytes": 320,
+    "sha256": "2f66479bd555a00afbfa66b22608494e2e431949219b7861111ae3f16e22b724"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes54",
+    "bytes": 768,
+    "sha256": "d6e3bda9645272bb4b619b9f738f61ecc62abdd8fb5bad06a54eb5ab8c32abd8"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes55",
+    "bytes": 320,
+    "sha256": "3ad1f8602f30c152d41e82fb0f0139a9a449d54f28ec3c0faed1be101b150bc0"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes56",
+    "bytes": 768,
+    "sha256": "92af490004827a9c578785543f5d04ffcdbd9cd67e92e10eeeb481585a3dc837"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes57",
+    "bytes": 320,
+    "sha256": "ad2103ba68306b7d48f1701f258e424b48bc6f4f18f7c214d7d63660c99cd9de"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes58",
+    "bytes": 768,
+    "sha256": "5285309681d5dbe973a31a3b1f031c08754ce994ad70ff7b42629b4ec015c88f"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes59",
+    "bytes": 320,
+    "sha256": "b80d5d9316fe9c7a24646d7d9121a6ea613864484d97ebfd19abc3db160ebd01"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes60",
+    "bytes": 768,
+    "sha256": "93ad52ea544f6e2d67ee96159fd4e7efe5ec8de0a88a53686352a80d082c1f4b"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes61",
+    "bytes": 320,
+    "sha256": "0ca74fcac850eb631dd22f1c37318827fb9902a877d23364685219cfe6de44c4"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes62",
+    "bytes": 320,
+    "sha256": "9c76e9165e9458cfefc91f78a7feb30920cc53489e1db88b55851568f52cae80"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes63",
+    "bytes": 768,
+    "sha256": "ed5679e4e91b0e5c9101b00101c7b03e14822cbcf44ee95f57ac94d09049d8ec"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes64",
+    "bytes": 320,
+    "sha256": "168114386c00ddfe9b522fdd19da5a8f7f62232b74880ca32b7cc49bb1edc700"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes65",
+    "bytes": 320,
+    "sha256": "bf7665c20e3b36977b88844f5b4ea0618d8b25943e101badf547105a47ff12b0"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes66",
+    "bytes": 320,
+    "sha256": "ec04f5ab5bcd5b5141d20600580b90b54eb02614d0a9e7d12b88541f2f71ebf3"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes67",
+    "bytes": 320,
+    "sha256": "2b0ee8901b5ace64777aaf1f36963eebc590fc5194793d73ed53383572ceb427"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes68",
+    "bytes": 320,
+    "sha256": "af89ac7b8eee2e3a8e4cdd5db2da31903275a806a8dc6b3384c2c9573b078910"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes69",
+    "bytes": 320,
+    "sha256": "eb0f1556bfea1b5586b346f52cb1fc1a6843ea4a4e495b013623bf43d76e2164"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes70",
+    "bytes": 320,
+    "sha256": "f7ec18340f39dd9f15aae2b17245a92391df31718fdcac1a219770756499c716"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes71",
+    "bytes": 320,
+    "sha256": "06d6c48f6517b36440aa3134afd6a66ebbd6762639836a1c83fb1cf3d56af38c"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes72",
+    "bytes": 320,
+    "sha256": "76b0b4939c87db297cd0c86bc5bce19ae9bbd963054400e56cf8db2a3995b167"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes73",
+    "bytes": 320,
+    "sha256": "1a2a8d30f5677f32c534184fe9f60d183440442819fcf834b21d501bc277ff1c"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes74",
+    "bytes": 320,
+    "sha256": "0d30081923033024ac81302f7f983b10acf4bf9a0f698a63d76011968376108f"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes75",
+    "bytes": 320,
+    "sha256": "49679d49ebb82fcdc66555f79a8cd7006ac509e778504d44044b30253f869835"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes76",
+    "bytes": 320,
+    "sha256": "54268df07bb5f8fc2f860781c7ba5ab3864f1fe4542324863d90b03d8265dfba"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes77",
+    "bytes": 320,
+    "sha256": "3507f22c20bfd74e38b31c3b4b25c30800d6a499fa509695ed045696358f1dad"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes78",
+    "bytes": 320,
+    "sha256": "7b6546749ec221906b328fb84969d640333e8ff48cd279f63d66bfe8be4839be"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes79",
+    "bytes": 320,
+    "sha256": "c715c6939eeff32f6fecf1c5238434013dd45da69439a72c901eeb0bcfee8a02"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes80",
+    "bytes": 320,
+    "sha256": "6ac800ad0bf65052864ced436568cc618d1dca0d2a96c7469454874cf5da2862"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes81",
+    "bytes": 320,
+    "sha256": "7464992d7276ae4c07e4aa7f642db50c99eae11384eb00d982e520496b1fa8d2"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes82",
+    "bytes": 320,
+    "sha256": "504df50bad3d22dde3654afe589b4051f3369c66791dede9619d87cd03b3b561"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes83",
+    "bytes": 320,
+    "sha256": "9edf91a851dbc48191d2a73dc69e909e80ec9ba5fa7233a4879b168d77da34f1"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes84",
+    "bytes": 320,
+    "sha256": "a66a3d520825ac89d6ac096c9a015d5c91225e0b24f81a1a083a4ff288f119ae"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes85",
+    "bytes": 320,
+    "sha256": "f2d3648ed23974b7fe267324689c29ef701a978f44dda15961dd2eb723bfd426"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes86",
+    "bytes": 320,
+    "sha256": "95bd68d14c9472f313078f4c8eca07de74370a4554f4b9757a87499c7c5734e5"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes87",
+    "bytes": 320,
+    "sha256": "f52a7dc8830d3d844c05f9369d388c6cb8a39a11735a02e832cec57498f91ccd"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes88",
+    "bytes": 320,
+    "sha256": "9051d27e88969a541d7a26fdfb104edf07f5589f639997f3ccd87a7db286a133"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes89",
+    "bytes": 320,
+    "sha256": "f42d9fabe0304358ad0b3e38bee9478e3cd45bfea42ec627da021ea8e0db1540"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes90",
+    "bytes": 320,
+    "sha256": "6cc5297274c90c8ccde9ff465f9690d747d4873caad5f120e1ff398cd519aa3e"
+  },
+  {
+    "header": "build/image-resource/system_assets.h",
+    "symbol": "OriginalImageBytes91",
+    "bytes": 320,
+    "sha256": "6d4753611e4e088a253683b9d360c8c165c670ab30a1874cd934cd17488cb3f2"
+  },
+  {
+    "header": "build/serialui-assets/templates.h",
+    "symbol": "Template119",
+    "bytes": 616,
+    "sha256": "725ee25d937a9b087717992804c4725f49563d189e9f134b9e2e52b83cc7fdcc"
+  },
+  {
+    "header": "build/serialui-assets/templates.h",
+    "symbol": "Template101",
+    "bytes": 1056,
+    "sha256": "b2597cc791f376c6756d8a74cf56fd38f9a681b739e260681d2389c550de0a11"
+  },
+  {
+    "header": "build/serialui-assets/templates.h",
+    "symbol": "String462",
+    "bytes": 111,
+    "sha256": "bd5b969c71f7d66b5867171103c8e4e0eca9f66a3e3ab009088d9787da5a49eb"
+  },
+  {
+    "header": "build/timedate-registry-data/win98_timezone_registry_data.h",
+    "symbol": "Bytes",
+    "bytes": 8152,
+    "sha256": "e9a25245520a1053f830b39f3216dae21aa03b7ab07c9c8a5287e1b9d2cbc6fc"
+  },
+  {
+    "header": "build/generated/gdi_palette_tables.h",
+    "symbol": "DefaultColors",
+    "bytes": 80,
+    "sha256": "795adfff999127066fd3a88369f743a96d5d4892746e7f47087cc2e38b20c051"
+  },
+  {
+    "header": "build/generated/gdi_palette_tables.h",
+    "symbol": "HalftoneColors",
+    "bytes": 1024,
+    "sha256": "b8e390179da6935a2387cf51c98217c9e9079fcb9a5f2516c271472b94233d74"
+  },
+  {
+    "header": "build/property-sheet-assets/templates.h",
+    "symbol": "Template1006",
+    "bytes": 254,
+    "sha256": "cc29ffb19ce3739348aa32fd305b731e5ab1b020652c8a71872ef10c30f9d555"
+  },
+  {
+    "header": "build/property-sheet-assets/templates.h",
+    "symbol": "Template1020",
+    "bytes": 358,
+    "sha256": "f3eedc55c682f90250a1053460483afc511b5856a0ff3aeb992db9a4a307d916"
+  },
+  {
+    "header": "build/property-sheet-assets/templates.h",
+    "symbol": "CaptionFormat",
+    "bytes": 28,
+    "sha256": "642b9bdee953ed67609918488c6da181b84f4f1ba19309d4f902a04bc8f10ba2"
+  },
+  {
+    "header": "build/crt-locale/crt_locale_data.h",
+    "symbol": "OriginalCType",
+    "bytes": 514,
+    "sha256": "765bf4d1f9da8f6990d56bdbcfbe585290303b77e30cd481e7d99bca2a955725"
+  },
+  {
+    "header": "build/crt-locale/crt_locale_data.h",
+    "symbol": "OriginalSystemCType",
+    "bytes": 514,
+    "sha256": "964cfc709172dbbfaeab4b06b2ab749ef3288dbd176591c00f939f18c9876e16"
+  },
+  {
+    "header": "build/crt-locale/crt_locale_data.h",
+    "symbol": "OriginalSystemWideType",
+    "bytes": 514,
+    "sha256": "b93c31c5eab258ce1b260450c78364df16da41aa01e5a8209a25809b268ce6ac"
+  },
+  {
+    "header": "build/crt-locale/crt_locale_data.h",
+    "symbol": "OriginalUpper",
+    "bytes": 256,
+    "sha256": "64396189de209cb928aaaa3e58d865580303e67995213750813e123dbf2fba35"
+  },
+  {
+    "header": "build/crt-locale/crt_locale_data.h",
+    "symbol": "OriginalLower",
+    "bytes": 256,
+    "sha256": "9c79d87ef085bd84c48cde982d32e49d9ad10b7f4965c7f1398900911af5e5ac"
+  }
+]

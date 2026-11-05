@@ -1,0 +1,390 @@
+{
+  "alternatives_sha256": "502b68fa64bb70cb06550b4f55df73d20088003b4567ad902f40a057d8173f03",
+  "assets": {},
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {
+    "shell32_systray": {
+      "reference_status": "FAIL",
+      "sha256": "b73de15a03c48d3201fb528abe1027dcb1837a7b00c215bdc75f1c6a847fa781"
+    }
+  },
+  "groups": {
+    "shell32_shlfolder": {
+      "advisory": {
+        "shlfolder.c:1097": {
+          "FAIL": 1
+        },
+        "shlfolder.c:122": {
+          "FAIL": 1
+        },
+        "shlfolder.c:1271": {
+          "FAIL": 1
+        },
+        "shlfolder.c:238": {
+          "FAIL": 2,
+          "PASS": 3
+        },
+        "shlfolder.c:244": {
+          "FAIL": 2,
+          "PASS": 3
+        },
+        "shlfolder.c:422": {
+          "FAIL": 1
+        },
+        "shlfolder.c:431": {
+          "FAIL": 1
+        },
+        "shlfolder.c:677": {
+          "FAIL": 1
+        },
+        "shlfolder.c:684": {
+          "FAIL": 1
+        },
+        "shlfolder.c:705": {
+          "FAIL": 1
+        },
+        "shlfolder.c:715": {
+          "FAIL": 1
+        },
+        "shlfolder.c:720": {
+          "FAIL": 1
+        },
+        "shlfolder.c:875": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "shlfolder.c:106": {
+          "PASS": 1
+        },
+        "shlfolder.c:115": {
+          "PASS": 1
+        },
+        "shlfolder.c:119": {
+          "PASS": 1
+        },
+        "shlfolder.c:1267": {
+          "PASS": 1
+        },
+        "shlfolder.c:201": {
+          "PASS": 1
+        },
+        "shlfolder.c:209": {
+          "PASS": 1
+        },
+        "shlfolder.c:212": {
+          "PASS": 1
+        },
+        "shlfolder.c:226": {
+          "PASS": 25
+        },
+        "shlfolder.c:237": {
+          "PASS": 5
+        },
+        "shlfolder.c:243": {
+          "PASS": 5
+        },
+        "shlfolder.c:268": {
+          "PASS": 1
+        },
+        "shlfolder.c:272": {
+          "PASS": 1
+        },
+        "shlfolder.c:275": {
+          "PASS": 1
+        },
+        "shlfolder.c:278": {
+          "PASS": 1
+        },
+        "shlfolder.c:285": {
+          "PASS": 1
+        },
+        "shlfolder.c:291": {
+          "PASS": 1
+        },
+        "shlfolder.c:300": {
+          "PASS": 1
+        },
+        "shlfolder.c:308": {
+          "PASS": 1
+        },
+        "shlfolder.c:315": {
+          "PASS": 1
+        },
+        "shlfolder.c:321": {
+          "PASS": 1
+        },
+        "shlfolder.c:383": {
+          "PASS": 1
+        },
+        "shlfolder.c:404": {
+          "PASS": 1
+        },
+        "shlfolder.c:410": {
+          "PASS": 1
+        },
+        "shlfolder.c:414": {
+          "PASS": 1
+        },
+        "shlfolder.c:556": {
+          "PASS": 1
+        },
+        "shlfolder.c:561": {
+          "PASS": 1
+        },
+        "shlfolder.c:571": {
+          "PASS": 1
+        },
+        "shlfolder.c:574": {
+          "PASS": 1
+        },
+        "shlfolder.c:575": {
+          "PASS": 1
+        },
+        "shlfolder.c:576": {
+          "PASS": 1
+        },
+        "shlfolder.c:582": {
+          "PASS": 1
+        },
+        "shlfolder.c:592": {
+          "PASS": 1
+        },
+        "shlfolder.c:604": {
+          "PASS": 1
+        },
+        "shlfolder.c:629": {
+          "PASS": 1
+        },
+        "shlfolder.c:631": {
+          "PASS": 1
+        },
+        "shlfolder.c:670": {
+          "PASS": 1
+        },
+        "shlfolder.c:676": {
+          "PASS": 1
+        },
+        "shlfolder.c:683": {
+          "PASS": 1
+        },
+        "shlfolder.c:689": {
+          "PASS": 1
+        },
+        "shlfolder.c:704": {
+          "PASS": 1
+        },
+        "shlfolder.c:709": {
+          "PASS": 1
+        },
+        "shlfolder.c:719": {
+          "PASS": 1
+        },
+        "shlfolder.c:74": {
+          "PASS": 1
+        },
+        "shlfolder.c:741": {
+          "PASS": 1
+        },
+        "shlfolder.c:744": {
+          "PASS": 1
+        },
+        "shlfolder.c:747": {
+          "PASS": 1
+        },
+        "shlfolder.c:753": {
+          "PASS": 1
+        },
+        "shlfolder.c:758": {
+          "PASS": 1
+        },
+        "shlfolder.c:759": {
+          "PASS": 1
+        },
+        "shlfolder.c:769": {
+          "PASS": 1
+        },
+        "shlfolder.c:774": {
+          "PASS": 1
+        },
+        "shlfolder.c:775": {
+          "PASS": 1
+        },
+        "shlfolder.c:819": {
+          "PASS": 1
+        },
+        "shlfolder.c:820": {
+          "PASS": 1
+        },
+        "shlfolder.c:824": {
+          "PASS": 1
+        },
+        "shlfolder.c:828": {
+          "PASS": 1
+        },
+        "shlfolder.c:830": {
+          "PASS": 1
+        },
+        "shlfolder.c:834": {
+          "PASS": 1
+        },
+        "shlfolder.c:838": {
+          "PASS": 1
+        },
+        "shlfolder.c:848": {
+          "PASS": 1
+        },
+        "shlfolder.c:849": {
+          "PASS": 1
+        },
+        "shlfolder.c:850": {
+          "PASS": 1
+        },
+        "shlfolder.c:859": {
+          "PASS": 1
+        },
+        "shlfolder.c:867": {
+          "PASS": 1
+        },
+        "shlfolder.c:945": {
+          "PASS": 1
+        },
+        "shlfolder.c:950": {
+          "PASS": 1
+        },
+        "shlfolder.c:953": {
+          "PASS": 1
+        },
+        "shlfolder.c:97": {
+          "PASS": 1
+        }
+      },
+      "sha256": "0f11dd1b84c8539a84bc5329d740fc51e5f4bb869ae7d34852f63bb3e3f721af",
+      "skips": {
+        "shlfolder.c:1502": 1,
+        "shlfolder.c:438": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "b7c97b6a7f4ecd3e2ac4f314c9fe4d032ac753b468c4402660a662f9549f4076",
+  "reference_selection": {
+    "excluded": {
+      "shell32_systray": "FAIL"
+    },
+    "selected": [
+      "shell32_shlfolder"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "0e3b11f707848d1a978bf8c8587c6feacece4163cc18e35da00cb26dd8573f8d",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "OLEAUT32.DLL": {
+      "sha256": "baeb2f7c1b8be56738d34e1d1ddf8e0eebd3a633215dc1575e14656be38b939d",
+      "version": [
+        2,
+        40,
+        4275,
+        1
+      ]
+    },
+    "SHELL32.DLL": {
+      "sha256": "533c5809a9b6bdb236cce17a14c03ff251c4ca4d00790ea8e8034ee5d14d7f61",
+      "version": [
+        4,
+        72,
+        3612,
+        1700
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

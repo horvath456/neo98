@@ -1,0 +1,22 @@
+#include <windows.h>
+#include "mines.h"
+
+IDM_MINES MENU
+BEGIN
+    POPUP "&Game"
+    BEGIN
+        MENUITEM "&New\tF2", IDM_NEW
+        MENUITEM SEPARATOR
+        MENUITEM "&Beginner", IDM_BEGINNER
+        MENUITEM "&Intermediate", IDM_INTERMEDIATE
+        MENUITEM "&Expert", IDM_EXPERT
+        MENUITEM SEPARATOR
+        MENUITEM "&Marks (?)", IDM_MARKS
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit", IDM_EXIT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About Minesweeper...", IDM_ABOUT
+    END
+END

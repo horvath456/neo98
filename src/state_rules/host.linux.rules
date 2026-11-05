@@ -1,0 +1,2 @@
+# Host resources of the Linux process. Their guest bytes have separate owners.
+var LinuxSharedMemory::blocks host # live memfd descriptors and mappings of this process

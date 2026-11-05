@@ -1,0 +1,433 @@
+{
+ "scope": "Case-specific evidence. No entry claims complete Win98 semantics.",
+ "apis": [
+  {
+   "module": "KERNEL",
+   "ordinal": 8,
+   "status": "partial",
+   "original_checks": [
+    "LocalLock core at 2:3375; fixed, movable, discarded, saturated and empty states; return and heap bytes"
+   ],
+   "tests": [
+    "tools/test_local_handle_original.py",
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "public invalid-selector/exception paths; moving compaction integration"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 9,
+   "status": "partial",
+   "original_checks": [
+    "LocalUnlock core at 2:3399; fixed, movable, discarded, saturated and empty states; return and heap bytes"
+   ],
+   "tests": [
+    "tools/test_local_handle_original.py",
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "public invalid-selector/exception paths; moving compaction integration"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 11,
+   "status": "partial",
+   "original_checks": [
+    "LocalHandle core at 2:33C0; fixed, movable, discarded, saturated and empty states; return and heap bytes"
+   ],
+   "tests": [
+    "tools/test_local_handle_original.py",
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "public invalid-selector/exception paths; moving compaction integration"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 12,
+   "status": "partial",
+   "original_checks": [
+    "LocalFlags core at 2:335C; fixed, movable, discarded, saturated and empty states; return and heap bytes"
+   ],
+   "tests": [
+    "tools/test_local_handle_original.py",
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "public invalid-selector/exception paths; moving compaction integration"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 13,
+   "status": "partial",
+   "original_checks": [
+    "rounding, compactor call and the six-byte header at KRNL386"
+   ],
+   "tests": [
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "the compactor at 2:2CC9 itself; nothing is moved or discarded"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 15,
+   "status": "partial",
+   "original_checks": [
+    "rounding, handle shape, allocation warning continuation",
+    "zero-length movable block gets an access byte without the presence bit, KRNL386 and the table "
+   ],
+   "tests": [
+    "tools/test_win16_loader_native.py",
+    "tools/test_win16_vb_runtime.py",
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "allocation failures of the process arena",
+    "GlobalNotify owners",
+    "DDE ownership"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 16,
+   "status": "partial",
+   "original_checks": [
+    "MODIFY branch selection at KRNL386",
+    "discard eligibility at KRNL386, five flags/lock cases",
+    "tile count and surplus descriptors at KRNL386, six sizes",
+    "discarded-block branch at KRNL386"
+   ],
+   "tests": [
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "a discard notification through GlobalNotify at 1:37B2, so no owner can refuse a discard",
+    "the allocator arena itself; a grown block gets fresh bytes instead of being moved inside a heap",
+    "a huge block keeps its first selector only while its descriptor run can be extended in place",
+    "DDE ownership"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 18,
+   "status": "partial",
+   "original_checks": [
+    "presence test before the lock count at KRNL386"
+   ],
+   "tests": [
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "page locking and the DPMI lock of GlobalFix"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 22,
+   "status": "partial",
+   "original_checks": [
+    "flag byte and lock count layout at KRNL386 and "
+   ],
+   "tests": [
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "GMEM_NOTIFY and the code/AVL bits of the descriptor"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 47,
+   "status": "partial",
+   "original_checks": [
+    "no original comparison; the answer is the handle LoadLibrary gave"
+   ],
+   "tests": [
+    "tools/test_win16_vb_runtime.py"
+   ],
+   "application_checks": [
+    "Pyramid reaches its card table"
+   ],
+   "remaining": [
+    "a module of the tree that is not loaded yet"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 48,
+   "status": "partial",
+   "original_checks": [
+    "module usage counts the loads of a module, KRNL386 reads the word at module+2"
+   ],
+   "tests": [
+    "tools/test_win16_vb_runtime.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "a module loaded more than once from a second task"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 49,
+   "status": "partial",
+   "original_checks": [],
+   "tests": [
+    "tools/test_win16_vb_runtime.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "the path of a module of this port names the file of the tree, not a loaded file"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 50,
+   "status": "partial",
+   "original_checks": [],
+   "tests": [
+    "tools/test_win16_vb_runtime.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "KERNEL has no name resolution; USER and GDI resolve against the entry tables of this port"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 60,
+   "status": "partial",
+   "original_checks": [],
+   "tests": [
+    "tools/test_win16_pyramid_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "a resource whose declared end lies past the end of the file is shortened"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 121,
+   "status": "partial",
+   "original_checks": [
+    "segment switch and heap size answer at KRNL386"
+   ],
+   "tests": [
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "the heap never shrinks; a segment other than the caller data segment stops the run"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 186,
+   "status": "partial",
+   "original_checks": [
+    "valid descriptor bases at KRNL386, six 32-bit values"
+   ],
+   "tests": [
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "invalid selectors and faults"
+   ]
+  },
+  {
+   "module": "KERNEL",
+   "ordinal": 187,
+   "status": "partial",
+   "original_checks": [
+    "valid descriptor base updates at KRNL386, six 32-bit values; other descriptor bytes preserved"
+   ],
+   "tests": [
+    "tools/test_win16_memory_contracts.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "invalid selectors and faults"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 85,
+   "status": "partial",
+   "original_checks": [
+    "no original comparison; the stack word of the rectangle follows the Pascal frame"
+   ],
+   "tests": [
+    "tools/test_win16_bow_native.py"
+   ],
+   "application_checks": [
+    "Bow and Arrow draws its title and lesson text"
+   ],
+   "remaining": [
+    "DT_TABSTOP and the DT_CALCRECT answer"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 99,
+   "status": "partial",
+   "original_checks": [
+    "Frame of USER, retf 8; the shared worker caps the caller buffer at 128 bytes "
+   ],
+   "tests": [
+    "tools/test_win16_controls_native.py",
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "no measured run of MJWIN in the host"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 190,
+   "status": "partial",
+   "original_checks": [
+    "USER ends in retf 8"
+   ],
+   "tests": [
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "an empty update region"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 194,
+   "status": "partial",
+   "original_checks": [
+    "Frame of USER, retf 8; the combo half of the same worker "
+   ],
+   "tests": [
+    "tools/test_win16_controls_native.py",
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "no measured run of an original program that uses it"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 195,
+   "status": "partial",
+   "original_checks": [
+    "Frame of USER, retf 0Ch; the combo half of the DlgDirList worker "
+   ],
+   "tests": [
+    "tools/test_win16_controls_native.py",
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "the wFileType check of 12:01C9 against 1FC0h is not carried"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 234,
+   "status": "partial",
+   "original_checks": [
+    "Frame of USER; type range -1..12 and the jump into the shared unhook worker "
+   ],
+   "tests": [
+    "tools/test_win16_controls_native.py",
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "a 16-bit hook procedure cannot be installed at all, so only the FALSE answer of an unknown pair is tested"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 237,
+   "status": "partial",
+   "original_checks": [
+    "USER ends in retf 6"
+   ],
+   "tests": [
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "the region type answer"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 422,
+   "status": "partial",
+   "original_checks": [
+    "Frame of USER, retf 0Ah; the caller length reaches the worker"
+   ],
+   "tests": [
+    "tools/test_win16_controls_native.py",
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "no measured run of an original program that uses it"
+   ]
+  },
+  {
+   "module": "USER",
+   "ordinal": 423,
+   "status": "partial",
+   "original_checks": [
+    "Frame of USER, retf 0Ah"
+   ],
+   "tests": [
+    "tools/test_win16_controls_native.py",
+    "tools/test_win16_messages_native.py"
+   ],
+   "application_checks": [],
+   "remaining": [
+    "no measured run of an original program that uses it"
+   ]
+  },
+  {
+   "module": "WIN87EM",
+   "ordinal": 1,
+   "status": "partial",
+   "original_checks": [
+    "subfunctions 6, 7, 8 and 10 against the original WIN87EM.DLL under Unicorn"
+   ],
+   "tests": [
+    "tools/test_win16_vb_runtime.py",
+    "tools/win87em_original.py"
+   ],
+   "application_checks": [
+    "Pyramid reaches its card table"
+   ],
+   "remaining": [
+    "NaN, infinity and denormal inputs",
+    "delivery of an unmasked exception"
+   ]
+  }
+ ]
+}

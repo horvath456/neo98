@@ -1,0 +1,1691 @@
+{
+  "alternatives_sha256": "ba7f4d92f902a2ea19597f0ae78af9e87ee65f77782207e70c748a8c5c0fde93",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "kernel32_locale": {
+      "advisory": {
+        "locale.c:190": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "locale.c:202": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "locale.c:215": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "locale.c:219": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "locale.c:2200": {
+          "FAIL": 1
+        },
+        "locale.c:2206": {
+          "FAIL": 1
+        },
+        "locale.c:2211": {
+          "FAIL": 1
+        },
+        "locale.c:2217": {
+          "FAIL": 1
+        },
+        "locale.c:2328": {
+          "FAIL": 1
+        },
+        "locale.c:369": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "locale.c:508": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "locale.c:714": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "locale.c:858": {
+          "FAIL": 1
+        },
+        "locale.c:861": {
+          "FAIL": 1
+        },
+        "locale.c:864": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "locale.c:1002": {
+          "PASS": 1
+        },
+        "locale.c:1005": {
+          "PASS": 1
+        },
+        "locale.c:1010": {
+          "PASS": 1
+        },
+        "locale.c:1024": {
+          "PASS": 1
+        },
+        "locale.c:1027": {
+          "PASS": 1
+        },
+        "locale.c:1031": {
+          "PASS": 1
+        },
+        "locale.c:1032": {
+          "PASS": 1
+        },
+        "locale.c:1037": {
+          "PASS": 1
+        },
+        "locale.c:1038": {
+          "PASS": 1
+        },
+        "locale.c:1043": {
+          "PASS": 1
+        },
+        "locale.c:1044": {
+          "PASS": 1
+        },
+        "locale.c:1049": {
+          "PASS": 1
+        },
+        "locale.c:1050": {
+          "PASS": 1
+        },
+        "locale.c:1057": {
+          "PASS": 1
+        },
+        "locale.c:1058": {
+          "PASS": 1
+        },
+        "locale.c:1063": {
+          "PASS": 1
+        },
+        "locale.c:1066": {
+          "PASS": 1
+        },
+        "locale.c:1071": {
+          "PASS": 1
+        },
+        "locale.c:1074": {
+          "PASS": 1
+        },
+        "locale.c:1080": {
+          "PASS": 1
+        },
+        "locale.c:1091": {
+          "PASS": 1
+        },
+        "locale.c:1094": {
+          "PASS": 1
+        },
+        "locale.c:1103": {
+          "PASS": 1
+        },
+        "locale.c:1106": {
+          "PASS": 1
+        },
+        "locale.c:1113": {
+          "PASS": 1
+        },
+        "locale.c:1116": {
+          "PASS": 1
+        },
+        "locale.c:1121": {
+          "PASS": 1
+        },
+        "locale.c:1124": {
+          "PASS": 1
+        },
+        "locale.c:1125": {
+          "PASS": 1
+        },
+        "locale.c:1126": {
+          "PASS": 1
+        },
+        "locale.c:1131": {
+          "PASS": 1
+        },
+        "locale.c:1134": {
+          "PASS": 1
+        },
+        "locale.c:1135": {
+          "PASS": 1
+        },
+        "locale.c:1136": {
+          "PASS": 1
+        },
+        "locale.c:1141": {
+          "PASS": 1
+        },
+        "locale.c:1144": {
+          "PASS": 1
+        },
+        "locale.c:1145": {
+          "PASS": 1
+        },
+        "locale.c:1146": {
+          "PASS": 1
+        },
+        "locale.c:1151": {
+          "PASS": 1
+        },
+        "locale.c:1154": {
+          "PASS": 1
+        },
+        "locale.c:1155": {
+          "PASS": 1
+        },
+        "locale.c:1156": {
+          "PASS": 1
+        },
+        "locale.c:1162": {
+          "PASS": 1
+        },
+        "locale.c:1164": {
+          "PASS": 1
+        },
+        "locale.c:1170": {
+          "PASS": 1
+        },
+        "locale.c:1172": {
+          "PASS": 1
+        },
+        "locale.c:1177": {
+          "PASS": 1
+        },
+        "locale.c:1178": {
+          "PASS": 1
+        },
+        "locale.c:140": {
+          "PASS": 1
+        },
+        "locale.c:147": {
+          "PASS": 1
+        },
+        "locale.c:151": {
+          "PASS": 2
+        },
+        "locale.c:152": {
+          "PASS": 1
+        },
+        "locale.c:156": {
+          "PASS": 2
+        },
+        "locale.c:157": {
+          "PASS": 1
+        },
+        "locale.c:171": {
+          "PASS": 3
+        },
+        "locale.c:180": {
+          "PASS": 3
+        },
+        "locale.c:185": {
+          "PASS": 3
+        },
+        "locale.c:194": {
+          "PASS": 2
+        },
+        "locale.c:198": {
+          "PASS": 3
+        },
+        "locale.c:1999": {
+          "PASS": 1
+        },
+        "locale.c:2000": {
+          "PASS": 1
+        },
+        "locale.c:2001": {
+          "PASS": 1
+        },
+        "locale.c:2002": {
+          "PASS": 1
+        },
+        "locale.c:2005": {
+          "PASS": 1
+        },
+        "locale.c:2007": {
+          "PASS": 1
+        },
+        "locale.c:2009": {
+          "PASS": 1
+        },
+        "locale.c:2013": {
+          "PASS": 1
+        },
+        "locale.c:2014": {
+          "PASS": 1
+        },
+        "locale.c:2018": {
+          "PASS": 1
+        },
+        "locale.c:2019": {
+          "PASS": 1
+        },
+        "locale.c:2022": {
+          "PASS": 1
+        },
+        "locale.c:2023": {
+          "PASS": 1
+        },
+        "locale.c:2024": {
+          "PASS": 1
+        },
+        "locale.c:206": {
+          "PASS": 3
+        },
+        "locale.c:211": {
+          "PASS": 3
+        },
+        "locale.c:2120": {
+          "PASS": 1
+        },
+        "locale.c:2125": {
+          "PASS": 1
+        },
+        "locale.c:2130": {
+          "PASS": 1
+        },
+        "locale.c:2205": {
+          "PASS": 1
+        },
+        "locale.c:2216": {
+          "PASS": 1
+        },
+        "locale.c:2222": {
+          "PASS": 1
+        },
+        "locale.c:2227": {
+          "PASS": 1
+        },
+        "locale.c:2228": {
+          "PASS": 1
+        },
+        "locale.c:223": {
+          "PASS": 3
+        },
+        "locale.c:2233": {
+          "PASS": 1
+        },
+        "locale.c:2238": {
+          "PASS": 1
+        },
+        "locale.c:2239": {
+          "PASS": 1
+        },
+        "locale.c:2250": {
+          "PASS": 1
+        },
+        "locale.c:2255": {
+          "PASS": 1
+        },
+        "locale.c:2256": {
+          "PASS": 1
+        },
+        "locale.c:2268": {
+          "PASS": 1
+        },
+        "locale.c:2273": {
+          "PASS": 1
+        },
+        "locale.c:2274": {
+          "PASS": 1
+        },
+        "locale.c:2279": {
+          "PASS": 1
+        },
+        "locale.c:228": {
+          "PASS": 3
+        },
+        "locale.c:2284": {
+          "PASS": 1
+        },
+        "locale.c:2285": {
+          "PASS": 1
+        },
+        "locale.c:2295": {
+          "PASS": 1
+        },
+        "locale.c:2296": {
+          "PASS": 1
+        },
+        "locale.c:2307": {
+          "PASS": 1
+        },
+        "locale.c:2308": {
+          "PASS": 1
+        },
+        "locale.c:2309": {
+          "PASS": 1
+        },
+        "locale.c:2310": {
+          "PASS": 1
+        },
+        "locale.c:2311": {
+          "PASS": 1
+        },
+        "locale.c:2312": {
+          "PASS": 1
+        },
+        "locale.c:232": {
+          "PASS": 3
+        },
+        "locale.c:2323": {
+          "PASS": 1
+        },
+        "locale.c:2324": {
+          "PASS": 1
+        },
+        "locale.c:2325": {
+          "PASS": 1
+        },
+        "locale.c:2326": {
+          "PASS": 1
+        },
+        "locale.c:2327": {
+          "PASS": 1
+        },
+        "locale.c:236": {
+          "PASS": 3
+        },
+        "locale.c:240": {
+          "PASS": 3
+        },
+        "locale.c:247": {
+          "PASS": 3
+        },
+        "locale.c:252": {
+          "PASS": 3
+        },
+        "locale.c:256": {
+          "PASS": 3
+        },
+        "locale.c:271": {
+          "PASS": 3
+        },
+        "locale.c:276": {
+          "PASS": 3
+        },
+        "locale.c:281": {
+          "PASS": 3
+        },
+        "locale.c:285": {
+          "PASS": 3
+        },
+        "locale.c:290": {
+          "PASS": 3
+        },
+        "locale.c:294": {
+          "PASS": 3
+        },
+        "locale.c:299": {
+          "PASS": 3
+        },
+        "locale.c:303": {
+          "PASS": 3
+        },
+        "locale.c:307": {
+          "PASS": 3
+        },
+        "locale.c:313": {
+          "PASS": 3
+        },
+        "locale.c:319": {
+          "PASS": 3
+        },
+        "locale.c:333": {
+          "PASS": 3
+        },
+        "locale.c:341": {
+          "PASS": 3
+        },
+        "locale.c:347": {
+          "PASS": 3
+        },
+        "locale.c:351": {
+          "PASS": 3
+        },
+        "locale.c:356": {
+          "PASS": 3
+        },
+        "locale.c:360": {
+          "PASS": 3
+        },
+        "locale.c:365": {
+          "PASS": 3
+        },
+        "locale.c:375": {
+          "PASS": 3
+        },
+        "locale.c:382": {
+          "PASS": 3
+        },
+        "locale.c:390": {
+          "PASS": 3
+        },
+        "locale.c:478": {
+          "PASS": 3
+        },
+        "locale.c:483": {
+          "PASS": 3
+        },
+        "locale.c:488": {
+          "PASS": 3
+        },
+        "locale.c:493": {
+          "PASS": 3
+        },
+        "locale.c:498": {
+          "PASS": 3
+        },
+        "locale.c:503": {
+          "PASS": 3
+        },
+        "locale.c:513": {
+          "PASS": 3
+        },
+        "locale.c:518": {
+          "PASS": 3
+        },
+        "locale.c:522": {
+          "PASS": 3
+        },
+        "locale.c:526": {
+          "PASS": 3
+        },
+        "locale.c:530": {
+          "PASS": 3
+        },
+        "locale.c:534": {
+          "PASS": 3
+        },
+        "locale.c:538": {
+          "PASS": 3
+        },
+        "locale.c:551": {
+          "PASS": 3
+        },
+        "locale.c:556": {
+          "PASS": 3
+        },
+        "locale.c:561": {
+          "PASS": 3
+        },
+        "locale.c:566": {
+          "PASS": 3
+        },
+        "locale.c:571": {
+          "PASS": 3
+        },
+        "locale.c:576": {
+          "PASS": 3
+        },
+        "locale.c:581": {
+          "PASS": 3
+        },
+        "locale.c:586": {
+          "PASS": 3
+        },
+        "locale.c:591": {
+          "PASS": 3
+        },
+        "locale.c:596": {
+          "PASS": 3
+        },
+        "locale.c:601": {
+          "PASS": 3
+        },
+        "locale.c:606": {
+          "PASS": 3
+        },
+        "locale.c:611": {
+          "PASS": 3
+        },
+        "locale.c:616": {
+          "PASS": 3
+        },
+        "locale.c:621": {
+          "PASS": 3
+        },
+        "locale.c:626": {
+          "PASS": 3
+        },
+        "locale.c:631": {
+          "PASS": 3
+        },
+        "locale.c:636": {
+          "PASS": 3
+        },
+        "locale.c:641": {
+          "PASS": 3
+        },
+        "locale.c:646": {
+          "PASS": 3
+        },
+        "locale.c:651": {
+          "PASS": 3
+        },
+        "locale.c:656": {
+          "PASS": 3
+        },
+        "locale.c:661": {
+          "PASS": 3
+        },
+        "locale.c:684": {
+          "PASS": 3
+        },
+        "locale.c:689": {
+          "PASS": 3
+        },
+        "locale.c:694": {
+          "PASS": 3
+        },
+        "locale.c:699": {
+          "PASS": 3
+        },
+        "locale.c:704": {
+          "PASS": 3
+        },
+        "locale.c:709": {
+          "PASS": 3
+        },
+        "locale.c:719": {
+          "PASS": 3
+        },
+        "locale.c:724": {
+          "PASS": 3
+        },
+        "locale.c:728": {
+          "PASS": 3
+        },
+        "locale.c:732": {
+          "PASS": 3
+        },
+        "locale.c:736": {
+          "PASS": 3
+        },
+        "locale.c:740": {
+          "PASS": 3
+        },
+        "locale.c:744": {
+          "PASS": 3
+        },
+        "locale.c:748": {
+          "PASS": 3
+        },
+        "locale.c:759": {
+          "PASS": 3
+        },
+        "locale.c:764": {
+          "PASS": 3
+        },
+        "locale.c:769": {
+          "PASS": 3
+        },
+        "locale.c:774": {
+          "PASS": 3
+        },
+        "locale.c:779": {
+          "PASS": 3
+        },
+        "locale.c:784": {
+          "PASS": 3
+        },
+        "locale.c:789": {
+          "PASS": 3
+        },
+        "locale.c:794": {
+          "PASS": 3
+        },
+        "locale.c:799": {
+          "PASS": 3
+        },
+        "locale.c:819": {
+          "PASS": 1
+        },
+        "locale.c:822": {
+          "PASS": 1
+        },
+        "locale.c:825": {
+          "PASS": 1
+        },
+        "locale.c:828": {
+          "PASS": 1
+        },
+        "locale.c:833": {
+          "PASS": 1
+        },
+        "locale.c:836": {
+          "PASS": 1
+        },
+        "locale.c:839": {
+          "PASS": 1
+        },
+        "locale.c:844": {
+          "PASS": 1
+        },
+        "locale.c:846": {
+          "PASS": 1
+        },
+        "locale.c:850": {
+          "PASS": 1
+        },
+        "locale.c:851": {
+          "PASS": 1
+        },
+        "locale.c:855": {
+          "PASS": 1
+        },
+        "locale.c:867": {
+          "PASS": 1
+        },
+        "locale.c:870": {
+          "PASS": 1
+        },
+        "locale.c:873": {
+          "PASS": 1
+        },
+        "locale.c:876": {
+          "PASS": 1
+        },
+        "locale.c:879": {
+          "PASS": 1
+        },
+        "locale.c:882": {
+          "PASS": 1
+        },
+        "locale.c:885": {
+          "PASS": 1
+        },
+        "locale.c:888": {
+          "PASS": 1
+        },
+        "locale.c:891": {
+          "PASS": 1
+        },
+        "locale.c:894": {
+          "PASS": 1
+        },
+        "locale.c:897": {
+          "PASS": 1
+        },
+        "locale.c:900": {
+          "PASS": 1
+        },
+        "locale.c:903": {
+          "PASS": 1
+        },
+        "locale.c:906": {
+          "PASS": 1
+        },
+        "locale.c:909": {
+          "PASS": 1
+        },
+        "locale.c:912": {
+          "PASS": 1
+        },
+        "locale.c:915": {
+          "PASS": 1
+        },
+        "locale.c:918": {
+          "PASS": 1
+        },
+        "locale.c:921": {
+          "PASS": 1
+        },
+        "locale.c:927": {
+          "PASS": 1
+        },
+        "locale.c:930": {
+          "PASS": 1
+        },
+        "locale.c:933": {
+          "PASS": 1
+        },
+        "locale.c:936": {
+          "PASS": 1
+        },
+        "locale.c:939": {
+          "PASS": 1
+        },
+        "locale.c:942": {
+          "PASS": 1
+        },
+        "locale.c:945": {
+          "PASS": 1
+        },
+        "locale.c:948": {
+          "PASS": 1
+        },
+        "locale.c:989": {
+          "PASS": 1
+        },
+        "locale.c:992": {
+          "PASS": 1
+        },
+        "locale.c:996": {
+          "PASS": 1
+        },
+        "locale.c:999": {
+          "PASS": 1
+        }
+      },
+      "sha256": "2e60369e1e272344f896a23eaf55321e912437cab2f2b811c72a179d6d6f20fa",
+      "skips": {
+        "locale.c:1814": 1,
+        "locale.c:2156": 1
+      }
+    },
+    "snmpapi_util": {
+      "advisory": {
+        "util.c:106": {
+          "FAIL": 1
+        },
+        "util.c:126": {
+          "FAIL": 1
+        },
+        "util.c:358": {
+          "FAIL": 1
+        },
+        "util.c:361": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "util.c:105": {
+          "PASS": 1
+        },
+        "util.c:110": {
+          "PASS": 1
+        },
+        "util.c:111": {
+          "PASS": 1
+        },
+        "util.c:115": {
+          "PASS": 1
+        },
+        "util.c:116": {
+          "PASS": 1
+        },
+        "util.c:120": {
+          "PASS": 1
+        },
+        "util.c:121": {
+          "PASS": 1
+        },
+        "util.c:125": {
+          "PASS": 1
+        },
+        "util.c:130": {
+          "PASS": 1
+        },
+        "util.c:131": {
+          "PASS": 1
+        },
+        "util.c:220": {
+          "PASS": 1
+        },
+        "util.c:221": {
+          "PASS": 1
+        },
+        "util.c:222": {
+          "PASS": 1
+        },
+        "util.c:242": {
+          "PASS": 1
+        },
+        "util.c:243": {
+          "PASS": 1
+        },
+        "util.c:244": {
+          "PASS": 1
+        },
+        "util.c:252": {
+          "PASS": 1
+        },
+        "util.c:253": {
+          "PASS": 1
+        },
+        "util.c:352": {
+          "PASS": 1
+        },
+        "util.c:355": {
+          "PASS": 1
+        },
+        "util.c:366": {
+          "PASS": 1
+        },
+        "util.c:368": {
+          "PASS": 1
+        },
+        "util.c:370": {
+          "PASS": 1
+        },
+        "util.c:373": {
+          "PASS": 1
+        },
+        "util.c:375": {
+          "PASS": 1
+        },
+        "util.c:398": {
+          "PASS": 1
+        },
+        "util.c:401": {
+          "PASS": 1
+        },
+        "util.c:434": {
+          "PASS": 1
+        },
+        "util.c:435": {
+          "PASS": 1
+        },
+        "util.c:436": {
+          "PASS": 1
+        },
+        "util.c:468": {
+          "PASS": 1
+        },
+        "util.c:469": {
+          "PASS": 1
+        },
+        "util.c:470": {
+          "PASS": 1
+        },
+        "util.c:472": {
+          "PASS": 1
+        },
+        "util.c:481": {
+          "PASS": 1
+        },
+        "util.c:482": {
+          "PASS": 1
+        },
+        "util.c:483": {
+          "PASS": 1
+        },
+        "util.c:484": {
+          "PASS": 1
+        },
+        "util.c:513": {
+          "PASS": 1
+        },
+        "util.c:514": {
+          "PASS": 1
+        },
+        "util.c:515": {
+          "PASS": 1
+        },
+        "util.c:517": {
+          "PASS": 1
+        },
+        "util.c:520": {
+          "PASS": 1
+        },
+        "util.c:527": {
+          "PASS": 1
+        },
+        "util.c:528": {
+          "PASS": 1
+        }
+      },
+      "sha256": "380ef02ce178183621f4fa275a4eb2000f9c786ecb52bc625e2775d420986868",
+      "skips": {
+        "util.c:538": 1,
+        "util.c:543": 1,
+        "util.c:550": 1,
+        "util.c:555": 1
+      }
+    },
+    "usp10_usp10": {
+      "advisory": {},
+      "alternatives": {},
+      "required": {
+        "usp10.c:1006": {
+          "PASS": 1
+        },
+        "usp10.c:1009": {
+          "PASS": 1
+        },
+        "usp10.c:1012": {
+          "PASS": 1
+        },
+        "usp10.c:1017": {
+          "PASS": 1
+        },
+        "usp10.c:1018": {
+          "PASS": 1
+        },
+        "usp10.c:1030": {
+          "PASS": 1
+        },
+        "usp10.c:1033": {
+          "PASS": 1
+        },
+        "usp10.c:1041": {
+          "PASS": 1
+        },
+        "usp10.c:1066": {
+          "PASS": 1
+        },
+        "usp10.c:1069": {
+          "PASS": 1
+        },
+        "usp10.c:1074": {
+          "PASS": 4
+        },
+        "usp10.c:1078": {
+          "PASS": 20
+        },
+        "usp10.c:1085": {
+          "PASS": 20
+        },
+        "usp10.c:115": {
+          "PASS": 1
+        },
+        "usp10.c:117": {
+          "PASS": 1
+        },
+        "usp10.c:125": {
+          "PASS": 1
+        },
+        "usp10.c:130": {
+          "PASS": 1
+        },
+        "usp10.c:135": {
+          "PASS": 1
+        },
+        "usp10.c:1363": {
+          "PASS": 1
+        },
+        "usp10.c:1366": {
+          "PASS": 1
+        },
+        "usp10.c:1369": {
+          "PASS": 1
+        },
+        "usp10.c:1372": {
+          "PASS": 1
+        },
+        "usp10.c:1393": {
+          "PASS": 1
+        },
+        "usp10.c:140": {
+          "PASS": 1
+        },
+        "usp10.c:146": {
+          "PASS": 1
+        },
+        "usp10.c:149": {
+          "PASS": 1
+        },
+        "usp10.c:151": {
+          "PASS": 1
+        },
+        "usp10.c:166": {
+          "PASS": 1
+        },
+        "usp10.c:171": {
+          "PASS": 1
+        },
+        "usp10.c:178": {
+          "PASS": 1
+        },
+        "usp10.c:179": {
+          "PASS": 1
+        },
+        "usp10.c:180": {
+          "PASS": 1
+        },
+        "usp10.c:184": {
+          "PASS": 1
+        },
+        "usp10.c:187": {
+          "PASS": 1
+        },
+        "usp10.c:198": {
+          "PASS": 1
+        },
+        "usp10.c:201": {
+          "PASS": 1
+        },
+        "usp10.c:212": {
+          "PASS": 1
+        },
+        "usp10.c:213": {
+          "PASS": 1
+        },
+        "usp10.c:214": {
+          "PASS": 1
+        },
+        "usp10.c:215": {
+          "PASS": 1
+        },
+        "usp10.c:217": {
+          "PASS": 1
+        },
+        "usp10.c:222": {
+          "PASS": 1
+        },
+        "usp10.c:226": {
+          "PASS": 1
+        },
+        "usp10.c:234": {
+          "PASS": 1
+        },
+        "usp10.c:237": {
+          "PASS": 1
+        },
+        "usp10.c:240": {
+          "PASS": 1
+        },
+        "usp10.c:243": {
+          "PASS": 1
+        },
+        "usp10.c:246": {
+          "PASS": 1
+        },
+        "usp10.c:251": {
+          "PASS": 1
+        },
+        "usp10.c:258": {
+          "PASS": 1
+        },
+        "usp10.c:261": {
+          "PASS": 1
+        },
+        "usp10.c:264": {
+          "PASS": 1
+        },
+        "usp10.c:267": {
+          "PASS": 1
+        },
+        "usp10.c:270": {
+          "PASS": 1
+        },
+        "usp10.c:275": {
+          "PASS": 1
+        },
+        "usp10.c:283": {
+          "PASS": 1
+        },
+        "usp10.c:284": {
+          "PASS": 1
+        },
+        "usp10.c:285": {
+          "PASS": 1
+        },
+        "usp10.c:306": {
+          "PASS": 1
+        },
+        "usp10.c:310": {
+          "PASS": 1
+        },
+        "usp10.c:316": {
+          "PASS": 1
+        },
+        "usp10.c:318": {
+          "PASS": 1
+        },
+        "usp10.c:323": {
+          "PASS": 1
+        },
+        "usp10.c:325": {
+          "PASS": 1
+        },
+        "usp10.c:331": {
+          "PASS": 1
+        },
+        "usp10.c:332": {
+          "PASS": 1
+        },
+        "usp10.c:335": {
+          "PASS": 1
+        },
+        "usp10.c:336": {
+          "PASS": 1
+        },
+        "usp10.c:338": {
+          "PASS": 1
+        },
+        "usp10.c:342": {
+          "PASS": 1
+        },
+        "usp10.c:355": {
+          "PASS": 1
+        },
+        "usp10.c:358": {
+          "PASS": 1
+        },
+        "usp10.c:363": {
+          "PASS": 1
+        },
+        "usp10.c:364": {
+          "PASS": 1
+        },
+        "usp10.c:369": {
+          "PASS": 1
+        },
+        "usp10.c:370": {
+          "PASS": 1
+        },
+        "usp10.c:373": {
+          "PASS": 1
+        },
+        "usp10.c:376": {
+          "PASS": 1
+        },
+        "usp10.c:381": {
+          "PASS": 1
+        },
+        "usp10.c:382": {
+          "PASS": 1
+        },
+        "usp10.c:388": {
+          "PASS": 1
+        },
+        "usp10.c:389": {
+          "PASS": 1
+        },
+        "usp10.c:391": {
+          "PASS": 1
+        },
+        "usp10.c:397": {
+          "PASS": 1
+        },
+        "usp10.c:398": {
+          "PASS": 1
+        },
+        "usp10.c:404": {
+          "PASS": 1
+        },
+        "usp10.c:405": {
+          "PASS": 1
+        },
+        "usp10.c:407": {
+          "PASS": 1
+        },
+        "usp10.c:441": {
+          "PASS": 1
+        },
+        "usp10.c:444": {
+          "PASS": 1
+        },
+        "usp10.c:446": {
+          "PASS": 1
+        },
+        "usp10.c:462": {
+          "PASS": 1
+        },
+        "usp10.c:463": {
+          "PASS": 1
+        },
+        "usp10.c:464": {
+          "PASS": 1
+        },
+        "usp10.c:469": {
+          "PASS": 1
+        },
+        "usp10.c:471": {
+          "PASS": 1
+        },
+        "usp10.c:474": {
+          "PASS": 1
+        },
+        "usp10.c:478": {
+          "PASS": 1
+        },
+        "usp10.c:485": {
+          "PASS": 1
+        },
+        "usp10.c:487": {
+          "PASS": 1
+        },
+        "usp10.c:49": {
+          "PASS": 1
+        },
+        "usp10.c:494": {
+          "PASS": 1
+        },
+        "usp10.c:495": {
+          "PASS": 1
+        },
+        "usp10.c:500": {
+          "PASS": 1
+        },
+        "usp10.c:501": {
+          "PASS": 1
+        },
+        "usp10.c:510": {
+          "PASS": 1
+        },
+        "usp10.c:511": {
+          "PASS": 1
+        },
+        "usp10.c:516": {
+          "PASS": 1
+        },
+        "usp10.c:52": {
+          "PASS": 1
+        },
+        "usp10.c:520": {
+          "PASS": 1
+        },
+        "usp10.c:524": {
+          "PASS": 1
+        },
+        "usp10.c:55": {
+          "PASS": 1
+        },
+        "usp10.c:556": {
+          "PASS": 1
+        },
+        "usp10.c:558": {
+          "PASS": 1
+        },
+        "usp10.c:56": {
+          "PASS": 1
+        },
+        "usp10.c:564": {
+          "PASS": 1
+        },
+        "usp10.c:567": {
+          "PASS": 1
+        },
+        "usp10.c:569": {
+          "PASS": 1
+        },
+        "usp10.c:585": {
+          "PASS": 1
+        },
+        "usp10.c:586": {
+          "PASS": 1
+        },
+        "usp10.c:587": {
+          "PASS": 1
+        },
+        "usp10.c:59": {
+          "PASS": 1
+        },
+        "usp10.c:592": {
+          "PASS": 1
+        },
+        "usp10.c:596": {
+          "PASS": 1
+        },
+        "usp10.c:604": {
+          "PASS": 1
+        },
+        "usp10.c:605": {
+          "PASS": 1
+        },
+        "usp10.c:611": {
+          "PASS": 1
+        },
+        "usp10.c:62": {
+          "PASS": 1
+        },
+        "usp10.c:637": {
+          "PASS": 1
+        },
+        "usp10.c:639": {
+          "PASS": 1
+        },
+        "usp10.c:647": {
+          "PASS": 1
+        },
+        "usp10.c:65": {
+          "PASS": 1
+        },
+        "usp10.c:651": {
+          "PASS": 1
+        },
+        "usp10.c:657": {
+          "PASS": 1
+        },
+        "usp10.c:658": {
+          "PASS": 1
+        },
+        "usp10.c:66": {
+          "PASS": 1
+        },
+        "usp10.c:661": {
+          "PASS": 1
+        },
+        "usp10.c:667": {
+          "PASS": 1
+        },
+        "usp10.c:668": {
+          "PASS": 1
+        },
+        "usp10.c:671": {
+          "PASS": 1
+        },
+        "usp10.c:677": {
+          "PASS": 1
+        },
+        "usp10.c:678": {
+          "PASS": 1
+        },
+        "usp10.c:686": {
+          "PASS": 1
+        },
+        "usp10.c:687": {
+          "PASS": 1
+        },
+        "usp10.c:69": {
+          "PASS": 1
+        },
+        "usp10.c:695": {
+          "PASS": 1
+        },
+        "usp10.c:696": {
+          "PASS": 1
+        },
+        "usp10.c:702": {
+          "PASS": 1
+        },
+        "usp10.c:703": {
+          "PASS": 1
+        },
+        "usp10.c:712": {
+          "PASS": 1
+        },
+        "usp10.c:713": {
+          "PASS": 1
+        },
+        "usp10.c:72": {
+          "PASS": 1
+        },
+        "usp10.c:722": {
+          "PASS": 1
+        },
+        "usp10.c:723": {
+          "PASS": 1
+        },
+        "usp10.c:73": {
+          "PASS": 1
+        },
+        "usp10.c:732": {
+          "PASS": 1
+        },
+        "usp10.c:733": {
+          "PASS": 1
+        },
+        "usp10.c:742": {
+          "PASS": 1
+        },
+        "usp10.c:743": {
+          "PASS": 1
+        },
+        "usp10.c:752": {
+          "PASS": 1
+        },
+        "usp10.c:753": {
+          "PASS": 1
+        },
+        "usp10.c:76": {
+          "PASS": 1
+        },
+        "usp10.c:800": {
+          "PASS": 1
+        },
+        "usp10.c:806": {
+          "PASS": 1
+        },
+        "usp10.c:813": {
+          "PASS": 1
+        },
+        "usp10.c:814": {
+          "PASS": 1
+        },
+        "usp10.c:819": {
+          "PASS": 1
+        },
+        "usp10.c:823": {
+          "PASS": 1
+        },
+        "usp10.c:827": {
+          "PASS": 1
+        },
+        "usp10.c:829": {
+          "PASS": 10
+        },
+        "usp10.c:833": {
+          "PASS": 1
+        },
+        "usp10.c:874": {
+          "PASS": 1
+        },
+        "usp10.c:880": {
+          "PASS": 1
+        },
+        "usp10.c:896": {
+          "PASS": 9
+        },
+        "usp10.c:898": {
+          "PASS": 9
+        },
+        "usp10.c:899": {
+          "PASS": 9
+        },
+        "usp10.c:900": {
+          "PASS": 9
+        },
+        "usp10.c:904": {
+          "PASS": 9
+        },
+        "usp10.c:906": {
+          "PASS": 9
+        },
+        "usp10.c:913": {
+          "PASS": 9
+        },
+        "usp10.c:914": {
+          "PASS": 9
+        },
+        "usp10.c:924": {
+          "PASS": 1
+        },
+        "usp10.c:927": {
+          "PASS": 1
+        },
+        "usp10.c:928": {
+          "PASS": 1
+        },
+        "usp10.c:929": {
+          "PASS": 1
+        },
+        "usp10.c:940": {
+          "PASS": 1
+        },
+        "usp10.c:943": {
+          "PASS": 1
+        },
+        "usp10.c:944": {
+          "PASS": 1
+        },
+        "usp10.c:945": {
+          "PASS": 1
+        },
+        "usp10.c:956": {
+          "PASS": 1
+        },
+        "usp10.c:959": {
+          "PASS": 1
+        },
+        "usp10.c:960": {
+          "PASS": 1
+        },
+        "usp10.c:961": {
+          "PASS": 1
+        },
+        "usp10.c:968": {
+          "PASS": 1
+        },
+        "usp10.c:977": {
+          "PASS": 1
+        },
+        "usp10.c:987": {
+          "PASS": 1
+        },
+        "usp10.c:993": {
+          "PASS": 1
+        }
+      },
+      "sha256": "c7fe9ff58a466b0eebb838339093e8e623b57f484a9298d518ccc13cf3145335",
+      "skips": {}
+    },
+    "version_install": {
+      "advisory": {
+        "install.c:153": {
+          "FAIL": 1
+        },
+        "install.c:162": {
+          "FAIL": 1
+        },
+        "install.c:163": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "install.c:108": {
+          "PASS": 1
+        },
+        "install.c:110": {
+          "PASS": 1
+        },
+        "install.c:141": {
+          "PASS": 1
+        },
+        "install.c:154": {
+          "PASS": 1
+        },
+        "install.c:57": {
+          "PASS": 1
+        },
+        "install.c:59": {
+          "PASS": 1
+        },
+        "install.c:86": {
+          "PASS": 1
+        },
+        "install.c:88": {
+          "PASS": 1
+        }
+      },
+      "sha256": "7abd6085904720722e3b528e160d33b90100177a5a1382e577c387298a3f5eac",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "da668e9eb7d241144c49ff86ae9885d4155c077e0f6391492a2d607a96161d7e",
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "7a900edf47fcd1059f864cfde09caedc29fa6b16732ae3389bd1e5c01b05552c",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "USP10.DLL": {
+      "sha256": "fa54e57868e47aac5ba1cce7dfb9018744fc2bc1bc532c9b183419ff37ee90f7",
+      "version": [
+        1,
+        325,
+        2145,
+        1
+      ]
+    },
+    "VERSION.DLL": {
+      "sha256": "1173f38b6efe4339a68206d53fe59381f6514c0b453c49799df2f19cd0483230",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    }
+  }
+}

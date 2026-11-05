@@ -1,0 +1,73 @@
+{
+  "comment": "Exact image hashes are a fast path. Other image layouts must match a validated English Windows 98 SE Full install SKU and every original critical file pin. Upgrade, First Edition, other languages and unprofiled SKUs are unsupported. Content compatibility does not establish bootability.",
+  "isos": [
+    {
+      "name": "Windows 98 Second Edition",
+      "file": "Windows 98 Second Edition.iso",
+      "size": 655591424,
+      "sha256": "2adfb46df8a9c7bbd2f67bff07461cc2f9d9ec8e01f0e112cb044c9e3e62f607",
+      "profile": "win98se-en-4.10.2222"
+    }
+  ],
+  "content_profiles": [
+    {
+      "id": "win98se-en-4.10.2222",
+      "name": "Windows 98 Second Edition (compatible English Full install content)",
+      "language": "EN",
+      "os_version": "4,10,0,2222",
+      "full_product_types": ["1", "9"],
+      "upgrade_product_types": ["2"],
+      "media_evidence": [
+        {"name": "Canonical Windows 98 Second Edition.iso", "sha256": "2adfb46df8a9c7bbd2f67bff07461cc2f9d9ec8e01f0e112cb044c9e3e62f607", "product_type": "9", "critical_files_match": true, "el_torito_descriptor": true},
+        {"name": "Windows 98 SE (101 - Retail Full).iso", "sha256": "5e3e7b7c6a3cf466da60361ba8d5e1640e50822c0fc7c5b8dab94c86cd6feac7", "product_type": "1", "critical_files_match": true, "el_torito_descriptor": false},
+        {"name": "Windows 98 SE (110 - Select).iso", "sha256": "567788c47af3bb803d640df634daba4974e955e7752033a1eb2729e82c580f66", "product_type": "1", "critical_files_match": true, "el_torito_descriptor": false},
+        {"name": "Windows 98 SE (102 - Retail Upgrade).iso", "sha256": "c1e54c013e4b946830ad4e5536936d64dc4c0d099bb3ae1adb6fa07fe47329f4", "product_type": "2", "critical_files_match": true, "el_torito_descriptor": false, "rejected": "Upgrade"}
+      ],
+      "files": {
+        "USER.EXE": {
+          "size": 549664,
+          "sha256": "fe4bedde380982f81e12d73de6a87d65fb21e9dba76f714c74bbd4d4e8bfad53",
+          "installed_sha256": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef",
+          "note": "Setup personalizes USER.EXE. sha256 pins the original cabinet bytes; installed_sha256 documents the unchanged runtime generator pin after canonical setup."
+        },
+        "DIBENG.DLL": {
+          "size": 202800,
+          "sha256": "b7c0b676cd8c9960da4c53deae8de846d1251e9534ef4e4b2f05c988306dd2bd"
+        },
+        "KERNEL32.DLL": {
+          "size": 471040,
+          "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e"
+        },
+        "LOCALE.NLS": {
+          "size": 174996,
+          "sha256": "6b3ad917b262fd4a098ac8830703c6f2d20364253399d4c728a2a91b7550e74d"
+        },
+        "CP_1252.NLS": {
+          "size": 9866,
+          "sha256": "6ac031ebf6b0acb242f1791035614b691ecba93360ebb3ec2bed464379771470"
+        },
+        "MSVCRT.DLL": {
+          "size": 266293,
+          "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7"
+        },
+        "UNICODE.NLS": {
+          "size": 34676,
+          "sha256": "3d8d27915d9e0d7d9e5ae9fe31038239818f57a48471a933d4c5fc86d8c3492d"
+        },
+        "USER32.DLL": {
+          "size": 69632,
+          "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7"
+        },
+        "SHELL32.DLL": {
+          "size": 1400832,
+          "sha256": "533c5809a9b6bdb236cce17a14c03ff251c4ca4d00790ea8e8034ee5d14d7f61"
+        },
+        "EXPLORER.EXE": {
+          "size": 180224,
+          "sha256": "3884c936c6973cf97c00d4f09d69ef4af98278a545ce061e42d5d417d0f632d5"
+        }
+      },
+      "source": "Original local WIN98 cabinet tree, cross-checked against the pristine canonical installation. Nine files match byte for byte; USER.EXE differs through setup personalization. MINI.CAB contains a separate minimal setup USER.EXE and is not an installed-system source."
+    }
+  ]
+}

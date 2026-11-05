@@ -1,0 +1,54 @@
+--- a/FEXCore/Source/Interface/Core/SharedCodeBufferManager.cpp
++++ b/FEXCore/Source/Interface/Core/SharedCodeBufferManager.cpp
+@@ -12,7 +12,9 @@
+ #endif
+ 
+ namespace FEXCore::CPU {
+-static constexpr size_t INITIAL_CODE_SIZE = 1024 * 1024 * 16;
++// NEO98: the largest buffer from the start. Every move to a larger one threw away all translated code, a stall each
++// time a big program grew past the size (the memory is only reserved until code lands in it).
++static constexpr size_t INITIAL_CODE_SIZE = 1024 * 1024 * 128;
+ // We don't want to move above 128MB atm because that means we will have to encode longer jumps
+ static constexpr size_t MAX_CODE_SIZE = 1024 * 1024 * 128;
+ 
+--- a/FEXCore/Source/Interface/Core/JIT/JIT.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/JIT.cpp
+@@ -899,6 +899,15 @@
+     if (AllocatedInfo.BufferAllocationOffset == nullptr) {
+       // If it didn't fit then clear the buffer and try again.
+       // This has the possibility of migrating the SharedCodeBuffer. See above in `Arm64JITCore::ClearCache()`
++      // NEO98: a full buffer of the largest size means the program's code does not fit as multiblocks, which
++      // translate the rest of a function again from every return address (ds-recomp's generated code needed far
++      // more than 128 MiB that way, and lost it all again at every scene change). From now on single blocks.
++      if (CurrentCodeBuffer->TotalAllocationSize() >= 1024 * 1024 * 128 && CTX->Config.Multiblock) {
++        CTX->NEO98SingleBlocks();
++        if (getenv("NEO98_FEX_STATS")) {
++          fprintf(stderr, "FEXCLEAR single blocks from now on\n");
++        }
++      }
+       // NEO98_FEX_STATS: why the code went
+       if (getenv("NEO98_FEX_STATS")) {
+         fprintf(stderr, "FEXCLEAR code buffer full: used=%zu of %zu, block wants %zu\n", CurrentCodeBuffer->AllocatedSpaceUsed(),
+--- a/FEXCore/Source/Interface/Core/Core.cpp
++++ b/FEXCore/Source/Interface/Core/Core.cpp
+@@ -527,6 +527,7 @@
+ 
+   Thread->OpDispatcher->ResetWorkingList();
+   Thread->OpDispatcher->NEO98SetReducedPrecision(NEO98X87ReducedMode);
++  Thread->OpDispatcher->SetMultiblock(Config.Multiblock);
+ 
+   uint64_t TotalInstructions {0};
+   uint64_t TotalInstructionsLength {0};
+--- a/FEXCore/Source/Interface/Context/Context.h
++++ b/FEXCore/Source/Interface/Context/Context.h
+@@ -223,6 +223,10 @@
+   }
+ 
+   void OnCodeBufferAllocated(const std::shared_ptr<CPU::CodeBuffer>&) override;
++  // NEO98: translations stop at the end of each guest block from now on (Arm64JITCore::AllocateCodeBufferInSharedCache).
++  void NEO98SingleBlocks() {
++    static_cast<FEXCore::Config::Value<bool>&>(Config.Multiblock) = FEXCore::Config::Value<bool>(false);
++  }
+   void ClearCodeCache(FEXCore::Core::InternalThreadState* Thread, bool NewCodeBuffer = true) override;
+   void InvalidateCodeBuffersCodeRange(uint64_t Start, uint64_t Length) override;
+   void InvalidateThreadCachedCodeRange(FEXCore::Core::InternalThreadState* Thread, uint64_t Start, uint64_t Length) override;

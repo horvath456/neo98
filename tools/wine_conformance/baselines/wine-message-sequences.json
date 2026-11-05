@@ -1,0 +1,2057 @@
+{
+  "alternatives_sha256": "502b68fa64bb70cb06550b4f55df73d20088003b4567ad902f40a057d8173f03",
+  "assertion_contract": true,
+  "assets": {},
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "comparison": "message_sequences",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "user32_msg": {
+      "advisory": {
+        "msg.c:3338": {
+          "FAIL": 1
+        },
+        "msg.c:4051": {
+          "FAIL": 1
+        },
+        "msg.c:4052": {
+          "FAIL": 1
+        },
+        "msg.c:4055": {
+          "FAIL": 1
+        },
+        "msg.c:4062": {
+          "FAIL": 1
+        },
+        "msg.c:4063": {
+          "FAIL": 1
+        },
+        "msg.c:4067": {
+          "FAIL": 1
+        },
+        "msg.c:4075": {
+          "FAIL": 1
+        },
+        "msg.c:4076": {
+          "FAIL": 1
+        },
+        "msg.c:4077": {
+          "FAIL": 1
+        },
+        "msg.c:4078": {
+          "FAIL": 1
+        },
+        "msg.c:5174": {
+          "FAIL": 1,
+          "PASS": 14
+        },
+        "msg.c:5405": {
+          "FAIL": 1
+        },
+        "msg.c:5425": {
+          "FAIL": 1
+        },
+        "msg.c:8218": {
+          "FAIL": 3
+        },
+        "msg.c:8272": {
+          "FAIL": 1
+        },
+        "msg.c:8291": {
+          "FAIL": 1
+        },
+        "msg.c:8654": {
+          "FAIL": 1
+        },
+        "msg.c:8655": {
+          "FAIL": 1
+        },
+        "msg.c:8658": {
+          "FAIL": 1
+        },
+        "msg.c:8674": {
+          "FAIL": 1
+        },
+        "msg.c:8679": {
+          "FAIL": 1
+        },
+        "msg.c:8684": {
+          "FAIL": 1
+        },
+        "msg.c:8692": {
+          "FAIL": 1
+        },
+        "msg.c:8697": {
+          "FAIL": 1
+        },
+        "msg.c:8703": {
+          "FAIL": 1
+        },
+        "msg.c:8711": {
+          "FAIL": 1
+        },
+        "msg.c:8716": {
+          "FAIL": 1
+        },
+        "msg.c:8722": {
+          "FAIL": 1
+        },
+        "msg.c:8727": {
+          "FAIL": 1
+        },
+        "msg.c:8733": {
+          "FAIL": 1
+        },
+        "msg.c:8738": {
+          "FAIL": 1
+        },
+        "msg.c:8744": {
+          "FAIL": 1
+        },
+        "msg.c:8755": {
+          "FAIL": 1
+        },
+        "msg.c:8766": {
+          "FAIL": 1
+        },
+        "msg.c:8774": {
+          "FAIL": 1
+        },
+        "msg.c:8780": {
+          "FAIL": 1
+        },
+        "msg.c:8791": {
+          "FAIL": 1
+        },
+        "msg.c:8802": {
+          "FAIL": 1
+        },
+        "msg.c:8808": {
+          "FAIL": 1
+        },
+        "msg.c:8816": {
+          "FAIL": 1
+        },
+        "msg.c:8821": {
+          "FAIL": 1
+        },
+        "msg.c:8827": {
+          "FAIL": 1
+        },
+        "msg.c:8835": {
+          "FAIL": 1
+        },
+        "msg.c:8841": {
+          "FAIL": 1
+        },
+        "msg.c:8849": {
+          "FAIL": 1
+        },
+        "msg.c:8855": {
+          "FAIL": 1
+        },
+        "msg.c:8866": {
+          "FAIL": 1
+        },
+        "msg.c:8871": {
+          "FAIL": 1
+        },
+        "msg.c:8920": {
+          "FAIL": 1
+        },
+        "msg.c:9203": {
+          "FAIL": 1
+        },
+        "msg.c:9209": {
+          "FAIL": 1
+        },
+        "msg.c:9213": {
+          "FAIL": 1
+        },
+        "msg.c:9239": {
+          "FAIL": 1
+        },
+        "msg.c:9248": {
+          "FAIL": 1
+        },
+        "msg.c:9257": {
+          "FAIL": 1
+        },
+        "msg.c:9297": {
+          "FAIL": 3,
+          "PASS": 2
+        },
+        "msg.c:9305": {
+          "FAIL": 3,
+          "PASS": 2
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "msg.c:10396": {
+          "PASS": 4
+        },
+        "msg.c:10399": {
+          "PASS": 1
+        },
+        "msg.c:10401": {
+          "PASS": 1
+        },
+        "msg.c:10403": {
+          "PASS": 1
+        },
+        "msg.c:10405": {
+          "PASS": 4
+        },
+        "msg.c:10413": {
+          "PASS": 1
+        },
+        "msg.c:10415": {
+          "PASS": 4
+        },
+        "msg.c:10420": {
+          "PASS": 1
+        },
+        "msg.c:10422": {
+          "PASS": 4
+        },
+        "msg.c:10426": {
+          "PASS": 1
+        },
+        "msg.c:10428": {
+          "PASS": 4
+        },
+        "msg.c:10432": {
+          "PASS": 1
+        },
+        "msg.c:10434": {
+          "PASS": 1
+        },
+        "msg.c:10436": {
+          "PASS": 4
+        },
+        "msg.c:10483": {
+          "PASS": 1
+        },
+        "msg.c:2864": {
+          "PASS": 11
+        },
+        "msg.c:2866": {
+          "PASS": 9
+        },
+        "msg.c:2994": {
+          "PASS": 1
+        },
+        "msg.c:2995": {
+          "PASS": 1
+        },
+        "msg.c:3008": {
+          "PASS": 1
+        },
+        "msg.c:3009": {
+          "PASS": 1
+        },
+        "msg.c:3012": {
+          "PASS": 1
+        },
+        "msg.c:3013": {
+          "PASS": 1
+        },
+        "msg.c:3029": {
+          "PASS": 1
+        },
+        "msg.c:3030": {
+          "PASS": 1
+        },
+        "msg.c:3032": {
+          "PASS": 1
+        },
+        "msg.c:3033": {
+          "PASS": 1
+        },
+        "msg.c:3036": {
+          "PASS": 1
+        },
+        "msg.c:3037": {
+          "PASS": 1
+        },
+        "msg.c:3046": {
+          "PASS": 1
+        },
+        "msg.c:3047": {
+          "PASS": 1
+        },
+        "msg.c:3049": {
+          "PASS": 1
+        },
+        "msg.c:3050": {
+          "PASS": 1
+        },
+        "msg.c:3053": {
+          "PASS": 1
+        },
+        "msg.c:3054": {
+          "PASS": 1
+        },
+        "msg.c:3067": {
+          "PASS": 1
+        },
+        "msg.c:3068": {
+          "PASS": 1
+        },
+        "msg.c:3070": {
+          "PASS": 1
+        },
+        "msg.c:3071": {
+          "PASS": 1
+        },
+        "msg.c:3074": {
+          "PASS": 1
+        },
+        "msg.c:3075": {
+          "PASS": 1
+        },
+        "msg.c:3081": {
+          "PASS": 1
+        },
+        "msg.c:3082": {
+          "PASS": 1
+        },
+        "msg.c:3088": {
+          "PASS": 1
+        },
+        "msg.c:3091": {
+          "PASS": 1
+        },
+        "msg.c:3103": {
+          "PASS": 1
+        },
+        "msg.c:3104": {
+          "PASS": 1
+        },
+        "msg.c:3106": {
+          "PASS": 1
+        },
+        "msg.c:3107": {
+          "PASS": 1
+        },
+        "msg.c:3116": {
+          "PASS": 1
+        },
+        "msg.c:3122": {
+          "PASS": 1
+        },
+        "msg.c:3123": {
+          "PASS": 1
+        },
+        "msg.c:3126": {
+          "PASS": 1
+        },
+        "msg.c:3127": {
+          "PASS": 1
+        },
+        "msg.c:3130": {
+          "PASS": 1
+        },
+        "msg.c:3131": {
+          "PASS": 1
+        },
+        "msg.c:3145": {
+          "PASS": 1
+        },
+        "msg.c:3146": {
+          "PASS": 1
+        },
+        "msg.c:3149": {
+          "PASS": 1
+        },
+        "msg.c:3150": {
+          "PASS": 1
+        },
+        "msg.c:3162": {
+          "PASS": 1
+        },
+        "msg.c:3163": {
+          "PASS": 1
+        },
+        "msg.c:3168": {
+          "PASS": 1
+        },
+        "msg.c:3169": {
+          "PASS": 1
+        },
+        "msg.c:3174": {
+          "PASS": 1
+        },
+        "msg.c:3175": {
+          "PASS": 1
+        },
+        "msg.c:3180": {
+          "PASS": 1
+        },
+        "msg.c:3181": {
+          "PASS": 1
+        },
+        "msg.c:3184": {
+          "PASS": 1
+        },
+        "msg.c:3185": {
+          "PASS": 1
+        },
+        "msg.c:3191": {
+          "PASS": 1
+        },
+        "msg.c:3192": {
+          "PASS": 1
+        },
+        "msg.c:3195": {
+          "PASS": 1
+        },
+        "msg.c:3196": {
+          "PASS": 1
+        },
+        "msg.c:3205": {
+          "PASS": 1
+        },
+        "msg.c:3206": {
+          "PASS": 1
+        },
+        "msg.c:3211": {
+          "PASS": 1
+        },
+        "msg.c:3212": {
+          "PASS": 1
+        },
+        "msg.c:3222": {
+          "PASS": 1
+        },
+        "msg.c:3224": {
+          "PASS": 1
+        },
+        "msg.c:3225": {
+          "PASS": 1
+        },
+        "msg.c:3230": {
+          "PASS": 1
+        },
+        "msg.c:3231": {
+          "PASS": 1
+        },
+        "msg.c:3241": {
+          "PASS": 1
+        },
+        "msg.c:3242": {
+          "PASS": 1
+        },
+        "msg.c:3244": {
+          "PASS": 1
+        },
+        "msg.c:3245": {
+          "PASS": 1
+        },
+        "msg.c:3248": {
+          "PASS": 1
+        },
+        "msg.c:3249": {
+          "PASS": 1
+        },
+        "msg.c:3256": {
+          "PASS": 1
+        },
+        "msg.c:3258": {
+          "PASS": 1
+        },
+        "msg.c:3259": {
+          "PASS": 1
+        },
+        "msg.c:3265": {
+          "PASS": 1
+        },
+        "msg.c:3271": {
+          "PASS": 1
+        },
+        "msg.c:3274": {
+          "PASS": 1
+        },
+        "msg.c:3275": {
+          "PASS": 1
+        },
+        "msg.c:3284": {
+          "PASS": 1
+        },
+        "msg.c:3285": {
+          "PASS": 1
+        },
+        "msg.c:3287": {
+          "PASS": 1
+        },
+        "msg.c:3288": {
+          "PASS": 1
+        },
+        "msg.c:3291": {
+          "PASS": 1
+        },
+        "msg.c:3292": {
+          "PASS": 1
+        },
+        "msg.c:3297": {
+          "PASS": 1
+        },
+        "msg.c:3299": {
+          "PASS": 1
+        },
+        "msg.c:3300": {
+          "PASS": 1
+        },
+        "msg.c:3301": {
+          "PASS": 1
+        },
+        "msg.c:3304": {
+          "PASS": 1
+        },
+        "msg.c:3305": {
+          "PASS": 1
+        },
+        "msg.c:3311": {
+          "PASS": 1
+        },
+        "msg.c:3312": {
+          "PASS": 1
+        },
+        "msg.c:3318": {
+          "PASS": 1
+        },
+        "msg.c:3330": {
+          "PASS": 1
+        },
+        "msg.c:3331": {
+          "PASS": 1
+        },
+        "msg.c:3332": {
+          "PASS": 1
+        },
+        "msg.c:3346": {
+          "PASS": 1
+        },
+        "msg.c:3347": {
+          "PASS": 1
+        },
+        "msg.c:3348": {
+          "PASS": 1
+        },
+        "msg.c:3351": {
+          "PASS": 1
+        },
+        "msg.c:3352": {
+          "PASS": 1
+        },
+        "msg.c:3368": {
+          "PASS": 1
+        },
+        "msg.c:3370": {
+          "PASS": 1
+        },
+        "msg.c:3371": {
+          "PASS": 1
+        },
+        "msg.c:3376": {
+          "PASS": 1
+        },
+        "msg.c:3377": {
+          "PASS": 1
+        },
+        "msg.c:3388": {
+          "PASS": 1
+        },
+        "msg.c:3389": {
+          "PASS": 1
+        },
+        "msg.c:3391": {
+          "PASS": 1
+        },
+        "msg.c:3392": {
+          "PASS": 1
+        },
+        "msg.c:3395": {
+          "PASS": 1
+        },
+        "msg.c:3396": {
+          "PASS": 1
+        },
+        "msg.c:3407": {
+          "PASS": 1
+        },
+        "msg.c:3408": {
+          "PASS": 1
+        },
+        "msg.c:3410": {
+          "PASS": 1
+        },
+        "msg.c:3438": {
+          "PASS": 1
+        },
+        "msg.c:3441": {
+          "PASS": 1
+        },
+        "msg.c:3444": {
+          "PASS": 1
+        },
+        "msg.c:3446": {
+          "PASS": 1
+        },
+        "msg.c:3447": {
+          "PASS": 1
+        },
+        "msg.c:3448": {
+          "PASS": 1
+        },
+        "msg.c:3451": {
+          "PASS": 1
+        },
+        "msg.c:3452": {
+          "PASS": 1
+        },
+        "msg.c:3458": {
+          "PASS": 1
+        },
+        "msg.c:3460": {
+          "PASS": 1
+        },
+        "msg.c:3489": {
+          "PASS": 1
+        },
+        "msg.c:3516": {
+          "PASS": 4
+        },
+        "msg.c:3517": {
+          "PASS": 4
+        },
+        "msg.c:3523": {
+          "PASS": 4
+        },
+        "msg.c:3524": {
+          "PASS": 4
+        },
+        "msg.c:3594": {
+          "PASS": 4
+        },
+        "msg.c:3595": {
+          "PASS": 4
+        },
+        "msg.c:3598": {
+          "PASS": 8
+        },
+        "msg.c:3605": {
+          "PASS": 4
+        },
+        "msg.c:3606": {
+          "PASS": 4
+        },
+        "msg.c:3610": {
+          "PASS": 8
+        },
+        "msg.c:3617": {
+          "PASS": 8
+        },
+        "msg.c:3619": {
+          "PASS": 8
+        },
+        "msg.c:3620": {
+          "PASS": 8
+        },
+        "msg.c:3634": {
+          "PASS": 4
+        },
+        "msg.c:3635": {
+          "PASS": 4
+        },
+        "msg.c:3648": {
+          "PASS": 4
+        },
+        "msg.c:3649": {
+          "PASS": 4
+        },
+        "msg.c:3674": {
+          "PASS": 8
+        },
+        "msg.c:3676": {
+          "PASS": 8
+        },
+        "msg.c:3677": {
+          "PASS": 8
+        },
+        "msg.c:3690": {
+          "PASS": 2
+        },
+        "msg.c:3697": {
+          "PASS": 2
+        },
+        "msg.c:3705": {
+          "PASS": 2
+        },
+        "msg.c:3738": {
+          "PASS": 2
+        },
+        "msg.c:3772": {
+          "PASS": 1
+        },
+        "msg.c:3775": {
+          "PASS": 1
+        },
+        "msg.c:3799": {
+          "PASS": 1
+        },
+        "msg.c:3822": {
+          "PASS": 1
+        },
+        "msg.c:3824": {
+          "PASS": 1
+        },
+        "msg.c:3838": {
+          "PASS": 1
+        },
+        "msg.c:3839": {
+          "PASS": 1
+        },
+        "msg.c:3844": {
+          "PASS": 1
+        },
+        "msg.c:3850": {
+          "PASS": 1
+        },
+        "msg.c:3855": {
+          "PASS": 1
+        },
+        "msg.c:3860": {
+          "PASS": 1
+        },
+        "msg.c:3874": {
+          "PASS": 1
+        },
+        "msg.c:3875": {
+          "PASS": 1
+        },
+        "msg.c:3881": {
+          "PASS": 1
+        },
+        "msg.c:3893": {
+          "PASS": 1
+        },
+        "msg.c:3894": {
+          "PASS": 1
+        },
+        "msg.c:3907": {
+          "PASS": 1
+        },
+        "msg.c:3908": {
+          "PASS": 1
+        },
+        "msg.c:3914": {
+          "PASS": 1
+        },
+        "msg.c:3929": {
+          "PASS": 1
+        },
+        "msg.c:3935": {
+          "PASS": 1
+        },
+        "msg.c:3938": {
+          "PASS": 1
+        },
+        "msg.c:3939": {
+          "PASS": 1
+        },
+        "msg.c:3945": {
+          "PASS": 1
+        },
+        "msg.c:3946": {
+          "PASS": 1
+        },
+        "msg.c:3952": {
+          "PASS": 1
+        },
+        "msg.c:3953": {
+          "PASS": 1
+        },
+        "msg.c:3960": {
+          "PASS": 1
+        },
+        "msg.c:3967": {
+          "PASS": 1
+        },
+        "msg.c:3970": {
+          "PASS": 1
+        },
+        "msg.c:3973": {
+          "PASS": 1
+        },
+        "msg.c:3980": {
+          "PASS": 1
+        },
+        "msg.c:3983": {
+          "PASS": 1
+        },
+        "msg.c:4044": {
+          "PASS": 1
+        },
+        "msg.c:4049": {
+          "PASS": 1
+        },
+        "msg.c:4060": {
+          "PASS": 1
+        },
+        "msg.c:4073": {
+          "PASS": 1
+        },
+        "msg.c:4094": {
+          "PASS": 1
+        },
+        "msg.c:4098": {
+          "PASS": 1
+        },
+        "msg.c:4106": {
+          "PASS": 1
+        },
+        "msg.c:4108": {
+          "PASS": 1
+        },
+        "msg.c:4109": {
+          "PASS": 1
+        },
+        "msg.c:4137": {
+          "PASS": 1
+        },
+        "msg.c:4138": {
+          "PASS": 1
+        },
+        "msg.c:4141": {
+          "PASS": 1
+        },
+        "msg.c:4142": {
+          "PASS": 1
+        },
+        "msg.c:4177": {
+          "PASS": 1
+        },
+        "msg.c:4182": {
+          "PASS": 1
+        },
+        "msg.c:4191": {
+          "PASS": 1
+        },
+        "msg.c:4205": {
+          "PASS": 1
+        },
+        "msg.c:4210": {
+          "PASS": 1
+        },
+        "msg.c:4215": {
+          "PASS": 1
+        },
+        "msg.c:4268": {
+          "PASS": 1
+        },
+        "msg.c:4276": {
+          "PASS": 1
+        },
+        "msg.c:4278": {
+          "PASS": 1
+        },
+        "msg.c:4279": {
+          "PASS": 1
+        },
+        "msg.c:4297": {
+          "PASS": 1
+        },
+        "msg.c:4299": {
+          "PASS": 1
+        },
+        "msg.c:4300": {
+          "PASS": 1
+        },
+        "msg.c:4312": {
+          "PASS": 1
+        },
+        "msg.c:4336": {
+          "PASS": 1
+        },
+        "msg.c:4351": {
+          "PASS": 1
+        },
+        "msg.c:4355": {
+          "PASS": 1
+        },
+        "msg.c:4356": {
+          "PASS": 1
+        },
+        "msg.c:4386": {
+          "PASS": 1
+        },
+        "msg.c:4389": {
+          "PASS": 1
+        },
+        "msg.c:4507": {
+          "PASS": 1
+        },
+        "msg.c:4514": {
+          "PASS": 1
+        },
+        "msg.c:4519": {
+          "PASS": 1
+        },
+        "msg.c:4520": {
+          "PASS": 1
+        },
+        "msg.c:4535": {
+          "PASS": 1
+        },
+        "msg.c:4536": {
+          "PASS": 1
+        },
+        "msg.c:4551": {
+          "PASS": 1
+        },
+        "msg.c:4552": {
+          "PASS": 1
+        },
+        "msg.c:4561": {
+          "PASS": 1
+        },
+        "msg.c:4562": {
+          "PASS": 1
+        },
+        "msg.c:4578": {
+          "PASS": 1
+        },
+        "msg.c:4579": {
+          "PASS": 1
+        },
+        "msg.c:4588": {
+          "PASS": 1
+        },
+        "msg.c:4589": {
+          "PASS": 1
+        },
+        "msg.c:4606": {
+          "PASS": 1
+        },
+        "msg.c:4608": {
+          "PASS": 1
+        },
+        "msg.c:4617": {
+          "PASS": 1
+        },
+        "msg.c:4618": {
+          "PASS": 1
+        },
+        "msg.c:4633": {
+          "PASS": 1
+        },
+        "msg.c:4634": {
+          "PASS": 1
+        },
+        "msg.c:4644": {
+          "PASS": 1
+        },
+        "msg.c:4645": {
+          "PASS": 1
+        },
+        "msg.c:4649": {
+          "PASS": 1
+        },
+        "msg.c:4650": {
+          "PASS": 1
+        },
+        "msg.c:4654": {
+          "PASS": 1
+        },
+        "msg.c:4655": {
+          "PASS": 1
+        },
+        "msg.c:4762": {
+          "PASS": 2
+        },
+        "msg.c:4829": {
+          "PASS": 11
+        },
+        "msg.c:4832": {
+          "PASS": 11
+        },
+        "msg.c:4851": {
+          "PASS": 1
+        },
+        "msg.c:4946": {
+          "PASS": 1
+        },
+        "msg.c:4949": {
+          "PASS": 1
+        },
+        "msg.c:5037": {
+          "PASS": 1
+        },
+        "msg.c:5042": {
+          "PASS": 1
+        },
+        "msg.c:5047": {
+          "PASS": 1
+        },
+        "msg.c:5050": {
+          "PASS": 1
+        },
+        "msg.c:5052": {
+          "PASS": 1
+        },
+        "msg.c:5054": {
+          "PASS": 1
+        },
+        "msg.c:5171": {
+          "PASS": 42
+        },
+        "msg.c:5192": {
+          "PASS": 42
+        },
+        "msg.c:5348": {
+          "PASS": 1
+        },
+        "msg.c:5358": {
+          "PASS": 1
+        },
+        "msg.c:5362": {
+          "PASS": 1
+        },
+        "msg.c:5367": {
+          "PASS": 1
+        },
+        "msg.c:5373": {
+          "PASS": 1
+        },
+        "msg.c:5378": {
+          "PASS": 1
+        },
+        "msg.c:5415": {
+          "PASS": 1
+        },
+        "msg.c:5416": {
+          "PASS": 1
+        },
+        "msg.c:5424": {
+          "PASS": 1
+        },
+        "msg.c:5528": {
+          "PASS": 1
+        },
+        "msg.c:5530": {
+          "PASS": 1
+        },
+        "msg.c:5533": {
+          "PASS": 1
+        },
+        "msg.c:5545": {
+          "PASS": 1
+        },
+        "msg.c:5549": {
+          "PASS": 1
+        },
+        "msg.c:5782": {
+          "PASS": 1
+        },
+        "msg.c:5783": {
+          "PASS": 1
+        },
+        "msg.c:5813": {
+          "PASS": 1
+        },
+        "msg.c:5819": {
+          "PASS": 1
+        },
+        "msg.c:5823": {
+          "PASS": 1
+        },
+        "msg.c:5863": {
+          "PASS": 1
+        },
+        "msg.c:6258": {
+          "PASS": 1
+        },
+        "msg.c:6261": {
+          "PASS": 1
+        },
+        "msg.c:6263": {
+          "PASS": 1
+        },
+        "msg.c:6317": {
+          "PASS": 1
+        },
+        "msg.c:6392": {
+          "PASS": 1
+        },
+        "msg.c:6446": {
+          "PASS": 6
+        },
+        "msg.c:6456": {
+          "PASS": 2
+        },
+        "msg.c:6478": {
+          "PASS": 47
+        },
+        "msg.c:6482": {
+          "PASS": 2
+        },
+        "msg.c:6490": {
+          "PASS": 98
+        },
+        "msg.c:6519": {
+          "PASS": 6
+        },
+        "msg.c:6557": {
+          "PASS": 3
+        },
+        "msg.c:6559": {
+          "PASS": 3
+        },
+        "msg.c:6744": {
+          "PASS": 8
+        },
+        "msg.c:6746": {
+          "PASS": 1
+        },
+        "msg.c:6932": {
+          "PASS": 1
+        },
+        "msg.c:6977": {
+          "PASS": 503
+        },
+        "msg.c:7059": {
+          "PASS": 31
+        },
+        "msg.c:7276": {
+          "PASS": 1
+        },
+        "msg.c:7278": {
+          "PASS": 1
+        },
+        "msg.c:7279": {
+          "PASS": 1
+        },
+        "msg.c:7281": {
+          "PASS": 1
+        },
+        "msg.c:7296": {
+          "PASS": 1
+        },
+        "msg.c:7297": {
+          "PASS": 1
+        },
+        "msg.c:7308": {
+          "PASS": 1
+        },
+        "msg.c:7331": {
+          "PASS": 1
+        },
+        "msg.c:7333": {
+          "PASS": 1
+        },
+        "msg.c:7336": {
+          "PASS": 1
+        },
+        "msg.c:7339": {
+          "PASS": 1
+        },
+        "msg.c:7343": {
+          "PASS": 1
+        },
+        "msg.c:7431": {
+          "PASS": 2
+        },
+        "msg.c:7637": {
+          "PASS": 1
+        },
+        "msg.c:7639": {
+          "PASS": 1
+        },
+        "msg.c:7652": {
+          "PASS": 1
+        },
+        "msg.c:7655": {
+          "PASS": 1
+        },
+        "msg.c:7658": {
+          "PASS": 1
+        },
+        "msg.c:7693": {
+          "PASS": 1
+        },
+        "msg.c:7700": {
+          "PASS": 1
+        },
+        "msg.c:7702": {
+          "PASS": 1
+        },
+        "msg.c:7716": {
+          "PASS": 1
+        },
+        "msg.c:7719": {
+          "PASS": 1
+        },
+        "msg.c:7722": {
+          "PASS": 1
+        },
+        "msg.c:7731": {
+          "PASS": 1
+        },
+        "msg.c:7740": {
+          "PASS": 1
+        },
+        "msg.c:7742": {
+          "PASS": 1
+        },
+        "msg.c:7762": {
+          "PASS": 1
+        },
+        "msg.c:7765": {
+          "PASS": 1
+        },
+        "msg.c:7768": {
+          "PASS": 1
+        },
+        "msg.c:7820": {
+          "PASS": 1
+        },
+        "msg.c:7834": {
+          "PASS": 1
+        },
+        "msg.c:7835": {
+          "PASS": 1
+        },
+        "msg.c:7840": {
+          "PASS": 1
+        },
+        "msg.c:7841": {
+          "PASS": 1
+        },
+        "msg.c:7933": {
+          "PASS": 1
+        },
+        "msg.c:7937": {
+          "PASS": 1
+        },
+        "msg.c:8039": {
+          "PASS": 1
+        },
+        "msg.c:8040": {
+          "PASS": 1
+        },
+        "msg.c:8043": {
+          "PASS": 1
+        },
+        "msg.c:8046": {
+          "PASS": 1
+        },
+        "msg.c:8049": {
+          "PASS": 1
+        },
+        "msg.c:8053": {
+          "PASS": 1
+        },
+        "msg.c:8054": {
+          "PASS": 1
+        },
+        "msg.c:8057": {
+          "PASS": 1
+        },
+        "msg.c:8060": {
+          "PASS": 1
+        },
+        "msg.c:8064": {
+          "PASS": 1
+        },
+        "msg.c:8065": {
+          "PASS": 1
+        },
+        "msg.c:8068": {
+          "PASS": 1
+        },
+        "msg.c:8071": {
+          "PASS": 1
+        },
+        "msg.c:8075": {
+          "PASS": 1
+        },
+        "msg.c:8076": {
+          "PASS": 1
+        },
+        "msg.c:8079": {
+          "PASS": 1
+        },
+        "msg.c:8082": {
+          "PASS": 1
+        },
+        "msg.c:8086": {
+          "PASS": 1
+        },
+        "msg.c:8087": {
+          "PASS": 1
+        },
+        "msg.c:8090": {
+          "PASS": 1
+        },
+        "msg.c:8093": {
+          "PASS": 1
+        },
+        "msg.c:8097": {
+          "PASS": 1
+        },
+        "msg.c:8098": {
+          "PASS": 1
+        },
+        "msg.c:8101": {
+          "PASS": 1
+        },
+        "msg.c:8104": {
+          "PASS": 1
+        },
+        "msg.c:8113": {
+          "PASS": 1
+        },
+        "msg.c:8117": {
+          "PASS": 1
+        },
+        "msg.c:8121": {
+          "PASS": 1
+        },
+        "msg.c:8122": {
+          "PASS": 1
+        },
+        "msg.c:8123": {
+          "PASS": 1
+        },
+        "msg.c:8124": {
+          "PASS": 1
+        },
+        "msg.c:8125": {
+          "PASS": 1
+        },
+        "msg.c:8128": {
+          "PASS": 1
+        },
+        "msg.c:8175": {
+          "PASS": 1
+        },
+        "msg.c:8194": {
+          "PASS": 1
+        },
+        "msg.c:8253": {
+          "PASS": 1
+        },
+        "msg.c:8262": {
+          "PASS": 1
+        },
+        "msg.c:8282": {
+          "PASS": 1
+        },
+        "msg.c:8302": {
+          "PASS": 1
+        },
+        "msg.c:8467": {
+          "PASS": 1
+        },
+        "msg.c:8472": {
+          "PASS": 1
+        },
+        "msg.c:8475": {
+          "PASS": 1
+        },
+        "msg.c:8510": {
+          "PASS": 1
+        },
+        "msg.c:8513": {
+          "PASS": 1
+        },
+        "msg.c:8645": {
+          "PASS": 1
+        },
+        "msg.c:8663": {
+          "PASS": 1
+        },
+        "msg.c:8669": {
+          "PASS": 1
+        },
+        "msg.c:8749": {
+          "PASS": 1
+        },
+        "msg.c:8760": {
+          "PASS": 1
+        },
+        "msg.c:8785": {
+          "PASS": 1
+        },
+        "msg.c:8796": {
+          "PASS": 1
+        },
+        "msg.c:8860": {
+          "PASS": 1
+        },
+        "msg.c:8877": {
+          "PASS": 1
+        },
+        "msg.c:8882": {
+          "PASS": 1
+        },
+        "msg.c:8888": {
+          "PASS": 1
+        },
+        "msg.c:8897": {
+          "PASS": 1
+        },
+        "msg.c:8903": {
+          "PASS": 1
+        },
+        "msg.c:8908": {
+          "PASS": 1
+        },
+        "msg.c:8913": {
+          "PASS": 1
+        },
+        "msg.c:8918": {
+          "PASS": 1
+        },
+        "msg.c:8921": {
+          "PASS": 1
+        },
+        "msg.c:8926": {
+          "PASS": 1
+        },
+        "msg.c:8932": {
+          "PASS": 1
+        },
+        "msg.c:8938": {
+          "PASS": 1
+        },
+        "msg.c:9001": {
+          "PASS": 1
+        },
+        "msg.c:9008": {
+          "PASS": 1
+        },
+        "msg.c:9021": {
+          "PASS": 1
+        },
+        "msg.c:9028": {
+          "PASS": 1
+        },
+        "msg.c:9029": {
+          "PASS": 1
+        },
+        "msg.c:9030": {
+          "PASS": 1
+        },
+        "msg.c:9039": {
+          "PASS": 1
+        },
+        "msg.c:9046": {
+          "PASS": 1
+        },
+        "msg.c:9047": {
+          "PASS": 1
+        },
+        "msg.c:9048": {
+          "PASS": 1
+        },
+        "msg.c:9065": {
+          "PASS": 1
+        },
+        "msg.c:9066": {
+          "PASS": 1
+        },
+        "msg.c:9067": {
+          "PASS": 1
+        },
+        "msg.c:9070": {
+          "PASS": 1
+        },
+        "msg.c:9073": {
+          "PASS": 1
+        },
+        "msg.c:9074": {
+          "PASS": 1
+        },
+        "msg.c:9078": {
+          "PASS": 1
+        },
+        "msg.c:9079": {
+          "PASS": 1
+        },
+        "msg.c:9080": {
+          "PASS": 1
+        },
+        "msg.c:9083": {
+          "PASS": 1
+        },
+        "msg.c:9089": {
+          "PASS": 1
+        },
+        "msg.c:9090": {
+          "PASS": 1
+        },
+        "msg.c:9091": {
+          "PASS": 1
+        },
+        "msg.c:9094": {
+          "PASS": 1
+        },
+        "msg.c:9098": {
+          "PASS": 1
+        },
+        "msg.c:9099": {
+          "PASS": 1
+        },
+        "msg.c:9100": {
+          "PASS": 1
+        },
+        "msg.c:9103": {
+          "PASS": 1
+        },
+        "msg.c:9104": {
+          "PASS": 1
+        },
+        "msg.c:9238": {
+          "PASS": 1
+        },
+        "msg.c:9247": {
+          "PASS": 1
+        },
+        "msg.c:9256": {
+          "PASS": 1
+        },
+        "msg.c:9270": {
+          "PASS": 5
+        },
+        "msg.c:9271": {
+          "PASS": 1
+        },
+        "msg.c:9272": {
+          "PASS": 5
+        },
+        "msg.c:9277": {
+          "PASS": 1
+        },
+        "msg.c:9278": {
+          "PASS": 5
+        },
+        "msg.c:9283": {
+          "PASS": 5
+        },
+        "msg.c:9285": {
+          "PASS": 1
+        },
+        "msg.c:9286": {
+          "PASS": 5
+        },
+        "msg.c:9292": {
+          "PASS": 5
+        },
+        "msg.c:9299": {
+          "PASS": 1
+        },
+        "msg.c:9300": {
+          "PASS": 5
+        },
+        "msg.c:9307": {
+          "PASS": 1
+        },
+        "msg.c:9308": {
+          "PASS": 5
+        },
+        "msg.c:9309": {
+          "PASS": 1
+        },
+        "msg.c:9359": {
+          "PASS": 1
+        },
+        "msg.c:9686": {
+          "PASS": 1
+        },
+        "msg.c:9708": {
+          "PASS": 57
+        },
+        "msg.c:9710": {
+          "PASS": 57
+        },
+        "msg.c:9849": {
+          "PASS": 1
+        },
+        "msg.c:9854": {
+          "PASS": 1
+        },
+        "msg.c:9858": {
+          "PASS": 1
+        },
+        "msg.c:9864": {
+          "PASS": 1
+        },
+        "msg.c:9868": {
+          "PASS": 1
+        },
+        "msg.c:9870": {
+          "PASS": 1
+        },
+        "msg.c:9871": {
+          "PASS": 1
+        },
+        "msg.c:9873": {
+          "PASS": 1
+        },
+        "msg.c:9874": {
+          "PASS": 1
+        },
+        "msg.c:9878": {
+          "PASS": 1
+        },
+        "msg.c:9882": {
+          "PASS": 1
+        },
+        "msg.c:9886": {
+          "PASS": 1
+        },
+        "msg.c:9888": {
+          "PASS": 1
+        },
+        "msg.c:9889": {
+          "PASS": 1
+        },
+        "msg.c:9893": {
+          "PASS": 1
+        },
+        "msg.c:9897": {
+          "PASS": 1
+        },
+        "msg.c:9899": {
+          "PASS": 1
+        },
+        "msg.c:9900": {
+          "PASS": 1
+        },
+        "msg.c:9911": {
+          "PASS": 1
+        },
+        "msg.c:9919": {
+          "PASS": 1
+        },
+        "msg.c:9926": {
+          "PASS": 1
+        },
+        "msg.c:9941": {
+          "PASS": 1
+        },
+        "msg.c:9967": {
+          "PASS": 1
+        }
+      },
+      "sha256": "a222e70af0ef7b701cfa5c1ad8574673c655b73d25b6e77c5a38ef4a6a18efa4",
+      "skips": {
+        "msg.c:10004": 1,
+        "msg.c:10539": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "2e2d98fe85a2f516a1ad39041c4fd42ae1fdd3ee269687d8f953eb3f6d41c30b",
+  "reviewed_native_defects": {
+    "review": {
+      "binary_sha256": "a222e70af0ef7b701cfa5c1ad8574673c655b73d25b6e77c5a38ef4a6a18efa4",
+      "candidate": {
+        "FAIL": 1
+      },
+      "candidate_results_sha256": "3113d363335ec949c5924788beea174e57a9a174c89940d24e73e798bbcb4693",
+      "comparison_sha256": "78c13279b6d3a5a007b6649abf08451009aa6bc8f56c327b156533979af7098b",
+      "group": "user32_msg",
+      "probe": "docs/benchmarks/win98-mdi-state-2026-10-23.json",
+      "probe_sha256": "fdc095c14821ade56c6ea2d77f2c430d688c7ef91499a7a04e0c659236d76324",
+      "reason": "The assertion accepts the destroyed child (Win2k) or the hidden replacement at its reused storage address (Win9x). NEO98 now reports NULL until a live child is activated. The paired native mdi_state ordinary-reuse case proves that Win98 also returns an ordinary frame child outside the MDI client through this stale pointer; fresh-client activation controls match NEO98.",
+      "reference": {
+        "PASS": 1
+      },
+      "reference_results_sha256": "2e2d98fe85a2f516a1ad39041c4fd42ae1fdd3ee269687d8f953eb3f6d41c30b",
+      "schema": 1,
+      "scope": "Review of the single remaining pure native-PASS discrepancy. Raw comparison remains FAIL. Optional-message assertion counts are reported separately; no blanket count waiver.",
+      "site": "msg.c:3113"
+    },
+    "review_sha256": "314908fcbced22bc13ec084fccaea35628e3efe728b9bc9dd6255730740d7420"
+  },
+  "schema": 1,
+  "sequence_invocations": 434,
+  "sequence_sites": [
+    "msg.c:10414",
+    "msg.c:10421",
+    "msg.c:10427",
+    "msg.c:10435",
+    "msg.c:2992",
+    "msg.c:3006",
+    "msg.c:3027",
+    "msg.c:3040",
+    "msg.c:3044",
+    "msg.c:3065",
+    "msg.c:3079",
+    "msg.c:3101",
+    "msg.c:3120",
+    "msg.c:3139",
+    "msg.c:3142",
+    "msg.c:3157",
+    "msg.c:3160",
+    "msg.c:3166",
+    "msg.c:3172",
+    "msg.c:3178",
+    "msg.c:3189",
+    "msg.c:3203",
+    "msg.c:3209",
+    "msg.c:3221",
+    "msg.c:3240",
+    "msg.c:3254",
+    "msg.c:3283",
+    "msg.c:3296",
+    "msg.c:3309",
+    "msg.c:3329",
+    "msg.c:3345",
+    "msg.c:3367",
+    "msg.c:3386",
+    "msg.c:3401",
+    "msg.c:3414",
+    "msg.c:3439",
+    "msg.c:3456",
+    "msg.c:3466",
+    "msg.c:3475",
+    "msg.c:3478",
+    "msg.c:3484",
+    "msg.c:3487",
+    "msg.c:3492",
+    "msg.c:3495",
+    "msg.c:3500",
+    "msg.c:3503",
+    "msg.c:3514",
+    "msg.c:3521",
+    "msg.c:3600",
+    "msg.c:3602",
+    "msg.c:3611",
+    "msg.c:3618",
+    "msg.c:3643",
+    "msg.c:3645",
+    "msg.c:3654",
+    "msg.c:3656",
+    "msg.c:3658",
+    "msg.c:3663",
+    "msg.c:3668",
+    "msg.c:3675",
+    "msg.c:3781",
+    "msg.c:3787",
+    "msg.c:3796",
+    "msg.c:3803",
+    "msg.c:3810",
+    "msg.c:3818",
+    "msg.c:3840",
+    "msg.c:3856",
+    "msg.c:3876",
+    "msg.c:3882",
+    "msg.c:3895",
+    "msg.c:3909",
+    "msg.c:3915",
+    "msg.c:3942",
+    "msg.c:3949",
+    "msg.c:4095",
+    "msg.c:4099",
+    "msg.c:4105",
+    "msg.c:4111",
+    "msg.c:4114",
+    "msg.c:4117",
+    "msg.c:4120",
+    "msg.c:4127",
+    "msg.c:4135",
+    "msg.c:4140",
+    "msg.c:4153",
+    "msg.c:4157",
+    "msg.c:4161",
+    "msg.c:4170",
+    "msg.c:4173",
+    "msg.c:4183",
+    "msg.c:4192",
+    "msg.c:4198",
+    "msg.c:4206",
+    "msg.c:4221",
+    "msg.c:4226",
+    "msg.c:4230",
+    "msg.c:4233",
+    "msg.c:4236",
+    "msg.c:4243",
+    "msg.c:4249",
+    "msg.c:4254",
+    "msg.c:4261",
+    "msg.c:4269",
+    "msg.c:4277",
+    "msg.c:4282",
+    "msg.c:4285",
+    "msg.c:4288",
+    "msg.c:4298",
+    "msg.c:4303",
+    "msg.c:4306",
+    "msg.c:4313",
+    "msg.c:4328",
+    "msg.c:4340",
+    "msg.c:4345",
+    "msg.c:4352",
+    "msg.c:4359",
+    "msg.c:4361",
+    "msg.c:4363",
+    "msg.c:4369",
+    "msg.c:4371",
+    "msg.c:4378",
+    "msg.c:4396",
+    "msg.c:4399",
+    "msg.c:4515",
+    "msg.c:4518",
+    "msg.c:4526",
+    "msg.c:4534",
+    "msg.c:4542",
+    "msg.c:4550",
+    "msg.c:4560",
+    "msg.c:4568",
+    "msg.c:4577",
+    "msg.c:4587",
+    "msg.c:4595",
+    "msg.c:4604",
+    "msg.c:4616",
+    "msg.c:4624",
+    "msg.c:4632",
+    "msg.c:4640",
+    "msg.c:4643",
+    "msg.c:4648",
+    "msg.c:4653",
+    "msg.c:4660",
+    "msg.c:4841",
+    "msg.c:4844",
+    "msg.c:4858",
+    "msg.c:4861",
+    "msg.c:4867",
+    "msg.c:4958",
+    "msg.c:5064",
+    "msg.c:5128",
+    "msg.c:5135",
+    "msg.c:5394",
+    "msg.c:5396",
+    "msg.c:5407",
+    "msg.c:5409",
+    "msg.c:5420",
+    "msg.c:5428",
+    "msg.c:5437",
+    "msg.c:5444",
+    "msg.c:5448",
+    "msg.c:5456",
+    "msg.c:5460",
+    "msg.c:5465",
+    "msg.c:5476",
+    "msg.c:5484",
+    "msg.c:5493",
+    "msg.c:5500",
+    "msg.c:5509",
+    "msg.c:5517",
+    "msg.c:5537",
+    "msg.c:5561",
+    "msg.c:5571",
+    "msg.c:5573",
+    "msg.c:5576",
+    "msg.c:5580",
+    "msg.c:5582",
+    "msg.c:5586",
+    "msg.c:5592",
+    "msg.c:5603",
+    "msg.c:5617",
+    "msg.c:5631",
+    "msg.c:5634",
+    "msg.c:5653",
+    "msg.c:5655",
+    "msg.c:5661",
+    "msg.c:5665",
+    "msg.c:5667",
+    "msg.c:5672",
+    "msg.c:5675",
+    "msg.c:5677",
+    "msg.c:5685",
+    "msg.c:5688",
+    "msg.c:5697",
+    "msg.c:5706",
+    "msg.c:5715",
+    "msg.c:5717",
+    "msg.c:5724",
+    "msg.c:5728",
+    "msg.c:5732",
+    "msg.c:5743",
+    "msg.c:5753",
+    "msg.c:5756",
+    "msg.c:5759",
+    "msg.c:5770",
+    "msg.c:5780",
+    "msg.c:6276",
+    "msg.c:6285",
+    "msg.c:6294",
+    "msg.c:6303",
+    "msg.c:6314",
+    "msg.c:6327",
+    "msg.c:6336",
+    "msg.c:6345",
+    "msg.c:6354",
+    "msg.c:6365",
+    "msg.c:6376",
+    "msg.c:6389",
+    "msg.c:6402",
+    "msg.c:6419",
+    "msg.c:6425",
+    "msg.c:6431",
+    "msg.c:7641",
+    "msg.c:7649",
+    "msg.c:7684",
+    "msg.c:7704",
+    "msg.c:7713",
+    "msg.c:7744",
+    "msg.c:7747",
+    "msg.c:7756",
+    "msg.c:7759",
+    "msg.c:7946",
+    "msg.c:7950",
+    "msg.c:7957",
+    "msg.c:7961",
+    "msg.c:7971",
+    "msg.c:7976",
+    "msg.c:7986",
+    "msg.c:8119",
+    "msg.c:8170",
+    "msg.c:8171",
+    "msg.c:8190",
+    "msg.c:8254",
+    "msg.c:8263",
+    "msg.c:8273",
+    "msg.c:8283",
+    "msg.c:8292",
+    "msg.c:8303",
+    "msg.c:8483",
+    "msg.c:8486",
+    "msg.c:8493",
+    "msg.c:8500",
+    "msg.c:8503",
+    "msg.c:8522",
+    "msg.c:8525",
+    "msg.c:8532",
+    "msg.c:8539",
+    "msg.c:8542",
+    "msg.c:8666",
+    "msg.c:8700",
+    "msg.c:8719",
+    "msg.c:8730",
+    "msg.c:8741",
+    "msg.c:8752",
+    "msg.c:8763",
+    "msg.c:8788",
+    "msg.c:8799",
+    "msg.c:8824",
+    "msg.c:8838",
+    "msg.c:8852",
+    "msg.c:8863",
+    "msg.c:8874",
+    "msg.c:8885",
+    "msg.c:8910",
+    "msg.c:8922",
+    "msg.c:8935",
+    "msg.c:9281",
+    "msg.c:9295",
+    "msg.c:9303",
+    "msg.c:9369",
+    "msg.c:9373",
+    "msg.c:9377",
+    "msg.c:9380",
+    "msg.c:9713",
+    "msg.c:9883",
+    "msg.c:9894",
+    "msg.c:9920",
+    "msg.c:9927",
+    "msg.c:9972",
+    "msg.c:9975"
+  ],
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "feb7b58839e49d1c17b3c592882464400ac5ceb639fae200d20a94d7873007cc",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

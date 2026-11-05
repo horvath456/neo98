@@ -1,0 +1,8 @@
+LIBRARY DDRAW.DLL
+EXPORTS
+    DirectDrawCreate
+    DirectDrawCreateEx
+    DirectDrawCreateClipper
+    DirectDrawEnumerateA
+    DirectDrawEnumerateExA
+    DdRegisterExtension

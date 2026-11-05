@@ -1,0 +1,45 @@
+--- a/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp
++++ b/FEXCore/Source/Interface/Core/JIT/MemoryOps.cpp
+@@ -622,6 +622,26 @@
+   if (!GuestMemBaseActive) {
+     return GenerateMemOperand(AccessSize, Base, Offset, OffsetType, OffsetScale);
+   }
++  if (NEO98Checked && KnownAddress != ~0ULL && !(KnownAddress & (IR::OpSizeToSize(AccessSize) - 1))) {
++    const uint32_t Page = KnownAddress >> 12;
++    if (Page != NEO98CheckedPage || Write != NEO98CheckedWrite) {
++      LoadConstant(ARMEmitter::Size::i64Bit, MEMTMP2.R(), (Write ? (1ULL << 33) : (1ULL << 32)) + Page);
++      ldrb(MEMTMP2.W(), MEMBASE.R(), MEMTMP2.R(), ARMEmitter::ExtendedType::LSL_64);
++      add(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMBASE.R(), MEMTMP2.R(), ARMEmitter::ShiftType::LSL, 34);
++      if (Page < 4096) {
++        add(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMTMP2.R(), Page, true);
++      } else {
++        LoadConstant(ARMEmitter::Size::i32Bit, MEMTMP.R(), Page << 12);
++        add(ARMEmitter::Size::i64Bit, MEMTMP2.R(), MEMTMP2.R(), MEMTMP.R(), ARMEmitter::ExtendedType::UXTW, 0);
++      }
++      NEO98CheckedPage = Page;
++      NEO98CheckedWrite = Write;
++    }
++    // The cached value is the host page, including its guest page offset.
++    // An aligned access fits in this page and its remaining offset fits the
++    // ARM load/store's scaled immediate. No guest address needs rebuilding.
++    return ARMEmitter::ExtendedMemOperand(MEMTMP2, ARMEmitter::IndexType::OFFSET, KnownAddress & 4095);
++  }
+   ARMEmitter::Register Address = Base;
+   if (!Offset.IsInvalid()) {
+     uint64_t Const;
+@@ -646,14 +666,7 @@
+     }
+   }
+   if (NEO98Checked) {
+-    const uint32_t Page = KnownAddress == ~0ULL ? ~0U : KnownAddress >> 12;
+-    if (Page == ~0U || Page != NEO98CheckedPage || Write != NEO98CheckedWrite) {
+-      NEO98CheckedBase(Address, Write);
+-      NEO98CheckedPage = Page;
+-      NEO98CheckedWrite = Write;
+-    }
+-    // Fold the guest address into the actual load/store. Exact constants on
+-    // the same page share this runtime lookup within one basic block only.
++    NEO98CheckedBase(Address, Write); // also discards a cached constant page
+     return ARMEmitter::ExtendedMemOperand(MEMTMP2, Address.X(), ARMEmitter::ExtendedType::UXTW, 0);
+   }
+   return ARMEmitter::ExtendedMemOperand(MEMBASE, Address.X(), ARMEmitter::ExtendedType::UXTW, 0);

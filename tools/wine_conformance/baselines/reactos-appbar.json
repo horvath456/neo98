@@ -1,0 +1,292 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "ros_shell32_SHAppBarMessage": {
+      "advisory": {
+        "SHAppBarMessage.cpp:1002": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1003": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1004": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1005": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1014": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1015": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1016": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1017": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1027": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1028": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1029": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1030": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1039": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1040": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1041": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1042": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1064": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1065": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1066": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1067": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1089": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1090": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1091": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1092": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1099": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1100": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1101": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:1102": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:989": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:990": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:991": {
+          "FAIL": 1
+        },
+        "SHAppBarMessage.cpp:992": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "SHAppBarMessage.cpp:1000": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1001": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1011": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1012": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1013": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1023": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1024": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1025": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1026": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1036": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1037": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1038": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1061": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1062": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1063": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1086": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1087": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:1088": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:981": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:982": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:983": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:984": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:985": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:986": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:987": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:988": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:998": {
+          "PASS": 1
+        },
+        "SHAppBarMessage.cpp:999": {
+          "PASS": 1
+        }
+      },
+      "sha256": "1f5b8e11e8e33de66b8ddbf8723f56679d73f6835ae6087522713e6f90612049",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "10fe70e5cbe20dfcd7b7b5b37a4d77e651a8dbfbfdde222f4036e80dfc9348a7",
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "60c1499d3dbdbeeb902a2ee57792697175d691b420d0338b8864c2787c8360c5",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "SHELL32.DLL": {
+      "sha256": "533c5809a9b6bdb236cce17a14c03ff251c4ca4d00790ea8e8034ee5d14d7f61",
+      "version": [
+        4,
+        72,
+        3612,
+        1700
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

@@ -1,0 +1,1568 @@
+{
+  "alternatives_sha256": "c3f3e444f2b73830909486bacbee62fb95ac4818c3522ae73e1eff8e70c07c92",
+  "assets": {},
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "excluded_groups": {},
+  "groups": {
+    "urlmon_url": {
+      "advisory": {
+        "url.c:1154": {
+          "FAIL": 1,
+          "PASS": 15
+        },
+        "url.c:1268": {
+          "FAIL": 2,
+          "PASS": 1
+        },
+        "url.c:1270": {
+          "FAIL": 5,
+          "PASS": 31
+        },
+        "url.c:2071": {
+          "FAIL": 2,
+          "PASS": 9
+        },
+        "url.c:2078": {
+          "FAIL": 1,
+          "PASS": 7
+        },
+        "url.c:2079": {
+          "FAIL": 1,
+          "PASS": 7
+        },
+        "url.c:2118": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "url.c:2356": {
+          "FAIL": 1,
+          "PASS": 2
+        },
+        "url.c:2358": {
+          "FAIL": 3
+        },
+        "url.c:2367": {
+          "FAIL": 1
+        },
+        "url.c:2372": {
+          "FAIL": 1
+        },
+        "url.c:2373": {
+          "FAIL": 1
+        },
+        "url.c:2379": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "url.c:2380": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "url.c:2382": {
+          "FAIL": 1
+        },
+        "url.c:2385": {
+          "FAIL": 1,
+          "PASS": 1
+        },
+        "url.c:2390": {
+          "FAIL": 3
+        },
+        "url.c:2396": {
+          "FAIL": 1
+        },
+        "url.c:2399": {
+          "FAIL": 1
+        },
+        "url.c:303": {
+          "FAIL": 1
+        },
+        "url.c:399": {
+          "FAIL": 2,
+          "PASS": 3
+        },
+        "url.c:601": {
+          "FAIL": 2
+        },
+        "url.c:614": {
+          "FAIL": 1,
+          "PASS": 5
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "url.c:1009": {
+          "PASS": 156
+        },
+        "url.c:1012": {
+          "PASS": 74
+        },
+        "url.c:1022": {
+          "PASS": 59
+        },
+        "url.c:1028": {
+          "PASS": 13
+        },
+        "url.c:1034": {
+          "PASS": 3
+        },
+        "url.c:1040": {
+          "PASS": 1
+        },
+        "url.c:1045": {
+          "PASS": 1
+        },
+        "url.c:1051": {
+          "PASS": 1
+        },
+        "url.c:1057": {
+          "PASS": 4
+        },
+        "url.c:1085": {
+          "PASS": 9
+        },
+        "url.c:1087": {
+          "PASS": 30
+        },
+        "url.c:1089": {
+          "PASS": 39
+        },
+        "url.c:1091": {
+          "PASS": 39
+        },
+        "url.c:1092": {
+          "PASS": 39
+        },
+        "url.c:1098": {
+          "PASS": 38
+        },
+        "url.c:1103": {
+          "PASS": 38
+        },
+        "url.c:1123": {
+          "PASS": 145
+        },
+        "url.c:1128": {
+          "PASS": 1
+        },
+        "url.c:1130": {
+          "PASS": 4
+        },
+        "url.c:1136": {
+          "PASS": 1
+        },
+        "url.c:1138": {
+          "PASS": 4
+        },
+        "url.c:1144": {
+          "PASS": 7
+        },
+        "url.c:1146": {
+          "PASS": 17
+        },
+        "url.c:1152": {
+          "PASS": 7
+        },
+        "url.c:1156": {
+          "PASS": 15
+        },
+        "url.c:1162": {
+          "PASS": 7
+        },
+        "url.c:1164": {
+          "PASS": 19
+        },
+        "url.c:1165": {
+          "PASS": 26
+        },
+        "url.c:1170": {
+          "PASS": 24
+        },
+        "url.c:1174": {
+          "PASS": 16
+        },
+        "url.c:1179": {
+          "PASS": 8
+        },
+        "url.c:1182": {
+          "PASS": 8
+        },
+        "url.c:1187": {
+          "PASS": 4
+        },
+        "url.c:1189": {
+          "PASS": 19
+        },
+        "url.c:1190": {
+          "PASS": 23
+        },
+        "url.c:1195": {
+          "PASS": 21
+        },
+        "url.c:1198": {
+          "PASS": 23
+        },
+        "url.c:1205": {
+          "PASS": 1
+        },
+        "url.c:1207": {
+          "PASS": 4
+        },
+        "url.c:1213": {
+          "PASS": 10
+        },
+        "url.c:1215": {
+          "PASS": 5
+        },
+        "url.c:1224": {
+          "PASS": 7
+        },
+        "url.c:1228": {
+          "PASS": 7
+        },
+        "url.c:1229": {
+          "PASS": 7
+        },
+        "url.c:1234": {
+          "PASS": 7
+        },
+        "url.c:1237": {
+          "PASS": 7
+        },
+        "url.c:1240": {
+          "PASS": 7
+        },
+        "url.c:1243": {
+          "PASS": 7
+        },
+        "url.c:1254": {
+          "PASS": 9
+        },
+        "url.c:1257": {
+          "PASS": 30
+        },
+        "url.c:1261": {
+          "PASS": 39
+        },
+        "url.c:1271": {
+          "PASS": 39
+        },
+        "url.c:1287": {
+          "PASS": 9
+        },
+        "url.c:1289": {
+          "PASS": 27
+        },
+        "url.c:1291": {
+          "PASS": 36
+        },
+        "url.c:1312": {
+          "PASS": 28
+        },
+        "url.c:1314": {
+          "PASS": 28
+        },
+        "url.c:1316": {
+          "PASS": 28
+        },
+        "url.c:1321": {
+          "PASS": 28
+        },
+        "url.c:1325": {
+          "PASS": 27
+        },
+        "url.c:1327": {
+          "PASS": 27
+        },
+        "url.c:1330": {
+          "PASS": 1
+        },
+        "url.c:1332": {
+          "PASS": 28
+        },
+        "url.c:1333": {
+          "PASS": 28
+        },
+        "url.c:1334": {
+          "PASS": 28
+        },
+        "url.c:1335": {
+          "PASS": 28
+        },
+        "url.c:1338": {
+          "PASS": 28
+        },
+        "url.c:1339": {
+          "PASS": 28
+        },
+        "url.c:1340": {
+          "PASS": 28
+        },
+        "url.c:1346": {
+          "PASS": 13
+        },
+        "url.c:1350": {
+          "PASS": 13
+        },
+        "url.c:1353": {
+          "PASS": 13
+        },
+        "url.c:1356": {
+          "PASS": 22
+        },
+        "url.c:1359": {
+          "PASS": 22
+        },
+        "url.c:1364": {
+          "PASS": 1
+        },
+        "url.c:1367": {
+          "PASS": 4
+        },
+        "url.c:1370": {
+          "PASS": 1
+        },
+        "url.c:1381": {
+          "PASS": 7
+        },
+        "url.c:1386": {
+          "PASS": 7
+        },
+        "url.c:1387": {
+          "PASS": 7
+        },
+        "url.c:1499": {
+          "PASS": 3
+        },
+        "url.c:1500": {
+          "PASS": 3
+        },
+        "url.c:1503": {
+          "PASS": 1
+        },
+        "url.c:1505": {
+          "PASS": 2
+        },
+        "url.c:1506": {
+          "PASS": 3
+        },
+        "url.c:1507": {
+          "PASS": 3
+        },
+        "url.c:1508": {
+          "PASS": 3
+        },
+        "url.c:1511": {
+          "PASS": 3
+        },
+        "url.c:1516": {
+          "PASS": 3
+        },
+        "url.c:1524": {
+          "PASS": 3
+        },
+        "url.c:1525": {
+          "PASS": 3
+        },
+        "url.c:1540": {
+          "PASS": 3
+        },
+        "url.c:1542": {
+          "PASS": 3
+        },
+        "url.c:1543": {
+          "PASS": 3
+        },
+        "url.c:1544": {
+          "PASS": 3
+        },
+        "url.c:1546": {
+          "PASS": 1
+        },
+        "url.c:1548": {
+          "PASS": 2
+        },
+        "url.c:1549": {
+          "PASS": 3
+        },
+        "url.c:1550": {
+          "PASS": 3
+        },
+        "url.c:1552": {
+          "PASS": 2
+        },
+        "url.c:1622": {
+          "PASS": 3
+        },
+        "url.c:1623": {
+          "PASS": 3
+        },
+        "url.c:1624": {
+          "PASS": 3
+        },
+        "url.c:1654": {
+          "PASS": 1
+        },
+        "url.c:1655": {
+          "PASS": 1
+        },
+        "url.c:1658": {
+          "PASS": 1
+        },
+        "url.c:1662": {
+          "PASS": 1
+        },
+        "url.c:1663": {
+          "PASS": 1
+        },
+        "url.c:1667": {
+          "PASS": 1
+        },
+        "url.c:1668": {
+          "PASS": 1
+        },
+        "url.c:1670": {
+          "PASS": 1
+        },
+        "url.c:1673": {
+          "PASS": 1
+        },
+        "url.c:1677": {
+          "PASS": 1
+        },
+        "url.c:1682": {
+          "PASS": 1
+        },
+        "url.c:1695": {
+          "PASS": 1
+        },
+        "url.c:1698": {
+          "PASS": 1
+        },
+        "url.c:1703": {
+          "PASS": 1
+        },
+        "url.c:1704": {
+          "PASS": 1
+        },
+        "url.c:1706": {
+          "PASS": 1
+        },
+        "url.c:1709": {
+          "PASS": 1
+        },
+        "url.c:1717": {
+          "PASS": 1
+        },
+        "url.c:1722": {
+          "PASS": 1
+        },
+        "url.c:1723": {
+          "PASS": 1
+        },
+        "url.c:1725": {
+          "PASS": 1
+        },
+        "url.c:1728": {
+          "PASS": 1
+        },
+        "url.c:1738": {
+          "PASS": 1
+        },
+        "url.c:1739": {
+          "PASS": 1
+        },
+        "url.c:1742": {
+          "PASS": 1
+        },
+        "url.c:1749": {
+          "PASS": 1
+        },
+        "url.c:1752": {
+          "PASS": 1
+        },
+        "url.c:1755": {
+          "PASS": 1
+        },
+        "url.c:1758": {
+          "PASS": 1
+        },
+        "url.c:1759": {
+          "PASS": 1
+        },
+        "url.c:1778": {
+          "PASS": 1
+        },
+        "url.c:1783": {
+          "PASS": 1
+        },
+        "url.c:1784": {
+          "PASS": 1
+        },
+        "url.c:1788": {
+          "PASS": 1
+        },
+        "url.c:1789": {
+          "PASS": 1
+        },
+        "url.c:1792": {
+          "PASS": 1
+        },
+        "url.c:1796": {
+          "PASS": 1
+        },
+        "url.c:1797": {
+          "PASS": 1
+        },
+        "url.c:1802": {
+          "PASS": 1
+        },
+        "url.c:1803": {
+          "PASS": 1
+        },
+        "url.c:1805": {
+          "PASS": 1
+        },
+        "url.c:1810": {
+          "PASS": 1
+        },
+        "url.c:1811": {
+          "PASS": 1
+        },
+        "url.c:1812": {
+          "PASS": 1
+        },
+        "url.c:1818": {
+          "PASS": 1
+        },
+        "url.c:1819": {
+          "PASS": 1
+        },
+        "url.c:1847": {
+          "PASS": 1
+        },
+        "url.c:1848": {
+          "PASS": 1
+        },
+        "url.c:1853": {
+          "PASS": 1
+        },
+        "url.c:1854": {
+          "PASS": 1
+        },
+        "url.c:1859": {
+          "PASS": 1
+        },
+        "url.c:1865": {
+          "PASS": 1
+        },
+        "url.c:1866": {
+          "PASS": 1
+        },
+        "url.c:1867": {
+          "PASS": 1
+        },
+        "url.c:1868": {
+          "PASS": 1
+        },
+        "url.c:1873": {
+          "PASS": 1
+        },
+        "url.c:1874": {
+          "PASS": 1
+        },
+        "url.c:1881": {
+          "PASS": 1
+        },
+        "url.c:1882": {
+          "PASS": 1
+        },
+        "url.c:1888": {
+          "PASS": 1
+        },
+        "url.c:1889": {
+          "PASS": 1
+        },
+        "url.c:1890": {
+          "PASS": 1
+        },
+        "url.c:1903": {
+          "PASS": 1
+        },
+        "url.c:1908": {
+          "PASS": 1
+        },
+        "url.c:1914": {
+          "PASS": 1
+        },
+        "url.c:1915": {
+          "PASS": 1
+        },
+        "url.c:1916": {
+          "PASS": 1
+        },
+        "url.c:1917": {
+          "PASS": 1
+        },
+        "url.c:1919": {
+          "PASS": 1
+        },
+        "url.c:1922": {
+          "PASS": 1
+        },
+        "url.c:1926": {
+          "PASS": 1
+        },
+        "url.c:1927": {
+          "PASS": 1
+        },
+        "url.c:1934": {
+          "PASS": 1
+        },
+        "url.c:1938": {
+          "PASS": 1
+        },
+        "url.c:1939": {
+          "PASS": 1
+        },
+        "url.c:1945": {
+          "PASS": 1
+        },
+        "url.c:1948": {
+          "PASS": 1
+        },
+        "url.c:1951": {
+          "PASS": 1
+        },
+        "url.c:1990": {
+          "PASS": 19
+        },
+        "url.c:1991": {
+          "PASS": 19
+        },
+        "url.c:1997": {
+          "PASS": 19
+        },
+        "url.c:1998": {
+          "PASS": 19
+        },
+        "url.c:1999": {
+          "PASS": 19
+        },
+        "url.c:2004": {
+          "PASS": 19
+        },
+        "url.c:2011": {
+          "PASS": 19
+        },
+        "url.c:2016": {
+          "PASS": 19
+        },
+        "url.c:2017": {
+          "PASS": 19
+        },
+        "url.c:2072": {
+          "PASS": 11
+        },
+        "url.c:2093": {
+          "PASS": 16
+        },
+        "url.c:2094": {
+          "PASS": 16
+        },
+        "url.c:2096": {
+          "PASS": 7
+        },
+        "url.c:2097": {
+          "PASS": 16
+        },
+        "url.c:2099": {
+          "PASS": 9
+        },
+        "url.c:210": {
+          "PASS": 1
+        },
+        "url.c:2103": {
+          "PASS": 2
+        },
+        "url.c:2106": {
+          "PASS": 7
+        },
+        "url.c:2111": {
+          "PASS": 5
+        },
+        "url.c:2112": {
+          "PASS": 5
+        },
+        "url.c:2119": {
+          "PASS": 2
+        },
+        "url.c:2121": {
+          "PASS": 3
+        },
+        "url.c:2122": {
+          "PASS": 3
+        },
+        "url.c:2126": {
+          "PASS": 5
+        },
+        "url.c:2128": {
+          "PASS": 5
+        },
+        "url.c:2129": {
+          "PASS": 7
+        },
+        "url.c:213": {
+          "PASS": 1
+        },
+        "url.c:2130": {
+          "PASS": 7
+        },
+        "url.c:2135": {
+          "PASS": 7
+        },
+        "url.c:2137": {
+          "PASS": 6
+        },
+        "url.c:2138": {
+          "PASS": 7
+        },
+        "url.c:2141": {
+          "PASS": 16
+        },
+        "url.c:2142": {
+          "PASS": 16
+        },
+        "url.c:2167": {
+          "PASS": 9
+        },
+        "url.c:2168": {
+          "PASS": 9
+        },
+        "url.c:2173": {
+          "PASS": 9
+        },
+        "url.c:2180": {
+          "PASS": 9
+        },
+        "url.c:2185": {
+          "PASS": 9
+        },
+        "url.c:2186": {
+          "PASS": 9
+        },
+        "url.c:2237": {
+          "PASS": 6
+        },
+        "url.c:2238": {
+          "PASS": 6
+        },
+        "url.c:2240": {
+          "PASS": 1
+        },
+        "url.c:2241": {
+          "PASS": 1
+        },
+        "url.c:2254": {
+          "PASS": 7
+        },
+        "url.c:2255": {
+          "PASS": 7
+        },
+        "url.c:2257": {
+          "PASS": 4
+        },
+        "url.c:2258": {
+          "PASS": 7
+        },
+        "url.c:2260": {
+          "PASS": 3
+        },
+        "url.c:2262": {
+          "PASS": 1
+        },
+        "url.c:2263": {
+          "PASS": 3
+        },
+        "url.c:2266": {
+          "PASS": 3
+        },
+        "url.c:2267": {
+          "PASS": 3
+        },
+        "url.c:2276": {
+          "PASS": 3
+        },
+        "url.c:2277": {
+          "PASS": 3
+        },
+        "url.c:2284": {
+          "PASS": 2
+        },
+        "url.c:2287": {
+          "PASS": 3
+        },
+        "url.c:2288": {
+          "PASS": 4
+        },
+        "url.c:2289": {
+          "PASS": 4
+        },
+        "url.c:2295": {
+          "PASS": 4
+        },
+        "url.c:2296": {
+          "PASS": 4
+        },
+        "url.c:2297": {
+          "PASS": 4
+        },
+        "url.c:2298": {
+          "PASS": 4
+        },
+        "url.c:2299": {
+          "PASS": 4
+        },
+        "url.c:2303": {
+          "PASS": 5
+        },
+        "url.c:2304": {
+          "PASS": 5
+        },
+        "url.c:2306": {
+          "PASS": 2
+        },
+        "url.c:2307": {
+          "PASS": 2
+        },
+        "url.c:2359": {
+          "PASS": 3
+        },
+        "url.c:2361": {
+          "PASS": 2
+        },
+        "url.c:2362": {
+          "PASS": 2
+        },
+        "url.c:2364": {
+          "PASS": 3
+        },
+        "url.c:2366": {
+          "PASS": 1
+        },
+        "url.c:2370": {
+          "PASS": 1
+        },
+        "url.c:2371": {
+          "PASS": 1
+        },
+        "url.c:2376": {
+          "PASS": 2
+        },
+        "url.c:2378": {
+          "PASS": 1
+        },
+        "url.c:2386": {
+          "PASS": 2
+        },
+        "url.c:2428": {
+          "PASS": 1
+        },
+        "url.c:2449": {
+          "PASS": 4
+        },
+        "url.c:2453": {
+          "PASS": 4
+        },
+        "url.c:2454": {
+          "PASS": 4
+        },
+        "url.c:2463": {
+          "PASS": 2
+        },
+        "url.c:2465": {
+          "PASS": 2
+        },
+        "url.c:2468": {
+          "PASS": 4
+        },
+        "url.c:2469": {
+          "PASS": 4
+        },
+        "url.c:2470": {
+          "PASS": 4
+        },
+        "url.c:2471": {
+          "PASS": 4
+        },
+        "url.c:2473": {
+          "PASS": 4
+        },
+        "url.c:2487": {
+          "PASS": 2
+        },
+        "url.c:2492": {
+          "PASS": 2
+        },
+        "url.c:2495": {
+          "PASS": 2
+        },
+        "url.c:256": {
+          "PASS": 3
+        },
+        "url.c:259": {
+          "PASS": 1
+        },
+        "url.c:261": {
+          "PASS": 2
+        },
+        "url.c:269": {
+          "PASS": 3
+        },
+        "url.c:272": {
+          "PASS": 1
+        },
+        "url.c:274": {
+          "PASS": 2
+        },
+        "url.c:282": {
+          "PASS": 3
+        },
+        "url.c:285": {
+          "PASS": 1
+        },
+        "url.c:287": {
+          "PASS": 2
+        },
+        "url.c:292": {
+          "PASS": 3
+        },
+        "url.c:295": {
+          "PASS": 3
+        },
+        "url.c:296": {
+          "PASS": 3
+        },
+        "url.c:298": {
+          "PASS": 1
+        },
+        "url.c:299": {
+          "PASS": 1
+        },
+        "url.c:300": {
+          "PASS": 1
+        },
+        "url.c:301": {
+          "PASS": 1
+        },
+        "url.c:302": {
+          "PASS": 1
+        },
+        "url.c:305": {
+          "PASS": 1
+        },
+        "url.c:306": {
+          "PASS": 1
+        },
+        "url.c:307": {
+          "PASS": 1
+        },
+        "url.c:308": {
+          "PASS": 1
+        },
+        "url.c:310": {
+          "PASS": 2
+        },
+        "url.c:311": {
+          "PASS": 2
+        },
+        "url.c:312": {
+          "PASS": 2
+        },
+        "url.c:313": {
+          "PASS": 2
+        },
+        "url.c:319": {
+          "PASS": 3
+        },
+        "url.c:321": {
+          "PASS": 3
+        },
+        "url.c:322": {
+          "PASS": 3
+        },
+        "url.c:323": {
+          "PASS": 3
+        },
+        "url.c:324": {
+          "PASS": 3
+        },
+        "url.c:329": {
+          "PASS": 3
+        },
+        "url.c:331": {
+          "PASS": 3
+        },
+        "url.c:332": {
+          "PASS": 3
+        },
+        "url.c:333": {
+          "PASS": 3
+        },
+        "url.c:334": {
+          "PASS": 3
+        },
+        "url.c:339": {
+          "PASS": 3
+        },
+        "url.c:341": {
+          "PASS": 3
+        },
+        "url.c:342": {
+          "PASS": 3
+        },
+        "url.c:343": {
+          "PASS": 3
+        },
+        "url.c:344": {
+          "PASS": 3
+        },
+        "url.c:345": {
+          "PASS": 3
+        },
+        "url.c:364": {
+          "PASS": 17
+        },
+        "url.c:369": {
+          "PASS": 16
+        },
+        "url.c:370": {
+          "PASS": 17
+        },
+        "url.c:371": {
+          "PASS": 17
+        },
+        "url.c:372": {
+          "PASS": 17
+        },
+        "url.c:373": {
+          "PASS": 17
+        },
+        "url.c:379": {
+          "PASS": 6
+        },
+        "url.c:380": {
+          "PASS": 6
+        },
+        "url.c:381": {
+          "PASS": 6
+        },
+        "url.c:389": {
+          "PASS": 11
+        },
+        "url.c:392": {
+          "PASS": 1
+        },
+        "url.c:395": {
+          "PASS": 5
+        },
+        "url.c:404": {
+          "PASS": 11
+        },
+        "url.c:405": {
+          "PASS": 11
+        },
+        "url.c:406": {
+          "PASS": 11
+        },
+        "url.c:407": {
+          "PASS": 11
+        },
+        "url.c:408": {
+          "PASS": 11
+        },
+        "url.c:409": {
+          "PASS": 11
+        },
+        "url.c:410": {
+          "PASS": 11
+        },
+        "url.c:411": {
+          "PASS": 11
+        },
+        "url.c:412": {
+          "PASS": 11
+        },
+        "url.c:413": {
+          "PASS": 11
+        },
+        "url.c:414": {
+          "PASS": 11
+        },
+        "url.c:415": {
+          "PASS": 11
+        },
+        "url.c:416": {
+          "PASS": 11
+        },
+        "url.c:417": {
+          "PASS": 11
+        },
+        "url.c:423": {
+          "PASS": 1
+        },
+        "url.c:434": {
+          "PASS": 6
+        },
+        "url.c:437": {
+          "PASS": 1
+        },
+        "url.c:439": {
+          "PASS": 5
+        },
+        "url.c:461": {
+          "PASS": 3
+        },
+        "url.c:462": {
+          "PASS": 3
+        },
+        "url.c:464": {
+          "PASS": 3
+        },
+        "url.c:466": {
+          "PASS": 3
+        },
+        "url.c:467": {
+          "PASS": 3
+        },
+        "url.c:471": {
+          "PASS": 3
+        },
+        "url.c:473": {
+          "PASS": 3
+        },
+        "url.c:474": {
+          "PASS": 3
+        },
+        "url.c:478": {
+          "PASS": 3
+        },
+        "url.c:483": {
+          "PASS": 3
+        },
+        "url.c:488": {
+          "PASS": 3
+        },
+        "url.c:493": {
+          "PASS": 3
+        },
+        "url.c:494": {
+          "PASS": 3
+        },
+        "url.c:499": {
+          "PASS": 3
+        },
+        "url.c:501": {
+          "PASS": 3
+        },
+        "url.c:502": {
+          "PASS": 3
+        },
+        "url.c:507": {
+          "PASS": 3
+        },
+        "url.c:508": {
+          "PASS": 3
+        },
+        "url.c:513": {
+          "PASS": 3
+        },
+        "url.c:515": {
+          "PASS": 3
+        },
+        "url.c:516": {
+          "PASS": 3
+        },
+        "url.c:530": {
+          "PASS": 4
+        },
+        "url.c:539": {
+          "PASS": 4
+        },
+        "url.c:542": {
+          "PASS": 1
+        },
+        "url.c:544": {
+          "PASS": 3
+        },
+        "url.c:548": {
+          "PASS": 4
+        },
+        "url.c:588": {
+          "PASS": 8
+        },
+        "url.c:590": {
+          "PASS": 8
+        },
+        "url.c:593": {
+          "PASS": 1
+        },
+        "url.c:594": {
+          "PASS": 2
+        },
+        "url.c:596": {
+          "PASS": 1
+        },
+        "url.c:597": {
+          "PASS": 2
+        },
+        "url.c:598": {
+          "PASS": 2
+        },
+        "url.c:599": {
+          "PASS": 2
+        },
+        "url.c:600": {
+          "PASS": 2
+        },
+        "url.c:603": {
+          "PASS": 2
+        },
+        "url.c:604": {
+          "PASS": 2
+        },
+        "url.c:605": {
+          "PASS": 2
+        },
+        "url.c:606": {
+          "PASS": 2
+        },
+        "url.c:609": {
+          "PASS": 2
+        },
+        "url.c:610": {
+          "PASS": 6
+        },
+        "url.c:612": {
+          "PASS": 3
+        },
+        "url.c:613": {
+          "PASS": 6
+        },
+        "url.c:616": {
+          "PASS": 5
+        },
+        "url.c:617": {
+          "PASS": 6
+        },
+        "url.c:623": {
+          "PASS": 1
+        },
+        "url.c:624": {
+          "PASS": 1
+        },
+        "url.c:629": {
+          "PASS": 8
+        },
+        "url.c:630": {
+          "PASS": 8
+        },
+        "url.c:641": {
+          "PASS": 12
+        },
+        "url.c:643": {
+          "PASS": 12
+        },
+        "url.c:645": {
+          "PASS": 12
+        },
+        "url.c:657": {
+          "PASS": 3
+        },
+        "url.c:661": {
+          "PASS": 3
+        },
+        "url.c:665": {
+          "PASS": 3
+        },
+        "url.c:667": {
+          "PASS": 3
+        },
+        "url.c:671": {
+          "PASS": 3
+        },
+        "url.c:677": {
+          "PASS": 1
+        },
+        "url.c:691": {
+          "PASS": 12
+        },
+        "url.c:738": {
+          "PASS": 17
+        },
+        "url.c:740": {
+          "PASS": 17
+        },
+        "url.c:767": {
+          "PASS": 59
+        },
+        "url.c:796": {
+          "PASS": 3
+        },
+        "url.c:799": {
+          "PASS": 3
+        },
+        "url.c:813": {
+          "PASS": 8
+        },
+        "url.c:814": {
+          "PASS": 8
+        },
+        "url.c:815": {
+          "PASS": 8
+        },
+        "url.c:817": {
+          "PASS": 8
+        },
+        "url.c:835": {
+          "PASS": 10
+        },
+        "url.c:841": {
+          "PASS": 10
+        },
+        "url.c:889": {
+          "PASS": 13
+        },
+        "url.c:891": {
+          "PASS": 13
+        },
+        "url.c:893": {
+          "PASS": 13
+        },
+        "url.c:894": {
+          "PASS": 13
+        },
+        "url.c:895": {
+          "PASS": 13
+        },
+        "url.c:897": {
+          "PASS": 13
+        },
+        "url.c:905": {
+          "PASS": 13
+        },
+        "url.c:907": {
+          "PASS": 13
+        },
+        "url.c:909": {
+          "PASS": 13
+        },
+        "url.c:910": {
+          "PASS": 13
+        },
+        "url.c:911": {
+          "PASS": 13
+        },
+        "url.c:913": {
+          "PASS": 13
+        },
+        "url.c:915": {
+          "PASS": 13
+        },
+        "url.c:925": {
+          "PASS": 3
+        },
+        "url.c:927": {
+          "PASS": 3
+        },
+        "url.c:929": {
+          "PASS": 3
+        },
+        "url.c:930": {
+          "PASS": 3
+        },
+        "url.c:931": {
+          "PASS": 3
+        },
+        "url.c:937": {
+          "PASS": 3
+        },
+        "url.c:978": {
+          "PASS": 1
+        },
+        "url.c:983": {
+          "PASS": 35
+        },
+        "url.c:988": {
+          "PASS": 4
+        }
+      },
+      "sha256": "d521fc7e7f250b45660c0915a349708404e54e34d46ad3523456ae20a2bc723c",
+      "skips": {
+        "url.c:1842": 1
+      }
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "880b4c8b36b721bda87e52ced509bae6a6fcb3b10d23013876221d837f34d1a9",
+  "reference_selection": {
+    "excluded": {},
+    "selected": [
+      "urlmon_url"
+    ]
+  },
+  "schema": 1,
+  "source_pin": {
+    "revision": "36def4af0ca85a1d0e66b5207056775bcb3b09ff",
+    "sha256": "2d3a835d6a5e735ad217e597b23a9d1b590c100c1e892c47e86c7f14860ecd63",
+    "url": "https://codeload.github.com/wine-mirror/wine/tar.gz/refs/tags/wine-1.0",
+    "version": "wine-1.0"
+  },
+  "supervisor_sha256": "26248f05827d94062486d462db58b8d302bed229fcec44882d9eb8fddd7c466f",
+  "variable_counts_sha256": "971f3860abfbddfe05d80a416a865245633f80214380b9a78ed635e34533ba74",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSHTML.DLL": {
+      "sha256": "bf84b5bb80c8cff53922db112b70bd972f2f148a22814211d8f4b5e3592f0ab0",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "OLE32.DLL": {
+      "sha256": "bb487eb6c5ade54d5ae0352f75cec84b4f1cbbb8d9fca5b3718d813b4a0c938d",
+      "version": [
+        4,
+        71,
+        2900,
+        0
+      ]
+    },
+    "OLEAUT32.DLL": {
+      "sha256": "baeb2f7c1b8be56738d34e1d1ddf8e0eebd3a633215dc1575e14656be38b939d",
+      "version": [
+        2,
+        40,
+        4275,
+        1
+      ]
+    },
+    "SHDOCVW.DLL": {
+      "sha256": "128c0df32fb5e688597ed7233cd9f883cebaf766ea643a7e01c15b393df3a687",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "SHLWAPI.DLL": {
+      "sha256": "731b1ffdcb821a87e8ef1aa92fc956a0c385eaa6b8f4ad20c89db8b923f1aeae",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "URLMON.DLL": {
+      "sha256": "5a4c54d01385b41bfbbe8649503c9d065b717e39e72ffdc48b921e7ee9d60692",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "WININET.DLL": {
+      "sha256": "bc28b292c670946f5a56152a5eb40013a4d3e7ae5b4340d3b59f491fe7436fe7",
+      "version": [
+        5,
+        0,
+        2614,
+        3500
+      ]
+    },
+    "WS2_32.DLL": {
+      "sha256": "bcb2c8d9dfd5e2af5510b432fd39da0cc959717e420b1d40c4b06b08299cd079",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}

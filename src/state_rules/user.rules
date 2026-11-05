@@ -1,0 +1,61 @@
+# Saved-state field rules. See state.rules for the rule format.
+# Pointer fields must identify their allocation or target object.
+
+# ---- Open modal dialogs: a chain of frames on the host stack of the call ----
+var X86::Application::Win16SheetState::head none                 # heap owners of converted sheet pages, templates and pending page releases
+# A thread inside one of these calls stands at no save point (CanSave names
+# the call), so the chain is not part of a state; a variable that still
+# holds a frame only says that such a call is open.
+var X86::(anonymous namespace)::SheetFrame::head none            # owns heap property-sheet controllers and their typed continuation records
+var X86::Application::PropertyWork::head none                   # typed unfinished property-sheet operations; frame index, thread and phase identify the owner
+field X86::Application::PropertyWork::bytes bytes size          # copied dialog template retained until the recorded creation returns
+var X86::(anonymous namespace)::SerialUiFrame::head none         # owns active serial controllers and permanent EnumPropPages pages
+
+# ---- Menus ----
+field Win98Menu::Menu::items count count                         # the items of a menu; behind its count lie items that were deleted, with texts that are freed (PURBLE)
+
+var X86::Application::Win16FileWork::head none                    # typed pending file operations; exact thread/frame/phase ownership
+field X86::(anonymous namespace)::Win16OpenFrame@win16_commdlg.cpp::template_bytes bytes template_size # copied template remains owned until the final init hook returns
+
+# Compiled USER providers are installed by Application::BindUserProviders before
+# LoadFields. Never resolve their compiler-numbered lambda symbols from a state:
+# a number can be reused for another callback, including another signature.
+# The separate *_context variables remain serialized Application references.
+var User::(anonymous namespace)::caret_draw host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::caret_destroy host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::caret_bracket host # compiled provider installed before loading saved contexts
+var User::thread_queue_provider host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::metadata_current host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::metadata_clock host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::edit_notify host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::edit_word_break host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::capture_notify host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::win_event host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::menu_send host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::menu_loop host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::menu_thread host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::menu_measure host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::menu_draw host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::property_cleanup host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::instance_version host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::cursor_draw host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::frame_send host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::frame_rect host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::frame_loop host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::frame_commit host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::frame_icon host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::icon_size_query host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::default_icon_query host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::drag_icon host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::shell_event host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::common_draw host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::owner_draw host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::control_color host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::guest_paint host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::clipboard_text host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::clipboard_destroy host # compiled provider installed before loading saved contexts
+
+# Native class translation storage follows its allocated element count.
+field Win98ClassStore::Store::modules count module_capacity # allocated module tokens, including reusable slots
+field Win98ClassStore::Store::handles count handle_capacity # allocated graphics-handle tokens
+field Win98ClassStore::Store::bodies count body_capacity # allocated class bodies, including reusable slots

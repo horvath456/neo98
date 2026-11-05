@@ -1,0 +1,27 @@
+# Real input packets for the host Explorer run, in order. Read by
+# tools/probe_application.cpp through --click-script.
+#
+# The desktop's RunOnce entry raises two RUNDLL error boxes about a driver this
+# installation registers but does not ship. A user would close them, so the
+# script does, before it touches the taskbar.
+dialog RUNDLL
+dialog RUNDLL
+wait 1000
+shot build/start-menu-2/step-0.ppm
+# Press the Start button, the taskbar's only Button child. Its final rectangle
+# is 2,576 to 50,598, so the centre of the window is the button itself.
+window Button
+wait 3000
+shot build/start-menu-2/step-1.ppm
+wait 3000
+shot build/start-menu-2/step-2.ppm
+# The click is worth about 95,000 API calls of original SHELL32 walking the
+# seeded folder, including the two PifMgr_OpenProperties calls behind flat thunk
+# index 5. After that the guest parks in its message loop with no menu. Three
+# more minutes change nothing; the last capture records that.
+wait 60000
+wait 60000
+wait 60000
+shot build/start-menu-2/step-3.ppm
+# From here on the menu would have to be open: Programs, then Accessories,
+# then Notepad. It never opens, so those steps are not in the script yet.

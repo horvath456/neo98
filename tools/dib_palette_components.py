@@ -1,0 +1,2 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+IMPORTS={'KERNEL32': {'ExitProcess': 4, 'GetLastError': 0}, 'GDI32': {'CreatePalette': 4, 'GetPaletteEntries': 16, 'SetPaletteEntries': 16, 'SelectPalette': 12, 'CreateCompatibleDC': 4, 'DeleteDC': 4, 'DeleteObject': 4, 'SelectObject': 8, 'CreateDIBSection': 24, 'GetDIBColorTable': 16, 'SetDIBits': 28, 'StretchDIBits': 52, 'CreateSolidBrush': 4, 'CreatePen': 12, 'PatBlt': 24, 'MoveToEx': 16, 'LineTo': 12, 'SetPixel': 16, 'SetPixelV': 16, 'GetPixel': 12}}

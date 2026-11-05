@@ -1,0 +1,1075 @@
+{
+  "alternatives_sha256": null,
+  "assets": {
+    "verclasstest1.manifest": "20d28d50d6c4d43affdda0fc3b542fd81a8c6e8af8e26c4801ed3399c6083ae1",
+    "verclasstest2.manifest": "b6f66898651b1182051740c080b0def0b5ad03636104fba43bc49eb00a1bcb5c"
+  },
+  "bounded_counts_sha256": "4f1372e8e00f36897bf4157e3b1d48ddc77181e4a5f0957f8a20c046ce75704c",
+  "environment": [
+    "INFO\tos=4.10.2222\tplatform=1\tcsd= A \tacp=1252\toemcp=850\tlcid=3079"
+  ],
+  "groups": {
+    "ros_gdi32_GetObject": {
+      "advisory": {
+        "GetObject.c:102": {
+          "FAIL": 1
+        },
+        "GetObject.c:105": {
+          "FAIL": 1
+        },
+        "GetObject.c:108": {
+          "FAIL": 1
+        },
+        "GetObject.c:111": {
+          "FAIL": 1
+        },
+        "GetObject.c:114": {
+          "FAIL": 1
+        },
+        "GetObject.c:117": {
+          "FAIL": 1
+        },
+        "GetObject.c:120": {
+          "FAIL": 1
+        },
+        "GetObject.c:123": {
+          "FAIL": 1
+        },
+        "GetObject.c:126": {
+          "FAIL": 1
+        },
+        "GetObject.c:129": {
+          "FAIL": 1
+        },
+        "GetObject.c:132": {
+          "FAIL": 1
+        },
+        "GetObject.c:135": {
+          "FAIL": 1
+        },
+        "GetObject.c:138": {
+          "FAIL": 1
+        },
+        "GetObject.c:156": {
+          "FAIL": 1
+        },
+        "GetObject.c:159": {
+          "FAIL": 1
+        },
+        "GetObject.c:162": {
+          "FAIL": 1
+        },
+        "GetObject.c:173": {
+          "FAIL": 1
+        },
+        "GetObject.c:175": {
+          "FAIL": 1
+        },
+        "GetObject.c:176": {
+          "FAIL": 1
+        },
+        "GetObject.c:184": {
+          "FAIL": 1
+        },
+        "GetObject.c:190": {
+          "FAIL": 1
+        },
+        "GetObject.c:198": {
+          "FAIL": 1
+        },
+        "GetObject.c:201": {
+          "FAIL": 1
+        },
+        "GetObject.c:204": {
+          "FAIL": 1
+        },
+        "GetObject.c:223": {
+          "FAIL": 1
+        },
+        "GetObject.c:224": {
+          "FAIL": 1
+        },
+        "GetObject.c:225": {
+          "FAIL": 1
+        },
+        "GetObject.c:226": {
+          "FAIL": 1
+        },
+        "GetObject.c:227": {
+          "FAIL": 1
+        },
+        "GetObject.c:228": {
+          "FAIL": 1
+        },
+        "GetObject.c:229": {
+          "FAIL": 1
+        },
+        "GetObject.c:230": {
+          "FAIL": 1
+        },
+        "GetObject.c:231": {
+          "FAIL": 1
+        },
+        "GetObject.c:232": {
+          "FAIL": 1
+        },
+        "GetObject.c:233": {
+          "FAIL": 1
+        },
+        "GetObject.c:235": {
+          "FAIL": 1
+        },
+        "GetObject.c:236": {
+          "FAIL": 1
+        },
+        "GetObject.c:238": {
+          "FAIL": 1
+        },
+        "GetObject.c:239": {
+          "FAIL": 1
+        },
+        "GetObject.c:240": {
+          "FAIL": 1
+        },
+        "GetObject.c:241": {
+          "FAIL": 1
+        },
+        "GetObject.c:243": {
+          "FAIL": 1
+        },
+        "GetObject.c:266": {
+          "FAIL": 1
+        },
+        "GetObject.c:267": {
+          "FAIL": 1
+        },
+        "GetObject.c:270": {
+          "FAIL": 1
+        },
+        "GetObject.c:271": {
+          "FAIL": 1
+        },
+        "GetObject.c:272": {
+          "FAIL": 1
+        },
+        "GetObject.c:273": {
+          "FAIL": 1
+        },
+        "GetObject.c:275": {
+          "FAIL": 1
+        },
+        "GetObject.c:277": {
+          "FAIL": 1
+        },
+        "GetObject.c:288": {
+          "FAIL": 1
+        },
+        "GetObject.c:311": {
+          "FAIL": 1
+        },
+        "GetObject.c:312": {
+          "FAIL": 1
+        },
+        "GetObject.c:315": {
+          "FAIL": 1
+        },
+        "GetObject.c:316": {
+          "FAIL": 1
+        },
+        "GetObject.c:317": {
+          "FAIL": 1
+        },
+        "GetObject.c:318": {
+          "FAIL": 1
+        },
+        "GetObject.c:319": {
+          "FAIL": 1
+        },
+        "GetObject.c:320": {
+          "FAIL": 1
+        },
+        "GetObject.c:322": {
+          "FAIL": 1
+        },
+        "GetObject.c:324": {
+          "FAIL": 1
+        },
+        "GetObject.c:325": {
+          "FAIL": 1
+        },
+        "GetObject.c:326": {
+          "FAIL": 1
+        },
+        "GetObject.c:329": {
+          "FAIL": 1
+        },
+        "GetObject.c:345": {
+          "FAIL": 1
+        },
+        "GetObject.c:346": {
+          "FAIL": 1
+        },
+        "GetObject.c:354": {
+          "FAIL": 1
+        },
+        "GetObject.c:359": {
+          "FAIL": 1
+        },
+        "GetObject.c:360": {
+          "FAIL": 1
+        },
+        "GetObject.c:365": {
+          "FAIL": 1
+        },
+        "GetObject.c:369": {
+          "FAIL": 1
+        },
+        "GetObject.c:373": {
+          "FAIL": 1
+        },
+        "GetObject.c:414": {
+          "FAIL": 1
+        },
+        "GetObject.c:415": {
+          "FAIL": 1
+        },
+        "GetObject.c:423": {
+          "FAIL": 1
+        },
+        "GetObject.c:450": {
+          "FAIL": 1
+        },
+        "GetObject.c:451": {
+          "FAIL": 1
+        },
+        "GetObject.c:457": {
+          "FAIL": 1
+        },
+        "GetObject.c:467": {
+          "FAIL": 1
+        },
+        "GetObject.c:491": {
+          "FAIL": 1
+        },
+        "GetObject.c:500": {
+          "FAIL": 1
+        },
+        "GetObject.c:501": {
+          "FAIL": 1
+        },
+        "GetObject.c:502": {
+          "FAIL": 1
+        },
+        "GetObject.c:503": {
+          "FAIL": 1
+        },
+        "GetObject.c:504": {
+          "FAIL": 1
+        },
+        "GetObject.c:505": {
+          "FAIL": 1
+        },
+        "GetObject.c:511": {
+          "FAIL": 1
+        },
+        "GetObject.c:513": {
+          "FAIL": 1
+        },
+        "GetObject.c:522": {
+          "FAIL": 1
+        },
+        "GetObject.c:526": {
+          "FAIL": 1
+        },
+        "GetObject.c:527": {
+          "FAIL": 1
+        },
+        "GetObject.c:529": {
+          "FAIL": 1
+        },
+        "GetObject.c:530": {
+          "FAIL": 1
+        },
+        "GetObject.c:531": {
+          "FAIL": 1
+        },
+        "GetObject.c:532": {
+          "FAIL": 1
+        },
+        "GetObject.c:533": {
+          "FAIL": 1
+        },
+        "GetObject.c:536": {
+          "FAIL": 1
+        },
+        "GetObject.c:538": {
+          "FAIL": 1
+        },
+        "GetObject.c:540": {
+          "FAIL": 1
+        },
+        "GetObject.c:541": {
+          "FAIL": 1
+        },
+        "GetObject.c:546": {
+          "FAIL": 1
+        },
+        "GetObject.c:547": {
+          "FAIL": 1
+        },
+        "GetObject.c:549": {
+          "FAIL": 16
+        },
+        "GetObject.c:55": {
+          "FAIL": 1
+        },
+        "GetObject.c:57": {
+          "FAIL": 1
+        },
+        "GetObject.c:580": {
+          "FAIL": 1
+        },
+        "GetObject.c:581": {
+          "FAIL": 1
+        },
+        "GetObject.c:582": {
+          "FAIL": 1
+        },
+        "GetObject.c:583": {
+          "FAIL": 1
+        },
+        "GetObject.c:584": {
+          "FAIL": 1
+        },
+        "GetObject.c:585": {
+          "FAIL": 1
+        },
+        "GetObject.c:586": {
+          "FAIL": 1
+        },
+        "GetObject.c:587": {
+          "FAIL": 1
+        },
+        "GetObject.c:588": {
+          "FAIL": 1
+        },
+        "GetObject.c:589": {
+          "FAIL": 1
+        },
+        "GetObject.c:590": {
+          "FAIL": 1
+        },
+        "GetObject.c:591": {
+          "FAIL": 1
+        },
+        "GetObject.c:592": {
+          "FAIL": 1
+        },
+        "GetObject.c:593": {
+          "FAIL": 1
+        },
+        "GetObject.c:594": {
+          "FAIL": 1
+        },
+        "GetObject.c:60": {
+          "FAIL": 1
+        },
+        "GetObject.c:608": {
+          "FAIL": 1
+        },
+        "GetObject.c:612": {
+          "FAIL": 1
+        },
+        "GetObject.c:613": {
+          "FAIL": 1
+        },
+        "GetObject.c:615": {
+          "FAIL": 1
+        },
+        "GetObject.c:616": {
+          "FAIL": 1
+        },
+        "GetObject.c:617": {
+          "FAIL": 1
+        },
+        "GetObject.c:618": {
+          "FAIL": 1
+        },
+        "GetObject.c:619": {
+          "FAIL": 1
+        },
+        "GetObject.c:620": {
+          "FAIL": 1
+        },
+        "GetObject.c:622": {
+          "FAIL": 1
+        },
+        "GetObject.c:623": {
+          "FAIL": 1
+        },
+        "GetObject.c:624": {
+          "FAIL": 1
+        },
+        "GetObject.c:629": {
+          "FAIL": 1
+        },
+        "GetObject.c:63": {
+          "FAIL": 1
+        },
+        "GetObject.c:630": {
+          "FAIL": 1
+        },
+        "GetObject.c:631": {
+          "FAIL": 1
+        },
+        "GetObject.c:632": {
+          "FAIL": 1
+        },
+        "GetObject.c:633": {
+          "FAIL": 1
+        },
+        "GetObject.c:637": {
+          "FAIL": 1
+        },
+        "GetObject.c:638": {
+          "FAIL": 1
+        },
+        "GetObject.c:639": {
+          "FAIL": 1
+        },
+        "GetObject.c:643": {
+          "FAIL": 1
+        },
+        "GetObject.c:644": {
+          "FAIL": 1
+        },
+        "GetObject.c:645": {
+          "FAIL": 1
+        },
+        "GetObject.c:646": {
+          "FAIL": 1
+        },
+        "GetObject.c:647": {
+          "FAIL": 1
+        },
+        "GetObject.c:649": {
+          "FAIL": 1
+        },
+        "GetObject.c:650": {
+          "FAIL": 1
+        },
+        "GetObject.c:651": {
+          "FAIL": 1
+        },
+        "GetObject.c:652": {
+          "FAIL": 1
+        },
+        "GetObject.c:653": {
+          "FAIL": 1
+        },
+        "GetObject.c:654": {
+          "FAIL": 1
+        },
+        "GetObject.c:655": {
+          "FAIL": 1
+        },
+        "GetObject.c:656": {
+          "FAIL": 1
+        },
+        "GetObject.c:658": {
+          "FAIL": 1
+        },
+        "GetObject.c:66": {
+          "FAIL": 1
+        },
+        "GetObject.c:661": {
+          "FAIL": 1
+        },
+        "GetObject.c:662": {
+          "FAIL": 1
+        },
+        "GetObject.c:663": {
+          "FAIL": 1
+        },
+        "GetObject.c:664": {
+          "FAIL": 1
+        },
+        "GetObject.c:665": {
+          "FAIL": 1
+        },
+        "GetObject.c:666": {
+          "FAIL": 1
+        },
+        "GetObject.c:679": {
+          "FAIL": 1
+        },
+        "GetObject.c:682": {
+          "FAIL": 1
+        },
+        "GetObject.c:685": {
+          "FAIL": 1
+        },
+        "GetObject.c:69": {
+          "FAIL": 1
+        },
+        "GetObject.c:704": {
+          "FAIL": 1
+        },
+        "GetObject.c:711": {
+          "FAIL": 1
+        },
+        "GetObject.c:72": {
+          "FAIL": 1
+        },
+        "GetObject.c:721": {
+          "FAIL": 1
+        },
+        "GetObject.c:734": {
+          "FAIL": 1
+        },
+        "GetObject.c:735": {
+          "FAIL": 1
+        },
+        "GetObject.c:743": {
+          "FAIL": 1
+        },
+        "GetObject.c:744": {
+          "FAIL": 1
+        },
+        "GetObject.c:75": {
+          "FAIL": 1
+        },
+        "GetObject.c:78": {
+          "FAIL": 1
+        },
+        "GetObject.c:81": {
+          "FAIL": 1
+        },
+        "GetObject.c:84": {
+          "FAIL": 1
+        },
+        "GetObject.c:87": {
+          "FAIL": 1
+        },
+        "GetObject.c:90": {
+          "FAIL": 1
+        },
+        "GetObject.c:93": {
+          "FAIL": 1
+        },
+        "GetObject.c:96": {
+          "FAIL": 1
+        },
+        "GetObject.c:99": {
+          "FAIL": 1
+        }
+      },
+      "alternatives": {},
+      "required": {
+        "GetObject.c:101": {
+          "PASS": 1
+        },
+        "GetObject.c:104": {
+          "PASS": 1
+        },
+        "GetObject.c:107": {
+          "PASS": 1
+        },
+        "GetObject.c:110": {
+          "PASS": 1
+        },
+        "GetObject.c:113": {
+          "PASS": 1
+        },
+        "GetObject.c:116": {
+          "PASS": 1
+        },
+        "GetObject.c:119": {
+          "PASS": 1
+        },
+        "GetObject.c:122": {
+          "PASS": 1
+        },
+        "GetObject.c:125": {
+          "PASS": 1
+        },
+        "GetObject.c:128": {
+          "PASS": 1
+        },
+        "GetObject.c:131": {
+          "PASS": 1
+        },
+        "GetObject.c:134": {
+          "PASS": 1
+        },
+        "GetObject.c:137": {
+          "PASS": 1
+        },
+        "GetObject.c:144": {
+          "PASS": 1
+        },
+        "GetObject.c:146": {
+          "PASS": 1
+        },
+        "GetObject.c:152": {
+          "PASS": 1
+        },
+        "GetObject.c:153": {
+          "PASS": 1
+        },
+        "GetObject.c:155": {
+          "PASS": 1
+        },
+        "GetObject.c:158": {
+          "PASS": 1
+        },
+        "GetObject.c:161": {
+          "PASS": 1
+        },
+        "GetObject.c:182": {
+          "PASS": 1
+        },
+        "GetObject.c:183": {
+          "PASS": 1
+        },
+        "GetObject.c:188": {
+          "PASS": 1
+        },
+        "GetObject.c:189": {
+          "PASS": 1
+        },
+        "GetObject.c:196": {
+          "PASS": 1
+        },
+        "GetObject.c:197": {
+          "PASS": 1
+        },
+        "GetObject.c:200": {
+          "PASS": 1
+        },
+        "GetObject.c:203": {
+          "PASS": 1
+        },
+        "GetObject.c:219": {
+          "PASS": 1
+        },
+        "GetObject.c:234": {
+          "PASS": 1
+        },
+        "GetObject.c:237": {
+          "PASS": 1
+        },
+        "GetObject.c:242": {
+          "PASS": 1
+        },
+        "GetObject.c:263": {
+          "PASS": 1
+        },
+        "GetObject.c:274": {
+          "PASS": 1
+        },
+        "GetObject.c:276": {
+          "PASS": 1
+        },
+        "GetObject.c:278": {
+          "PASS": 1
+        },
+        "GetObject.c:279": {
+          "PASS": 1
+        },
+        "GetObject.c:280": {
+          "PASS": 1
+        },
+        "GetObject.c:281": {
+          "PASS": 1
+        },
+        "GetObject.c:282": {
+          "PASS": 1
+        },
+        "GetObject.c:283": {
+          "PASS": 1
+        },
+        "GetObject.c:284": {
+          "PASS": 1
+        },
+        "GetObject.c:285": {
+          "PASS": 1
+        },
+        "GetObject.c:286": {
+          "PASS": 1
+        },
+        "GetObject.c:287": {
+          "PASS": 1
+        },
+        "GetObject.c:308": {
+          "PASS": 1
+        },
+        "GetObject.c:321": {
+          "PASS": 1
+        },
+        "GetObject.c:323": {
+          "PASS": 1
+        },
+        "GetObject.c:328": {
+          "PASS": 1
+        },
+        "GetObject.c:341": {
+          "PASS": 1
+        },
+        "GetObject.c:347": {
+          "PASS": 1
+        },
+        "GetObject.c:348": {
+          "PASS": 1
+        },
+        "GetObject.c:349": {
+          "PASS": 1
+        },
+        "GetObject.c:350": {
+          "PASS": 1
+        },
+        "GetObject.c:353": {
+          "PASS": 1
+        },
+        "GetObject.c:355": {
+          "PASS": 1
+        },
+        "GetObject.c:356": {
+          "PASS": 1
+        },
+        "GetObject.c:358": {
+          "PASS": 1
+        },
+        "GetObject.c:361": {
+          "PASS": 1
+        },
+        "GetObject.c:362": {
+          "PASS": 1
+        },
+        "GetObject.c:368": {
+          "PASS": 1
+        },
+        "GetObject.c:406": {
+          "PASS": 1
+        },
+        "GetObject.c:412": {
+          "PASS": 1
+        },
+        "GetObject.c:413": {
+          "PASS": 1
+        },
+        "GetObject.c:417": {
+          "PASS": 1
+        },
+        "GetObject.c:447": {
+          "PASS": 1
+        },
+        "GetObject.c:452": {
+          "PASS": 1
+        },
+        "GetObject.c:453": {
+          "PASS": 1
+        },
+        "GetObject.c:454": {
+          "PASS": 1
+        },
+        "GetObject.c:455": {
+          "PASS": 1
+        },
+        "GetObject.c:456": {
+          "PASS": 1
+        },
+        "GetObject.c:458": {
+          "PASS": 1
+        },
+        "GetObject.c:459": {
+          "PASS": 1
+        },
+        "GetObject.c:460": {
+          "PASS": 1
+        },
+        "GetObject.c:464": {
+          "PASS": 1
+        },
+        "GetObject.c:466": {
+          "PASS": 1
+        },
+        "GetObject.c:487": {
+          "PASS": 1
+        },
+        "GetObject.c:488": {
+          "PASS": 1
+        },
+        "GetObject.c:490": {
+          "PASS": 1
+        },
+        "GetObject.c:50": {
+          "PASS": 1
+        },
+        "GetObject.c:506": {
+          "PASS": 1
+        },
+        "GetObject.c:507": {
+          "PASS": 1
+        },
+        "GetObject.c:508": {
+          "PASS": 1
+        },
+        "GetObject.c:51": {
+          "PASS": 1
+        },
+        "GetObject.c:510": {
+          "PASS": 1
+        },
+        "GetObject.c:514": {
+          "PASS": 1
+        },
+        "GetObject.c:516": {
+          "PASS": 1
+        },
+        "GetObject.c:517": {
+          "PASS": 1
+        },
+        "GetObject.c:519": {
+          "PASS": 1
+        },
+        "GetObject.c:520": {
+          "PASS": 1
+        },
+        "GetObject.c:523": {
+          "PASS": 1
+        },
+        "GetObject.c:537": {
+          "PASS": 1
+        },
+        "GetObject.c:539": {
+          "PASS": 1
+        },
+        "GetObject.c:54": {
+          "PASS": 1
+        },
+        "GetObject.c:56": {
+          "PASS": 1
+        },
+        "GetObject.c:577": {
+          "PASS": 1
+        },
+        "GetObject.c:59": {
+          "PASS": 1
+        },
+        "GetObject.c:596": {
+          "PASS": 1
+        },
+        "GetObject.c:597": {
+          "PASS": 1
+        },
+        "GetObject.c:598": {
+          "PASS": 1
+        },
+        "GetObject.c:599": {
+          "PASS": 1
+        },
+        "GetObject.c:600": {
+          "PASS": 1
+        },
+        "GetObject.c:601": {
+          "PASS": 1
+        },
+        "GetObject.c:603": {
+          "PASS": 1
+        },
+        "GetObject.c:604": {
+          "PASS": 1
+        },
+        "GetObject.c:605": {
+          "PASS": 1
+        },
+        "GetObject.c:607": {
+          "PASS": 1
+        },
+        "GetObject.c:609": {
+          "PASS": 1
+        },
+        "GetObject.c:610": {
+          "PASS": 1
+        },
+        "GetObject.c:611": {
+          "PASS": 1
+        },
+        "GetObject.c:614": {
+          "PASS": 1
+        },
+        "GetObject.c:62": {
+          "PASS": 1
+        },
+        "GetObject.c:634": {
+          "PASS": 1
+        },
+        "GetObject.c:635": {
+          "PASS": 1
+        },
+        "GetObject.c:641": {
+          "PASS": 1
+        },
+        "GetObject.c:642": {
+          "PASS": 1
+        },
+        "GetObject.c:65": {
+          "PASS": 1
+        },
+        "GetObject.c:68": {
+          "PASS": 1
+        },
+        "GetObject.c:681": {
+          "PASS": 1
+        },
+        "GetObject.c:684": {
+          "PASS": 1
+        },
+        "GetObject.c:686": {
+          "PASS": 1
+        },
+        "GetObject.c:687": {
+          "PASS": 1
+        },
+        "GetObject.c:701": {
+          "PASS": 1
+        },
+        "GetObject.c:707": {
+          "PASS": 1
+        },
+        "GetObject.c:708": {
+          "PASS": 1
+        },
+        "GetObject.c:709": {
+          "PASS": 1
+        },
+        "GetObject.c:71": {
+          "PASS": 1
+        },
+        "GetObject.c:710": {
+          "PASS": 1
+        },
+        "GetObject.c:720": {
+          "PASS": 1
+        },
+        "GetObject.c:74": {
+          "PASS": 1
+        },
+        "GetObject.c:740": {
+          "PASS": 1
+        },
+        "GetObject.c:741": {
+          "PASS": 1
+        },
+        "GetObject.c:77": {
+          "PASS": 1
+        },
+        "GetObject.c:80": {
+          "PASS": 1
+        },
+        "GetObject.c:83": {
+          "PASS": 1
+        },
+        "GetObject.c:86": {
+          "PASS": 1
+        },
+        "GetObject.c:89": {
+          "PASS": 1
+        },
+        "GetObject.c:92": {
+          "PASS": 1
+        },
+        "GetObject.c:95": {
+          "PASS": 1
+        },
+        "GetObject.c:98": {
+          "PASS": 1
+        }
+      },
+      "sha256": "b8a5484e212c976e80ebe364c7390349decc2037a18c921ddcd0861be2e82017",
+      "skips": {}
+    }
+  },
+  "non_runtime_groups": {},
+  "reference_emulator_sha256": "a3e273a357b332b0ffda3bae9a90b7790105fff3a808b1c2c7a1d6505f54861b",
+  "reference_results_sha256": "01aa18d8023f74b8743af2b06c59eb41e5aa082369f2190691125928ced24566",
+  "schema": 1,
+  "source_pin": {
+    "revision": "22fb3bb2c1d8196cf501edbb49b3814739f7b016",
+    "sha256": "8fd66e4438690de3e8cef49b69543134c0ff2c8174190f86458824905000e330",
+    "url": "https://codeload.github.com/reactos/reactos/tar.gz/22fb3bb2c1d8196cf501edbb49b3814739f7b016"
+  },
+  "supervisor_sha256": "d7003bf0718323a7b71f85bdafa968131322a3979125351f7cdd11f831cc1908",
+  "variable_counts_sha256": "c8553fd90fbc95161f4e74823d97e8a21b501d13aeaf16e781200aa6e0d0761d",
+  "windows_core16_sha256": {
+    "GDI.EXE": "cc6c5c227108e7ace5ce72b42f810f718ce8c2413acda9edfe5a6c946678a16f",
+    "KRNL386.EXE": "fd48ebe1cc8c6558ab26c1c0e7b5492aa8f3a0dc54a2da801ec82ef093a662e7",
+    "USER.EXE": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef"
+  },
+  "windows_dlls": {
+    "ADVAPI32.DLL": {
+      "sha256": "1a6494bab31de2fb76833a3b604ebff95a5d9cd1f16cb1574712b66c8165f09c",
+      "version": [
+        4,
+        80,
+        0,
+        1675
+      ]
+    },
+    "COMCTL32.DLL": {
+      "sha256": "2b2f3147fd6c95d939b01b50390732a359866322c4feaaeeccaa8c70c12f8aae",
+      "version": [
+        5,
+        80,
+        2614,
+        3500
+      ]
+    },
+    "DDRAW.DLL": {
+      "sha256": "b1da888c7e217811f74d043b178d49367fcc7a8177a9e616b002fb1935aceec2",
+      "version": [
+        4,
+        9,
+        0,
+        904
+      ]
+    },
+    "GDI32.DLL": {
+      "sha256": "8d19211138ad53f473bd276832af1d75289f074a2428f5f814c2ae53fe0bbe21",
+      "version": [
+        4,
+        10,
+        0,
+        1998
+      ]
+    },
+    "KERNEL32.DLL": {
+      "sha256": "9c8d574f84bfbbb6521dac54d0bfaf7a4c8fee07e468525cdb9da7db418e6c7e",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    },
+    "MSVCRT.DLL": {
+      "sha256": "2d5670881a6d13a100e37da297f6eeb876f68b63073a28eb5d650625c60f9bf7",
+      "version": [
+        6,
+        0,
+        8397,
+        0
+      ]
+    },
+    "USER32.DLL": {
+      "sha256": "cf868d4cb683e68e8797ec53b2d9a5c7047d022301f9e71631b0d69e71c314a7",
+      "version": [
+        4,
+        10,
+        0,
+        2222
+      ]
+    }
+  }
+}
