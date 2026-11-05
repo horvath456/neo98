@@ -10,10 +10,11 @@ This is the suite CI runs. Drive C: is deliberately missing: a test that
 needs Windows stops with the setup hint, and is counted as NEEDS-WIN98, not as
 a failure. No Microsoft file is read, copied or downloaded.
 
-tools/public_tests.json lists, per platform, the tests known to fail there.
-The run fails on any other failure and reports known failures that pass now,
-so the list can shrink. Failures from a parallel run are repeated once on
-their own before they count, because some tests share build caches.
+tools/public_tests.json lists, per platform, the tests known to fail there
+and why. They are not started (KNOWN in the table); --include-known runs them
+too and reports those that pass now, so the list can shrink. The run fails on
+any other failure. A failure that took longer than 20 seconds in a parallel
+run is repeated once on its own, because some tests share build caches.
 """
 from __future__ import annotations
 
@@ -41,10 +42,12 @@ EXPECTATIONS = TOOLS / 'public_tests.json'
 WINDOWS_DATA = 'Runtime objects need generated Windows data'
 # The runner itself, and tests that boot a kernel in QEMU.
 EXCLUDED = {'test_public.py', 'test_explorer_ui.py'}
+# Tests whose required --source is the Windows folder itself.
+NEEDS_FOLDER = {'test_release_data_host.py', 'test_seamless_exposure_host.py', 'test_release_smoke.py'}
 # Drive C: itself, or headers and assets generated from its files.
 NEEDS_WINDOWS = re.compile(r'No Windows 98 installation at|Run setup first|'
                            r"build/generated/[\w./-]+'? file not found|"
-                           r'Runtime objects need generated Windows data', re.I)
+                           r'Runtime objects need generated Windows data|Could not open drive C:', re.I)
 
 
 def platform_key():
@@ -112,7 +115,7 @@ def run(python, script, objects, out_root, timeout, no_windows):
         status = 'PASS'
     elif code == 77:
         status = 'SKIP'
-    elif NEEDS_WINDOWS.search(output):
+    elif NEEDS_WINDOWS.search(output) or script.name in NEEDS_FOLDER:
         status = 'NEEDS-WIN98'
     else:
         status = 'FAIL'
@@ -126,7 +129,8 @@ def run(python, script, objects, out_root, timeout, no_windows):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--jobs', type=int, default=4, help='tests at the same time (default 4)')
-    parser.add_argument('--timeout', type=int, default=900, help='seconds per test (default 900)')
+    parser.add_argument('--timeout', type=int, default=300, help='seconds per test (default 300)')
+    parser.add_argument('--include-known', action='store_true', help='also run the known failures')
     parser.add_argument('--only', action='append', default=[], help='substring of a test file name; repeatable')
     parser.add_argument('--list', action='store_true', help='print the selected tests and stop')
     parser.add_argument('--platform', default=platform_key(), help='key in tools/public_tests.json')
@@ -156,6 +160,9 @@ def main(argv=None):
     print(f'Public tests on {options.platform}: {len(selected)} tests, {options.jobs} at a time', flush=True)
 
     def one(script):
+        if script.name in known and not options.include_known:
+            return {'test': script.name, 'status': 'KNOWN', 'exit_code': None, 'seconds': 0.0,
+                    'reason': known[script.name], 'log': ''}
         result = run(python, script, objects, out_root, options.timeout, no_windows)
         print(f'  {result["status"]:11} {result["seconds"]:7.1f}s  {result["test"]}', flush=True)
         return result
@@ -163,18 +170,19 @@ def main(argv=None):
     with ThreadPoolExecutor(max_workers=max(1, options.jobs)) as workers:
         results = list(workers.map(one, selected))
     if options.jobs > 1 and not options.no_rerun:
-        again = [r for r in results if r['status'] == 'FAIL']
+        # A failure within seconds is not a race over a shared cache.
+        again = [r for r in results if r['status'] == 'FAIL' and r['seconds'] > 20]
         if again:
-            print(f'Repeating {len(again)} failures one at a time', flush=True)
+            print(f'Repeating {len(again)} slow failures one at a time', flush=True)
         for index, result in enumerate(results):
-            if result['status'] == 'FAIL':
+            if result in again:
                 results[index] = one(TOOLS / result['test'])
 
     counts = {}
     for result in results:
         counts[result['status']] = counts.get(result['status'], 0) + 1
     unexpected = [r for r in results if r['status'] == 'FAIL' and r['test'] not in known]
-    fixed = [r for r in results if r['status'] != 'FAIL' and r['test'] in known]
+    fixed = [r for r in results if r['status'] not in ('FAIL', 'KNOWN') and r['test'] in known]
     for result in sorted(results, key=lambda r: r['test']):
         if result['status'] == 'FAIL':
             mark = 'known' if result['test'] in known else 'NEW'
