@@ -103,10 +103,15 @@ def unpack(name):
     return next(p for p in target.iterdir() if p.is_dir())
 
 
+# Room in the Mach-O header for the install names and rpaths set when bundling.
+HEADERPAD = ['-Wl,-headerpad_max_install_names'] if MACOS else []
+
+
 def build_autotools(name, binary, configure=()):
     source = unpack(name)
     if not (source / binary).is_file():
-        run('./configure', *configure, cwd=source)
+        env = dict(os.environ, LDFLAGS=' '.join([os.environ.get('LDFLAGS', ''), *HEADERPAD]).strip())
+        run('./configure', *configure, cwd=source, env=env)
         run('make', '-j', jobs(), binary, cwd=source)
     return source / binary
 
@@ -128,7 +133,8 @@ def build_qemu():
             '--enable-tcg', '--enable-pixman', '--disable-docs', '--disable-werror',
             '--disable-user', '--disable-tools', f'--python={python}',
             # No build machine path in the binary (tools/check_release_bundle.py).
-            f'--extra-cflags=-ffile-prefix-map={source}=qemu', cwd=build)
+            f'--extra-cflags=-ffile-prefix-map={source}=qemu',
+            *([f'--extra-ldflags={" ".join(HEADERPAD)}'] if HEADERPAD else []), cwd=build)
         run('ninja', '-C', build, 'qemu-system-i386')
     return program, source
 
@@ -196,6 +202,8 @@ def macos_bundle(out):
         if program.is_symlink() or not program.is_file():
             continue
         _, renames = collect_libraries(program, frameworks)
+        if not renames:
+            continue  # only system libraries: nothing to point anywhere
         renames = {(program if consumer == program else consumer): changes for consumer, changes in renames.items()}
         fix_install_names(program, frameworks, renames)
     leftover = []
