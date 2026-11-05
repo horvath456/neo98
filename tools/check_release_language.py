@@ -21,30 +21,39 @@ GERMAN = re.compile(
 DEFAULT_EXCEPTIONS = Path(__file__).with_name('release_language_exceptions.json')
 
 
+def load_exceptions():
+    return json.loads(DEFAULT_EXCEPTIONS.read_text())
+
+
+def text_findings(name, data, allowed):
+    """Findings for one file; data is its raw bytes."""
+    if b'\0' in data:
+        return []
+    try:
+        text = data.decode('utf-8')
+    except UnicodeDecodeError:
+        return []
+    result = []
+    if GERMAN.search(name):
+        result.append({'file': name, 'line': 0, 'sha256': hashlib.sha256(name.encode()).hexdigest()})
+    for number, line in enumerate(text.splitlines(), 1):
+        if not GERMAN.search(line):
+            continue
+        digest = hashlib.sha256(line.encode()).hexdigest()
+        if digest not in allowed.get(name, {}):
+            # Never reproduce text that could contain a secret.
+            result.append({'file': name, 'line': number, 'sha256': digest})
+    return result
+
+
 def findings(root, exceptions=None):
     root = Path(root)
-    allowed = exceptions if exceptions is not None else json.loads(DEFAULT_EXCEPTIONS.read_text())
+    allowed = exceptions if exceptions is not None else load_exceptions()
     result = []
     for path in sorted(root.rglob('*')):
         if not path.is_file() or path.is_symlink():
             continue
-        data = path.read_bytes()
-        if b'\0' in data:
-            continue
-        try:
-            text = data.decode('utf-8')
-        except UnicodeDecodeError:
-            continue
-        name = path.relative_to(root).as_posix()
-        if GERMAN.search(name):
-            result.append({'file': name, 'line': 0, 'sha256': hashlib.sha256(name.encode()).hexdigest()})
-        for number, line in enumerate(text.splitlines(), 1):
-            if not GERMAN.search(line):
-                continue
-            digest = hashlib.sha256(line.encode()).hexdigest()
-            if digest not in allowed.get(name, {}):
-                # Never reproduce text that could contain a secret.
-                result.append({'file': name, 'line': number, 'sha256': digest})
+        result += text_findings(path.relative_to(root).as_posix(), path.read_bytes(), allowed)
     return result
 
 

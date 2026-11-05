@@ -68,9 +68,30 @@ own:
 python3 tools/test_release_smoke.py --source build/win98-c --program NOTEPAD.EXE
 ```
 
-`python3 neo98.py test` runs the whole host suite, which takes a long time.
+`python3 tools/test_public.py` runs every test that needs no Windows
+installation, a few at a time, and prints one table. This is what CI runs on
+Linux x64 and macOS. Tests that need drive C: are listed as NEEDS-WIN98
+instead of failing. `tools/public_tests.json` lists the tests known to fail on
+each platform; the run fails only on other failures.
+
 Tests that start Windows programs need an installed Windows in
 `build/win98-c`. They work on a private copy of it and keep the sound off.
+
+## Checks before every commit
+
+`tools/check_release.py` checks that every tracked file may be published:
+no product keys, issue numbers, addresses or other provenance notes about
+Windows binaries, private tools or evidence files, broken document links or
+untranslated prose. CI runs it on every push and pull request. Run it before
+each commit with the hook in `.githooks`, once per checkout:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+The hook checks only the staged changes; `python3 tools/check_release.py`
+checks the whole tree. A finding names the file and the rule, never the
+matched text.
 
 ## Linux
 

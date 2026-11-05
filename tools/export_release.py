@@ -13,7 +13,8 @@ import json
 import io
 import tokenize
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import posixpath
 import re
 import shutil
 import subprocess
@@ -196,50 +197,81 @@ def analysis_violations(path, relative, data):
     return problems
 
 
-def violations(root):
+def entry_violations(relative, data, exists, symlink=False):
+    """Check one tree entry by name and content, without touching the disk.
+
+    data is None for a directory. exists(relative_path, directory_ok) tells
+    whether a file (or, with directory_ok, also a directory) is in the tree.
+    """
+    path = PurePosixPath(relative)
+    if symlink:
+        return [relative + ': symbolic link']
     found = []
-    for path in sorted(root.rglob('*')):
-        relative = path.relative_to(root).as_posix()
-        if path.is_symlink():
-            found.append(relative + ': symbolic link'); continue
-        if path.is_file():
-            if path.stat().st_size > 2 * 1024 * 1024:
-                found.append(relative + ': file exceeds source size limit')
-            if (path.suffix.lower() in {'.exe', '.dll', '.dat', '.xz', '.zip', '.png', '.jpg', '.ppm', '.log', '.ttf', '.fon', '.nls', '.cab', '.dmp', '.state'}
-                    and relative not in IMAGES):
-                found.append(relative + ': binary, snapshot or evidence file')
-        data = relative.encode() + (b'\n' + path.read_bytes() if path.is_file() else b'')
-        for line in data.splitlines():
-            if b'Andreas ' + b'Horvath' in line and b'opyright' not in line:
-                found.append(relative + ': personal name outside copyright notice')
-        if path.is_file():
-            for match in sorted(set(DOC_REFERENCE.findall(data))):
-                target = match.decode('ascii')
-                if not (root / target).is_file():
-                    found.append(f'{relative}: missing document link {target}')
-        for index, pattern in enumerate(PATTERNS):
-            if pattern.search(data):
-                # Do not echo a possible secret into build logs.
-                found.append(f'{relative}: forbidden pattern {index + 1}')
-        if path.is_file():
-            found += analysis_violations(path, relative, path.read_bytes())
-            found += comment_prose_violations(path, relative, path.read_bytes())
-        for label, pattern in TRACE_PATTERNS.items():
-            if pattern.search(data):
-                found.append(f'{relative}: {label}')
-        if path.is_file() and prose_locations(path, path.read_bytes()):
-            found.append(f'{relative}: code location in prose')
-    for path in root.rglob('*.md'):
-        if not path.is_file() or path.is_symlink():
-            continue
-        text = path.read_text(errors='replace')
+    if data is not None:
+        if len(data) > 2 * 1024 * 1024:
+            found.append(relative + ': file exceeds source size limit')
+        if (path.suffix.lower() in {'.exe', '.dll', '.dat', '.xz', '.zip', '.png', '.jpg', '.ppm', '.log', '.ttf', '.fon', '.nls', '.cab', '.dmp', '.state'}
+                and relative not in IMAGES):
+            found.append(relative + ': binary, snapshot or evidence file')
+    content = relative.encode() + (b'\n' + data if data is not None else b'')
+    for line in content.splitlines():
+        if b'Andreas ' + b'Horvath' in line and b'opyright' not in line:
+            found.append(relative + ': personal name outside copyright notice')
+    if data is not None:
+        for match in sorted(set(DOC_REFERENCE.findall(content))):
+            target = match.decode('ascii')
+            if not exists(target, False):
+                found.append(f'{relative}: missing document link {target}')
+    for index, pattern in enumerate(PATTERNS):
+        if pattern.search(content):
+            # Do not echo a possible secret into build logs.
+            found.append(f'{relative}: forbidden pattern {index + 1}')
+    if data is not None:
+        found += analysis_violations(path, relative, data)
+        found += comment_prose_violations(path, relative, data)
+    for label, pattern in TRACE_PATTERNS.items():
+        if pattern.search(content):
+            found.append(f'{relative}: {label}')
+    if data is not None and prose_locations(path, data):
+        found.append(f'{relative}: code location in prose')
+    if data is not None and path.suffix == '.md':
+        text = data.decode('utf-8', errors='replace')
         for link in re.findall(r'\]\(([^)]+)\)', text):
             target = link.split('#', 1)[0]
             if not target or re.match(r'[a-z]+:', target):
                 continue
-            if not (path.parent / target).exists():
-                found.append(path.relative_to(root).as_posix() + ': missing document link ' + target)
+            if not exists(posixpath.normpath(posixpath.join(str(path.parent), target)), True):
+                found.append(relative + ': missing document link ' + target)
     return found
+
+
+def violations(root):
+    root = Path(root)
+    def exists(relative, directory_ok):
+        target = root / relative
+        return target.exists() if directory_ok else target.is_file()
+    found = []
+    for path in sorted(root.rglob('*')):
+        relative = path.relative_to(root).as_posix()
+        symlink = path.is_symlink()
+        data = path.read_bytes() if path.is_file() and not symlink else None
+        found += entry_violations(relative, data, exists, symlink)
+    return found
+
+
+def excluded_import_violations(relative, data, exclusions):
+    """A tool must not outlive an excluded helper it imports."""
+    excluded_modules = {Path(name).stem for name in exclusions if name.endswith('.py')}
+    try:
+        tree = ast.parse(data.decode())
+    except (SyntaxError, UnicodeDecodeError, ValueError):
+        return []
+    for node in ast.walk(tree):
+        modules = ([alias.name.split('.')[0] for alias in node.names] if isinstance(node, ast.Import)
+                   else [node.module.split('.')[0]] if isinstance(node, ast.ImportFrom) and node.module else [])
+        if any(name in excluded_modules for name in modules):
+            return [relative + ': imports an excluded tool']
+    return []
 
 
 def export(source, destination):
@@ -280,18 +312,10 @@ def export(source, destination):
         shutil.copy2(path, target)
         copied += 1
     # A source file that imports a local tool must not outlive its excluded helper.
-    excluded_modules = {Path(name).stem for name in exclusions if name.endswith('.py')}
     problems = []
-    for path in (destination / 'tools').rglob('*.py'):
-        try:
-            tree = ast.parse(path.read_text())
-        except (SyntaxError, UnicodeDecodeError):
-            continue
-        for node in ast.walk(tree):
-            modules = ([alias.name.split('.')[0] for alias in node.names] if isinstance(node, ast.Import)
-                       else [node.module.split('.')[0]] if isinstance(node, ast.ImportFrom) and node.module else [])
-            if any(name in excluded_modules for name in modules):
-                problems.append(path.relative_to(destination).as_posix() + ': imports an excluded tool')
+    for path in sorted((destination / 'tools').rglob('*.py')):
+        problems += excluded_import_violations(path.relative_to(destination).as_posix(),
+                                               path.read_bytes(), exclusions)
     problems += violations(destination)
     if problems:
         raise ValueError('Export rejected:\n' + '\n'.join(problems))

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Rejects a commit whose staged files fail the release check (tools/check_release.py).
+# Enable once per checkout:  git config core.hooksPath .githooks
+root=$(git rev-parse --show-toplevel) || exit 1
+exec python3 "$root/tools/check_release.py" --staged
