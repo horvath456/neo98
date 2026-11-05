@@ -241,6 +241,7 @@ def build(out=OUT):
         'keep the licences of their projects.\n')
     for program in (staging / 'bin').iterdir():
         if not program.is_symlink():
+            program.chmod(0o755)  # Homebrew installs its programs read-only
             subprocess.run(['strip', *(['-S', '-x'] if MACOS else ['--strip-unneeded']), str(program)], check=True)
     if MACOS:
         macos_bundle(staging)
