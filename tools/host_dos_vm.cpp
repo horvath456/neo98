@@ -150,8 +150,14 @@ bool LoadDosCore(unsigned slot, Core &core, char *error, unsigned capacity)
         const ssize_t count = readlink("/proc/self/exe", executable, sizeof executable - 1);
         if (count > 0)
         {
-            const auto candidate = std::filesystem::path(executable).parent_path() / "../lib/neo98/libdosbox-pure.so";
-            if (std::filesystem::is_regular_file(candidate)) packaged = candidate.string();
+            // The installed layout, then the build tree beside the host, as
+            // on macOS: a host started in another directory finds its core.
+            const auto base = std::filesystem::path(executable).parent_path();
+            for (const char *relative : {"../lib/neo98/libdosbox-pure.so", "../dosbox-pure-host/lib/libdosbox-pure.so"})
+            {
+                const auto candidate = base / relative;
+                if (std::filesystem::is_regular_file(candidate)) { packaged = candidate.string(); break; }
+            }
         }
     }
 #endif
