@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+#include <cpuid.h>
+#include <sys/syscall.h>
 #include "../src/x86_cpu.h"
 #include "../src/linux_shared_memory.h"
 #include <cassert>
@@ -358,6 +360,24 @@ int main(int argc, char **argv)
     const auto before_pause = clock(); SetCounterPause(1000000);
     const auto after_pause = clock(); SetCounterPause(0);
     assert(before_pause > after_pause && before_pause - after_pause > 900000000);
+    // CPUID of the guest traps where the processor can (CPUID faulting) and
+    // reports at most leaf 2, with the features of this processor.
+    if (!syscall(SYS_arch_prctl, 0x1012, 1))
+    {
+        const unsigned char cpuid_code[] = {0x90, 0x0f, 0xa2, 0xc3};
+        okay(cpu->Write(Code, cpuid_code, sizeof cpuid_code));
+        auto query = [&](unsigned leaf, unsigned &a, unsigned &d) {
+            okay(cpu->Write(sp, &back, 4)); okay(cpu->Set(Reg::Esp, sp));
+            okay(cpu->Set(Reg::Eax, leaf)); okay(cpu->Set(Reg::Ecx, 0)); okay(cpu->Run(Code, back));
+            okay(cpu->Get(Reg::Eax, a)); okay(cpu->Get(Reg::Edx, d));
+        };
+        unsigned top, ignored, signature, features;
+        query(0, top, ignored); assert(top >= 1 && top <= 2);
+        query(1, signature, features);
+        unsigned a, b, c, d; __cpuid(1, a, b, c, d);
+        assert(signature == a && features == d && (features & 0x800000));
+        query(7, a, d); assert(!a && !d);
+    }
     unsigned ports = 0; okay(cpu->SetPortHooks(PortIn, PortOut, &ports));
     const unsigned char port_code[] = {0x90, 0x66, 0xe5, 0x12, 0x66, 0xef, 0xc3};
     okay(cpu->Write(Code, port_code, sizeof port_code)); okay(cpu->Write(sp, &back, 4));

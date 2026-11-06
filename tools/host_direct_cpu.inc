@@ -138,7 +138,7 @@ struct DirectThreadState
         if (dispatcher_on)
             prctl(PR_SET_SYSCALL_USER_DISPATCH, PR_SYS_DISPATCH_OFF, 0, 0, nullptr);
         if (depth)
-            prctl(PR_SET_TSC, PR_TSC_ENABLE);
+            GuestTraps(false);
         neo98_direct_clock_trap = false;
         if (neo98_direct_dispatch_selector == &dispatch)
             neo98_direct_dispatch_selector = nullptr;
@@ -190,7 +190,7 @@ struct DirectThreadState
         if (depth++)
             return true;
         neo98_direct_clock_trap = true;
-        if (prctl(PR_SET_TSC, PR_TSC_SIGSEGV))
+        if (GuestTraps(true))
         {
             neo98_direct_clock_trap = false;
             --depth;
@@ -200,7 +200,7 @@ struct DirectThreadState
         time.it_value.tv_nsec = time.it_interval.tv_nsec = 2000000;
         if (timer_settime(timer, 0, &time, nullptr))
         {
-            prctl(PR_SET_TSC, PR_TSC_ENABLE);
+            GuestTraps(false);
             neo98_direct_clock_trap = false;
             --depth;
             return false;
@@ -213,7 +213,7 @@ struct DirectThreadState
             return;
         itimerspec time = {};
         timer_settime(timer, 0, &time, nullptr);
-        prctl(PR_SET_TSC, PR_TSC_ENABLE);
+        GuestTraps(false);
         neo98_direct_clock_trap = false;
     }
 };
@@ -241,17 +241,35 @@ extern "C" int neo98_direct_handle_signal(int signal, siginfo_t *info, void *opa
         {
             direct_host_tsc_traps.fetch_add(1, std::memory_order_relaxed);
             unsigned low, high, aux = 0;
-            prctl(PR_SET_TSC, PR_TSC_ENABLE);
+            GuestTraps(false);
             if (op[1] == 0x31)
                 asm volatile("rdtsc" : "=a"(low), "=d"(high));
             else
                 asm volatile("rdtscp" : "=a"(low), "=d"(high), "=c"(aux));
-            prctl(PR_SET_TSC, PR_TSC_SIGSEGV);
+            GuestTraps(true);
             r[REG_RAX] = low;
             r[REG_RDX] = high;
             if (op[1] == 1)
                 r[REG_RCX] = aux;
             r[REG_RIP] += op[1] == 0x31 ? 2 : 3;
+            return 0;
+        }
+    }
+    // The same for CPUID of a host library: the real processor.
+    if (signal == SIGSEGV && r[REG_TRAPNO] == 13 && ip >= AddressBytes && neo98_direct_clock_trap)
+    {
+        const auto *op = reinterpret_cast<const unsigned char *>(ip);
+        if (op[0] == 0x0f && op[1] == 0xa2)
+        {
+            unsigned a, b, c, d;
+            syscall(SYS_arch_prctl, ArchSetCpuid, 1);
+            __cpuid_count(unsigned(r[REG_RAX]), unsigned(r[REG_RCX]), a, b, c, d);
+            syscall(SYS_arch_prctl, ArchSetCpuid, 0);
+            r[REG_RAX] = a;
+            r[REG_RBX] = b;
+            r[REG_RCX] = c;
+            r[REG_RDX] = d;
+            r[REG_RIP] += 2;
             return 0;
         }
     }
@@ -871,7 +889,7 @@ class DirectCpu final : public NativeCpu
                     trace.hook(*this, ip, 0, trace.context);
             if (local.stopped || requested)
                 break;
-            if (EnterWin16() || SegmentInstruction() || PortInstruction() || ClockInstruction() ||
+            if (EnterWin16() || SegmentInstruction() || PortInstruction() || ClockInstruction() || CpuidInstruction() ||
                 SystemStatusInstruction())
             {
                 ++count;
@@ -995,7 +1013,7 @@ class DirectCpu final : public NativeCpu
             }
             if (bridge.trap != 14)
             {
-                if (SegmentInstruction() || PortInstruction() || ClockInstruction() ||
+                if (SegmentInstruction() || PortInstruction() || ClockInstruction() || CpuidInstruction() ||
                     SystemStatusInstruction())
                     continue;
                 unsigned char op[2] = {};

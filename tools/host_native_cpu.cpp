@@ -34,6 +34,7 @@
 #include <memory>
 #include <mutex>
 #include <sys/auxv.h>
+#include <cpuid.h>
 #include <asm/hwcap2.h>
 #include <limits>
 #include <dlfcn.h>
@@ -47,6 +48,21 @@ asm(".text\n.global neo98_native_fault\nneo98_native_fault:\nint3\nud2\n");
 // While guest RDTSC is trapped, glibc's vDSO clock would trap as well. Host
 // clock calls use the kernel in that interval, with no guest-process stop.
 thread_local bool neo98_direct_clock_trap = false;
+// Guest code traps on RDTSC and, where the processor can (CPUID faulting),
+// on CPUID: the guest sees the clock of the machine and a processor of its
+// time (NativeCpu::CpuidInstruction), host code the real ones.
+constexpr int ArchSetCpuid = 0x1012;
+inline int GuestTraps(bool on)
+{
+    if (!on)
+    {
+        syscall(SYS_arch_prctl, ArchSetCpuid, 1);
+        return prctl(PR_SET_TSC, PR_TSC_ENABLE);
+    }
+    if (prctl(PR_SET_TSC, PR_TSC_SIGSEGV)) return -1;
+    syscall(SYS_arch_prctl, ArchSetCpuid, 0);
+    return 0;
+}
 thread_local unsigned char *neo98_direct_dispatch_selector = nullptr;
 extern "C" int clock_gettime(clockid_t clock, timespec *out) noexcept
 {
@@ -69,7 +85,7 @@ class NativeHostSpawn
     NativeHostSpawn()
     {
         const int saved = errno;
-        if (clock) { prctl(PR_SET_TSC, PR_TSC_ENABLE); neo98_direct_clock_trap = false; }
+        if (clock) { GuestTraps(false); neo98_direct_clock_trap = false; }
         if (selector) *selector = SYSCALL_DISPATCH_FILTER_ALLOW;
         errno = saved;
     }
@@ -77,7 +93,7 @@ class NativeHostSpawn
     {
         const int saved = errno;
         if (selector) *selector = previous;
-        if (clock) { neo98_direct_clock_trap = true; prctl(PR_SET_TSC, PR_TSC_SIGSEGV); }
+        if (clock) { neo98_direct_clock_trap = true; GuestTraps(true); }
         errno = saved;
     }
 };
@@ -385,6 +401,30 @@ class NativeCpu : public Cpu
             return false;
         const unsigned eip = state.regs[Reg::Eip] + at;
         state.regs[Reg::Eip] = code32 ? eip : eip & 65535;
+        return true;
+    }
+    // CPUID as a program of Win98's time expects it: the features of this
+    // processor, but at most leaf 2 and extended leaf 0x80000008. Programs of
+    // that time read the highest leaf as a small number; one of them takes
+    // only its low four bits and finds no CPUID on a processor that reports
+    // 0x10 or 0x20.
+    bool CpuidInstruction()
+    {
+        unsigned char op[2] = {};
+        if (Read(InstructionAddress(), op, 2) || op[0] != 0x0f || op[1] != 0xa2) return false;
+        const unsigned leaf = state.regs[Reg::Eax], sub = state.regs[Reg::Ecx];
+        unsigned top = 0, extended = 0, a = 0, b = 0, c = 0, d = 0;
+        __cpuid_count(0, 0, top, b, c, d);
+        __cpuid_count(0x80000000u, 0, extended, b, c, d);
+        top = std::min(top, 2u);
+        extended = std::min(extended, 0x80000008u);
+        a = b = c = d = 0;
+        if (leaf <= top || (leaf >= 0x80000000u && leaf <= extended))
+            __cpuid_count(leaf, sub, a, b, c, d);
+        if (leaf == 0) a = top;
+        else if (leaf == 0x80000000u) a = extended;
+        state.regs[Reg::Eax] = a; state.regs[Reg::Ebx] = b; state.regs[Reg::Ecx] = c; state.regs[Reg::Edx] = d;
+        state.regs[Reg::Eip] += 2;
         return true;
     }
     bool ClockInstruction()
@@ -744,7 +784,7 @@ class NativeCpu : public Cpu
             action.sa_handler = reinterpret_cast<void (*)(int)>(neo98_native_fault);
             action.sa_flags = SA_ONSTACK | SA_SIGINFO | SA_NODEFER;
             if (sigaltstack(&stack, nullptr) || sigaction(SIGSEGV, &action, nullptr)) _exit(124);
-            if (prctl(PR_SET_TSC, PR_TSC_SIGSEGV)) _exit(124);
+            if (GuestTraps(true)) _exit(124);
             if (ptrace(PTRACE_TRACEME, 0, nullptr, nullptr)) _exit(125);
             raise(SIGSTOP);
             _exit(126);
@@ -1033,7 +1073,7 @@ class NativeCpu : public Cpu
                 }
             }
             if (budget) { budget(*this, ip, budget_context); if (local.stopped || requested) break; }
-            if (EnterWin16() || SegmentInstruction() || PortInstruction() || ClockInstruction() || SystemStatusInstruction()) { ++count; continue; }
+            if (EnterWin16() || SegmentInstruction() || PortInstruction() || ClockInstruction() || CpuidInstruction() || SystemStatusInstruction()) { ++count; continue; }
             Sync(true);
             unsigned error = PushRegisters();
             if (error) return error;
@@ -1111,7 +1151,7 @@ class NativeCpu : public Cpu
             if (trap != 14)
             {
                 // A native segment load can trap in the uninterrupted path.
-                if (SegmentInstruction() || PortInstruction() || ClockInstruction() || SystemStatusInstruction()) continue;
+                if (SegmentInstruction() || PortInstruction() || ClockInstruction() || CpuidInstruction() || SystemStatusInstruction()) continue;
                 unsigned char op[2] = {};
                 const bool fetched = !Read(next, op, 2);
                 // CLI and STI of a protected-mode application go on: the VMM
