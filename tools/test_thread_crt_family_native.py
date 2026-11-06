@@ -20,6 +20,16 @@ def _engine_link_extra():
     import native_app as _native_app
     return [str(p) for p in _native_app.engine_link_extra()]
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'build/thread-crt/family/native'
 
@@ -58,16 +68,16 @@ def main():
     tree=ast.parse((source/'tools/native_app.py').read_text())
     assignment=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(
         isinstance(t,ast.Name) and t.id=='sources' for t in n.targets))
-    sources=list(dict.fromkeys(ast.literal_eval(assignment.value)))
+    sources=list(dict.fromkeys(_native_app().runtime_names(ast.literal_eval(assignment.value))))
     package=Path(unicorn.__file__).resolve().parent
     library=package/'lib'/('libunicorn.2.dylib' if sys.platform=='darwin' else 'libunicorn.so.2')
     binary=OUT/'test-thread-crt-family-native'
-    execute(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-omit-frame-pointer',
+    execute(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),'-fno-omit-frame-pointer',
              source/'tools/test_thread_crt_family_native.cpp',source/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'),
-             *[source/'src'/f'{name}.cpp'for name in sources],*_engine_link_extra(), library,'-Wl,-rpath,'+str(library.parent),
+             *[source/'src'/f'{name}.cpp'for name in sources],*_engine_link_extra(), *_native_app().unicorn_link(library),
              '-o',binary],'native-build.log')
     fiber=OUT/'test-fiber-alloc'
-    execute(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-omit-frame-pointer',
+    execute(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),'-fno-omit-frame-pointer',
              source/'tools/test_fiber_alloc.cpp',source/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'),'-o',fiber],'fiber-build.log')
     print(execute([fiber],'fiber-test.log'),end='')
     result=execute([binary,executable,ROOT/'build/generated/notepad-fixedsys.fnt'],'native-test.log')

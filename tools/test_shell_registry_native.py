@@ -23,6 +23,16 @@ def _engine_link_extra():
     import native_app as _native_app
     return [str(p) for p in _native_app.engine_link_extra()]
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'build/shell-registry/native'
 sys.path.insert(0,str(ROOT))
@@ -37,6 +47,8 @@ def main():
     if directory.exists():shutil.rmtree(directory)
     directory.mkdir();shutil.copytree(ROOT/'src',directory/'src',ignore=shutil.ignore_patterns('*.o','*.d','*.img','*.elf','*.map','*.lst'))
     (directory/'tools').mkdir();shutil.copy2(ROOT/'tools/native_app.py',directory/'tools/native_app.py')
+    # The saved states of src/ include the Linux platform header of tools/.
+    shutil.copy2(ROOT/'tools/linux_state_platform.h',directory/'tools/linux_state_platform.h')
     for name in ('build','third_party','sdk'):(directory/name).symlink_to(ROOT/name,target_is_directory=True)
     if args.patch:
         subprocess.run(['git','init','-q'],cwd=directory,check=True)
@@ -57,9 +69,9 @@ def main():
     subprocess.run(['lld-link','/entry:mainCRTStartup','/subsystem:console','/nodefaultlib','/machine:x86','/out:'+str(OUT/'SHELLREG.EXE'),str(OUT/'shell-registry.obj'),*libraries],check=True)
     tree=ast.parse((directory/'tools/native_app.py').read_text())
     assignment=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='sources' for t in n.targets))
-    sources=[s for s in dict.fromkeys(ast.literal_eval(assignment.value)) if s!='x86_shell_registry']
+    sources=[s for s in dict.fromkeys(_native_app().runtime_names(ast.literal_eval(assignment.value))) if s!='x86_shell_registry']
     pkg=Path(unicorn.__file__).resolve().parent;lib=pkg/'lib'/('libunicorn.2.dylib' if sys.platform=='darwin' else 'libunicorn.so.2')
-    command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-sanitize-recover=all',str(directory/'tools/test_shell_registry_native.cpp'),str(directory/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),*[str(directory/'src'/f'{name}.cpp') for name in sources],*_engine_link_extra(), str(lib),'-Wl,-rpath,'+str(lib.parent),'-o',str(OUT/'test-shell-registry-native')]
+    command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),'-fno-sanitize-recover=all',str(directory/'tools/test_shell_registry_native.cpp'),str(directory/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),*[str(directory/'src'/f'{name}.cpp') for name in sources],*_engine_link_extra(), *_native_app().unicorn_link(lib),'-o',str(OUT/'test-shell-registry-native')]
     run=compile_native(command,capture_output=True,text=True);(OUT/'build.log').write_text(run.stdout+run.stderr)
     if run.returncode:print(run.stdout+run.stderr)
     run.check_returncode()

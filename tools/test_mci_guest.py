@@ -32,6 +32,16 @@ def _engine_link_extra():
     return [str(p) for p in _native_app.engine_link_extra()]
 
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 P = Path(__file__).resolve()
 ROOT = next(p for p in P.parents if (p / 'neo98.py').exists() and (p / 'build/analysis-venv').exists())
 sys.path.insert(0, str(ROOT))
@@ -56,7 +66,7 @@ else:
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 env = neo98.tool_environment()
 env['UBSAN_OPTIONS'] = 'halt_on_error=1:print_stacktrace=1'
-FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined']
+FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags()]
 
 
 def run(name, command):
@@ -87,7 +97,7 @@ run('fixture-link', ['lld-link', '/entry:mainCRTStartup', '/subsystem:console', 
                      '/nodefaultlib', '/machine:x86', '/out:' + str(exe), OUT / 'fixture.obj', *libs])
 
 tree = ast.parse((RUN / 'tools/native_app.py').read_text())
-names = next(ast.literal_eval(n.value) for n in ast.walk(tree)
+names = next(_native_app().runtime_names(ast.literal_eval(n.value)) for n in ast.walk(tree)
              if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'sources'
                                                   for t in n.targets))
 objects = [OBJECTS / (n + '.cpp.o') for n in names] + [OBJECTS / ('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
@@ -96,8 +106,7 @@ for name in (['sound_mixer', 'sound_synth', 'x86_mci', 'x86_mm_timer'] if args.r
 
 library = ROOT / 'build/analysis-venv/lib/python3.14/site-packages/unicorn/lib/libunicorn.2.dylib'
 binary = OUT / 'test-mci'
-run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_mci_guest.cpp', *objects, *_engine_link_extra(), library,
-                   '-Wl,-rpath,' + str(library.parent), '-o', binary])
+run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_mci_guest.cpp', *objects, *_engine_link_extra(), *_native_app().unicorn_link(library), '-o', binary])
 font = ROOT / 'build/generated/notepad-fixedsys.fnt'
 result = run('guest', [binary, exe, font])
 print(result)

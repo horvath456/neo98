@@ -13,6 +13,17 @@ pointers the other side stored there.
 from pathlib import Path
 import argparse, ast, hashlib, json, shutil, subprocess, sys
 
+
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 SOURCE = Path(__file__).resolve().parents[1]
 ROOT = SOURCE
 OUT = ROOT / 'build/session-arena'
@@ -107,7 +118,7 @@ def test(source_root=SOURCE):
     env = neo98.tool_environment()
     exe, dll, section, foreign, collision, collision_text = guest_binaries(source_root, env)
     tree = ast.parse((source_root / 'tools/native_app.py').read_text())
-    sources = next(ast.literal_eval(n.value) for n in ast.walk(tree)
+    sources = next(_native_app().runtime_names(ast.literal_eval(n.value)) for n in ast.walk(tree)
                    if isinstance(n, ast.Assign)
                    and any(isinstance(t, ast.Name) and t.id == 'sources' for t in n.targets))
     package = Path(subprocess.check_output(
@@ -119,10 +130,9 @@ def test(source_root=SOURCE):
     import native_app
     fex_extra = native_app.engine_link_extra()
     folder = source_root / 'tools'
-    command = ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',
+    command = ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags(),
                str(folder / 'test_session_arena_native.cpp'), str(source_root / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),
-               *[str(source_root / 'src' / f'{s}.cpp') for s in sources], *map(str, fex_extra), str(library),
-               '-Wl,-rpath,' + str(library.parent), '-o', str(binary)]
+               *[str(source_root / 'src' / f'{s}.cpp') for s in sources], *map(str, fex_extra), *_native_app().unicorn_link(library), '-o', str(binary)]
     build = subprocess.run(command, env=env, capture_output=True, text=True)
     (OUT / 'build.log').write_text(build.stdout + build.stderr)
     build.check_returncode()

@@ -14,6 +14,16 @@ def _engine_link_extra():
     import native_app as _native_app
     return [str(p) for p in _native_app.engine_link_extra()]
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 SOURCE=Path(__file__).resolve().parents[1];ROOT=next(p for p in Path(__file__).resolve().parents if(p/'neo98.py').exists());OUT=ROOT/'build/shell-control'
 IMPORTS={'KERNEL32':{'ExitProcess':4,'GetModuleHandleA':4,'LoadLibraryA':4,'GetProcAddress':8,'FreeLibrary':4},'USER32':{'RegisterClassA':4,'CreateWindowExA':48,'DefWindowProcA':16,'DestroyWindow':4,'SendMessageA':16},'SHELL32':{'Control_RunDLL':16,'Control_RunDLLA':16}}
 def guests(source_root=SOURCE):
@@ -37,7 +47,7 @@ def test(source_root=SOURCE,object_dir=None,app_object=None):
  inputs=[*objects,source_root/'tools/test_shell_control_native.cpp',source_root/'src/x86_app.h'];before={str(p):digest(p)for p in inputs}
  sys.path.insert(0,str(ROOT));import neo98
  package=Path(subprocess.check_output([str(neo98.analysis_python()),'-c','import unicorn;print(unicorn.__file__)'],text=True).strip()).parent;library=package/'lib'/('libunicorn.2.dylib'if sys.platform=='darwin'else'libunicorn.so.2');binary=OUT/'test-shell-control-native'
- command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(source_root/'tools/test_shell_control_native.cpp'),*map(str,objects),*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)]
+ command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),str(source_root/'tools/test_shell_control_native.cpp'),*map(str,objects),*_engine_link_extra(), *_native_app().unicorn_link(library),'-o',str(binary)]
  result=subprocess.run(command,env=env,capture_output=True,text=True);(OUT/'fixture-link.log').write_text(result.stdout+result.stderr);result.check_returncode();assert before=={str(p):digest(p)for p in inputs}
  run=subprocess.run([str(binary),str(OUT/'CPLTEST.EXE'),str(OUT/'FIXTURE.CPL'),str(ROOT/'build/generated/notepad-fixedsys.fnt')],env=env,capture_output=True,text=True);(OUT/'fixture-native.log').write_text(run.stdout+run.stderr);print(run.stdout+run.stderr,end='');run.check_returncode();report={'status':'PASS','sanitizers':['address','undefined'],'inputs_unchanged':True,'objects':len(objects),'guest_sha256':digest(OUT/'CPLTEST.EXE'),'applet_sha256':digest(OUT/'FIXTURE.CPL'),'checks':['real CPL DLL and CPlApplet callbacks','nested launch reuses cache and balances references','name/@index/default selection','STARTWPARMSA and DBLCLK fallback','INIT rejection and STOP/EXIT order','caller command unchanged','visible owner and original owner notification','final window/module cleanup']};(OUT/'fixture-results.json').write_text(json.dumps(report,indent=2)+'\n');(OUT/'linked-inputs.json').write_text(json.dumps(before,indent=2)+'\n');return report
 if __name__=='__main__':

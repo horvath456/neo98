@@ -21,6 +21,16 @@ def _engine_link_extra():
     return [str(p) for p in _native_app.engine_link_extra()]
 
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 SOURCE = Path(__file__).resolve().parents[1]
 OUT = SOURCE / 'build/interrupts32'
 IMPORTS = {'KERNEL32': {'GetProcessHeap': 0, 'HeapAlloc': 12, 'HeapFree': 12, 'ExitProcess': 4}}
@@ -52,17 +62,16 @@ def test(source_root=SOURCE):
                     '/nodefaultlib', '/machine:x86', '/out:' + str(exe), str(obj), *libs],
                    env=env, check=True)
     tree = ast.parse((source_root / 'tools/native_app.py').read_text())
-    sources = next(ast.literal_eval(n.value) for n in ast.walk(tree)
+    sources = next(_native_app().runtime_names(ast.literal_eval(n.value)) for n in ast.walk(tree)
                    if isinstance(n, ast.Assign)
                    and any(isinstance(t, ast.Name) and t.id == 'sources' for t in n.targets))
     package = Path(subprocess.check_output(
         [str(neo98.analysis_python()), '-c', 'import unicorn;print(unicorn.__file__)'], text=True).strip()).parent
     library = package / 'lib' / ('libunicorn.2.dylib' if sys.platform == 'darwin' else 'libunicorn.so.2')
     binary = OUT / 'test-interrupts32-native'
-    command = ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',
+    command = ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags(),
                str(folder / 'test_interrupts32_native.cpp'), str(source_root / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),
-               *[str(source_root / 'src' / f'{s}.cpp') for s in sources], *_engine_link_extra(), str(library),
-               '-Wl,-rpath,' + str(library.parent), '-o', str(binary)]
+               *[str(source_root / 'src' / f'{s}.cpp') for s in sources], *_engine_link_extra(), *_native_app().unicorn_link(library), '-o', str(binary)]
     build = subprocess.run(command, env=env, capture_output=True, text=True)
     (OUT / 'build.log').write_text(build.stdout + build.stderr)
     build.check_returncode()

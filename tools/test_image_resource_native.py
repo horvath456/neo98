@@ -15,6 +15,16 @@ def _engine_link_extra():
     import native_app as _native_app
     return [str(p) for p in _native_app.engine_link_extra()]
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 sys.path.insert(0,str(ROOT));import neo98
 
 def test(source_root=ROOT):
@@ -25,15 +35,15 @@ def test(source_root=ROOT):
  source_root=Path(source_root).resolve();source=ROOT/'tools/test_image_resource_native.cpp'
  if source_root!=ROOT:
   (source_root/'tools').mkdir(exist_ok=True);shutil.copyfile(source,source_root/'tools'/source.name);source=source_root/'tools'/source.name
- tree=ast.parse((ROOT/'tools/native_app.py').read_text());sources=next(ast.literal_eval(n.value)for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));sources=[s for s in sources if s not in ('x86_image','win_image')]
+ tree=ast.parse((ROOT/'tools/native_app.py').read_text());sources=next(_native_app().runtime_names(ast.literal_eval(n.value))for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));sources=[s for s in sources if s not in ('x86_image','win_image')]
  package=Path(subprocess.check_output([str(neo98.analysis_python()),'-c','import unicorn;print(unicorn.__file__)'],text=True).strip()).parent;library=package/'lib'/('libunicorn.2.dylib'if sys.platform=='darwin'else'libunicorn.so.2');binary=OUT/'test-image-resource-native'
  if source_root == ROOT:
-  from native_app import sources as all_sources, runtime_objects
-  cached = dict(zip(['fiber_aarch64'] + all_sources, runtime_objects()))
-  units = [str(cached['fiber_aarch64']), *[str(cached[s]) for s in sources]]
+  from native_app import runtime_sources, runtime_objects
+  cached = dict(zip(['fiber'] + runtime_sources(), runtime_objects()))
+  units = [str(cached['fiber']), *[str(cached[s]) for s in sources]]
  else:
   units = [str(source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')), *[str(source_root/'src'/f'{s}.cpp') for s in sources]]
- compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(source),*units,*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
+ compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),str(source),*units,*_engine_link_extra(), *_native_app().unicorn_link(library),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
  if compiled.returncode:print(compiled.stdout+compiled.stderr)
  compiled.check_returncode()
  run=subprocess.run([str(binary),str(exe),str(ROOT/'build/generated/notepad-fixedsys.fnt'),str(OUT/'IMAGERES.DLL')],env=env,capture_output=True,text=True);(OUT/'native.log').write_text(run.stdout+run.stderr);print(run.stdout+run.stderr,end='');run.check_returncode();report={'status':'PASS','asan_ubsan':'PASS','guest_sha256':hashlib.sha256(exe.read_bytes()).hexdigest(),'native_profiles':'startup allocation failures1..8, raw icon failures1..3, full1023 shared handle table, cross-process identity and retired handles, retained copies, cursor hotspot, Win16 WORD alias cache/destroy/reuse/stale rejection, all resource/module/file imports'};(OUT/'native-results.json').write_text(json.dumps(report,indent=2)+'\n');return report

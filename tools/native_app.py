@@ -63,7 +63,7 @@ def fiber_source():
 
 
 def runtime_sources():
-    return [s for s in sources if not (native_x64() and s == 'x86_cpu_unicorn')]
+    return runtime_names(sources)
 
 
 def dos_vm_objects(flags, cache):
@@ -234,6 +234,28 @@ def engine_link_extra():
     objects adds to its link line for the second engine: the FEXCore
     provider and its libraries when fex_objects builds them, else nothing."""
     return fex_objects(FLAGS, ROOT / 'build/native-app/object-cache')
+
+
+def runtime_names(names):
+    """The runtime sources of names a test links on this platform: all of
+    them, but on Linux x64, where the runtime runs x86 code on the native CPU,
+    without the Unicorn provider."""
+    return [name for name in names if not (native_x64() and name == 'x86_cpu_unicorn')]
+
+
+def engine_flags():
+    """The compile flags a test adds when it compiles runtime sources of its
+    own: on Linux x64 the runtime has no Unicorn."""
+    return ['-DNEO98_NO_UNICORN'] if native_x64() else []
+
+
+def unicorn_link(library):
+    """Unicorn on the link line of a test runner: the library and its rpath.
+    The runtime on Linux x64 has no Unicorn; its runner links the system
+    libraries of the native engine instead, which engine_link_extra adds."""
+    if native_x64():
+        return ['-ldl', '-pthread']
+    return [str(library), '-Wl,-rpath,' + str(Path(library).parent)]
 
 
 def runtime_objects():

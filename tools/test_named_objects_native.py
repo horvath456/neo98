@@ -14,6 +14,16 @@ def _engine_link_extra():
     import native_app as _native_app
     return [str(p) for p in _native_app.engine_link_extra()]
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 SOURCE=Path(__file__).resolve().parents[1];ROOT=Path(__file__).resolve().parents[4] if 'runtime' in str(Path(__file__).parent) else SOURCE;OUT=ROOT/'build/named-objects'
 IMPORTS={'KERNEL32':{'CreateEventA':16,'OpenEventA':12,'SetEvent':4,'ResetEvent':4,'CreateMutexA':12,'OpenMutexA':12,'ReleaseMutex':4,'CreateSemaphoreA':16,'OpenSemaphoreA':12,'ReleaseSemaphore':12,'CreateFileMappingA':24,'OpenFileMappingA':12,'MapViewOfFile':20,'UnmapViewOfFile':4,'FlushViewOfFile':8,'WaitForSingleObject':8,'WaitForMultipleObjects':16,'CloseHandle':4,'GetLastError':0,'SetLastError':4,'CreateProcessA':40,'GetExitCodeProcess':8,'ExitProcess':4,'GetCommandLineA':0,'Sleep':4,'GetCurrentProcessId':0}}
 def test(source_root=SOURCE):
@@ -24,10 +34,10 @@ def test(source_root=SOURCE):
  folder=source_root/'tools';obj=OUT/'fixture.obj';exe=OUT/'NAMED.EXE'
  subprocess.run(['clang','--target=i686-pc-windows-msvc','-O1','-ffreestanding','-fno-builtin','-fno-stack-protector','-c',str(folder/'named_objects_fixture.c'),'-o',str(obj)],env=env,check=True)
  subprocess.run(['lld-link','/entry:mainCRTStartup','/subsystem:console','/timestamp:0','/nodefaultlib','/machine:x86','/out:'+str(exe),str(obj),*libs],env=env,check=True)
- tree=ast.parse((source_root/'tools/native_app.py').read_text());sources=next(ast.literal_eval(n.value)for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets))
+ tree=ast.parse((source_root/'tools/native_app.py').read_text());sources=next(_native_app().runtime_names(ast.literal_eval(n.value))for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets))
  package=Path(subprocess.check_output([str(neo98.analysis_python()),'-c','import unicorn;print(unicorn.__file__)'],text=True).strip()).parent
  library=package/'lib'/('libunicorn.2.dylib' if sys.platform=='darwin' else 'libunicorn.so.2');binary=OUT/'test-named-objects-native'
- command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(folder/'test_named_objects_native.cpp'),str(source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),*[str(source_root/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)]
+ command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),str(folder/'test_named_objects_native.cpp'),str(source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),*[str(source_root/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), *_native_app().unicorn_link(library),'-o',str(binary)]
  inputs=[source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'),folder/'test_named_objects_native.cpp',folder/'named_objects_fixture.c',source_root/'tools/native_app.py',*list((source_root/'src').glob('*.h')),*list((source_root/'src').glob('*.inc')),*[source_root/'src'/f'{s}.cpp'for s in sources],*list((source_root/'build/generated').glob('*.h')),source_root/'build/crt-locale/crt_locale_data.h',source_root/'build/image-resource/system_assets.h',*list((source_root/'third_party/unicorn/include').rglob('*.h'))]
  def hashes():return {str(p.relative_to(source_root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(set(inputs))}
  assert all(not p.is_symlink() for p in inputs);before=hashes()

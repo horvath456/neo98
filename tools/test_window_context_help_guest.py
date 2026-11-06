@@ -13,6 +13,16 @@ sys.path.insert(0, str(ROOT))
 import neo98
 
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     env = neo98.tool_environment()
@@ -49,9 +59,9 @@ def main():
         text=True).strip()).parent
     unicorn = package / 'lib' / 'libunicorn.2.dylib'
     runner = OUT / 'test-window-context-help'
-    run(['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',
+    run(['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags(),
          str(ROOT / 'tools/test_window_context_help_guest.cpp'), *map(str, runtime),
-         *map(str, engine_link_extra()), unicorn, '-Wl,-rpath,' + str(unicorn.parent), '-o', runner])
+         *map(str, engine_link_extra()), *_native_app().unicorn_link(unicorn), '-o', runner])
     result = subprocess.run([runner, executable, ROOT / 'build/generated/notepad-fixedsys.fnt'],
                             cwd=ROOT, env=env, capture_output=True, text=True, check=True)
     print(result.stdout, end='')

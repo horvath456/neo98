@@ -66,12 +66,12 @@ def main():
     run('fixture-link', ['lld-link', '/entry:mainCRTStartup', '/subsystem:console', '/timestamp:0',
                          '/nodefaultlib', '/machine:x86', '/out:' + str(exe), obj, *libraries], env)
     objects = Path(native_app.object_directory())
-    names = [('fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S')] + [n + '.cpp' for n in native_app.sources]
+    names = [('fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S')] + [n + '.cpp' for n in native_app.runtime_sources()]
     library = native_app.unicorn_library()
     binary = OUT / 'test-critical-guest'
     run('runner-link', ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',
-                        ROOT / 'tools/test_critical_guest.cpp', *[objects / (n + '.o') for n in names], *native_app.engine_link_extra(),
-                        library, '-Wl,-rpath,' + str(library.parent), '-o', binary], env)
+                        *native_app.engine_flags(), ROOT / 'tools/test_critical_guest.cpp', *[objects / (n + '.o') for n in names], *native_app.engine_link_extra(),
+                        *native_app.unicorn_link(library), '-o', binary], env)
     font = ROOT / 'build/generated/notepad-fixedsys.fnt'
     results, problems = {}, []
     for mode in ('fast', 'slow'):

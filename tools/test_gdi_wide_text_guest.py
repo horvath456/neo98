@@ -15,9 +15,19 @@ def _engine_link_extra():
     import native_app as _native_app
     return [str(p) for p in _native_app.engine_link_extra()]
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 P=Path(__file__).resolve();ROOT=next(p for p in P.parents if(p/'neo98.py').exists()and(p/'build/analysis-venv').exists());sys.path.insert(0,str(ROOT));import neo98
 parser=argparse.ArgumentParser();parser.add_argument('--source-root',type=Path,default=P.parents[1]);parser.add_argument('--out',type=Path,required=True);parser.add_argument('--objects',type=Path);parser.add_argument('--rebuild-affected',action='store_true');args=parser.parse_args();RUN=args.source_root.resolve();OUT=args.out.resolve();OUT.mkdir(parents=True,exist_ok=True);OBJECTS=args.objects.resolve() if args.objects else None
-sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();env=neo98.tool_environment();env['UBSAN_OPTIONS']='halt_on_error=1:print_stacktrace=1';FLAGS=['-std=c++17','-O1','-g','-fsanitize=address,undefined'];GUEST=OUT;GUEST.mkdir(exist_ok=True)
+sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();env=neo98.tool_environment();env['UBSAN_OPTIONS']='halt_on_error=1:print_stacktrace=1';FLAGS=['-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags()];GUEST=OUT;GUEST.mkdir(exist_ok=True)
 def run(name,args):
  p=subprocess.run(list(map(str,args)),env=env,capture_output=True,text=True);(GUEST/(name+'.log')).write_text(p.stdout+p.stderr)
  if p.returncode:print(p.stdout+p.stderr)
@@ -30,11 +40,11 @@ run('fixture',['clang','--target=i686-pc-windows-msvc','-O1','-ffreestanding','-
 exe=GUEST/'WIDETEXT.EXE';run('fixture-link',['lld-link','/entry:mainCRTStartup','/subsystem:console','/timestamp:0','/nodefaultlib','/machine:x86','/out:'+str(exe),GUEST/'fixture.obj',*libs])
 if OBJECTS is None:
  print('Wide-text guest compiled; native execution deferred to shared integration.');sys.exit(0)
-tree=ast.parse((ROOT/'tools/native_app.py').read_text());names=next(ast.literal_eval(n.value)for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));objects=[OBJECTS/(n+'.cpp.o')for n in names]+[OBJECTS/('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
+tree=ast.parse((ROOT/'tools/native_app.py').read_text());names=next(_native_app().runtime_names(ast.literal_eval(n.value))for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));objects=[OBJECTS/(n+'.cpp.o')for n in names]+[OBJECTS/('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
 local_objects=OUT/'objects';local_objects.mkdir(exist_ok=True)
 if args.rebuild_affected:
  for name in ['x86_app','x86_gdi']:
   target=local_objects/(name+'.cpp.o');run(name,['clang++',*FLAGS,'-I'+str(ROOT/'src'),'-c',RUN/'src'/(name+'.cpp'),'-o',target]);objects[objects.index(OBJECTS/(name+'.cpp.o'))]=target
 
-library=ROOT/'build/analysis-venv/lib/python3.14/site-packages/unicorn/lib/libunicorn.2.dylib';binary=GUEST/'test-gdi-wide-text';run('guest-link',['clang++',*FLAGS,RUN/'tools/test_gdi_wide_text_guest.cpp',*objects,*_engine_link_extra(), library,'-Wl,-rpath,'+str(library.parent),'-o',binary]);font=ROOT/'build/generated/notepad-fixedsys.fnt';result=run('guest',[binary,exe,font]);print(result)
+library=ROOT/'build/analysis-venv/lib/python3.14/site-packages/unicorn/lib/libunicorn.2.dylib';binary=GUEST/'test-gdi-wide-text';run('guest-link',['clang++',*FLAGS,RUN/'tools/test_gdi_wide_text_guest.cpp',*objects,*_engine_link_extra(), *_native_app().unicorn_link(library),'-o',binary]);font=ROOT/'build/generated/notepad-fixedsys.fnt';result=run('guest',[binary,exe,font]);print(result)
 (GUEST/'results.json').write_text(json.dumps({'status':'PASS','result':result,'runner_sha256':sha(binary),'guest_sha256':sha(exe),'font_sha256':sha(font),'runtime_sha256':{str(p.relative_to(RUN)):sha(p)for p in sorted((RUN/'src').iterdir())if p.name!='win98_class_public.h' and p.suffix in('.h','.cpp','.inc','.S')}},indent=2)+'\n')

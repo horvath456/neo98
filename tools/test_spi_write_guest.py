@@ -20,6 +20,16 @@ def _engine_link_extra():
     return [str(p) for p in _native_app.engine_link_extra()]
 
 
+def _native_app():
+    """tools/native_app.py beside this test: the engine of the runner per
+    platform (runtime_names, engine_flags, unicorn_link)."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import native_app as _native_app
+    return _native_app
+
+
 P = Path(__file__).resolve()
 ROOT = next(p for p in P.parents if (p / 'neo98.py').exists() and (p / 'build/analysis-venv').exists())
 sys.path.insert(0, str(ROOT))
@@ -37,7 +47,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 env = neo98.tool_environment()
 env['UBSAN_OPTIONS'] = 'halt_on_error=1:print_stacktrace=1'
-FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined']
+FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags()]
 
 
 def run(name, command):
@@ -66,7 +76,7 @@ run('fixture-link', ['lld-link', '/entry:mainCRTStartup', '/subsystem:console', 
                      '/nodefaultlib', '/machine:x86', '/out:' + str(exe), OUT / 'fixture.obj', *libs])
 
 tree = ast.parse((ROOT / 'tools/native_app.py').read_text())
-names = next(ast.literal_eval(n.value) for n in ast.walk(tree)
+names = next(_native_app().runtime_names(ast.literal_eval(n.value)) for n in ast.walk(tree)
              if isinstance(n, ast.Assign) and any(getattr(t, 'id', '') == 'sources' for t in n.targets))
 objects = compile_objects(RUN, [RUN / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'), *[RUN / 'src' / (s + '.cpp') for s in names]],
                           FLAGS, env, ROOT / 'build/native-app/object-cache')
@@ -74,8 +84,7 @@ package = Path(subprocess.check_output([str(neo98.analysis_python()), '-c',
                                         'import unicorn; print(unicorn.__file__)'], text=True).strip()).parent
 library = package / 'lib' / ('libunicorn.2.dylib' if sys.platform == 'darwin' else 'libunicorn.so.2')
 binary = OUT / 'test-spi-write'
-run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_spi_write_guest.cpp', *objects, *_engine_link_extra(), library,
-                   '-Wl,-rpath,' + str(library.parent), '-o', binary])
+run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_spi_write_guest.cpp', *objects, *_engine_link_extra(), *_native_app().unicorn_link(library), '-o', binary])
 font = ROOT / 'build/generated/notepad-fixedsys.fnt'
 result = run('guest', [binary, exe, font])
 print(result)
