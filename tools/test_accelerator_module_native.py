@@ -10,6 +10,12 @@ sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / 'tools'))
 import neo98
 from native_app import build_host
 SOURCE = r'''
+/* No C library is linked (/nodefaultlib); some clang versions still call
+   these for copies and clears of structures. */
+__attribute__((optnone)) void *memcpy(void *d, const void *s, unsigned n)
+{ char *o = d; const char *i = s; while (n--) *o++ = *i++; return d; }
+__attribute__((optnone)) void *memset(void *d, int c, unsigned n)
+{ char *o = d; while (n--) *o++ = (char)c; return d; }
 typedef unsigned U;
 #define API __declspec(dllimport) __stdcall
 API void ExitProcess(U);

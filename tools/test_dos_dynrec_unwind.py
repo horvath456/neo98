@@ -18,11 +18,12 @@ def main():
         return 77
     out = neo98.output_directory('dos-dynrec-unwind')
     binary = out / 'test-dos-dynrec-unwind'
-    subprocess.run(['clang++', '-std=gnu++11', '-O1', '-g', '-fomit-frame-pointer',
+    # Apple's clang: its unwinder is the one of the system the frames are
+    # registered with (Homebrew's ASan build aborts there).
+    subprocess.run(['/usr/bin/clang++', '-std=gnu++11', '-O1', '-g', '-fomit-frame-pointer',
                     '-fsanitize=address,undefined', '-I', str(ROOT / 'tools'),
                     '-I', str(ROOT / 'third_party/dosbox-pure/include'),
-                    str(ROOT / 'tools/test_dos_dynrec_unwind.cpp'), '-o', str(binary)], check=True,
-                   env=neo98.tool_environment())
+                    str(ROOT / 'tools/test_dos_dynrec_unwind.cpp'), '-o', str(binary)], check=True)
     env = dict(os.environ, ASAN_OPTIONS='halt_on_error=1', UBSAN_OPTIONS='halt_on_error=1')
     before = subprocess.run([str(binary), '--unregistered'], env=env, capture_output=True, text=True)
     if before.returncode == 0 or 'uncaught exception' not in before.stderr:

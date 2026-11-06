@@ -4,6 +4,12 @@
    started suspended with lpDesktop "WinSta0\Default", and runs only after
    ResumeThread on the thread handle. The same program is the child. */
 typedef unsigned U;
+/* No C library is linked (/nodefaultlib); some clang versions still call
+   these for copies and clears of structures. */
+__attribute__((optnone)) void *memcpy(void *d, const void *s, unsigned n)
+{ char *o = d; const char *i = s; while (n--) *o++ = *i++; return d; }
+__attribute__((optnone)) void *memset(void *d, int c, unsigned n)
+{ char *o = d; while (n--) *o++ = (char)c; return d; }
 #define API __declspec(dllimport) __stdcall
 API U CreateFileA(const char *, U, U, U, U, U, U);
 API U CloseHandle(U);
