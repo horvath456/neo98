@@ -59,8 +59,10 @@ static Run once(const std::vector<unsigned char> &exe, const std::vector<unsigne
         X86::Application::SetHostCursorProvider(nullptr, nullptr);
     X86::Application app(nullptr);
     assert(app.Start(exe.data(), exe.size(), font.data(), font.size(), "CURSOR.EXE"));
-    // Let the guest reach its message loop.
-    for (unsigned n = 0; n < 4000; ++n)
+    // Let the guest reach its message loop: by the clock, not by a number of
+    // slices, which a loaded machine runs through before the guest started.
+    const auto give_up = std::chrono::steady_clock::now() + std::chrono::seconds(120);
+    while (std::chrono::steady_clock::now() < give_up)
     {
         app.Pump(8);
         unsigned ready = 0;
