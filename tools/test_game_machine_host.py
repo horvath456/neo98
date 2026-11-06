@@ -157,8 +157,8 @@ def main():
     settings_dir, logs = out / 'settings', out / 'logs'
     settings_dir.mkdir()
     (out / 'tmp').mkdir()
-    # The view of the app as it is by default: seamless.
-    (settings_dir / 'settings.ini').write_text(f'# Test\nmachine = {machine}\nscale = 1\n')
+    # The seamless view, which a user turns on in View > Seamless.
+    (settings_dir / 'settings.ini').write_text(f'# Test\nmachine = {machine}\nscale = 1\nseamless = 1\n')
     games = machine / 'Spielmaschinen'
     checks = {}
 
