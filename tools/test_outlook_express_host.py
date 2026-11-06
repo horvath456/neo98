@@ -21,6 +21,11 @@ DIRECTDB repair it, with its progress dialog, and the folder list then chose
     build/analysis-venv/bin/python tools/test_outlook_express_host.py [--no-build]
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the seamless view of the macOS host and its list of Mac windows (windows=); the Linux host shows seamless windows in X11')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os
