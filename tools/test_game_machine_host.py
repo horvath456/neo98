@@ -43,6 +43,14 @@ the normal machine as C:\\SPIELE\\GMGAME.EXE before any game machine exists.
 Results in build/game-machine/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        # The write layer itself is the same code on Linux and runs in
+        # tools/test_linux_game_machine.py.
+        print('SKIP: the command line and the launcher bundles of game machines are the macOS host\'s; '
+              'the Linux host makes game machines in its dialog')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import hashlib
 import json
