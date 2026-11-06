@@ -83,8 +83,10 @@ def main():
     shutil.rmtree(drive, ignore_errors=True)
     subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     # Both engines: FEXCore shares host pages of 16 KiB, Unicorn guest pages.
+    # Linux x64 has one engine, the native CPU.
+    engines = ('',) if sys.platform == 'linux' else ('', 'unicorn')
     checks = {f'two processes share both sections ({engine or "default engine"})': run(binary, out, drive, engine)
-              for engine in ('', 'unicorn')}
+              for engine in engines}
     shutil.rmtree(drive, ignore_errors=True)
     for name, okay in checks.items():
         print(f"{'ok  ' if okay else 'FAIL'} {name}")
