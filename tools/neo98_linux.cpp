@@ -410,6 +410,9 @@ int main(int argc, char **argv)
     static LinuxHost::Clipboard clipboard;
     HostMenu::Install();
     LinuxHost::Script input;
+    // A person sits in front of this host: an unhandled exception shows the
+    // error box of Win98 and ends only its process.
+    X86::Application::SetFaultBox(true);
     LinuxHost::native_input = [&](const std::string &action,const std::string &value) { return seamless.Input(action,value); };
     User::ShowPointer(true);
     const bool german = !(getenv("NEO98_KEYMAP") && !strcmp(getenv("NEO98_KEYMAP"), "US"));

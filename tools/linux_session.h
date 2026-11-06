@@ -148,7 +148,13 @@ inline void Help(bool window)
                      "  F11 toggles full screen.");
 }
 inline bool verbose = false;
-inline void Log(const char *line) { if (verbose) { fprintf(stderr, "%s\n", line); fflush(stderr); } }
+// --quiet leaves out the line of every API call, as on macOS; what the
+// runtime has to say beyond those stays in the log.
+inline void Log(const char *line)
+{
+    if (!verbose && !strncmp(line, "APP ", 4)) return;
+    fprintf(stderr, "%s\n", line); fflush(stderr);
+}
 inline std::vector<unsigned char> ReadFile(const char *path)
 {
     FILE *file = fopen(path, "rb"); if (!file) return {};
