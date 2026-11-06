@@ -72,6 +72,10 @@ unsigned Application::BuildMessageBox(const Win98MessageBox::Parameters&p,const 
  if(state==Failed||state==Exited)return 0;
  if(p.style&0x100000){last_error=50;return 0;} // Native bidi text provider is not installed.
  if((p.style&15)>7||(p.owner&&!User::IsWindow(p.owner))){last_error=87;return 0;}
+ // The desktop as owner gives a top-level box without one, as for DialogBox
+ // (Win98IndirectDialog::ModalOwner): disabling the desktop would leave no
+ // window the mouse can reach, the box included.
+ if(p.owner&&p.owner==User::GetDesktopWindow()){Win98MessageBox::Parameters top=p;top.owner=0;return ShowMessageBox(top);}
  // The owner may belong to another process: a program that has no window of
  // its own yet hands MessageBox what GetActiveWindow or GetTopWindow(0) gave
  // it (WLOADER.EXE started from the shell). USER shows the box over
