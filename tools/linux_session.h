@@ -310,8 +310,12 @@ class Session
         { if (!HostSystemFont::Load(options.font.c_str(), font)) return false; }
         else font = ReadFile(options.font.c_str());
         if (exe.empty() || font.empty()) { fprintf(stderr, "Program or system font is missing.\n"); return false; }
+        // A program path with a space is its own quoted command line, as on
+        // macOS: an MFC program reads the rest of an unquoted one as a file.
+        std::string command = options.command;
+        if (command.empty() && options.exe.find(' ') != std::string::npos) command = "\"" + options.exe + "\"";
         const bool started = app->Start(exe.data(), exe.size(), font.data(), font.size(), options.exe.c_str(),
-                                      options.command.empty() ? nullptr : options.command.c_str());
+                                      command.empty() ? nullptr : command.c_str());
         if (!started) fprintf(stderr, "Guest startup failed: %s\n", app->Error());
         return started;
     }
