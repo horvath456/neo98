@@ -108,7 +108,7 @@ names = next(_native_app().runtime_names(ast.literal_eval(n.value)) for n in ast
              if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'sources'
                                                   for t in n.targets))
 objects = [OBJECTS / (n + '.cpp.o') for n in names] + [OBJECTS / ('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
-library = next((ROOT / 'build/analysis-venv/lib').glob('python3*/site-packages/unicorn/lib/libunicorn.2.dylib'))
+library = next((ROOT / 'build/analysis-venv/lib').glob('python3*/site-packages/unicorn/lib/libunicorn.2.dylib'), None)
 binary = OUT / 'test-imports2'
 run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_imports2_guest.cpp', *objects, *_engine_link_extra(), *_native_app().unicorn_link(library), '-o', binary])
 font = ROOT / 'build/generated/notepad-fixedsys.fnt'
