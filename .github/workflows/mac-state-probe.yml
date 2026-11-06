@@ -64,6 +64,50 @@ jobs:
           diff src/state_rules/frames.calls probe/main-propose-sites.calls > probe/main-sites.diff || true
           echo "== DWARF-only reader of main =="; cat probe/main-sites.diff
           rm tools/state_frames_main.py
+          cat > probe/list.py <<'PY'
+          import re, sys
+          from collections import Counter
+          from pathlib import Path
+          sys.path.insert(0, 'tools')
+          import state_frames as sf
+          binary = Path('build/native-app/neo98-host')
+          callers, sites = sf.graph(binary)
+          def read(path):
+              sf.LIST = Path(path)
+              out = {}
+              for line in Path(path).read_text().splitlines():
+                  content, _, reason = line.partition('#')
+                  m = re.match(r'^(\w+)\s+(.*?)(?:\s+sites=\d+)?\s*$', content)
+                  if m and m[1] in sf.KINDS:
+                      out[m[2]] = (m[1], reason.strip())
+              return out
+          mac, linux = read('src/state_rules/frames.calls'), read('src/state_rules/frames.linux.calls')
+          kind = {n: k for n, (k, _) in mac.items()}
+          kind.update({n: k for n, (k, _) in linux.items() if n not in kind})
+          wanted = {}
+          for n in callers.get(sf.STEP, ()): wanted.setdefault(n, set()).add('Step')
+          for n, k in kind.items():
+              if k == 'loop':
+                  for c in callers.get(n, ()): wanted.setdefault(c, set()).add(n.rsplit('::', 1)[-1])
+          for n in callers.get(sf.SUSPEND, ()): wanted.setdefault(n, set()).add('Suspend')
+          tails = set()
+          for h in sf.TAIL: tails |= callers.get(h, set())
+          tails -= sf.TAIL
+          for n in tails: wanted.setdefault(n, set()).add('tail')
+          watched = {sf.STEP, sf.SUSPEND, *sf.TAIL, *(n for n, k in kind.items() if k == 'loop')}
+          count = Counter()
+          for (a, b), c in sites.items():
+              if b in watched: count[a] += c
+          for n in sorted(set(wanted) | {sf.STEP} | (sf.TAIL & set(mac))):
+              if n in mac: src, (k, r) = 'mac', mac[n]
+              elif n in linux: src, (k, r) = 'linux', linux[n]
+              else: src, k, r = 'NEW', 'transient', '(' + ', '.join(sorted(wanted.get(n, ()))) + ')'
+              print(f'{src}\t{k}\t{n}\t{count[n]}\t{",".join(sorted(wanted.get(n, ())))}\t{"tail" if n in tails else ""}\t{r}')
+          for n in sorted(set(mac) - set(wanted) - {sf.STEP} - sf.TAIL):
+              print(f'GONE\t{mac[n][0]}\t{n}\t{count[n]}\t\t\t{mac[n][1]}')
+          PY
+          python3 probe/list.py > probe/new-list.tsv
+          cut -f1 probe/new-list.tsv | sort | uniq -c
       - name: Call-site DWARF
         if: always()
         run: |
