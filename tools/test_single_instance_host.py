@@ -22,6 +22,11 @@ ended the lock is free.
 Results in build/single-host/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: starts the Mac app on the machine folder of its settings.ini; the Linux handoff to a running host is in tools/test_linux_desktop.py')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import fcntl
 import json
