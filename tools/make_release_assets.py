@@ -142,6 +142,9 @@ def main():
         violations = check_bundle(appdir)
         if violations: raise RuntimeError('Release bundle check failed: ' + ', '.join(violations))
         smoke_qemu(appdir / 'usr/lib/neo98/toolkit')
+        if not (appdir / 'usr/bin/neo98-host.layout').is_file():
+            raise RuntimeError('The release host has no state layout and would save no Windows programs; '
+                               'see build/native-app/neo98-host.layout-problems')
         shutil.copy2(ROOT / 'build/Neo98-linux-x64.tar.gz', args.output / 'Neo98-linux-x64.tar.gz')
     elif not args.sources_only:
         if sys.platform != 'darwin': parser.error('Binary packaging requires macOS arm64 or Linux x64')
@@ -157,6 +160,9 @@ def main():
         violations = check_bundle(app)
         if violations: raise RuntimeError('Release bundle check failed: ' + ', '.join(violations))
         smoke_qemu(app / 'Contents/Resources/toolkit')
+        if not (app / 'Contents/Resources/Neo98.layout').is_file():
+            raise RuntimeError('The release app has no state layout and would save no Windows programs; '
+                               'see build/native-app/neo98-host.layout-problems')
         frameworks = app / 'Contents/Frameworks'
         allowed = {'libSDL2-2.0.0.dylib', 'libSDL3.dylib', 'libunicorn.2.dylib', 'libdosbox-pure.dylib'}
         unexpected = {p.name for p in frameworks.iterdir()} - allowed

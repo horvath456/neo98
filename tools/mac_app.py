@@ -391,7 +391,8 @@ def sign_qemu(path, identity='-'):
         options.append('--timestamp')
     subprocess.run(['codesign', '--force', '--sign', identity, *options, str(path)],
                    check=True, capture_output=True)
-    result = subprocess.run(['codesign', '-d', '--entitlements', '-', str(path)],
+    # --xml: since macOS 12 the default is a text form plistlib cannot read.
+    result = subprocess.run(['codesign', '-d', '--entitlements', '-', '--xml', str(path)],
                             check=True, capture_output=True)
     if plistlib.loads(result.stdout).get('com.apple.security.cs.allow-jit') is not True:
         raise RuntimeError(f'{path}: missing allow-jit entitlement')

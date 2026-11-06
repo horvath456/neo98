@@ -13,6 +13,9 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 60
     env:
+      # LLVM 21: the version src/state_rules/frames.calls is reviewed against;
+      # with LLVM 22 and later the host cannot save Windows programs.
+      NEO98_LLVM_BIN: /opt/homebrew/opt/llvm@21/bin
       NEO98_NATIVE_JOBS: '3'
       NEO98_WITH_HOST_MEDIA: '0'
       SDL_AUDIODRIVER: dummy
@@ -39,7 +42,7 @@ jobs:
       - name: Install build dependencies
         # glib, pixman and tesseract: the setup toolkit the app carries
         # (tools/setup_toolkit.py), so users need no Homebrew.
-        run: brew install llvm lld cmake ninja pkg-config sdl2 python glib pixman tesseract
+        run: brew install llvm@21 lld cmake ninja pkg-config sdl2 python glib pixman tesseract
       - name: Import optional signing identity
         if: env.MACOS_CERT_P12 != '' && env.MACOS_CERT_PASSWORD != '' && env.NOTARY_KEY_P8 != '' && env.NOTARY_KEY_ID != '' && env.NOTARY_ISSUER_ID != ''
         shell: bash
