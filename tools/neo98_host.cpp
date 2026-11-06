@@ -4238,7 +4238,7 @@ int main(int real_argc, char **real_argv)
         while (HostMenu::Next(request)) {
             switch (request.action) {
             case HostMenu::Action::Reboot: reboot = true; running = false; break;
-            case HostMenu::Action::Report: request_report("bericht"); break;
+            case HostMenu::Action::Report: request_report("host-request"); break;
             case HostMenu::Action::Quit: running = false; break;
             case HostMenu::Action::Open: open_path(request.path); break;
             case HostMenu::Action::DosSettings: open_path(request.path, true); break;
@@ -4646,7 +4646,7 @@ int main(int real_argc, char **real_argv)
                                           (control && sym == SDLK_s));
         if (!menu_key) return false;
         if (key.type == SDL_KEYDOWN && !HostMenu::Installed() && shift) {
-            if (sym == SDLK_b) request_report("bericht");
+            if (sym == SDLK_b) request_report("host-request");
             else if (sym == SDLK_r) { reboot = true; running = false; }
             else if (sym == SDLK_p && !key.repeat) machine_pause(!machine_paused, "key");
         }

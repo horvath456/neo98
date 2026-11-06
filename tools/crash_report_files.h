@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Host side of the crash report: it creates build/crash-reports/<stamp>-<grund>/
+// Host side of the crash report: it creates build/crash-reports/<stamp>-<reason>/
 // and writes report.md, report.json and screenshot.png into it. The report core
 // in src/crash_report.* stays free of file access; this header is the only
 // place that opens one. tools/neo98_host.cpp, tools/probe_application.cpp and
