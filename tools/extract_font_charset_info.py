@@ -6,6 +6,10 @@ import argparse,hashlib,json,struct,subprocess,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from provenance import stamp as stamp_provenance
+try:
+    from generated_file import write_text
+except ImportError:
+    from tools.generated_file import write_text
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import win98_c  # noqa: E402
 ROOT=next(p for p in Path(__file__).resolve().parents if(p/'neo98.py').is_file())
@@ -17,7 +21,7 @@ def extract(source,target):
   size,rva,length,offset=struct.unpack_from('<4I',data,sections+i*40+8)
   if rva<=0x1f300 and 0x1f300+168<=rva+length:raw=data[offset+0x1f300-rva:offset+0x1f300-rva+168]
  assert raw and len(raw)==168;values=struct.unpack('<42I',raw);assert values[0]==0 and values[14]==1252 and values[28]==1
- target=Path(target);target.parent.mkdir(parents=True,exist_ok=True);target.write_text('// Generated from local GDI32.DLL; do not commit.\nstatic const unsigned OriginalGdiCharsetInfo[3][14]={\n'+''.join(' {'+','.join('0x%x'%v for v in values[i:i+14])+'},\n'for i in range(0,42,14))+'};\n');return hashlib.sha256(raw).hexdigest()
+ target=Path(target);target.parent.mkdir(parents=True,exist_ok=True);write_text(target,'// Generated from local GDI32.DLL; do not commit.\nstatic const unsigned OriginalGdiCharsetInfo[3][14]={\n'+''.join(' {'+','.join('0x%x'%v for v in values[i:i+14])+'},\n'for i in range(0,42,14))+'};\n');return hashlib.sha256(raw).hexdigest()
 def generate():
  source=ROOT/'build/programs/GDI32.DLL'
  if not source.exists():

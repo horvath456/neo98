@@ -4,6 +4,10 @@
 import argparse
 from pathlib import Path
 import struct
+try:
+    from generated_file import write_text
+except ImportError:
+    from tools.generated_file import write_text
 
 
 def segment(data, number, offset, size):
@@ -25,7 +29,7 @@ def generate(drive_c, output):
         text += 'inline const unsigned ' + name + '[]={' + ','.join(map(str, values)) + '};\n'
     text += '}\n'
     output.mkdir(parents=True, exist_ok=True)
-    (output / 'gdi_palette_tables.h').write_text(text)
+    write_text(output / 'gdi_palette_tables.h', text)
     data = (drive_c / 'WINDOWS/SYSTEM/GDI32.DLL').read_bytes()
     pe = struct.unpack_from('<I', data, 60)[0]
     count, optional = struct.unpack_from('<H', data, pe + 6)[0], struct.unpack_from('<H', data, pe + 20)[0]
@@ -39,7 +43,7 @@ def generate(drive_c, output):
                 raw = data[offset + address - rva:offset + address - rva + length]
         if raw is None or len(raw) != length: raise ValueError('Missing GDI32 table')
         text += 'inline const unsigned char ' + name + '[]={' + ','.join(map(str, raw)) + '};\n'
-    (output / 'gdi_object_tables.h').write_text(text + '}\n')
+    write_text(output / 'gdi_object_tables.h', text + '}\n')
 
 
 def main():

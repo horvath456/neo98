@@ -6,6 +6,10 @@ import argparse,hashlib,json,struct,subprocess,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 from provenance import stamp as stamp_provenance
+try:
+    from generated_file import write_text
+except ImportError:
+    from tools.generated_file import write_text
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import win98_c  # noqa: E402
 ROOT=next(p for p in Path(__file__).resolve().parents if(p/'neo98.py').is_file())
@@ -15,7 +19,7 @@ def extract(source,target):
  ne=struct.unpack_from('<I',data,60)[0];shift=struct.unpack_from('<H',data,ne+0x32)[0];segments=ne+struct.unpack_from('<H',data,ne+0x22)[0]
  offset=struct.unpack_from('<H',data,segments+10*8)[0]<<shift;raw=data[offset+0x6ee:offset+0x8ee];assert len(raw)==512
  values=struct.unpack('<256H',raw);assert values[31]==0 and values[0xb7]==0x2219 and values[128]==0x20ac
- target=Path(target);target.parent.mkdir(parents=True,exist_ok=True);target.write_text('// Generated from local GDI.EXE segment; do not commit.\nstatic const unsigned short OriginalGdiAnsiCharset[256]={\n'+''.join(' '+','.join('0x%04x'%v for v in values[i:i+16])+',\n'for i in range(0,256,16))+'};\n')
+ target=Path(target);target.parent.mkdir(parents=True,exist_ok=True);write_text(target,'// Generated from local GDI.EXE segment; do not commit.\nstatic const unsigned short OriginalGdiAnsiCharset[256]={\n'+''.join(' '+','.join('0x%04x'%v for v in values[i:i+16])+',\n'for i in range(0,256,16))+'};\n')
  return hashlib.sha256(raw).hexdigest()
 def generate():
  source=ROOT/'build/gdi-audit/GDI.EXE'
