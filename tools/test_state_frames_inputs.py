@@ -96,6 +96,10 @@ int main(int argc, char **) { Guest g; return Invoke(g,argc)+Tail(g,argc); }
     def test_debug_names_demangle_on_every_platform(self):
         self.assertEqual(state_frames.plain({'_ZN3X8611Application4StepEv'}),
                          {'_ZN3X8611Application4StepEv': 'X86::Application::Step'})
+        # A generic lambda with a parameter pack, which LLVM's demangler
+        # does not read whole.
+        packed = '_ZZN3X8611Application18CryptoProviderCallE7ApiNamePKjENK3$_2clIJjjEEEDajDpT_'
+        self.assertEqual(state_frames.plain({packed}), {packed: 'X86::Application::CryptoProviderCall::lambda::call'})
 
     def test_failed_demangler_cannot_hide_functions(self):
         with patch.object(state_frames.subprocess, 'run',

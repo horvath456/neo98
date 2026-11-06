@@ -129,15 +129,31 @@ def calls_of(obj):
     return pairs
 
 
+def demangle(names):
+    # The names come from the debug information, without the underscore
+    # of a Mach-O symbol; c++filt on macOS strips one unless told not to.
+    if not names:
+        return []
+    return subprocess.run(['c++filt', '-n'], input='\n'.join(names), capture_output=True, text=True,
+                          check=True).stdout.split('\n')[:len(names)]
+
+
 def plain(names):
     """Mangled names as the list writes a function: without its parameters,
     a lambda without its number."""
     names = sorted(names)
-    # The names come from the debug information, without the underscore
-    # of a Mach-O symbol; c++filt on macOS strips one unless told not to.
-    out = subprocess.run(['c++filt', '-n'], input='\n'.join(names), capture_output=True, text=True, check=True).stdout.split('\n')
+    out = dict(zip(names, demangle(names)))
+    # The demangler of LLVM (c++filt on macOS) cannot read some parameter
+    # packs. The list drops the parameters anyway: the name cut before
+    # them, with an empty parameter list, reads the same.
+    unread = [name for name in names if name.startswith('_Z') and out[name] == name]
+    candidates = [(name, name[:end] + 'v') for name in unread for end in range(len(name) - 1, max(3, len(name) - 200), -1)]
+    for (name, candidate), readable in zip(candidates, demangle([candidate for _, candidate in candidates])):
+        if out[name] == name and readable != candidate:
+            out[name] = readable
     result = {}
-    for mangled, readable in zip(names, out):
+    for mangled in names:
+        readable = out[mangled]
         text = readable.replace('(anonymous namespace)', '{anon}')
         text = re.sub(r"'lambda\d*'", 'lambda', text)
         # Parameter lists and template arguments go, innermost first.
