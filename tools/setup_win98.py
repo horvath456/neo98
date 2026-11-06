@@ -494,10 +494,22 @@ def send_keys(monitor, *keys):
             time.sleep(0.25)
 
 
+class KeyRejected(RuntimeError):
+    """Windows Setup did not accept the product key; the user has to enter it
+    again, and the installation starts over."""
+
+
+# Windows Setup's message box for a key it refuses. OCR reads it with the odd
+# slip, so any of these pieces is enough.
+KEY_REJECTED = re.compile(r"product key you entered is invalid|you entered is invalid|"
+                          r"without a valid product key|piracy hotline|ru-legit")
+
+
 def handle_setup_dialog(monitor, screen, handled):
     visible = screen_text(monitor, screen)
-    if "product key you entered is invalid" in visible:
-        raise RuntimeError("Windows Setup rejected the product key")
+    if KEY_REJECTED.search(" ".join(visible.split())):
+        raise KeyRejected("Windows Setup did not accept the product key. "
+                          "Check it and click Install again.")
     dialogs = (
         ("user information", ("ret",), "user information confirmed"),
         ("license agreement", ("tab", "space", "ret"), "license accepted"),
@@ -1026,7 +1038,8 @@ def main(argv=None):
 
     Every step prints one `setup:...` line. Exit code 0 when drive C: is
     ready, 3 when the product key is missing or malformed (nothing was
-    started), 1 for every other failure. SIGTERM (Cancel) stops QEMU and
+    started) or Windows Setup did not accept it (what the run made is
+    removed), 1 for every other failure. SIGTERM (Cancel) stops QEMU and
     removes what the run created: the unfinished installation and the
     unfinished folder.
     """
@@ -1091,6 +1104,10 @@ def main(argv=None):
                         log_errors.append(f'Logs kept at {work}: {log_error}')
                         continue
                     shutil.rmtree(work, ignore_errors=True)
+        if isinstance(error, KeyRejected):
+            # What the run made is gone; the next run starts from the beginning.
+            print(f"setup: ERROR: {error}", flush=True)
+            return 3
         message = failure_message(error, logs)
         if log_errors:
             message += '; ' + '; '.join(log_errors)

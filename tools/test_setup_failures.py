@@ -73,6 +73,38 @@ class SetupFailuresTest(unittest.TestCase):
             self.assertTrue(log.is_file())
             self.assertIn('Logs kept at ' + str(work), output.getvalue())
 
+    def test_rejected_key_starts_over_with_code_3(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            work = root / 'work/run'
+            work.mkdir(parents=True)
+            (work / 'qemu.log').write_text('setup ran')
+            output = io.StringIO()
+            with patch.dict(os.environ, XDG_STATE_HOME=str(root / 'state')), \
+                 patch.object(sys, 'platform', 'linux'), \
+                 patch.object(setup, 'setup', side_effect=setup.KeyRejected('not accepted')), \
+                 patch.object(setup.win98_c, 'ready', return_value=False), \
+                 patch.object(signal, 'signal'), \
+                 contextlib.redirect_stdout(output):
+                result = setup.main(['--user', '--target', str(root / 'target'), '--work', str(work.parent)])
+            self.assertEqual(result, 3)
+            self.assertFalse(work.exists())
+            self.assertEqual(output.getvalue().strip(), 'setup: ERROR: not accepted')
+
+    def test_rejected_key_is_recognised_in_ocr_text(self):
+        seen = ['The Product Key you entered is invalid.',
+                'the product key you\nentered is invalid',
+                'You cannot complete Setup without a valid Product Key.',
+                'call the Microsoft Piracy Hotline at 1-800-RU-LEGIT']
+        for text in seen:
+            with self.subTest(text=text):
+                with patch.object(setup, 'screen_text', return_value=text.lower()), \
+                     self.assertRaises(setup.KeyRejected):
+                    setup.handle_setup_dialog(None, None, {})
+        with patch.object(setup, 'screen_text', return_value='windows product key'), \
+             patch.object(setup, 'send_keys'), contextlib.redirect_stdout(io.StringIO()):
+            setup.handle_setup_dialog(None, None, {})
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -638,6 +638,14 @@ void AssistantMenu()
         [self message:"Installation cancelled."];
         messageLabel.textColor = NSColor.secondaryLabelColor;
     }
+    else if (status == 3)
+    {
+        // The key: missing, malformed or refused by Windows Setup. Setup has
+        // removed what it made; the next Install starts from the beginning.
+        [self message:"Windows Setup did not accept the product key. Check it and click Install again."];
+        keyField.stringValue = @"";
+        [keyField.window makeFirstResponder:keyField];
+    }
     else
     {
         NSString *last = [[logView.string componentsSeparatedByString:@"\n"]
