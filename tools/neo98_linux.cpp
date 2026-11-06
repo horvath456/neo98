@@ -660,25 +660,41 @@ int main(int argc, char **argv)
         User::ScreenMode(guest_width, guest_height, depth);
         GuestScreenScale::CanvasToGuest(x, y, guest_width, guest_height, width, height);
     };
-    if (const char *script = getenv("NEO98_HOST_MENU"))
-    {
-        std::string commands = script;
-        for (size_t at = 0; at < commands.size();)
-        {
-            size_t end = commands.find(';', at);
-            if (end == std::string::npos)
-                end = commands.size();
-            auto command = commands.substr(at, end - at);
-            auto split = command.find('=');
-            HostMenu::Perform(command.substr(0, split).c_str(),
-                              split == std::string::npos ? nullptr : command.substr(split + 1).c_str());
-            at = end + 1;
-        }
-        unsetenv("NEO98_HOST_MENU");
-    }
+    // NEO98_HOST_MENU="seconds:item[=argument];..." runs items of the menu
+    // as the macOS host takes them: each step waits its seconds after the
+    // previous one, and the steps not yet taken stay in the environment for
+    // the execv of a restart. A step without seconds runs at once.
+    auto menu_previous = start;
+    const auto menu_script = [&] {
+        const char *script = getenv("NEO98_HOST_MENU");
+        if (!script || !*script) return;
+        const std::string text = script;
+        const auto end = text.find(';');
+        const std::string step = text.substr(0, end), rest = end == std::string::npos ? "" : text.substr(end + 1);
+        const auto colon = step.find(':');
+        const long seconds = colon == std::string::npos ? 0 : strtol(step.c_str(), nullptr, 10);
+        if (std::chrono::steady_clock::now() - menu_previous < std::chrono::seconds(seconds)) return;
+        menu_previous = std::chrono::steady_clock::now();
+        setenv("NEO98_HOST_MENU", rest.c_str(), 1);
+        const std::string command = colon == std::string::npos ? step : step.substr(colon + 1);
+        const auto split = command.find('=');
+        HostMenu::Perform(command.substr(0, split).c_str(),
+                          split == std::string::npos ? nullptr : command.substr(split + 1).c_str());
+    };
+    // NEO98_HOST_DEADLINE=seconds ends the host after that time whatever the
+    // guest or a script does.
+    const char *deadline = getenv("NEO98_HOST_DEADLINE");
     auto next_state_menu = start;
     while (running && !interrupted && !session.Finished())
     {
+        if (deadline && *deadline &&
+            std::chrono::steady_clock::now() - start >= std::chrono::seconds(strtol(deadline, nullptr, 10)))
+        {
+            printf("NEO98 HOST deadline %s s reached\n", deadline);
+            fflush(stdout);
+            break;
+        }
+        menu_script();
         hardware.Pump(*session.app,preferences.Game().empty());
 #ifdef NEO98_WITH_HOST_MEDIA
         compositor.Dispatch();
@@ -1546,6 +1562,14 @@ int main(int argc, char **argv)
                std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count(), gpu_presentations);
     if (expired || !options.quiet)
         session.Describe();
+    // The line of the macOS host when the first program has ended.
+    if (session.app->Status() == X86::Application::Exited || session.app->Status() == X86::Application::Failed)
+    {
+        printf("NEO98 HOST %s code=%u calls=%u error=%s\n",
+               session.app->Status() == X86::Application::Exited ? "exited" : "failed", session.app->ExitCode(),
+               session.app->ApiCalls(), session.app->Error() ? session.app->Error() : "(null)");
+        fflush(stdout);
+    }
     if (!options.screenshot.empty() && !session.Screenshot(options.screenshot))
         return 1;
     if (session.app->Status() == X86::Application::Failed)
