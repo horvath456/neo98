@@ -1113,7 +1113,16 @@ class NativeCpu : public Cpu
                 // A native segment load can trap in the uninterrupted path.
                 if (SegmentInstruction() || PortInstruction() || ClockInstruction() || SystemStatusInstruction()) continue;
                 unsigned char op[2] = {};
-                if (interrupt && !Read(next, op, 2) && op[0] == 0xcd)
+                const bool fetched = !Read(next, op, 2);
+                // CLI and STI of a protected-mode application go on: the VMM
+                // of Win98 virtualizes its interrupt flag, the processor
+                // here faults on them at IOPL 0.
+                if (fetched && trap == 13 && (op[0] == 0xfa || op[0] == 0xfb))
+                {
+                    state.regs[Reg::Eip] += 1;
+                    continue;
+                }
+                if (interrupt && fetched && op[0] == 0xcd)
                 {
                     state.regs[Reg::Eip] += 2;
                     interrupt(*this, op[1], interrupt_context);
