@@ -4,6 +4,7 @@
 tools/host_media/mediacenter.c, and put NEO98's Kodi add-on service.neo98
 beside them. The host seeds the program into C: (tools/host_media/seed.h)
 and the add-on into Kodi (tools/host_media/service.h). """
+import fcntl
 import hashlib
 import shutil
 import subprocess
@@ -97,6 +98,14 @@ def build():
                               (ROOT / 'tools/build_host_devices.py').read_bytes()).hexdigest()
     out = ROOT / 'build/host-media'
     out.mkdir(parents=True, exist_ok=True)
+    # Tests run at the same time build here too; one builds, the others wait
+    # and then find its stamp.
+    with open(out / '.lock', 'w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return _build(out, env, identity)
+
+
+def _build(out, env, identity):
     stamp = out / 'stamp'
     if all((out / name).exists() for name in FILES) and stamp.exists() and stamp.read_text() == identity:
         return out
