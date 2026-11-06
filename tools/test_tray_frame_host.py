@@ -44,7 +44,12 @@ def main():
     if '--no-build' not in sys.argv:
         binary = build_host()
     checks = {}
-    for name, extra, screen in (('800x600', [], None), ('1470x827', ['--seamless', '--seamless-taskbar'], '1470x827')):
+    cases = [('800x600', [], None), ('1470x827', ['--seamless', '--seamless-taskbar'], '1470x827')]
+    # The second case is the seamless view of the macOS host on a screen of
+    # NEO98_HOST_SCREEN; the Linux host shows seamless windows in X11.
+    if sys.platform != 'darwin':
+        cases = cases[:1]
+    for name, extra, screen in cases:
         drive_c, shot = out / f'drive-c-{name}', out / f'{name}.ppm'
         shutil.rmtree(drive_c, ignore_errors=True)
         shot.unlink(missing_ok=True)
