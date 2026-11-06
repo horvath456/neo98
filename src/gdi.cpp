@@ -199,9 +199,11 @@ struct Object {
     int dimension_x = 0, dimension_y = 0;
 };
 struct ObjectPage {Object entries[64];};
+// The pages live as long as the process. Freed by a destructor at exit,
+// they took the last pointers to the contexts and palettes in them, which
+// a leak checker then reports.
 struct ObjectStore {
     ObjectPage *pages[(MaxIndexMask+63)/64]{};
-    ~ObjectStore(){for(auto *page:pages)delete page;}
     Object &operator[](unsigned i){return pages[i/64]->entries[i%64];}
     bool Grow(){
         if(Capacity==IndexMask)return false;
