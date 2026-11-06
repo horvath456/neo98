@@ -420,6 +420,10 @@ int main(int argc, char **argv)
     // A person sits in front of this host: an unhandled exception shows the
     // error box of Win98 and ends only its process.
     X86::Application::SetFaultBox(true);
+    // Every program the box ended leaves a report, as on macOS.
+    X86::Application::SetCrashHook(&session, [](void *context, X86::Application &process, const char *reason) {
+        static_cast<LinuxHost::Session *>(context)->Report(reason, process);
+    });
     LinuxHost::native_input = [&](const std::string &action,const std::string &value) { return seamless.Input(action,value); };
     User::ShowPointer(true);
     const bool german = !(getenv("NEO98_KEYMAP") && !strcmp(getenv("NEO98_KEYMAP"), "US"));
@@ -1601,11 +1605,9 @@ int main(int argc, char **argv)
     }
     if (!options.screenshot.empty() && !session.Screenshot(options.screenshot))
         return 1;
+    // The report of a stop was written when it happened (the crash hook).
     if (session.app->Status() == X86::Application::Failed)
-    {
         fprintf(stderr, "%s\n", session.app->Error());
-        session.Report("guest-failed");
-    }
     if (reboot)
     {
         std::vector<std::string> arguments;

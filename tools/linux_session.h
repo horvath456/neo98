@@ -362,11 +362,13 @@ class Session
         bool okay = CrashReport::WritePng(sink, pixels, width, height);
         fclose(file); return okay;
     }
-    void Report(const char *reason)
+    void Report(const char *reason) { Report(reason, *app); }
+    // The report of one process: the root, or a child the fault box ended.
+    void Report(const char *reason, X86::Application &process)
     {
         auto report = std::make_unique<CrashReport::Report>();
         CrashFiles::Describe(*report, reason, "linux-x64-native", argc, argv);
-        app->CollectCrashReport(*report); int width, height; User::PixelsSize(width, height); char path[1024];
+        process.CollectCrashReport(*report); int width, height; User::PixelsSize(width, height); char path[1024];
         CrashFiles::Write(*report, options.reports.c_str(), User::Pixels(), width, height, path, sizeof path);
     }
 };
