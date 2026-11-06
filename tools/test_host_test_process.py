@@ -39,7 +39,9 @@ while True: time.sleep(1)
         while time.monotonic() < until:
             try:
                 os.killpg(group, 0)
-            except ProcessLookupError:
+            except (ProcessLookupError, PermissionError):
+                # macOS answers EPERM for a group whose processes have exited
+                # but are not reaped yet, as stop_group expects too.
                 return
             time.sleep(0.01)
         self.fail('the test process group is still present')
