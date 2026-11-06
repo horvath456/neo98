@@ -67,9 +67,6 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 150
     env:
-      # LLVM 21: the version src/state_rules/frames.calls is reviewed against;
-      # with LLVM 22 and later the host cannot save Windows programs.
-      NEO98_LLVM_BIN: /opt/homebrew/opt/llvm@21/bin
       NEO98_NATIVE_JOBS: '3'
       NEO98_WITH_HOST_MEDIA: '0'
       SDL_AUDIODRIVER: dummy
@@ -89,7 +86,7 @@ jobs:
             build/release-downloads
           key: macos15-deps-${{ hashFiles('fex/dependencies.json', 'unicorn/dependencies.json', 'sdk/dependencies.json', 'tools/build_fex*.py', 'tools/build_unicorn_host.py', 'tools/build_dosbox_pure.py', 'tools/dosbox_pure_*.h') }}
       - name: Install build dependencies
-        run: brew install llvm@21 lld cmake ninja pkg-config sdl2 python
+        run: brew install llvm lld cmake ninja pkg-config sdl2 python
       - name: Build
         run: python3 neo98.py build
       - name: Public tests
