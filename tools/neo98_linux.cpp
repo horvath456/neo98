@@ -1204,7 +1204,7 @@ int main(int argc, char **argv)
                     session.RefreshDos(&roots);
                 }
                 else
-                    LinuxGtk::Notice("Laufwerk D:", "Could not mount the folder.");
+                    LinuxGtk::Notice("Drive D:", "Could not mount the folder.");
             }
             else if (request.action == Action::InsertCdrom)
             {
