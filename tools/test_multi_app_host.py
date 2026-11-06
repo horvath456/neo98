@@ -29,6 +29,11 @@ handover Two DirectDraw programs in a window; the one that asked for the
 Results in build/multi-app-host/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the seamless overlay of the macOS host on a screen of NEO98_HOST_SCREEN; the Linux host shows seamless windows in X11')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os

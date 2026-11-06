@@ -5,6 +5,11 @@
 Run one case under serial.py. The source drive is read only; the host gets a
 private APFS clone. --native tests AppKit input and briefly opens guest windows.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the seamless overlay of the macOS host, its AppKit input and APFS clones; the Linux host shows seamless windows in X11')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 import json
 import os

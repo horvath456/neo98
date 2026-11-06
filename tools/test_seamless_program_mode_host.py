@@ -27,6 +27,11 @@ back, and the mask is transparent outside the windows that are left.
 Results in build/seamless-program-mode-host/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the seamless overlay of the macOS host, its masks and Mac windows (mask=, windows=); the Linux host shows seamless windows in X11')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os
