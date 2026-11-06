@@ -2,6 +2,9 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+// libstdc++ wraps <stdlib.h> with using std::malloc: take it before the
+// allocator is renamed below.
+#include <stdlib.h>
 #include <cstring>
 #include <vector>
 #define private public
