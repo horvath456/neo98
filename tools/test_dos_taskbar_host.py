@@ -17,6 +17,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
 import first_logon
+import win98_c
 from win98_folder import journal_record
 
 
@@ -63,7 +64,7 @@ def main():
     try:
         with (out / 'host.log').open('w') as log:
             code = subprocess.run([str(args.host.resolve()), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
-                '--system-tree', str(ROOT / 'build/win98-c.setup'), '--drive-c', str(drive),
+                '--system-tree', str(win98_c.use_pristine()), '--drive-c', str(drive),
                 '--registry', str(registry), '--desktop', '800x600', '--exe', r'C:\WINDOWS\EXPLORER.EXE',
                 '--quiet', '--crash-report-dir', str(out / 'reports')], cwd=ROOT, env=env,
                 stdout=log, stderr=subprocess.STDOUT, timeout=90).returncode
