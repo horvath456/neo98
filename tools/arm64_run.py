@@ -18,6 +18,7 @@ alone, for a person to look at.
 import contextlib
 import os
 import subprocess
+import sys
 import time
 
 
@@ -26,7 +27,13 @@ class Stuck(RuntimeError):
 
 
 def ensure_idle():
-    """Also refuse hosts started outside the shared worktree test lock."""
+    """Also refuse hosts started outside the shared worktree test lock.
+
+    Only on macOS, where a host may hold a virtual processor of
+    Hypervisor.framework. A Linux host holds none, and the hosts of tests
+    that run side by side each lock their own drive C:."""
+    if sys.platform != 'darwin':
+        return
     active = subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True, text=True)
     if active.returncode == 0:
         raise RuntimeError('STOP: another neo98-host is active: ' + active.stdout.strip())

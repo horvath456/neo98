@@ -10,7 +10,9 @@ import arm64_run
 
 class ProcessSafety(unittest.TestCase):
     def test_existing_host_is_not_started_or_signalled(self):
-        with patch.object(arm64_run.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '123\n', '')), \
+        # The check guards the virtual processors of macOS.
+        with patch.object(arm64_run.sys, 'platform', 'darwin'), \
+             patch.object(arm64_run.subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, '123\n', '')), \
              patch.object(arm64_run.subprocess, 'Popen') as spawn:
             with self.assertRaisesRegex(RuntimeError, 'another neo98-host is active: 123'):
                 arm64_run.run(['unused'], 1)
