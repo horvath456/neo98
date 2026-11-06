@@ -34,6 +34,11 @@ fresh C: from setup's state with a registry file of its own:
 Results in build/seamless-host/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the seamless overlay of the macOS host, its Mac pointer and masks; the Linux host shows seamless windows in X11')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os

@@ -23,6 +23,11 @@ pointer with it, and the hand never leaves the window. The host, headless
 Results in build/mouse-hold-host/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print("SKIP: the hold of the Mac pointer and its release on Ctrl+Option are the macOS host's")  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os
