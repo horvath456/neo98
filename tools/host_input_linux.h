@@ -346,11 +346,14 @@ class Script
                     { process->trace_calls = step.x != 0; process->trace_from = 0; }
                 Say("NEO98 HOST input trace=%d\n", step.x);
             }
-            else if (step.action == "down" || step.action == "up" || (step.action == "move" && held))
+            else if (step.action == "down" || step.action == "up" || step.action == "press" || step.action == "release" ||
+                     (step.action == "move" && held))
             {
                 // down= and up= split a click over time, as a hand does; a
-                // move= between them keeps the button held.
-                if (step.action != "move") held = step.action == "down" ? 1 : 0;
+                // move= between them keeps the button held. press= and
+                // release= are the left button of the host's mouse, which
+                // the Linux host hands to the guest the same way.
+                if (step.action != "move") held = step.action == "down" || step.action == "press" ? 1 : 0;
                 app.MouseButtons(step.x, step.y, held);
                 Say("NEO98 HOST input %s %d,%d\n", step.action.c_str(), step.x, step.y);
             }
