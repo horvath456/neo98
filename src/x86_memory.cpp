@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "win98_memory_status.h"
+#include "linux_shared_memory.h"
 #if defined(__APPLE__)
 #include <sys/sysctl.h>
 #include <mach/mach.h>
@@ -52,7 +53,23 @@ bool Application::EnsureSystemVmMemory()
     if (system_vm_memory) return true;
     // One backing for flat windows, Win16 selectors and DOS allocations.
     // 64-KiB alignment also satisfies FEX's larger host-page mapping.
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__linux__) && defined(__x86_64__)
+    // The native engine maps a memfd into the guest; other host memory it
+    // copies in and out at every guest entry, a megabyte twice per API call.
+    if (ProcessCpuBackend() == CpuBackend::Native)
+    {
+        system_vm_storage = static_cast<unsigned char *>(LinuxSharedMemory::Allocate(0x110000));
+        if (!system_vm_storage) return false;
+        system_vm_shared = true;
+    }
+    else
+    {
+        void *storage = nullptr;
+        if (posix_memalign(&storage, 0x10000, 0x110000)) return false;
+        system_vm_storage = static_cast<unsigned char *>(storage);
+    }
+    system_vm_memory = system_vm_storage;
+#elif defined(__APPLE__) || defined(__linux__)
     void *storage = nullptr;
     if (posix_memalign(&storage, 0x10000, 0x110000)) return false;
     system_vm_storage = static_cast<unsigned char *>(storage);

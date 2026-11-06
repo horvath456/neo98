@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Native Windows ABI adapter. New infrastructure, with native USER behavior.
 #include "x86_app.h"
+#include "linux_shared_memory.h"
 #include "pc_vga.h"
 #include "arm64_cpu.h"
 #include "arm64_machine.h"
@@ -2257,7 +2258,10 @@ Application::~Application()
     // among it must not keep its bits in this process.
     Gdi::DetachDibLeases(this);
     delete cpu;
-#if defined(__APPLE__) || defined(__linux__)
+#if defined(__linux__) && defined(__x86_64__)
+    if (system_vm_shared) LinuxSharedMemory::Free(system_vm_storage);
+    else free(system_vm_storage);
+#elif defined(__APPLE__) || defined(__linux__)
     free(system_vm_storage);
 #else
     delete[] system_vm_storage;
@@ -4474,7 +4478,10 @@ bool Application::Step()
     // and WINVER's dialog procedure is exactly that. The stop address moves
     // out of the way for those processes instead.
     const bool segmented = Win16Code();
-    const unsigned instructions = Win16InstructionSlice() ? 50000 : 0;
+    // The quota ends a busy 16-bit task's slice. The native engine counts
+    // instructions only by trapping on each one, so it ends the slice with its
+    // interval timer instead (AddSliceHook).
+    const unsigned instructions = Win16InstructionSlice() && cpu->Backend() != CpuBackend::Native ? 50000 : 0;
     if (!eip && !segmented)
     {
         char message[128];

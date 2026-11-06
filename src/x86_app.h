@@ -2492,6 +2492,7 @@ private:
     // Canonical system-VM bytes; flat windows and Win16 selectors share them.
     bool EnsureSystemVmMemory();
     unsigned char *system_vm_storage = nullptr, *system_vm_memory = nullptr;
+    bool system_vm_shared = false;  // system_vm_storage is a LinuxSharedMemory block
     bool Win16ResourceCall(unsigned ordinal, const Win16Frame &, unsigned &result, unsigned &words);
     bool Win16RegistryCall(unsigned ordinal, const Win16Frame &, unsigned &result, unsigned &words);
     unsigned Win16LoadLibrary(const char *path, const unsigned char *bytes, unsigned length,
