@@ -88,7 +88,13 @@ def main():
     if 'fast' in results:
         fast = results['fast']
         # At least the quiet section, six thousand calls nobody else wants.
-        if int(fast['guest']) < 6000:
+        # The native CPU of Linux x64 runs the guest bodies without a host
+        # entry and so without a count: there the host sees next to none of
+        # the calls the run without fast gates makes.
+        if native_app.native_x64():
+            if 'slow' in results and int(fast['fast']) + int(fast['slow']) * 100 > int(results['slow']['slow']):
+                problems.append(f"the host answered {fast['slow']} calls of the fast run")
+        elif int(fast['guest']) < 6000:
             problems.append('the guest code answered only ' + fast['guest'] + ' calls')
         # The slice ended inside the section, so threads waited and were woken.
         if int(fast['enter_host']) < 2 or int(fast['leave_host']) < 2:
@@ -98,7 +104,7 @@ def main():
     # The same work on both ways: every call the guest code answered is one the
     # other run made through the host, and a call that went on from the guest
     # code to the host is counted once.
-    if len(results) == 2:
+    if len(results) == 2 and not native_app.native_x64():
         fast, slow = results['fast'], results['slow']
         # The main thread of the second phase makes as many rounds as it gets
         # slices, two calls each; everything else is the same count.
@@ -110,7 +116,9 @@ def main():
         print('\n'.join('FAIL ' + p for p in problems))
         raise SystemExit(1)
     fast = results['fast']
-    summary = (f"CRITICAL {THREADS * ROUNDS} rounds on both ways, {fast['guest']} calls in guest code, "
+    in_guest = (f"{int(fast['fast']) + int(fast['slow'])} host entries in the fast run" if native_app.native_x64()
+                else f"{fast['guest']} calls in guest code")
+    summary = (f"CRITICAL {THREADS * ROUNDS} rounds on both ways, {in_guest}, "
                f"{fast['enter_host']} entries waited, {fast['leave_host']} leaves through the host")
     print(summary)
     (OUT / 'results.json').write_text(json.dumps({
