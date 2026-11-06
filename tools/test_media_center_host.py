@@ -413,6 +413,10 @@ def main():
                   'folder plugin://plugin.video.netflix/ state=2 entries=0 The Netflix add-on is not installed in Kodi.' in text)
             check('nonetflix: and no picture shows', (run / 'missing.png').exists() and red(run / 'missing.png') == 0)
         elif part == 'screen':
+            # The handoff is watched in a real X11 session of the host.
+            if not os.environ.get('DISPLAY'):
+                print('SKIP screen: needs an X11 display, and DISPLAY is not set', flush=True)
+                continue
             screen(out, check)
         elif part == 'window':
             steps = [wait, f'3:dblclick={COLUMNS[0]},{ROW}', f'5:dblclick={COLUMNS[1]},{ROW}', f'7:dblclick={COLUMNS[0]},{ROW}',
