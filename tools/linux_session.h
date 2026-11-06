@@ -224,7 +224,13 @@ class Session
         verbose = !options.quiet;
         auto tree = SystemTreeHost::Scan(argc, argv);
         const auto drives = HostVolume::Scan(argc, argv);
-        const char *root = tree.root ? tree.root : drives.drive_c ? drives.drive_c : HostVolume::DefaultDriveC();
+        // --system-tree without a folder is the Win98 folder of setup (or of
+        // NEO98_WIN98_ROOT), as on macOS: a --drive-c beside it is the write
+        // layer above that folder.
+        bool tree_named = false;
+        for (int i = 1; i < argc; ++i) tree_named |= !strcmp(argv[i], "--system-tree");
+        const char *root = tree.root ? tree.root : tree_named ? SystemTreeHost::DefaultRoot()
+                         : drives.drive_c ? drives.drive_c : HostVolume::DefaultDriveC();
         if (!drives.ram)
         {
             const char *drive = drives.drive_c ? drives.drive_c : root;
