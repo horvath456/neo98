@@ -29,6 +29,11 @@ logs live under build/mac-app; nothing outside the checkout is touched.
 Results in build/mac-app/results.json. docs/BUILDING.md.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the Mac app bundle, its sandbox and hdiutil exist on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import plistlib

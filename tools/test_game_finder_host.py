@@ -44,6 +44,11 @@ game-machine-answers (tools/host_game_menu.h).
 Results in build/game-finder/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: game machines from the Finder and the Mac app bundle exist on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os
