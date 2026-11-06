@@ -303,6 +303,15 @@ class Script
                 app.DumpListBoxes([](const char *line) { printf("NEO98 HOST %s\n", line); });
                 fflush(stdout);
             }
+            else if (step.action == "windows")
+            {
+                // windows=1: the work area of the guest, and the windows of
+                // the seamless view of the macOS host, which this host shows
+                // in X11 instead and lists none of here.
+                if (Gdi::RECT work{}; User::WorkArea(&work))
+                    Say("NEO98 HOST seamless work=%d,%d,%d,%d\n", work.left, work.top, work.right, work.bottom);
+                Say("NEO98 HOST seamless items 0 mode=off native=0\n");
+            }
             else if (step.action == "redraw")
                 Say("NEO98 HOST redraw %d\n", User::RedrawWindow(User::GetDesktopWindow(), nullptr, 0, 0x485) ? 1 : 0);
             else if (step.action == "guestopen") X86::Application::RequestOpen(step.value.c_str());
