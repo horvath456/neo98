@@ -10,6 +10,12 @@ the word behind the far pointer of the buffer; read from the pointer itself
     build/analysis-venv/bin/python tools/test_win16_clipboard_name_host.py [--no-build]
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['nasm'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 
 import os
 import shutil
