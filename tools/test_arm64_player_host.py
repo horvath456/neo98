@@ -22,6 +22,11 @@ The test is skipped when ffmpeg is not installed.
 Results in build/arm64-player-host/results.json. docs/ARM64-APPS.md.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: runs ARM64 Windows programs, which this build supports on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os

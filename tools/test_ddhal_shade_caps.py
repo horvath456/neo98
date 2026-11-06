@@ -6,6 +6,9 @@ if __name__ == '__main__':
     if _sys.platform != 'darwin':
         print('SKIP: builds with the Homebrew MinGW sysroot of macOS')  # macOS only; skipped elsewhere
         _sys.exit(77)
+    if not __import__('os').path.isdir('/opt/homebrew/opt/mingw-w64/toolchain-i686'):
+        print('SKIP: needs mingw-w64 (brew install mingw-w64); docs/BUILDING.md')
+        _sys.exit(77)
 import os
 from pathlib import Path
 import subprocess

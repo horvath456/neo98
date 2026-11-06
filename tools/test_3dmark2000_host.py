@@ -26,7 +26,8 @@ def main():
     p.add_argument('--close-only',action='store_true')
     args=p.parse_args()
     relative=Path('Program Files/MadOnion.com/3DMark2000')
-    assert (args.source_drive/relative/'3DMark2000.exe').is_file()
+    if not (args.source_drive/relative/'3DMark2000.exe').is_file():
+        raise SystemExit(f'No Windows 98 installation at {args.source_drive} with 3DMark 2000 installed')
     out=ROOT/('build/3dmark2000-close' if args.close_only else 'build/3dmark2000-host');out.mkdir(exist_ok=True)
     drive,reg=first_logon.clone(out/'session')
     target=drive/relative;target.parent.mkdir(parents=True,exist_ok=True)

@@ -13,6 +13,11 @@ replaces itself. Run it alone and deliberately; it is not part of any suite.
     build/analysis-venv/bin/python tools/test_arm64_restart_host.py [--no-build]
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: runs ARM64 Windows programs, which this build supports on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import os
 import shutil

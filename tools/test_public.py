@@ -101,6 +101,11 @@ def run(python, script, objects, out_root, timeout, no_windows):
     started = time.monotonic()
     command = [str(python), str(script), *arguments_for(script, objects, out_root)]
     text = script.read_text()
+    if objects == WINDOWS_DATA and compiles_runtime(text):
+        # It compiles src/ itself, whose headers generated from Windows are
+        # absent: that build fails, after minutes with the sanitizers.
+        return {'test': script.name, 'status': 'NEEDS-WIN98', 'exit_code': None, 'seconds': 0.0,
+                'reason': objects, 'log': ''}
     if isinstance(objects, str) and ("'--objects'" in text or '"--objects"' in text):
         status = 'NEEDS-WIN98' if objects == WINDOWS_DATA else 'FAIL'
         return {'test': script.name, 'status': status, 'exit_code': None, 'seconds': 0.0,
@@ -149,7 +154,8 @@ def run(python, script, objects, out_root, timeout, no_windows):
         # 77: the test skipped itself; the other needs the generators that
         # stay in the private repository (neo98.generated_assets).
         status = 'SKIP'
-    elif NEEDS_WINDOWS.search(output) or script.name in NEEDS_FOLDER or str(no_windows) in output:
+    elif (NEEDS_WINDOWS.search(output) or script.name in NEEDS_FOLDER or str(no_windows) in output or
+          (not (ROOT / 'build/win98-c').exists() and str(ROOT / 'build/win98-c') in output)):
         status = 'NEEDS-WIN98'
     elif objects == WINDOWS_DATA and compiles_runtime(text) and compiler_failed(output):
         # The test compiles the runtime sources itself; their headers

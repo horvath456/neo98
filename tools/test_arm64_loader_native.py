@@ -4,6 +4,11 @@
 """The PE loader with a PE32+ image for ARM64 built by the SDK, and the
 existing PE32 loader test, so the i386 path is seen to be unchanged.
 docs/ARM64-APPS.md."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: runs ARM64 Windows programs, which this build supports on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import shutil
 import subprocess
 import sys

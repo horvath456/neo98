@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """Check native PE32 terminal input, output, exit code and runtime dependencies."""
+if __name__ == '__main__':
+    import sys as _sys
+    if not _sys.platform.startswith('linux'):
+        print('SKIP: tests the Linux command-line host')  # Linux only; skipped elsewhere
+        _sys.exit(77)
 from pathlib import Path
 import json
 import subprocess

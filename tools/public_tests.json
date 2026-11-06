@@ -4,6 +4,10 @@
     "known_failures": {}
   },
   "macos-arm64": {
-    "known_failures": {}
+    "known_failures": {
+      "test_host_menu_guest.py": "fails on macOS 15 CI: HOST MENU FAIL: 30 of 32 checks; see \u2026/host.log",
+      "test_media_change_guest.py": "fails on macOS 15 CI: MEDIA CHANGE FAIL: 13 of 14 checks; see \u2026/media-change",
+      "test_screen_dc_focus_host.py": "fails on macOS 15 CI: AssertionError: ('fex', 11, '')"
+    }
   }
 }

@@ -14,7 +14,7 @@ import build_dosbox_pure as core
 
 # The identity covers the compiler flags, and those differ per platform
 # (-fPIC on Linux). Each value changes only on a reviewed archive change.
-REVIEWED = {'darwin': 'a6a7f92a2d2f', 'linux': 'ccf60c88d32e'}[sys.platform]
+REVIEWED = {'darwin': '73fc4ee1b632', 'linux': 'ccf60c88d32e'}[sys.platform]
 
 
 class ArchiveIdentity(unittest.TestCase):

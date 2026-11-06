@@ -16,6 +16,11 @@ another NEO98 host runs.
     build/analysis-venv/bin/python tools/test_pause_arm64_host.py [--no-build]
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: runs ARM64 Windows programs, which this build supports on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os

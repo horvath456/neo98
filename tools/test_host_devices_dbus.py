@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Exercise Linux host-device actions against private NetworkManager and UDisks services."""
+if __name__ == '__main__':
+    import sys as _sys
+    if not _sys.platform.startswith('linux'):
+        print('SKIP: tests the D-Bus services of Linux')  # Linux only; skipped elsewhere
+        _sys.exit(77)
 import json
 import os
 from pathlib import Path
