@@ -317,6 +317,17 @@ GAME_SERVICE = {
 }
 
 
+def release_version():
+    """The newest release tag reachable from HEAD (v0.2.0 gives 0.2.0); 0.0
+    for a checkout without tags."""
+    try:
+        tag = subprocess.check_output(['git', 'describe', '--tags', '--abbrev=0', '--match', 'v[0-9]*'],
+                                      cwd=ROOT, text=True, stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return '0.0'
+    return tag[1:]
+
+
 def info_plist(version, revision):
     return {
         'CFBundleName': 'Neo98', 'CFBundleDisplayName': 'Neo98', 'CFBundleIdentifier': IDENTIFIER,
@@ -361,7 +372,7 @@ def revision():
     try:
         return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], cwd=ROOT, text=True).strip()
     except (OSError, subprocess.CalledProcessError):
-        return 'unbekannt'
+        return 'unknown'
 
 
 def signing_identity():
@@ -436,7 +447,7 @@ def build_app(build=True, target=APP):
                  if with_host_media() else ()):
         (shutil.copytree if name == 'service.neo98' else shutil.copy2)(ROOT / 'build/host-media' / name, resources / name)
     with (contents / 'Info.plist').open('wb') as output:
-        plistlib.dump(info_plist('0.1', commit), output)
+        plistlib.dump(info_plist(release_version(), commit), output)
     (contents / 'PkgInfo').write_bytes(b'APPL????')
     for library in sorted(frameworks.iterdir()):
         subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, str(library)], check=True, capture_output=True)

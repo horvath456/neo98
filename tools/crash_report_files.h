@@ -57,7 +57,7 @@ inline const char *BuildFlags()
 #ifdef NEO98_BUILD_FLAGS
     return NEO98_BUILD_FLAGS;
 #else
-    return "unbekannt";
+    return "unknown";
 #endif
 }
 
@@ -65,7 +65,7 @@ inline const char *BuildFlags()
 inline void Describe(CrashReport::Report &report, const char *reason, const char *host,
                      int argc, char **argv)
 {
-    snprintf(report.reason, sizeof report.reason, "%s", reason ? reason : "unbekannt");
+    snprintf(report.reason, sizeof report.reason, "%s", reason ? reason : "unknown");
     snprintf(report.host, sizeof report.host, "%s", host ? host : "neo98");
     snprintf(report.revision, sizeof report.revision, "%s", Revision());
     snprintf(report.build, sizeof report.build, "%s", BuildFlags());

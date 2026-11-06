@@ -118,7 +118,7 @@ inline bool Parse(int argc, char **argv, Options &out)
             else return false;
             ++positional;
         }
-        else { fprintf(stderr, "Unbekannte Option: %s\n", option.c_str()); return false; }
+        else { fprintf(stderr, "Unknown option: %s\n", option.c_str()); return false; }
     }
     return true;
 }

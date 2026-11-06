@@ -634,7 +634,7 @@ def top_crash_sites(rows):
     for row in rows:
         if row['class'] not in ('crash', 'timeout'):
             continue
-        where = row.get('where') or row.get('detail') or 'unbekannt'
+        where = row.get('where') or row.get('detail') or 'unknown'
         counts.setdefault(where, set()).add(row['id'])
     return sorted(((where, sorted(ids)) for where, ids in counts.items()),
                   key=lambda item: (-len(item[1]), item[0]))

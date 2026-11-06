@@ -128,7 +128,7 @@ class Script
                 app.MouseButtons(x2, y2, 0);
             }
         }
-        else fprintf(stderr, "Unbekannte Testeingabe: %s\n", step.action.c_str());
+        else fprintf(stderr, "Unknown test input: %s\n", step.action.c_str());
         fprintf(stderr, "NEO98 KMS input %s=%s\n", step.action.c_str(), step.value.c_str());
         ++at;
         return true;

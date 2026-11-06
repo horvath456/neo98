@@ -148,7 +148,7 @@ def stamp_flags(flags):
                                    stderr=subprocess.DEVNULL).strip():
             revision += '+local changes'
     except Exception:
-        revision = 'unbekannt'
+        revision = 'unknown'
     return [f'-DNEO98_REVISION="{revision}"', '-DNEO98_BUILD_FLAGS="' + ' '.join(flags) + '"']
 
 
