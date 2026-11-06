@@ -25,6 +25,12 @@ this test checks the rest, over a clone of setup's C: without a window:
     build/analysis-venv/bin/python tools/test_machine_names_host.py [--no-build]
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['nasm'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 
 import re
 import shutil
