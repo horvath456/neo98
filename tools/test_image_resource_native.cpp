@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
+// libstdc++ wraps <stdlib.h> with using std::malloc: take it before the
+// allocator is renamed below.
+#include <stdlib.h>
 #include <vector>
 #include <new>
 #define private public

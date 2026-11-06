@@ -4,6 +4,9 @@
 #include <set>
 #include <vector>
 #include <cstdlib>
+// libstdc++ wraps <stdlib.h> with using std::malloc: take it before the
+// allocator is renamed below.
+#include <stdlib.h>
 static unsigned menu_fail_at=0,menu_alloc_calls=0;
 static void*MenuTestMalloc(size_t size){if(++menu_alloc_calls==menu_fail_at)return nullptr;return std::malloc(size);}
 #define private public

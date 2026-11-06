@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include <cstdlib>
+// libstdc++ wraps <stdlib.h> with using std::malloc: take it before the
+// allocator is renamed below.
+#include <stdlib.h>
 #include <cstdio>
 #include <cstring>
 #include <new>
