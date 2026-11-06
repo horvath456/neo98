@@ -190,13 +190,14 @@ def compile_objects(root, sources_paths, flags, env, cache_dir):
                     dependencies = {str(path): _hash(path) for path in sorted(paths)}
                     # Headers first discovered by -MD may have changed during the
                     # compile. Retry once; never associate that object with newer bytes.
-                    unstable = any(max(path.stat().st_mtime_ns, path.stat().st_ctime_ns,
-                                       path.lstat().st_mtime_ns, path.lstat().st_ctime_ns) >= started
-                                   for path in paths)
+                    unstable = [path for path in paths
+                                if max(path.stat().st_mtime_ns, path.stat().st_ctime_ns,
+                                       path.lstat().st_mtime_ns, path.lstat().st_ctime_ns) >= started]
                     if not unstable:
                         break
                     if attempt:
-                        raise RuntimeError("Dependencies changed during compilation: " + str(source))
+                        raise RuntimeError("Dependencies changed during compilation: " + str(source) +
+                                           " (" + ", ".join(sorted(map(str, unstable))[:4]) + ")")
                 object_hash = _hash(obj)
                 artifact = cache / "objects" / (object_hash + ".o")
                 # The manifest is the commit record. A failed compiler never
