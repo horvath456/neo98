@@ -18,8 +18,10 @@ tool makes sure it was taken for every function that can have such a frame:
               says why the thread never stays
 
 The list is src/state_rules/frames.calls, one function a line with its
-reason behind `#`. The debug information of the objects says who calls whom
-(DW_TAG_call_site, with the functions the compiler inlined). The build stops
+reason behind `#`. The call instructions of the linked program say who calls
+whom, with the inline stack of each call from the debug information; the
+debug information of the objects adds the functions the compiler inlined.
+The build stops
 
   * for a function that calls Step, one of the loops, or
     Application::Suspend and is not on the list (a new callback or a new
@@ -41,6 +43,7 @@ import json
 import os
 import pickle
 import re
+import shutil
 import subprocess
 import sys
 from collections import Counter, defaultdict
@@ -98,12 +101,10 @@ def calls_of(obj):
             continue
         attribute, name = match.groups()
         if current[1] == 'DW_TAG_call_site':
-            if sys.platform.startswith('linux'):
-                # ELF calls are attributed using the instruction's inline
-                # stack below, rather than the enclosing machine function.
-                continue
-            if attribute != 'DW_AT_call_origin':
-                continue
+            # Calls come from the instructions (instruction_calls): the
+            # compiler leaves out call-site entries, and which ones it
+            # leaves out changes between its versions.
+            continue
         elif attribute == 'DW_AT_name':
             if current[2] is None:
                 current[2] = name
@@ -196,11 +197,9 @@ def graph(binary):
     pairs = Counter()
     for part in parts:
         pairs.update(part)
-    if sys.platform.startswith('linux'):
-        # LLVM 18 omits call-site DIEs for some external member functions.
-        # Read the emitted instructions too; the linked image gives every
-        # COMDAT section an unambiguous address for the inline stack lookup.
-        pairs |= elf_calls(binary, objects.values())
+    # The emitted instructions; the linked image gives every function one
+    # address for the inline stack lookup.
+    pairs |= instruction_calls(binary, objects.values())
     names = plain({name for pair in pairs for name in pair})
     callers = defaultdict(set)
     sites = Counter()
@@ -211,47 +210,79 @@ def graph(binary):
     return callers, sites
 
 
-def elf_calls(binary, objects):
+# A direct call or jump to the start of a function: x86-64 and arm64.
+BRANCH = re.compile(r'^\s*([0-9a-f]+):\s+(?:(?:callq?|jmpq?|bl|b|b\.\w+)\s+|cbn?z\s+\w+,\s*|tbn?z\s+\w+,\s*#\w+,\s*)'
+                    r'(?:0x)?[0-9a-f]+ <([^>]+)>')
+
+
+def instruction_calls(binary, objects):
+    """Counts of (caller, callee) sites read from the call and jump
+    instructions of the linked program. The caller is the innermost function
+    at the instruction, inlined ones included."""
     CACHE.mkdir(parents=True, exist_ok=True)
     objects = sorted(set(objects))
     digest = hashlib.sha256(binary.read_bytes())
     digest.update(Path(__file__).read_bytes())
     digest.update('\n'.join(str(obj) for obj in objects).encode())
-    cached = CACHE / ('elf-' + digest.hexdigest() + '.pickle')
+    cached = CACHE / ('calls-' + digest.hexdigest() + '.pickle')
     if cached.exists():
         return pickle.loads(cached.read_bytes())
+    tools = Path(state_layout.DWARFDUMP).parent
+
+    def tool(name):
+        return str(tools / name) if (tools / name).exists() else name
+
+    macho = binary.read_bytes()[:4] in (b'\xcf\xfa\xed\xfe', b'\xca\xfe\xba\xbe')
+    # Mach-O symbols carry a leading underscore the debug information has not.
+    symbol = (lambda name: name[1:] if name.startswith('_') else name) if macho else (lambda name: name)
+    nm = tool('llvm-nm') if macho else 'nm'
     symbols = set()
     for obj in objects:
-        for line in subprocess.check_output(['nm', '--defined-only', str(obj)], text=True).splitlines():
+        for line in subprocess.check_output([nm, '--defined-only', str(obj)], text=True).splitlines():
             row = line.split()
-            if len(row) == 3 and row[1] in 'tTwW':
-                symbols.add(row[2])
-    process = subprocess.Popen(['objdump', '-d', '--no-show-raw-insn', str(binary)],
-                               stdout=subprocess.PIPE, text=True)
+            # ltmp marks the start of a section in a Mach-O object.
+            if len(row) == 3 and row[1] in 'tTwW' and not re.match(r'ltmp\d+$', row[2]):
+                symbols.add(symbol(row[2]))
+    objdump = tool('llvm-objdump') if macho else 'objdump'
+    process = subprocess.Popen([objdump, '-d', '--no-show-raw-insn', str(binary)],
+                               stdout=subprocess.PIPE, text=True, errors='replace')
     calls = []
     caller = None
     for line in process.stdout:
         match = re.match(r'^([0-9a-f]+) <([^>]+)>:$', line)
         if match:
-            caller = match[2]
+            caller = symbol(match[2])
         elif caller in symbols:
-            match = re.match(r'^\s*([0-9a-f]+):\s+(?:callq?|jmpq?)\s+[0-9a-f]+ <([^>]+)>', line)
+            match = BRANCH.match(line)
             if match and '+' not in match[2] and '@' not in match[2]:
-                calls.append((int(match[1], 16), match[2]))
+                calls.append((int(match[1], 16), symbol(match[2])))
     if process.wait():
-        raise SystemExit('state frames: ELF instruction reader failed')
-    symbolizer = str(Path(state_layout.DWARFDUMP).with_name('llvm-symbolizer'))
-    output = subprocess.check_output([symbolizer, '--no-debuginfod', '--obj=' + str(binary), '--no-demangle',
-                                      '--inlines', '--output-style=JSON'],
-                                     input=''.join(f'0x{pc:x}\n' for pc, _ in calls), text=True)
+        raise SystemExit('state frames: instruction reader failed')
+    symbolize = [tool('llvm-symbolizer'), '--no-debuginfod', '--obj=' + str(binary), '--no-demangle',
+                 '--inlines', '--output-style=JSON']
+    if macho:
+        # The program keeps only a map of its objects; a dSYM bundle gathers
+        # their debug information at the linked addresses.
+        bundle = CACHE / ('calls-' + digest.hexdigest() + '.dSYM')
+        result = subprocess.run([tool('dsymutil'), '--num-threads', os.environ.get('NEO98_NATIVE_JOBS', '6'),
+                                 str(binary), '-o', str(bundle)],
+                                capture_output=True, text=True, errors='replace')
+        if result.returncode:
+            raise SystemExit('state frames: dsymutil failed\n' + result.stdout + result.stderr)
+        symbolize.append('--dsym-hint=' + str(bundle))
+    try:
+        output = subprocess.check_output(symbolize, input=''.join(f'0x{pc:x}\n' for pc, _ in calls), text=True)
+    finally:
+        if macho:
+            shutil.rmtree(bundle, ignore_errors=True)
     records = [json.loads(line) for line in output.splitlines()]
     if len(records) != len(calls):
-        raise SystemExit('state frames: incomplete ELF inline stack lookup')
+        raise SystemExit('state frames: incomplete inline stack lookup')
     pairs = Counter()
     for (_, target), record in zip(calls, records):
         frames = record.get('Symbol', [])
         if not frames or not frames[0].get('FunctionName'):
-            raise SystemExit('state frames: ELF call has no debug function')
+            raise SystemExit('state frames: a call has no debug function')
         pairs[frames[0]['FunctionName'], target] += 1
     cached.write_bytes(pickle.dumps(pairs))
     return pairs

@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """A failed debug reader must not become a reusable callback-guard cache."""
 import io
+import shutil
+from collections import Counter
 from pathlib import Path
 import subprocess
 import tempfile
@@ -35,9 +37,39 @@ int main(int argc, char **) { Guest g; return Invoke(g,argc); }
             binary = root / 'fixture'
             subprocess.run(['clang++','-O2','-g',str(obj),str(root/'callee.cpp'),'-o',str(binary)],env=env,check=True)
             with patch.object(state_frames,'CACHE',root):
-                pairs = state_frames.elf_calls(binary,[obj])
+                pairs = state_frames.instruction_calls(binary,[obj])
             names = state_frames.plain({n for pair in pairs for n in pair})
             self.assertTrue(any(names[a]=='Callback' and names[b]=='Guest::Call' for a,b in pairs), pairs)
+
+    @unittest.skipUnless(shutil.which('ld64.lld'), 'a Mach-O linker')
+    def test_macho_calls_keep_inline_caller_and_tail_jump(self):
+        import neo98
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'callee.cpp').write_text('struct Guest { int Call(int); }; int Guest::Call(int n) { return n+1; }\n')
+            (root / 'caller.cpp').write_text('''
+struct Guest { int Call(int); };
+inline int Callback(Guest &g, int n) { return g.Call(n); }
+int Invoke(Guest &g, int n) { return Callback(g,n)+3; }
+int Tail(Guest &g, int n) { return g.Call(n); }
+int main(int argc, char **) { Guest g; return Invoke(g,argc)+Tail(g,argc); }
+''')
+            env = neo98.tool_environment()
+            target = '--target=arm64-apple-macos13'
+            for name in ('caller', 'callee'):
+                subprocess.run(['clang++',target,'-O2','-g','-c',str(root/f'{name}.cpp'),'-o',str(root/f'{name}.o')],
+                               env=env,check=True)
+            binary = root / 'fixture'
+            subprocess.run(['ld64.lld','-arch','arm64','-platform_version','macos','13.0','13.0','-e','_main',
+                            '-undefined','dynamic_lookup',str(root/'caller.o'),str(root/'callee.o'),'-o',str(binary)],
+                           env=env,check=True)
+            with patch.object(state_frames,'CACHE',root/'cache'):
+                pairs = state_frames.instruction_calls(binary,[root/'caller.o'])
+            names = state_frames.plain({n for pair in pairs for n in pair})
+            found = Counter({(names[a],names[b]): n for (a,b),n in pairs.items()})
+            self.assertEqual(found[('Callback','Guest::Call')], 2, pairs)
+            self.assertEqual(found[('Tail','Guest::Call')], 2, pairs)
+            self.assertEqual([path.suffix for path in (root/'cache').iterdir()], ['.pickle'])
 
     def test_new_wait_and_changed_count_fail_the_guard(self):
         from collections import Counter
