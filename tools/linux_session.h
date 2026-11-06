@@ -312,6 +312,18 @@ class Session
         const auto *pixels = app ? reinterpret_cast<const unsigned char *>(app->ConsolePixels()) : nullptr;
         if (pixels) { width = 800; height = 600; } else pixels = User::Pixels();
         FILE *file = fopen(path.c_str(), "wb"); if (!file) return false;
+        // A .ppm path gets binary PPM (P6), as the macOS host writes it;
+        // every other path a PNG.
+        if (path.size() > 4 && path.compare(path.size() - 4, 4, ".ppm") == 0)
+        {
+            fprintf(file, "P6\n%d %d\n255\n", width, height);
+            for (size_t i = 0; i < size_t(width) * size_t(height); ++i)
+            {
+                const unsigned char rgb[] = {pixels[i * 4 + 2], pixels[i * 4 + 1], pixels[i * 4]};
+                fwrite(rgb, 1, 3, file);
+            }
+            return fclose(file) == 0;
+        }
         CrashFiles::FileSink sink(file);
         bool okay = CrashReport::WritePng(sink, pixels, width, height);
         fclose(file); return okay;
