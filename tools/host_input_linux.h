@@ -316,8 +316,9 @@ class Script
                 Say("NEO98 HOST redraw %d\n", User::RedrawWindow(User::GetDesktopWindow(), nullptr, 0, 0x485) ? 1 : 0);
             else if (step.action == "guestopen") X86::Application::RequestOpen(step.value.c_str());
             // open=PATH: a file of the host opened from outside, as File >
-            // Open program does.
-            else if (step.action == "open") HostMenu::Perform("open", step.value.c_str());
+            // Open program does, without the question about a game machine
+            // that a script cannot answer.
+            else if (step.action == "open") HostMenu::Perform("open-normal", step.value.c_str());
             else if (step.action == "close")
             {
                 // close=TITLE: the close button of the window of that title
