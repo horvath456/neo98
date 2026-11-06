@@ -35,6 +35,8 @@ jobs:
         run: |
           /opt/homebrew/opt/llvm/bin/clang++ --version
           ls /opt/homebrew/opt/llvm/bin | tr '\n' ' '
+          which -a c++filt; c++filt --version || true
+          echo _ZN3X8611Application4StepEv | c++filt; echo _ZN3X8611Application4StepEv | c++filt -n
       - name: Build
         run: |
           if [ '${{ matrix.media }}' = 0 ]; then export NEO98_WITH_HOST_MEDIA=0; fi
