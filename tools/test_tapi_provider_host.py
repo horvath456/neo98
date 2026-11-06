@@ -29,7 +29,9 @@ def main():
     host = ROOT/'build/native-app/neo98-host' if '--no-build' in sys.argv else build_host()
     if '--host' in sys.argv: host = Path(sys.argv[sys.argv.index('--host')+1]).resolve()
     results = []
-    for cpu, empty in (('fex', False), ('unicorn', False), ('fex', True), ('unicorn', True)):
+    # The engines of macOS; Linux x64 runs x86 code on the native CPU only.
+    engines = ('fex', 'unicorn') if sys.platform == 'darwin' else ('native',)
+    for cpu, empty in [(engine, empty) for empty in (False, True) for engine in engines]:
         case = cpu + ('-empty' if empty else '')
         if subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True).returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
