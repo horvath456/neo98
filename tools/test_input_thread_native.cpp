@@ -3,6 +3,7 @@
 // it. With the foreground owner waiting on an event, route clicks and keys to
 // the main thread pumping GetMessage.
 #define private public
+#include <cstring>
 #include "../src/x86_app.h"
 #undef private
 #include <cassert>

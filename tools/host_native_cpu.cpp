@@ -986,7 +986,7 @@ class NativeCpu : public Cpu
         if (out && WithinDevice(address, size))
         { device_access(device_context, address, static_cast<unsigned char *>(out), size, false); return CpuError::Ok; }
         if (!Has(address, size) || (!out && size)) return CpuError::ReadUnmapped;
-        memcpy(out, bytes + address, size);
+        if (size) memcpy(out, bytes + address, size);
         for (const auto &s : shared)
         {
             unsigned long long begin = address > s.address ? address : s.address;
@@ -1004,7 +1004,7 @@ class NativeCpu : public Cpu
             return CpuError::Ok;
         }
         if (!Has(address, size) || (!in && size)) return CpuError::WriteUnmapped;
-        memcpy(bytes + address, in, size);
+        if (size) memcpy(bytes + address, in, size);
         for (const auto &s : shared)
         {
             unsigned long long begin = address > s.address ? address : s.address;
