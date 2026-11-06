@@ -4,6 +4,12 @@
 
 Uses the existing host; run through a shared serial test lock.
 """
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['i686-w64-mingw32-gcc'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 from pathlib import Path
 import argparse
 import subprocess

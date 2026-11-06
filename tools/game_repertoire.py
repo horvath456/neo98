@@ -360,14 +360,14 @@ def run(home, game, label, seconds, phase, work=None, session=None):
         if not reuse:
             if session is not None:
                 session.update(drive=drive, writable=writable, registry=registry)
-            subprocess.run(['cp', '-c', '-R', str(source), str(drive)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(drive)], check=True)
             if source_registry.exists() or not os.environ.get('NEO98_WIN98_ROOT'):
                 shutil.copyfile(source_registry, registry)
             else:
                 # A reference tree can load its own SYSTEM.DAT/USER.DAT without
                 # an NEO98 change journal. Never borrow the user's journal.
                 registry.touch()
-            subprocess.run(['cp', '-c', '-R', str(payload), str(writable)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(payload), str(writable)], check=True)
         if drive.is_symlink() or drive.resolve() == source:
             raise RuntimeError('Refusing real C:')
         before_dirs = {str(p.relative_to(drive)) for p in drive.rglob('*') if p.is_dir()} | {'.'}
@@ -385,7 +385,7 @@ def run(home, game, label, seconds, phase, work=None, session=None):
             receipt = json.loads(receipt_path.read_text()) if receipt_path.exists() else {}
             executable = 'E:\\' + receipt.get('exe', recipe.get('installed_exe', ''))
         if executable == 'E:\\_installer.exe':
-            subprocess.run(['cp', '-c', str(verify(home, game)), str(writable/'_installer.exe')], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), str(verify(home, game)), str(writable/'_installer.exe')], check=True)
         if executable.startswith(('C:\\', 'E:\\')):
             relative = executable[3:].replace('\\', '/')
             if not inside(drive if executable[0] == 'C' else writable, relative).is_file():
@@ -478,7 +478,7 @@ def run(home, game, label, seconds, phase, work=None, session=None):
                     raise ValueError('Refusing to overwrite installed game')
                 retained_size = int(subprocess.check_output(['du', '-sk', str(base)], text=True).split()[0]) * 1024
                 guard(work, retained_size)
-                subprocess.run(['cp', '-c', '-R', str(base), str(saved)], check=True)
+                subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(base), str(saved)], check=True)
                 receipt = {'package_sha256': game['sha256'], 'original_drive': letter,
                            'original_path': str(base.relative_to(install_drive)),
                            'exe': str(found.relative_to(base)).replace('/', '\\'), 'exe_sha256': digest(found),

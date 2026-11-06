@@ -84,11 +84,11 @@ def fixtures(out):
 def run(binary, out, name, steps, programs_folder, extra_env=None, prepare=None):
     drive = out / f'drive-c-{name}'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     # Start after RunOnce/Active Setup, with the corresponding registry.
     # A pristine tree without its journal starts installation again.
     logged_on, journal = first_logon.session()
-    subprocess.run(['cp', '-c', '-R', str(logged_on) + '/.', str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(logged_on) + '/.', str(drive)], check=True)
     registry = out / f'{name}.registry'
     shutil.copyfile(journal, registry)
     if prepare:

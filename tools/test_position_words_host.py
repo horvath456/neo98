@@ -5,6 +5,11 @@
 Run through serial.py; requires an explicitly selected private Windows tree
 and POSWORD.TXT from the unchanged fixture on Win98. No live C: is used.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 from test_support import ExternalInputParser
 import hashlib
@@ -31,11 +36,11 @@ def main():
     parser.add_argument('--expect-match', action='store_true')
     args = parser.parse_args()
     source = args.system_root.resolve()
-    assert source != (ROOT/'build/win98-c').resolve() and not args.system_root.is_symlink()
+    assert source != (__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve() and not args.system_root.is_symlink()
     assert win98_c.legacy_read(source/'.neo98-index').is_file()
     if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode == 0:
         __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
-    assert shutil.disk_usage('/System/Volumes/Data').free >= 8 * 1024**3
+    assert shutil.disk_usage('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/').free >= 8 * 1024**3
     out = ROOT/'build/position-words'
     out.mkdir(exist_ok=True)
     exe = out/'POSWORD.EXE'
@@ -51,7 +56,7 @@ def main():
         process = None
         try:
             drive = Path(folder)/'c'
-            subprocess.run(['cp','-cR',str(source),str(drive)],check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(source),str(drive)],check=True)
             assert not drive.is_symlink() and drive.resolve()!=source
             shutil.copyfile(exe,drive/'POSWORD.EXE')
             env = dict(os.environ, SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',

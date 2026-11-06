@@ -45,7 +45,7 @@ def x86_fixture(source, name, included_adapter=False):
     return exe
 def run(binary, exe, script, name):
     drive = OUT / f'{name}-c'
-    if not drive.exists(): subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    if not drive.exists(): subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_INPUT=script,
                NEO98_HOST_MENU='2:quit' if name.startswith('pointer-') else '12:quit' if name.startswith('lifecycle-') else '8:quit',
                NEO98_HOST_DEADLINE='20')

@@ -14,7 +14,7 @@ from ui_clipboard_test_support import fixture
 
 
 def guard():
-    subprocess.run(['df', '-h', '/System/Volumes/Data'], check=True, stdin=subprocess.DEVNULL)
+    subprocess.run(['df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/')], check=True, stdin=subprocess.DEVNULL)
     if shutil.disk_usage(ROOT).free < 8 * 1024**3:
         raise RuntimeError('STOP: fewer than 8 GiB free')
 
@@ -40,7 +40,7 @@ def main():
         assert not drive.exists() and not drive.is_symlink()
         process = None
         try:
-            subprocess.run(['cp', '-c', '-R', str((ROOT / 'build/win98-c').resolve()) + '/',
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()) + '/',
                             str(drive)], check=True, stdin=subprocess.DEVNULL)
             assert drive.is_dir() and not drive.is_symlink()
             guard()

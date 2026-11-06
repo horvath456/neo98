@@ -26,7 +26,7 @@ def main():
     binary = ROOT / 'build/native-app/neo98-host' if '--no-build' in sys.argv else build_host()
     if '--binary' in sys.argv:
         binary = Path(sys.argv[sys.argv.index('--binary') + 1]).resolve()
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     cases = {'show-window': ('C', 150), 'set-window-pos': ('D', 150),
              'destroy-window': ('E', 150), 'move-window': ('G', 150), 'shrink-window': ('H', 250)}
     steps = ['0:wait=HOST_SAVEBITS_W', '0:idle=300']

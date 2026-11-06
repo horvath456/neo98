@@ -5,6 +5,12 @@
 Run through the shared serial test runner. Each CPU uses a private C: clone.
 An optional reference file compares the exact rows with an original system.
 """
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['i686-w64-mingw32-gcc'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -48,7 +54,7 @@ def main():
         assert not drive.exists() and not drive.is_symlink()
         process = None
         try:
-            subprocess.run(['cp', '-c', '-R', str(win98_c.use_pristine()), str(drive)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.use_pristine()), str(drive)], check=True)
             env = dict(environment, SDL_AUDIODRIVER='dummy', SDL_VIDEODRIVER='dummy',
                        NEO98_CPU=engine, NEO98_HOST_INPUT='', NEO98_HOST_MENU='',
                        NEO98_HOST_DEADLINE='40', NEO98_HOST_PASTEBOARD='unique',

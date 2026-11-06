@@ -29,7 +29,7 @@ def main():
     out.mkdir(exist_ok=True)
     drive = out/'c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-cR', str(win98_c.use_pristine()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.use_pristine()), str(drive)], check=True)
     steps = ['0:wait=#32770', f'4:shot={out}/license.ppm',
              '5:click=256,339', '6:click=430,411', f'9:shot={out}/ready.ppm',
              '10:click=430,411', f'30:shot={out}/finished.ppm', '32:menu=quit']

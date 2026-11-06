@@ -53,7 +53,7 @@ def main():
     assignment=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='sources' for t in n.targets))
     sources=list(dict.fromkeys(ast.literal_eval(assignment.value)))
     pkg=Path(unicorn.__file__).resolve().parent;lib=pkg/'lib'/('libunicorn.2.dylib' if sys.platform=='darwin' else 'libunicorn.so.2')
-    command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-sanitize-recover=all',str(directory/'tools/test_pointer_probe_native.cpp'),str(directory/'src/fiber_aarch64.S'),*[str(directory/'src'/f'{name}.cpp') for name in sources],*_engine_link_extra(), str(lib),'-Wl,-rpath,'+str(lib.parent),'-o',str(OUT/'test-pointer-native')]
+    command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-sanitize-recover=all',str(directory/'tools/test_pointer_probe_native.cpp'),str(directory/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),*[str(directory/'src'/f'{name}.cpp') for name in sources],*_engine_link_extra(), str(lib),'-Wl,-rpath,'+str(lib.parent),'-o',str(OUT/'test-pointer-native')]
     run=compile_native(command,capture_output=True,text=True);(OUT/'build.log').write_text(run.stdout+run.stderr)
     if run.returncode:print(run.stdout+run.stderr)
     run.check_returncode()

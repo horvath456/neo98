@@ -6,6 +6,11 @@ Run through a shared serial test lock. Requires the pinned Virtual Chess sharewa
 corpus, or --film pointing to its unmodified AVI/TITUS.AVI. No codecs or game
 files are changed. Every engine gets a temporary private C: clone.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -46,8 +51,8 @@ def main():
             raise RuntimeError('STOP: fewer than 6 GiB free')
         with tempfile.TemporaryDirectory(prefix='private-', dir=out) as temporary:
             drive = Path(temporary) / 'c'
-            source = (ROOT / 'build/win98-c').resolve()
-            subprocess.run(['cp', '-cR', str(source), str(drive)], check=True)
+            source = (__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(drive)], check=True)
             assert not drive.is_symlink() and drive.resolve() != source
             shutil.copyfile(args.film, drive / 'TITUS.AVI')
             shutil.copyfile(exe, drive / 'PROBE.EXE')

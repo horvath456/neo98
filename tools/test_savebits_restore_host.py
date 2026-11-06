@@ -98,7 +98,7 @@ def main():
     if '--no-build' not in sys.argv:
         binary = build_host()
     drive_c = out / 'drive-c'
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
     shots = {name: out / f'{name}.ppm' for name in ('dialog', 'hidden', 'under', 'destroyed', 'overlap', 'upper-first')}
 
     def keys(*steps):

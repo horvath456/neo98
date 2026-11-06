@@ -37,8 +37,15 @@ def main():
         (source / name).write_bytes(data)
     (out / 'cd' / 'README.TXT').write_text('not part of WIN98\n')
     iso = out / 'win98.iso'
-    subprocess.run(['/usr/bin/hdiutil', 'makehybrid', '-iso', '-o', str(iso), str(out / 'cd')],
-                   check=True, capture_output=True)
+    if sys.platform == 'darwin':
+        subprocess.run(['/usr/bin/hdiutil', 'makehybrid', '-iso', '-o', str(iso), str(out / 'cd')],
+                       check=True, capture_output=True)
+    elif shutil.which('xorriso'):
+        subprocess.run(['xorriso', '-as', 'mkisofs', '-quiet', '-o', str(iso), str(out / 'cd')],
+                       check=True, capture_output=True)
+    else:
+        print('SKIP: needs xorriso to make the test ISO')
+        return 77
     folder = out / 'c'
     (folder / 'WINDOWS').mkdir(parents=True)
     (folder / win98_c.MARKER).write_text(json.dumps({'files': 1}) + '\n')

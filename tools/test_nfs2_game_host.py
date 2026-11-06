@@ -31,7 +31,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     drive = out / 'c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-cR', str(win98_c.use_pristine()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.use_pristine()), str(drive)], check=True)
     with zipfile.ZipFile(args.installer) as archive:
         for member in archive.infolist():
             relative = Path(member.filename.replace('\\', '/'))

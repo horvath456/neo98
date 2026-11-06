@@ -124,7 +124,7 @@ def host(binary, folder, name, drive_c, drive_d, steps, options, program=None, p
 
 def clone(source, target):
     shutil.rmtree(target, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(source), str(target)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(target)], check=True)
 
 
 def plain(picture):

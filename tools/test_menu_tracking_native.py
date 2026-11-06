@@ -29,7 +29,7 @@ def test(source_root=ROOT):
  if (source_root/'native-sources.json').exists():sources=json.loads((source_root/'native-sources.json').read_text())
  sources=[s for s in sources if s!='user']
  package=Path(subprocess.check_output([str(neo98.analysis_python()),'-c','import unicorn;print(unicorn.__file__)'],text=True).strip()).parent;library=package/'lib'/('libunicorn.2.dylib'if sys.platform=='darwin'else'libunicorn.so.2');binary=OUT/'test-menu-tracking-native'
- compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(source),str(source_root/'src/fiber_aarch64.S'),*[str(source_root/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
+ compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(source),str(source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),*[str(source_root/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
  if compiled.returncode:print(compiled.stdout+compiled.stderr)
  compiled.check_returncode();run=subprocess.run([str(binary),str(exe),str(ROOT/'build/generated/notepad-fixedsys.fnt'),str(OUT/'popup.ppm')],env=env,capture_output=True,text=True);(OUT/'native.log').write_text(run.stdout+run.stderr);print(run.stdout+run.stderr,end='');run.check_returncode()
  for name in ['popup.ppm','popup.ppm.child.ppm']:

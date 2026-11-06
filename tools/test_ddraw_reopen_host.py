@@ -8,6 +8,12 @@ buffer, blit it and verify the actual green client pixel with GetPixel.
 Every child releases its objects and closes its window. Before the fix the
 first child's Blt failed because its process had no local HAL attachment.
 """
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['i686-w64-mingw32-gcc'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 import os
 from pathlib import Path
 import subprocess

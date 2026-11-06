@@ -67,10 +67,10 @@ def main():
         shutil.rmtree(work, ignore_errors=True)
         work.mkdir(parents=True)
         drive_c, drive_d = work / 'drive-c', work / 'drive-d'
-        subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
         drives = []
         if folder is not None:
-            subprocess.run(['cp', '-c', '-R', str(GAMES / folder), str(drive_d)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(GAMES / folder), str(drive_d)], check=True)
             drives = ['--drive', f'D={drive_d}']
             program = 'D:\\' + program
         before, after = work / 'before.ppm', work / 'after.ppm'

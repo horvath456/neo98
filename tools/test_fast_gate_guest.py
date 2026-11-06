@@ -113,7 +113,7 @@ else:
     names = next(ast.literal_eval(n.value) for n in ast.walk(tree)
                  if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'sources'
                                                       for t in n.targets))
-    objects = [OBJECTS / (n + '.cpp.o') for n in names] + [OBJECTS / 'fiber_aarch64.S.o']
+    objects = [OBJECTS / (n + '.cpp.o') for n in names] + [OBJECTS / ('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
     library = ROOT / 'build/analysis-venv/lib/python3.14/site-packages/unicorn/lib/libunicorn.2.dylib'
     binary = OUT / 'test-fast-gate'
     run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_fast_gate_guest.cpp', *objects, *native_app.engine_link_extra(), library,

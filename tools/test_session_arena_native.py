@@ -120,7 +120,7 @@ def test(source_root=SOURCE):
     fex_extra = native_app.engine_link_extra()
     folder = source_root / 'tools'
     command = ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',
-               str(folder / 'test_session_arena_native.cpp'), str(source_root / 'src/fiber_aarch64.S'),
+               str(folder / 'test_session_arena_native.cpp'), str(source_root / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),
                *[str(source_root / 'src' / f'{s}.cpp') for s in sources], *map(str, fex_extra), str(library),
                '-Wl,-rpath,' + str(library.parent), '-o', str(binary)]
     build = subprocess.run(command, env=env, capture_output=True, text=True)

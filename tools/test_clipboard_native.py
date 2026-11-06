@@ -44,7 +44,7 @@ def main():
     tree=ast.parse((ROOT/'tools/native_app.py').read_text());assignment=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets))
     sources=[s for s in dict.fromkeys(ast.literal_eval(assignment.value))if s!='x86_clipboard' and (runtime/'src'/f'{s}.cpp').exists()]
     package=Path(unicorn.__file__).resolve().parent;lib=package/'lib'/('libunicorn.2.dylib' if sys.platform=='darwin' else 'libunicorn.so.2');binary=OUT/'clipboard-native-asan'
-    command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-omit-frame-pointer',str(runtime/'tools/test_clipboard_native.cpp'),str(runtime/'src/fiber_aarch64.S'),*[str(runtime/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), str(lib),'-Wl,-rpath,'+str(lib.parent),'-o',str(binary)]
+    command=['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-omit-frame-pointer',str(runtime/'tools/test_clipboard_native.cpp'),str(runtime/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),*[str(runtime/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), str(lib),'-Wl,-rpath,'+str(lib.parent),'-o',str(binary)]
     r=subprocess.run(command,env=environment,capture_output=True,text=True);(OUT/'build.log').write_text(r.stdout+r.stderr)
     if r.returncode:print(r.stdout+r.stderr)
     r.check_returncode();r=subprocess.run([str(binary),str(exe),str(ROOT/'build/generated/notepad-fixedsys.fnt')],env=environment,capture_output=True,text=True);(OUT/'test.log').write_text(r.stdout+r.stderr);print(r.stdout+r.stderr,end='');r.check_returncode()

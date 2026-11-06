@@ -93,7 +93,7 @@ def compare(binary, out, seed, operations, keep=False):
     make_tree(work / 'start', seed)
     subprocess.run([str(binary), 'prepare', str(work / 'start')], check=True, capture_output=True)
     for name in ('plain', 'base'):
-        subprocess.run(['cp', '-c', '-R', str(work / 'start'), str(work / name)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(work / 'start'), str(work / name)], check=True)
     before = digest(work / 'base')
     # Every second seed copies up without the block clone of APFS, as a
     # medium does that has none.
@@ -152,7 +152,7 @@ def bench(binaries, out, rounds=9, tree=bench_tree):
             for mode in ('plain', 'layer'):
                 for name in ('plain', 'base', 'layer'):
                     shutil.rmtree(work / name, ignore_errors=True)
-                subprocess.run(['cp', '-c', '-R', str(work / 'start'), str(work / ('plain' if mode == 'plain' else 'base'))],
+                subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(work / 'start'), str(work / ('plain' if mode == 'plain' else 'base'))],
                                check=True)
                 command = ([str(binary), 'bench', 'plain', str(work / 'plain')] if mode == 'plain'
                            else [str(binary), 'bench', 'layer', str(work / 'base'), str(work / 'layer')])

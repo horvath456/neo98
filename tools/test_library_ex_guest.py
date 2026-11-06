@@ -37,7 +37,7 @@ for n,value in [('DEP3',3),('DEP7',7),('ENTRY',None)]:
 
 if OBJECTS is None:
  print('LoadLibraryExA guest compiled; native execution deferred to shared integration.');sys.exit(0)
-tree=ast.parse((ROOT/'tools/native_app.py').read_text());names=next(ast.literal_eval(n.value)for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));objects=[OBJECTS/(n+'.cpp.o')for n in names]+[OBJECTS/'fiber_aarch64.S.o']
+tree=ast.parse((ROOT/'tools/native_app.py').read_text());names=next(ast.literal_eval(n.value)for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));objects=[OBJECTS/(n+'.cpp.o')for n in names]+[OBJECTS/('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
 local_objects=OUT/'objects';local_objects.mkdir(exist_ok=True)
 if args.rebuild_affected:
  for name in ['x86_app','x86_modules','registry']:

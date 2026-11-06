@@ -71,7 +71,7 @@ def main():
     drive_c, registry = first_logon.clone(out)
     drive_d = out / 'drive-d'
     drive_d.mkdir()
-    subprocess.run(['cp', '-c', '-R', str(SOURCE), str(drive_d / 'JUNIOR5')], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(SOURCE), str(drive_d / 'JUNIOR5')], check=True)
     shots = {name: out / f'{name}.ppm' for name in ('box', 'closed', 'start')}
     for shot in shots.values():
         shot.unlink(missing_ok=True)

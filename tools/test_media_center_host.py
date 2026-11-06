@@ -327,7 +327,7 @@ def main():
     global OWN_C
     OWN_C = out / 'own-c'
     shutil.rmtree(OWN_C, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(pristine), str(OWN_C)] if mac else ['cp', '-a', '--reflink=auto', str(pristine), str(OWN_C)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine), str(OWN_C)] if mac else ['cp', '-a', '--reflink=auto', str(pristine), str(OWN_C)], check=True)
     shutil.copy(win98_c.journal(pristine), str(OWN_C) + '.registry')
     results, failed = {}, []
 
@@ -389,7 +389,7 @@ def main():
         elif part == 'shortcut':
             drive = out / 'shortcut-c'
             shutil.rmtree(drive, ignore_errors=True)
-            subprocess.run(['cp', '-c', '-R', str(pristine), str(drive)] if mac else ['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine), str(drive)] if mac else ['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
             shutil.copy(win98_c.journal(pristine), str(drive) + '.registry')
             # What an earlier build left: NETFLIX.EXE.
             (drive / 'WINDOWS/NETFLIX.EXE').write_bytes(b'MZ')

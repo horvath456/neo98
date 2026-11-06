@@ -62,7 +62,9 @@ class RepertoireTests(unittest.TestCase):
                 r.validate_payload(payload)
 
     def test_real_play_runner_reuses_original_install_path_and_registry(self):
-        with tempfile.TemporaryDirectory() as folder:
+        # The fixture's own build/win98-c, not a folder the caller configured.
+        with tempfile.TemporaryDirectory() as folder, patch.dict(os.environ):
+            os.environ.pop('NEO98_WIN98_ROOT', None)
             root=Path(folder); corpus=root/'corpus'; work=root/'work'
             payload=corpus/'prepared/game'; payload.mkdir(parents=True)
             (payload/'setup.exe').write_bytes(b'installer')
@@ -75,7 +77,7 @@ class RepertoireTests(unittest.TestCase):
             def copy_or_pgrep(command, **kwargs):
                 if command[0]=='pgrep':
                     return subprocess.CompletedProcess(command,1,stdout='')
-                self.assertEqual(command[:3],['cp','-c','-R'])
+                self.assertEqual(command[:3],['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R'])
                 shutil.copytree(command[-2],command[-1])
                 return subprocess.CompletedProcess(command,0)
             def host(command, **kwargs):

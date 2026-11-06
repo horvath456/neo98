@@ -159,7 +159,7 @@ def main():
         binary = build_host()
     pristine = win98_c.use_pristine()
     drive_c = out / 'drive-c'
-    subprocess.run(['cp', '-c', '-R', str(pristine) + '/', str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine) + '/', str(drive_c)], check=True)
     (drive_c / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
 
     avi, mpg = make_films(tool, out / 'films')

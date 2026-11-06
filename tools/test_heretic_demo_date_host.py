@@ -5,6 +5,11 @@
 Run through a shared serial test lock. Only oracle time/error providers are supplied;
 no installed game or original DLL is patched. Each run uses a private C: clone.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 from test_support import ExternalInputParser
 import hashlib
@@ -51,7 +56,7 @@ def main():
     run('lld-link', '/entry:mainCRTStartup', '/subsystem:windows,4.0', '/nodefaultlib',
         '/machine:x86', '/timestamp:0', '/out:' + str(exe), obj, library)
     for engine in ('fex', 'unicorn'):
-        run('df', '-h', '/System/Volumes/Data')
+        run('df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/'))
         guard()
         if subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True).returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
@@ -59,7 +64,7 @@ def main():
         assert not drive.exists() and not drive.is_symlink()
         process = None
         try:
-            run('cp', '-c', '-R', str((ROOT / 'build/win98-c').resolve()) + '/', drive)
+            run('cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()) + '/', drive)
             assert not drive.is_symlink()
             runtime = dict(os.environ, NEO98_CPU=engine, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
                            NEO98_HOST_INPUT='', NEO98_HOST_MENU='', NEO98_HOST_DEADLINE='30',

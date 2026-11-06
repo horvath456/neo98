@@ -20,7 +20,7 @@ import first_logon
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('--source-drive',type=Path,default=ROOT/'build/win98-c')
+    p.add_argument('--source-drive',type=Path,default=__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))
     p.add_argument('--source-registry',type=Path,default=ROOT/'build/win98-c.registry')
     p.add_argument('--host',type=Path,default=ROOT/'build/native-app/neo98-host')
     p.add_argument('--close-only',action='store_true')
@@ -30,8 +30,8 @@ def main():
     out=ROOT/('build/3dmark2000-close' if args.close_only else 'build/3dmark2000-host');out.mkdir(exist_ok=True)
     drive,reg=first_logon.clone(out/'session')
     target=drive/relative;target.parent.mkdir(parents=True,exist_ok=True)
-    subprocess.run(['cp','-cR',str(args.source_drive/relative),str(target)],check=True)
-    subprocess.run(['cp','-cR',str(args.source_drive/'WINDOWS/SYSTEM')+'/.',str(drive/'WINDOWS/SYSTEM')],check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(args.source_drive/relative),str(target)],check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(args.source_drive/'WINDOWS/SYSTEM')+'/.',str(drive/'WINDOWS/SYSTEM')],check=True)
     shutil.copyfile(args.source_registry,reg)
     steps=['3:wait=#32770|3DMark2000','5:click=480,370',f'8:shot={out}/project.ppm',
            '9:keydown=12','9:key=73','9:keyup=12']

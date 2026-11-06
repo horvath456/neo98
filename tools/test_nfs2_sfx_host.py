@@ -31,7 +31,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     drive = out / 'c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-cR', str(win98_c.use_pristine()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.use_pristine()), str(drive)], check=True)
     steps = [
         '0:wait=|Enter Target Path', '1:keydown=11', '1.1:key=41', '1.2:keyup=11',
         r'1.5:type=C:\NFSDEMO', '2:button=OK', '3:wait=|Directory Not Found',

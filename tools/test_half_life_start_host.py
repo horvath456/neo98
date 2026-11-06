@@ -31,7 +31,7 @@ def main():
     drive, registry = out / 'c', out / 'c.registry'
     assert args.drive_c.resolve() != drive and args.registry.resolve() != registry
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-cR', str(args.drive_c.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(args.drive_c.resolve()), str(drive)], check=True)
     shutil.copyfile(args.registry, registry)
     renderer_switch={'software':'-soft','d3d':'-d3d','opengl':'-gl'}[args.renderer]
     width,height=(320,240) if args.renderer=='software' else (640,480)

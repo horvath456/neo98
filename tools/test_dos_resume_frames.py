@@ -20,11 +20,16 @@ import neo98
 def main():
     out = neo98.output_directory('dos-resume-frames')
     binary = out / 'test-dos-resume-frames'
-    subprocess.run(['/usr/bin/clang++', '-std=gnu++11', '-O1', '-g', '-fsanitize=address,undefined',
+    environment = neo98.tool_environment()
+    subprocess.run(['clang++', '-std=gnu++11', '-O1', '-g', '-fsanitize=address,undefined',
                     '-I', str(ROOT / 'tools'), '-I', str(ROOT / 'third_party/dosbox-pure/include'),
                     str(ROOT / 'tools/test_dos_resume_frames.cpp'),
                     str(ROOT / 'third_party/dosbox-pure/src/dbp_serialize.cpp'),
-                    '-Wl,-dead_strip', '-o', str(binary)], check=True)
+                    # Only the frame reader is linked: the linker drops the
+                    # serializers of the machine parts this test does not have.
+                    *(['-Wl,-dead_strip'] if sys.platform == 'darwin' else
+                      ['-ffunction-sections', '-fdata-sections', '-Wl,--gc-sections']),
+                    '-o', str(binary)], check=True, env=environment)
     return subprocess.run([str(binary)], check=False,
                           env=dict(os.environ, ASAN_OPTIONS='halt_on_error=1',
                                    UBSAN_OPTIONS='halt_on_error=1')).returncode

@@ -5,6 +5,11 @@
 
 Run through a shared serial test lock. Uses a RAM drive, dummy SDL, FEX and Unicorn.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -42,7 +47,7 @@ def main():
                    NEO98_HOST_DEADLINE='15', NEO98_HOST_INPUT='12:menu=quit',
                    NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))
         command = [str(host), str(exe), str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
-                   '--system-tree', str(ROOT / 'build/win98-c'), '--ram-drive', '--no-registry-file']
+                   '--system-tree', str(__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))), '--ram-drive', '--no-registry-file']
         with (out / (suffix + '.log')).open('w') as log:
             process = subprocess.Popen(command, env=env, stdout=log, stderr=subprocess.STDOUT)
             try: code = process.wait(timeout=45)

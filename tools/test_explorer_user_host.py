@@ -29,7 +29,7 @@ from test_support import require_file
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--host', type=Path, default=ROOT/'build/native-app/neo98-host')
-    p.add_argument('--source', type=Path, default=ROOT/'build/win98-c')
+    p.add_argument('--source', type=Path, default=__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))
     p.add_argument('--registry', type=Path, default=ROOT/'build/win98-c.registry')
     p.add_argument('--settings', type=Path, default=Path.home()/'Library/Application Support/Neo98/settings.ini')
     p.add_argument('--drive-d', type=Path, default=external_path('NEO98_COLLECTION'))
@@ -46,7 +46,7 @@ def main():
     before = {str(f): digest(f) for f in inputs if f.exists()}
     drive = out/'c'
     assert not drive.exists(), 'Scratch C: already exists; choose a new --out'
-    subprocess.run(['cp','-c','-R',str(source),str(drive)],check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(source),str(drive)],check=True)
     shutil.copyfile(registry,out/'c.registry')
     (out/'settings').mkdir(exist_ok=True)
     text = settings.read_text()

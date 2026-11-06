@@ -116,7 +116,7 @@ def main():
 
     def run(program, drive, registry, steps, log_name, extra=(), menu=None, timeout=600):
         if not drive.exists():
-            subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
         command = [str(binary), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
                    '--system-tree', '--exe', program, '--quiet', '--drive-c', str(drive),
                    '--registry', str(registry), '--crash-report-dir', str(out / 'reports'), *extra]
@@ -407,8 +407,8 @@ def main():
         # again and can exhaust the taskbar wait before the UI test starts.
         import first_logon
         logged_on, journal = first_logon.session()
-        subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(e)], check=True)
-        subprocess.run(['cp', '-c', '-R', str(logged_on) + '/.', str(e)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(e)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(logged_on) + '/.', str(e)], check=True)
         shutil.copyfile(journal, out / 'registry-e')
         third = ['0:wait=Shell_TrayWnd', '0:idle=2000', f'0:shot={out / "e1.ppm"}', f'0:mask={out / "e1.pgm"}',
                  f'0:mask={out / "e1-items.ppm"}',

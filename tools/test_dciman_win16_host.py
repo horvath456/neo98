@@ -22,7 +22,7 @@ def main():
     if '--host' in sys.argv: binary=Path(sys.argv[sys.argv.index('--host')+1]).resolve()
     private=out/'c'
     if private.exists():shutil.rmtree(private)
-    subprocess.run(['cp','-cR',str(root.resolve()),str(private)],check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(root.resolve()),str(private)],check=True)
     env=dict(os.environ,SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',NEO98_HOST_DEADLINE='25',
              NEO98_SETTINGS_DIR=str(out/'settings'),NEO98_LOG_DIR=str(out/'logs'))
     with (out/'host.log').open('w') as log:

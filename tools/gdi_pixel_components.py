@@ -4,7 +4,7 @@
 """Original GDI pixel comparisons and sanitizer replay, with explicit output directory."""
 from pathlib import Path
 import argparse,hashlib,json,subprocess,sys
-P=Path(__file__).resolve();ROOT=next(p for p in P.parents if(p/'neo98.py').exists()and(p/'build/gdi-audit/USER.EXE').exists());sys.path.insert(0,str(ROOT));import neo98
+P=Path(__file__).resolve();ROOT=next((p for p in P.parents if(p/'neo98.py').exists()and(p/'build/gdi-audit/USER.EXE').exists()),None)or __import__('sys').exit('Run setup first: build/gdi-audit/USER.EXE is copied from the Windows 98 installation');sys.path.insert(0,str(ROOT));import neo98
 IMPORTS={'KERNEL32':{'ExitProcess':4,'GetLastError':0,'SetLastError':4},'GDI32':{'CreateCompatibleDC':4,'CreateICA':16,'DeleteDC':4,'DeleteObject':4,'SelectObject':8,'CreateDIBSection':24,'SetPixel':16,'SetPixelV':16,'GetPixel':12,'GetNearestColor':8,'SetROP2':8,'SaveDC':4,'RestoreDC':8,'IntersectClipRect':20,'SetWindowOrgEx':16,'SetViewportOrgEx':16,'MoveToEx':16,'GetCurrentPositionEx':8}}
 def test(source_root,out):
  source_root=Path(source_root).resolve();out=Path(out).resolve();out.mkdir(parents=True,exist_ok=True);env=neo98.tool_environment();env['UBSAN_OPTIONS']='halt_on_error=1:print_stacktrace=1'

@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Host-menu PIF editing without a running DOS game, including read-only media."""
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['i686-w64-mingw32-gcc', 'nasm'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 import os
 from pathlib import Path
 import shutil

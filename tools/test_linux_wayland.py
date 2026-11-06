@@ -4,6 +4,7 @@
 import json
 import os
 import subprocess
+import sys
 from native_app import ROOT, linux_gtk_flags
 import neo98
 from linux_x11_test import X11
@@ -11,7 +12,9 @@ import win98_c
 
 
 def main():
-    assert os.environ.get('WAYLAND_DISPLAY'), 'Run this test inside a Wayland session'
+    if not os.environ.get('WAYLAND_DISPLAY'):
+        print('SKIP: run this test inside a Wayland session')
+        return 77
     source = win98_c.use_pristine()
     out = ROOT / 'build/native-linux/wayland'
     out.mkdir(parents=True, exist_ok=True)
@@ -50,4 +53,4 @@ def main():
         'gtk_canvas_input':True,'native_menu_copy':True,'fullscreen':True,'source_unchanged':True},indent=2)+'\n')
     print('LINUX WAYLAND PASS: native GTK desktop, menu, clipboard, input, fullscreen, no X11 windows')
 
-if __name__=='__main__': main()
+if __name__=='__main__': sys.exit(main())

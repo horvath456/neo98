@@ -14,6 +14,11 @@ state of the caller.
 
 docs/ARM64-APPS.md, "Exceptions".
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the Unicorn, FEX and ARM64 engines run on macOS only; Linux runs x86 code natively')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import shutil
 import subprocess
 import sys

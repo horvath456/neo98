@@ -37,7 +37,7 @@ def main():
             raise SystemExit('STOP: fewer than 6 GiB free')
         private = out / ('c-'+case)
         if private.exists(): shutil.rmtree(private)
-        subprocess.run(['cp', '-cR', str(Path(os.environ.get('NEO98_WIN98_ROOT') or ROOT/'build/win98-c').resolve()), str(private)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(Path(os.environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c')).resolve()), str(private)], check=True)
         shutil.copyfile(program, private/'TAPITEST.EXE')
         if empty:
             ini = private/'WINDOWS/TELEPHON.INI'

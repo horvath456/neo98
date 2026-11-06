@@ -21,7 +21,7 @@ def main():
  exe=fixture(out/'fixture',ROOT/'tools/scanout_cpu_fixture.c',names)
  private=out/'c'
  if private.exists():shutil.rmtree(private)
- subprocess.run(['cp','-cR',str((ROOT/'build/win98-c').resolve()),str(private)],check=True)
+ subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()),str(private)],check=True)
  shutil.copyfile(exe,private/'SCANCPU.EXE')
  try:
   if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:__import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')

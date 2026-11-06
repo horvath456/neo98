@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """private MEM_SHARED protection on FEX and Unicorn. Use serial.py."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -27,7 +32,7 @@ def main():
     digest=hashlib.sha256(exe.read_bytes()).hexdigest();results=[]
     with tempfile.TemporaryDirectory(prefix='private-c-',dir=out) as temporary:
         drive=Path(temporary)/'c'
-        subprocess.run(['cp','-c','-R',str((ROOT/'build/win98-c').resolve()),str(drive)],check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()),str(drive)],check=True)
         assert not drive.is_symlink()
         for cpu in ('fex','unicorn'):
             path=out/(cpu+('-before' if args.baseline else '-after')+'.log')

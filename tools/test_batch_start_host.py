@@ -38,7 +38,7 @@ def main():
     drive_c, drive_d = out / 'drive-c', out / 'drive-d'
     for path in (drive_c, drive_d):
         shutil.rmtree(path, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
     registry = out / 'session.registry'
     shutil.copyfile(win98_c.journal(win98_c.FOLDER), registry)
     (drive_d / 'BATT').mkdir(parents=True)

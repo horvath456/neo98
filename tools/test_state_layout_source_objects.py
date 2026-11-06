@@ -4,6 +4,7 @@
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -12,6 +13,9 @@ from unittest.mock import patch
 import state_layout
 
 
+# The Mach-O debug map; Linux hosts list their objects in a manifest instead
+# (tools/state_layout_elf.py).
+@unittest.skipUnless(sys.platform == 'darwin', 'Mach-O debug maps exist on macOS only')
 class FrozenHostObjects(unittest.TestCase):
     def test_invalid_binary_or_object_cannot_supply_an_empty_layout(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """the HAL mask must name the supported Direct3D shading modes."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: builds with the Homebrew MinGW sysroot of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import os
 from pathlib import Path
 import subprocess

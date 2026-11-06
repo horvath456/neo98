@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """visible display colors after partial palette updates. Use serial.py."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['i686-w64-mingw32-gcc'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -35,7 +46,7 @@ def main():
         guard()
         drive = out / ('c-' + engine)
         assert not drive.exists() and not drive.is_symlink()
-        subprocess.run(['cp', '-cR', str((ROOT / 'build/win98-c').resolve()) + '/', str(drive)],
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()) + '/', str(drive)],
                        check=True, stdin=subprocess.DEVNULL)
         process = None
         suffix = engine + ('-before' if args.baseline else '-after')

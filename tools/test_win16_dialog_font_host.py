@@ -67,7 +67,7 @@ def main():
     out.mkdir(parents=True)
     binary = ROOT / 'build/native-app/neo98-host' if '--no-build' in sys.argv else build_host()
     drive = out / 'c'
-    subprocess.run(['cp', '-c', '-R', str(pristine.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine.resolve()), str(drive)], check=True)
     (drive / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     win16_fixture.assemble(ROOT / 'tools/dialog_font_win16_fixture.asm', out / 'DLGFONT.EXE', 'DLGFONT',
                            neo98.tool_environment())

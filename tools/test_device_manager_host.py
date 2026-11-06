@@ -89,7 +89,7 @@ def host(binary, out, name, program, command, steps, deadline, tree, journal=Non
     run = out / name
     shutil.rmtree(run, ignore_errors=True)
     run.mkdir(parents=True)
-    subprocess.run(['cp', '-c', '-R', str(Path(tree).resolve()), str(run / 'c')], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(Path(tree).resolve()), str(run / 'c')], check=True)
     if journal and Path(journal).is_file():
         shutil.copy(journal, run / 'c.registry')
     if prepare:

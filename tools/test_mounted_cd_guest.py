@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Insert an ISO mounted outside NEO98; retain it through errors/eject/quit."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: mounts images with hdiutil, which exists on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import json
 import os
 from pathlib import Path
@@ -36,7 +41,7 @@ def main():
     win98_c.use_pristine()
     drive = OUT / 'drive-c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     attached = plistlib.loads(subprocess.check_output([
         'hdiutil', 'attach', '-readonly', '-nobrowse', '-noverify', '-plist', str(external)]))
     mount = next(Path(e['mount-point']) for e in attached['system-entities'] if e.get('mount-point'))

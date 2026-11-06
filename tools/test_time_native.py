@@ -55,7 +55,7 @@ def main():
     # Compile separately so clang does not create a large dSYM at link time.
     from native_build import compile_objects
     flags=['-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-sanitize-recover=all']
-    paths=[directory/'tools/test_time_native.cpp',directory/'src/fiber_aarch64.S',
+    paths=[directory/'tools/test_time_native.cpp',directory/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'),
            *[directory/'src'/f'{name}.cpp' for name in sources]]
     objects=compile_objects(directory,paths,flags,environment,OUT/'object-cache')
     command=['clang++',*flags,*map(str,objects),*_engine_link_extra(),str(lib),

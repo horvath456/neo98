@@ -41,7 +41,7 @@ def main():
     binary = OUT / 'test-window-destroy-reentrancy'
     command = ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',
                str(ROOT / 'tools/test_window_destroy_reentrancy_native.cpp'),
-               str(ROOT / 'src/fiber_aarch64.S'),
+               str(ROOT / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),
                *[str(ROOT / 'src' / f'{source}.cpp') for source in sources],
                *_engine_link_extra(), str(library), '-Wl,-rpath,' + str(library.parent), '-o', str(binary)]
     built = subprocess.run(command, env=env, capture_output=True, text=True)

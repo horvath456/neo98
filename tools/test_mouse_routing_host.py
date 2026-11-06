@@ -68,7 +68,7 @@ def main():
 
     drive_c = out / 'drive-c'
     shutil.rmtree(drive_c, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
     shots = {name: out / f'{name}.ppm' for name in ('before', 'band', 'dialog', 'clock')}
     for path in shots.values():
         path.unlink(missing_ok=True)

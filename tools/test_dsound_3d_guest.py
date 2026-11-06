@@ -120,7 +120,7 @@ tree = ast.parse((RUN / 'tools/native_app.py').read_text())
 names = next(ast.literal_eval(n.value) for n in ast.walk(tree)
              if isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'sources'
                                                   for t in n.targets))
-objects = [OBJECTS / (n + '.cpp.o') for n in names] + [OBJECTS / 'fiber_aarch64.S.o']
+objects = [OBJECTS / (n + '.cpp.o') for n in names] + [OBJECTS / ('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
 for name in (['sound_mixer', 'x86_wave_out', 'x86_dsound_vxd'] if args.rebuild_affected else []):
     run(name, ['clang++', *FLAGS, '-c', RUN / 'src' / (name + '.cpp'), '-o', OBJECTS / (name + '.cpp.o')])
 

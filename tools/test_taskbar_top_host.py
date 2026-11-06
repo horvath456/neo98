@@ -42,7 +42,7 @@ def main():
     shutil.rmtree(OUT, ignore_errors=True)
     OUT.mkdir(parents=True)
     drive_c = OUT / 'drive-c'
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
     (drive_c / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     shots = OUT / 'shots'
     shots.mkdir()

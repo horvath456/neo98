@@ -4,7 +4,7 @@
 """Original mouse-capture comparisons and sanitizer replay, with explicit output directory."""
 from pathlib import Path
 import argparse,hashlib,json,subprocess,sys
-P=Path(__file__).resolve();ROOT=next(p for p in P.parents if(p/'neo98.py').exists()and(p/'build/gdi-audit/USER.EXE').exists());sys.path.insert(0,str(ROOT));import neo98
+P=Path(__file__).resolve();ROOT=next((p for p in P.parents if(p/'neo98.py').exists()and(p/'build/gdi-audit/USER.EXE').exists()),None)or __import__('sys').exit('Run setup first: build/gdi-audit/USER.EXE is copied from the Windows 98 installation');sys.path.insert(0,str(ROOT));import neo98
 IMPORTS={'KERNEL32':{'ExitProcess':4,'Sleep':4,'GetCurrentThreadId':0},'USER32':{'RegisterClassA':4,'CreateWindowExA':48,'DefWindowProcA':16,'DestroyWindow':4,'IsWindow':4,'ShowWindow':8,'SetCapture':4,'GetCapture':0,'ReleaseCapture':0,'SendMessageA':16,'SetWindowTextA':8,'GetMessageA':16,'TranslateMessage':4,'DispatchMessageA':4,'PostMessageA':16,'CreatePopupMenu':0,'AppendMenuA':16,'TrackPopupMenu':28,'EndMenu':0,'DestroyMenu':4}}
 def test(source_root,out):
  source_root=Path(source_root).resolve();out=Path(out).resolve();out.mkdir(parents=True,exist_ok=True);env=neo98.tool_environment();env['UBSAN_OPTIONS']='halt_on_error=1:print_stacktrace=1'

@@ -64,10 +64,12 @@ def generated_assets(name, regenerate, message, headers=()):
 def analysis_python():
     environment = BUILD / "analysis-venv"
     python = environment / "bin/python"
-    probe = subprocess.run([str(python), "-c", "import pefile, unicorn, capstone"],
+    probe = subprocess.run([str(python), "-c", "import pefile, unicorn, capstone, PIL"],
                            capture_output=True) if python.exists() else None
     if not probe or probe.returncode:
-        venv.EnvBuilder(with_pip=True).create(environment)
+        # An existing environment only gets the packages it lacks.
+        if not python.exists():
+            venv.EnvBuilder(with_pip=True).create(environment)
         subprocess.run([str(python), "-m", "pip", "install", "--no-cache-dir",
                         "-r", str(ROOT / "tools/requirements.txt")], check=True)
     return python

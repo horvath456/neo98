@@ -36,6 +36,8 @@ def build_probe(out):
     flags = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', '-pthread', f'-DNEO98_DOSBOX_CORE="{core}"']
     subprocess.run(['clang++', *flags, str(ROOT / 'tools/probe_dosbox_pure.cpp'),
                     str(ROOT / 'tools/host_dos_vm.cpp'), str(ROOT / 'src/dos_vm.cpp'), str(ROOT / 'src/sound_synth.cpp'),
+                    str(ROOT / 'src/sound_microphone.cpp'), str(ROOT / 'src/sound_mixer.cpp'),
+                    str(ROOT / 'src/pc_speaker.cpp'),
                     '-o', str(binary)], check=True, env=neo98.tool_environment(), cwd=ROOT)
     return binary, core
 

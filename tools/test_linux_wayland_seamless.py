@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import time
 from PIL import Image, ImageChops
 from native_app import ROOT
@@ -13,7 +14,9 @@ import win98_c
 
 
 def main():
-    assert os.environ.get('WAYLAND_DISPLAY'), 'Run in a Wayland session'
+    if not os.environ.get('WAYLAND_DISPLAY'):
+        print('SKIP: run this test inside a Wayland session')
+        return 77
     source = win98_c.use_pristine()
     out = ROOT / 'build/native-linux/wayland-seamless'
     out.mkdir(parents=True, exist_ok=True)
@@ -77,4 +80,4 @@ def main():
     print('LINUX WAYLAND SEAMLESS PASS: input, occlusion, popup, Windows state, resize, toggle, no X11')
 
 
-if __name__=='__main__': main()
+if __name__=='__main__': sys.exit(main())

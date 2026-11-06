@@ -138,7 +138,7 @@ def main():
         def stage(settings):
             work = settings / 'setup' / installed.name
             work.mkdir(parents=True)
-            subprocess.run(['cp', '-c', str(installed / 'disk.raw'), str(work / 'disk.raw')], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), str(installed / 'disk.raw'), str(work / 'disk.raw')], check=True)
             (work / 'state.json').write_text(json.dumps({'iso_sha256': record['iso']['sha256'],
                                                          'status': 'complete'}) + '\n')
             return work

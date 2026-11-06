@@ -40,7 +40,7 @@ def main():
         binary = build_host()
     pristine = win98_c.use_pristine()
     drive_c = out / 'drive-c'
-    subprocess.run(['cp', '-c', '-R', str(pristine) + '/', str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine) + '/', str(drive_c)], check=True)
     (drive_c / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     arm64_sdk.build([ROOT / 'tools/arm64_restart_fixture.c'], drive_c / 'RESTART.EXE', gui=False)
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_SETTINGS_DIR=str(out / 'settings'))

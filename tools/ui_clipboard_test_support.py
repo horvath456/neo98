@@ -19,7 +19,7 @@ def serial():
     with open(lock_path, 'a') as lock:
         print('Waiting for the shared test lock', flush=True)
         fcntl.flock(lock, fcntl.LOCK_EX)
-        subprocess.run(['df', '-h', '/System/Volumes/Data'], check=True)
+        subprocess.run(['df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/')], check=True)
         if shutil.disk_usage(ROOT).free < 8 * 1024**3:
             raise RuntimeError('STOP: fewer than 8 GiB free')
         active = subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True, text=True)
@@ -55,7 +55,7 @@ def machine(out):
     if drive.exists():
         raise RuntimeError('Remove the previous private machine before retrying: ' + str(drive))
     source = (ROOT / 'build/win98-c').resolve()
-    subprocess.run(['cp', '-cR', str(source), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(drive)], check=True)
     shutil.copyfile(ROOT / 'build/win98-c.registry', out / 'c.registry')
     try:
         yield drive

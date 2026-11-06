@@ -58,7 +58,7 @@ def test(source_root=ROOT, build=True):
     if build:
         result = subprocess.run(['clang++', '-std=c++17', '-O1', '-g',
                                  '-fsanitize=address,undefined', str(source),
-                                 str(source_root / 'src/fiber_aarch64.S'),
+                                 str(source_root / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),
                                  *[str(source_root / 'src' / f'{s}.cpp') for s in sources],
                                  *_engine_link_extra(), str(library), '-Wl,-rpath,' + str(library.parent),
                                  '-o', str(binary)], env=env, capture_output=True, text=True)

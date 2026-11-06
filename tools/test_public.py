@@ -40,13 +40,22 @@ import neo98  # noqa: E402
 
 EXPECTATIONS = TOOLS / 'public_tests.json'
 WINDOWS_DATA = 'Runtime objects need generated Windows data'
+PRIVATE_TOOLS = 'needs internal comparison tools unavailable in the public release'
 # The runner itself, and tests that boot a kernel in QEMU.
-EXCLUDED = {'test_public.py', 'test_explorer_ui.py'}
+EXCLUDED = {'test_public.py', 'test_explorer_ui.py',
+            # The stand-in Kodi server the media tests start; it serves until told to quit.
+            'test_kodi_server.py'}
 # Tests whose required --source is the Windows folder itself.
-NEEDS_FOLDER = {'test_release_data_host.py', 'test_seamless_exposure_host.py', 'test_release_smoke.py'}
+NEEDS_FOLDER = {'test_release_data_host.py', 'test_seamless_exposure_host.py', 'test_release_smoke.py',
+                'test_release_serialui_enum.py'}
 # Drive C: itself, or headers and assets generated from its files.
+# The copies setup takes out of the Windows installation: a test that finds
+# one missing needs Windows, as one without build/generated does.
+from setup_win98 import CACHES as WINDOWS_CACHES  # noqa: E402
 NEEDS_WINDOWS = re.compile(r'No Windows 98 installation at|Run setup first|'
                            r"build/generated/[\w./-]+'? file not found|"
+                           r"No such file or directory: '[^']*/build/(?:" +
+                           '|'.join(re.escape(c) for c in WINDOWS_CACHES) + r")(?:/|')|"
                            r'Runtime objects need generated Windows data|Could not open drive C:', re.I)
 
 
@@ -76,6 +85,16 @@ def arguments_for(script, objects, out_root):
     if "'--rebuild-affected'" in text:
         arguments += ['--rebuild-affected']
     return arguments
+
+
+def compiles_runtime(text):
+    """The test builds the runtime from src/ itself, as native_app does."""
+    return ('native_app.py' in text or 'native_app.sources' in text or
+            re.search(r"""ROOT ?/ ?['"]src['"/]|/ ?['"]src['"] ?/""", text) is not None)
+
+
+def compiler_failed(output):
+    return 'CalledProcessError' in output and 'clang' in output
 
 
 def run(python, script, objects, out_root, timeout, no_windows):
@@ -126,9 +145,15 @@ def run(python, script, objects, out_root, timeout, no_windows):
     log.write_text(output)
     if code == 0:
         status = 'PASS'
-    elif code == 77:
+    elif code == 77 or PRIVATE_TOOLS in output:
+        # 77: the test skipped itself; the other needs the generators that
+        # stay in the private repository (neo98.generated_assets).
         status = 'SKIP'
-    elif NEEDS_WINDOWS.search(output) or script.name in NEEDS_FOLDER:
+    elif NEEDS_WINDOWS.search(output) or script.name in NEEDS_FOLDER or str(no_windows) in output:
+        status = 'NEEDS-WIN98'
+    elif objects == WINDOWS_DATA and compiles_runtime(text) and compiler_failed(output):
+        # The test compiles the runtime sources itself; their headers
+        # generated from Windows are missing, and its log holds the details.
         status = 'NEEDS-WIN98'
     else:
         status = 'FAIL'

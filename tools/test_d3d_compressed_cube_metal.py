@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """DXT cube upload under Metal validation and sanitizers. Use serial.py."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: Metal exists on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 from pathlib import Path
 import argparse,os,subprocess,sys
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))

@@ -23,7 +23,7 @@ def main():
     out = args.out.resolve(); out.mkdir(parents=True, exist_ok=True)
     drive = out / 'c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-cR', str(win98_c.use_pristine()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.use_pristine()), str(drive)], check=True)
     command = [str(args.host.resolve()), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
         '--system-tree', str(drive), '--drive-c', str(drive), '--cdrom', str(args.iso.resolve()),
         '--exe', r'D:\Setup\rsrc\demo32.exe', '--command', r'D:\Setup\rsrc\demo32.exe -q Doom3.dbd',

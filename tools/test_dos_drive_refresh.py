@@ -24,6 +24,8 @@ binary = out / 'test-dos-drive-refresh'
 flags = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', '-pthread', f'-DNEO98_DOSBOX_CORE="{core}"']
 subprocess.run(['clang++', *flags, str(ROOT / 'tools/test_dos_drive_refresh.cpp'),
                 str(ROOT / 'tools/host_dos_vm.cpp'), str(ROOT / 'src/dos_vm.cpp'), str(ROOT / 'src/sound_synth.cpp'),
+                    str(ROOT / 'src/sound_microphone.cpp'), str(ROOT / 'src/sound_mixer.cpp'),
+                    str(ROOT / 'src/pc_speaker.cpp'),
                 '-o', str(binary)], check=True, env=neo98.tool_environment(), cwd=ROOT)
 result = subprocess.run([str(binary), str(first), str(second)], cwd=ROOT, capture_output=True, text=True, timeout=90)
 (out / 'native.log').write_text(result.stdout + result.stderr)

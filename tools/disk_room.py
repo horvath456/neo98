@@ -13,12 +13,13 @@ keep it (--keep).
 from __future__ import annotations
 
 import shutil
+import sys
 from pathlib import Path
 
 LOG_CAP = 4 << 20
 
 
-def free_gib(path='/System/Volumes/Data'):
+def free_gib(path='/System/Volumes/Data' if sys.platform == 'darwin' else '/'):
     try:
         return shutil.disk_usage(path).free / (1 << 30)
     except OSError:

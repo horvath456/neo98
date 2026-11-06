@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """a foreign window locks DirectDraw during mode-change repositioning."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import hashlib
 import json
 import os
@@ -39,7 +44,7 @@ def main():
             raise SystemExit('STOP: fewer than 6 GiB free')
         private = out / ('c-'+cpu)
         if private.exists(): shutil.rmtree(private)
-        subprocess.run(['cp', '-cR', str(Path(os.environ.get('NEO98_WIN98_ROOT') or ROOT/'build/win98-c').resolve()), str(private)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(Path(os.environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c')).resolve()), str(private)], check=True)
         shutil.copyfile(program, private/'DDREPOS.EXE')
         with (out/(cpu+'.log')).open('w') as log:
             p = subprocess.Popen([host, '-', ROOT/'build/generated/notepad-fixedsys.fnt',

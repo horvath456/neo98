@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Exercise the Device Manager SERIALUI page provider on private drive copies."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 import os
 from pathlib import Path
 import shutil
 import subprocess
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(1, str(Path(__file__).resolve().parent))
 import neo98
 from test_release_smoke import run, ROOT
 
@@ -48,7 +56,7 @@ def main():
         case.mkdir(exist_ok=True)
         drive = case / 'c'
         if drive.exists(): raise RuntimeError('Private drive already exists')
-        subprocess.run(['cp','-c','-R',str(args.source.resolve()),str(drive)],check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(args.source.resolve()),str(drive)],check=True)
         try:
             env = dict(os.environ, NEO98_CPU=engine, SDL_AUDIODRIVER='dummy', SDL_VIDEODRIVER='dummy',
                 NEO98_SETTINGS_DIR=str(case/'settings'), NEO98_LOG_TO_FILE='0', NEO98_HOST_DEADLINE='60',

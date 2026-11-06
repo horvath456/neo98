@@ -68,7 +68,7 @@ run('fixture-link', ['lld-link', '/entry:mainCRTStartup', '/subsystem:console', 
 tree = ast.parse((ROOT / 'tools/native_app.py').read_text())
 names = next(ast.literal_eval(n.value) for n in ast.walk(tree)
              if isinstance(n, ast.Assign) and any(getattr(t, 'id', '') == 'sources' for t in n.targets))
-objects = compile_objects(RUN, [RUN / 'src/fiber_aarch64.S', *[RUN / 'src' / (s + '.cpp') for s in names]],
+objects = compile_objects(RUN, [RUN / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'), *[RUN / 'src' / (s + '.cpp') for s in names]],
                           FLAGS, env, ROOT / 'build/native-app/object-cache')
 package = Path(subprocess.check_output([str(neo98.analysis_python()), '-c',
                                         'import unicorn; print(unicorn.__file__)'], text=True).strip()).parent

@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """alpha comparisons with fixed function and PS 1/2. Use serial.py."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: Metal exists on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 from pathlib import Path
 import argparse
 import subprocess

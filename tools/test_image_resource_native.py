@@ -32,7 +32,7 @@ def test(source_root=ROOT):
   cached = dict(zip(['fiber_aarch64'] + all_sources, runtime_objects()))
   units = [str(cached['fiber_aarch64']), *[str(cached[s]) for s in sources]]
  else:
-  units = [str(source_root/'src/fiber_aarch64.S'), *[str(source_root/'src'/f'{s}.cpp') for s in sources]]
+  units = [str(source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')), *[str(source_root/'src'/f'{s}.cpp') for s in sources]]
  compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined',str(source),*units,*_engine_link_extra(), str(library),'-Wl,-rpath,'+str(library.parent),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
  if compiled.returncode:print(compiled.stdout+compiled.stderr)
  compiled.check_returncode()

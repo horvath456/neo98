@@ -6,6 +6,11 @@
 The bound is on emulated accesses, not elapsed time. Also checks every load
 and store result. Run through the shared serial.py test lock.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the Unicorn, FEX and ARM64 engines run on macOS only; Linux runs x86 code natively')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import os
 from pathlib import Path
 import re

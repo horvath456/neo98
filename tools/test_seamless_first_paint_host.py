@@ -61,7 +61,7 @@ def main():
     for name, grace in (('default', None), ('grace-1000', '1000')):
         drive = out / 'drive-c'
         shutil.rmtree(drive, ignore_errors=True)
-        subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
         early, late = out / f'{name}-early.pgm', out / f'{name}-late.pgm'
         steps = ['0:wait=|slow', f'1.5:mask={early}', '1.5:wait=|slow painted', '2:idle=300', f'2:mask={late}',
                  '2.5:menu=quit']

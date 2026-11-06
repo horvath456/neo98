@@ -15,7 +15,8 @@ int main(int argc,char **argv)
     auto charging=PowerStatus(SDL_POWERSTATE_CHARGING,99,70);assert(charging.ac==1&&charging.flags==9&&charging.seconds==~0u);
     auto normal=PowerStatus(SDL_POWERSTATE_ON_BATTERY,-1,50);assert(normal.flags==0&&normal.seconds==~0u);
     char text[5];Text(text,"ab\xc3\xa4z");assert(!strcmp(text,"ab\xc3\xa4"));Text(text,"abc\xc3\xa4");assert(!strcmp(text,"abc"));
-    auto platform=MakePlatform();AH_Status status{};std::map<unsigned,Medium> media;
+    // Exposing Wi-Fi is opt-in (the host's --wifi); this test exercises it.
+    auto platform=MakePlatform();platform->wifi=true;AH_Status status{};std::map<unsigned,Medium> media;
     auto refresh=[&]{status={};media.clear();platform->Refresh(status,media);};refresh();
     assert(status.features&AH_WIFI);assert(status.features&AH_MEDIA);assert(status.wifi_on&&status.wifi_connected);
     assert(!strcmp(status.wifi_name,"NEO98 Active"));assert(status.networks==6&&status.media==1&&media.size()==1);

@@ -54,10 +54,10 @@ def clone_machine(machine):
     pristine = win98_c.use_pristine()
     shutil.rmtree(machine, ignore_errors=True)
     machine.mkdir(parents=True)
-    subprocess.run(['cp', '-c', '-R', str(pristine) + '/', str(machine / 'C')], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine) + '/', str(machine / 'C')], check=True)
     (machine / 'C' / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     if win98_c.journal(pristine).is_file():
-        subprocess.run(['cp', '-c', str(win98_c.journal(pristine)), str(machine / 'C.registry')], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), str(win98_c.journal(pristine)), str(machine / 'C.registry')], check=True)
     return machine
 
 

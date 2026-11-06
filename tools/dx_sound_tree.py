@@ -109,7 +109,7 @@ def tree(name):
         subprocess.run(['chmod', '-R', 'u+w', str(target)], check=True)
         shutil.rmtree(target)
     target.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(['cp', '-c', '-R', str(Path(base).resolve()), str(target)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(Path(base).resolve()), str(target)], check=True)
     scratch = target.parent / 'files'
     shutil.rmtree(scratch, ignore_errors=True)
     subprocess.run(['cabextract', '-q', '-d', str(scratch), '-F', '*sound*', str(source)], check=True)

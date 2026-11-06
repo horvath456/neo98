@@ -8,6 +8,12 @@ terminate DDHELP after its stale DDRAW callback; the next client must still work
 See the development history for the original-system trace.
 No Doom files are needed. This uses the already-built host.
 """
+if __name__ == '__main__':
+    import shutil as _shutil, sys as _sys
+    _missing = [_t for _t in ['i686-w64-mingw32-gcc'] if not _shutil.which(_t)]
+    if _missing:  # this test builds its fixture with them; docs/BUILDING.md
+        print('SKIP: needs ' + ', '.join(_missing))
+        _sys.exit(77)
 import argparse
 from pathlib import Path
 import re

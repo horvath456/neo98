@@ -51,7 +51,7 @@ def main():
             if case.exists(): shutil.rmtree(case)
             case.mkdir()
             drive = case / 'c'
-            subprocess.run(['cp', '-c', '-R', str(args.source.resolve()), str(drive)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(args.source.resolve()), str(drive)], check=True)
             assert drive.is_dir() and not drive.is_symlink()
             home = case / 'home'; home.mkdir()
             legacy = bytes((65, 82, 77, 57, 56)).decode()

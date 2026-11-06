@@ -87,7 +87,7 @@ def main():
     for path in (drive_c, drive_d):
         shutil.rmtree(path, ignore_errors=True)
     registry.unlink(missing_ok=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
     drive_d.mkdir()
     shutil.copy(exe, drive_d / 'RECYCLE.EXE')
     shot = out / 'confirm.ppm'

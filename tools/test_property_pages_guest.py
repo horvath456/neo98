@@ -28,7 +28,7 @@ for dll,entries in imports.items():
  d=GUEST/(dll+'.def');l=GUEST/(dll+'.lib');d.write_text('LIBRARY '+dll+'.DLL\nEXPORTS\n'+''.join(f'{n}@{b}\n'for n,b in entries.items()));run(dll,['llvm-dlltool','-m','i386','-k','-d',d,'-l',l]);libs.append(l)
 run('fixture',['clang','--target=i686-pc-windows-msvc','-O1','-ffreestanding','-fno-builtin','-fno-stack-protector','-DPROPERTY_PAGES_STANDALONE','-c',RUN/'tools/property_pages_fixture.c','-o',GUEST/'fixture.obj'])
 exe=GUEST/'PROPPAGE.EXE';run('fixture-link',['lld-link','/entry:mainCRTStartup','/subsystem:console','/timestamp:0','/nodefaultlib','/machine:x86','/out:'+str(exe),GUEST/'fixture.obj',*libs])
-tree=ast.parse((RUN/'tools/native_app.py').read_text());names=next(ast.literal_eval(n.value)for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));objects=[OBJECTS/(n+'.cpp.o')for n in names]+[OBJECTS/'fiber_aarch64.S.o']
+tree=ast.parse((RUN/'tools/native_app.py').read_text());names=next(ast.literal_eval(n.value)for n in ast.walk(tree)if isinstance(n,ast.Assign)and any(isinstance(t,ast.Name)and t.id=='sources'for t in n.targets));objects=[OBJECTS/(n+'.cpp.o')for n in names]+[OBJECTS/('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
 local_objects=OUT/'objects';local_objects.mkdir(exist_ok=True)
 if args.rebuild_affected:
  for n in ['x86_common','x86_app']:

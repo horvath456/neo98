@@ -63,9 +63,9 @@ def main():
         binary = build_host()
     drive = out / 'drive-c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     (drive / 'GAMES').mkdir(exist_ok=True)
-    subprocess.run(['cp', '-c', '-R', str(GAME), str(drive / 'GAMES/LOEWE')], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(GAME), str(drive / 'GAMES/LOEWE')], check=True)
     settings = out / 'settings'
     settings.mkdir(exist_ok=True)
     (settings / 'settings.ini').write_text('scale = 1\nseamless = 1\n')

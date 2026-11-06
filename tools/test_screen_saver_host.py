@@ -67,7 +67,7 @@ def main():
         libs.append(str(library))
     drive_c = out / 'drive-c'
     shutil.rmtree(drive_c, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str((ROOT / 'build/win98-c').resolve()), str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()), str(drive_c)], check=True)
     subprocess.run(['lld-link', '/entry:mainCRTStartup', '/subsystem:windows', '/timestamp:0', '/nodefaultlib',
                     '/machine:x86', '/out:' + str(drive_c / 'SAVERTST.EXE'), str(out / 'fixture.obj'), *libs],
                    env=env, check=True)

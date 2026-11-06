@@ -35,7 +35,7 @@ def main():
     out = neo98.output_directory('start-menu-mnemonic-host')
     drive_c = out / 'drive-c'
     shutil.rmtree(drive_c, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
     registry = out / 'session.registry'
     shutil.copyfile(win98_c.journal(win98_c.FOLDER), registry)
     menu_shot, run_shot = out / 'menu.ppm', out / 'run.ppm'

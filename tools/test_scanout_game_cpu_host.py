@@ -17,8 +17,8 @@ def main():
  out=ROOT/'build/scanout-game-cpu-host'/a.name;out.mkdir(parents=True,exist_ok=True)
  private=out/'c'
  if private.exists():shutil.rmtree(private)
- subprocess.run(['cp','-cR',str((ROOT/'build/win98-c').resolve()),str(private)],check=True)
- subprocess.run(['cp','-cR',str(source),str(private/'AC')],check=True)
+ subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()),str(private)],check=True)
+ subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(source),str(private/'AC')],check=True)
  (private/'AC/settings.ini').write_text('[Audio]\nmaster_volume = 0\n')
  try:
   if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:__import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')

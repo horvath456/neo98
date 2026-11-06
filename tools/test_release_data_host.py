@@ -32,7 +32,7 @@ def main():
         case = out / engine; case.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='machine-', dir=case) as temporary:
             drive = Path(temporary) / 'c'
-            subprocess.run(['cp', '-c', '-R', str(args.source.resolve()), str(drive)], check=True)
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(args.source.resolve()), str(drive)], check=True)
             assert not drive.is_symlink()
             env = dict(os.environ, NEO98_CPU=engine, SDL_AUDIODRIVER='dummy', SDL_VIDEODRIVER='dummy',
                        NEO98_HOST_PASTEBOARD='unique', NEO98_SETTINGS_DIR=str(case/'settings'),

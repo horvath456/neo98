@@ -24,6 +24,10 @@ def image(imports=(), delay=(), exports=()):
 
 class InventoryTest(unittest.TestCase):
     def test_complete_graph(self):
+        # LCMapStringW is a failure contract of the tables generated from
+        # Windows 98; without them it is an ordinary gap.
+        if not any(scanner.ROOT.glob('build/generated/*unsupported.h')):
+            self.skipTest('needs build/generated/*unsupported.h, generated from Windows 98')
         with TemporaryDirectory() as tmp:
             root=Path(tmp)
             images={

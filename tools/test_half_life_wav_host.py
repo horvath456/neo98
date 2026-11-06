@@ -33,7 +33,7 @@ def main():
         folder.mkdir(exist_ok=True)
         drive = folder / 'c'
         shutil.rmtree(drive, ignore_errors=True)
-        subprocess.run(['cp', '-cR', str(args.windows.resolve()), str(drive)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(args.windows.resolve()), str(drive)], check=True)
         journal = folder / 'c.registry'
         shutil.copyfile(args.registry, journal)
         steps = ['0:wait=Shell_TrayWnd', '2:guestopen=D:\\Setup.exe', '2:wait=|Half-Life Setup']

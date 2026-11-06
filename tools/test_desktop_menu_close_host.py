@@ -75,10 +75,10 @@ def main():
         raise SystemExit('STOP: fewer than 8 GiB free')
     out = ROOT / 'build/fix-desktop-menu-scratch' / args.label
     out.mkdir(parents=True, exist_ok=True)
-    source = (ROOT / 'build/win98-c').resolve() if args.user_tree else win98_c.use_pristine().resolve()
+    source = (__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve() if args.user_tree else win98_c.use_pristine().resolve()
     drive = out / 'drive-c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(source), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(drive)], check=True)
     registry = out / 'session.registry'
     shutil.copyfile(win98_c.journal(source), registry)
     if not args.wallpaper:

@@ -125,7 +125,7 @@ def clone(target):
     target.mkdir(parents=True, exist_ok=True)
     copy_drive, copy_registry = target / 'drive-c', target / 'session.registry'
     shutil.rmtree(copy_drive, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(drive), str(copy_drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(drive), str(copy_drive)], check=True)
     shutil.copyfile(registry, copy_registry)
     return copy_drive, copy_registry
 

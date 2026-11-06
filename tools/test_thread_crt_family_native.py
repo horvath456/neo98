@@ -63,12 +63,12 @@ def main():
     library=package/'lib'/('libunicorn.2.dylib' if sys.platform=='darwin' else 'libunicorn.so.2')
     binary=OUT/'test-thread-crt-family-native'
     execute(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-omit-frame-pointer',
-             source/'tools/test_thread_crt_family_native.cpp',source/'src/fiber_aarch64.S',
+             source/'tools/test_thread_crt_family_native.cpp',source/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'),
              *[source/'src'/f'{name}.cpp'for name in sources],*_engine_link_extra(), library,'-Wl,-rpath,'+str(library.parent),
              '-o',binary],'native-build.log')
     fiber=OUT/'test-fiber-alloc'
     execute(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined','-fno-omit-frame-pointer',
-             source/'tools/test_fiber_alloc.cpp',source/'src/fiber_aarch64.S','-o',fiber],'fiber-build.log')
+             source/'tools/test_fiber_alloc.cpp',source/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S'),'-o',fiber],'fiber-build.log')
     print(execute([fiber],'fiber-test.log'),end='')
     result=execute([binary,executable,ROOT/'build/generated/notepad-fixedsys.fnt'],'native-test.log')
     print(result,end='');assert 'THREAD CRT FAMILY NATIVE PASS' in result

@@ -103,13 +103,13 @@ def registered_key(journal):
 
 def clone(source, target, journal):
     check_space()
-    subprocess.run(['cp', '-c', '-R', str(source.resolve()), str(target)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source.resolve()), str(target)], check=True)
     if journal.is_file():
         shutil.copyfile(journal, Path(str(target) + '.registry'))
 
 
 def check_space():
-    if shutil.disk_usage('/System/Volumes/Data').free < 6 * 1024**3:
+    if shutil.disk_usage('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/').free < 6 * 1024**3:
         raise RuntimeError('STOP: fewer than 6 GiB free')
 
 

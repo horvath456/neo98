@@ -473,7 +473,7 @@ def build_dmg(build=True, app=None, target=DMG):
     shutil.rmtree(stage, ignore_errors=True)
     stage.mkdir(parents=True)
     try:
-        subprocess.run(['cp', '-c', '-R', str(app), str(stage / 'Neo98.app')], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(app), str(stage / 'Neo98.app')], check=True)
         os.symlink('/Applications', stage / 'Applications')
         target.unlink(missing_ok=True)
         subprocess.run(['hdiutil', 'create', '-quiet', '-volname', 'Neo98', '-srcfolder', str(stage),

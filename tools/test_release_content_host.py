@@ -34,7 +34,7 @@ def main():
     drive = out / 'C'
     shutil.rmtree(drive, ignore_errors=True)
     source = win98_c.use_pristine()
-    subprocess.run(['cp', '-c', '-R', str(source), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(drive)], check=True)
     registry = out / 'session.registry'
     shutil.copyfile(win98_c.journal(source), registry)
     (out / 'find.ppm').unlink(missing_ok=True)

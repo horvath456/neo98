@@ -30,8 +30,8 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     drive = out / 'c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-cR', str(win98_c.use_pristine()), str(drive)], check=True)
-    subprocess.run(['cp', '-cR', str(args.game.resolve()), str(drive / 'HALFLIFE')], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.use_pristine()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(args.game.resolve()), str(drive / 'HALFLIFE')], check=True)
     steps = ['0:wait=#32770', f'3:shot={out}/dialog.ppm', '4:move=500,375',
              f'6:shot={out}/hover.ppm', '7:down=500,375', '7.3:up=500,375']
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',

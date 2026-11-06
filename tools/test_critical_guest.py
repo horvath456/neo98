@@ -66,7 +66,7 @@ def main():
     run('fixture-link', ['lld-link', '/entry:mainCRTStartup', '/subsystem:console', '/timestamp:0',
                          '/nodefaultlib', '/machine:x86', '/out:' + str(exe), obj, *libraries], env)
     objects = Path(native_app.object_directory())
-    names = ['fiber_aarch64.S'] + [n + '.cpp' for n in native_app.sources]
+    names = [('fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S')] + [n + '.cpp' for n in native_app.sources]
     library = native_app.unicorn_library()
     binary = OUT / 'test-critical-guest'
     run('runner-link', ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',

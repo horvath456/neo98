@@ -54,7 +54,7 @@ def main():
     pristine = win98_c.use_pristine()
     drive_c = out / 'drive-c'
     shutil.rmtree(drive_c, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(pristine) + '/', str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine) + '/', str(drive_c)], check=True)
     (drive_c / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     arm64_sdk.build([ROOT / 'tools/pause_arm64_fixture.c'], drive_c / 'APAUSE.EXE', gui=True)
     steps = ['0:wait=|APause ready', '1:pause=1', f'{1 + PAUSE}:pause=0', '5.2:wait=|APause done', '5.5:menu=quit']

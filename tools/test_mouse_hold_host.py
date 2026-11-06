@@ -102,7 +102,7 @@ def main():
     results = {}
     for name, extra in (('window', []), ('seamless', ['--seamless'])):
         drive = out / 'drive-c'
-        subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
         command = [str(binary), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree',
                    '--exe', str(exe), '--quiet', '--drive-c', str(drive), '--no-registry-file',
                    '--crash-report-dir', str(out / 'reports'), *extra]

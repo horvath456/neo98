@@ -62,7 +62,7 @@ def main():
     if '--no-build' not in sys.argv:
         binary = build_host()
     drive, settings = out / 'drive-c', out / 'settings'
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     steps = ['0:wait=|screen 1100x700', '0:idle=500', '0:windows=1',
              # The guest minimizes B; the Dock click restores it.
              '0:key=4e', '0:wait=|B minimized', '0:idle=500', '0:windows=1', '0:menu=describe',
@@ -153,7 +153,7 @@ def main():
     # activations in a row, as a loop between the helpers and the host would
     # make them: after five reports within eight seconds the helper says
     # "storm" and reports nothing more.
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     env['NEO98_HOST_INPUT'] = ';'.join(['0:wait=|screen 1100x700', '0:idle=500', '14:windows=1', '15:menu=quit'])
     env['NEO98_DOCK_HELPER_SCRIPT'] = ('2:activate;2.3:reopen;4:reopen;4.2:activate;5.2:activate;6.4:activate;'
                                        '7.6:activate;8.8:activate;10:activate;11.2:reopen')
@@ -171,7 +171,7 @@ def main():
     # The taskbar of the guest, shown in the seamless view: the button of a
     # minimized window brings it back.
     if '--no-explorer' not in sys.argv:
-        subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
         steps = ['0:wait=Shell_TrayWnd', '0:idle=3000', f'0:open={drive / "WINDOWS/CALC.EXE"}', '0:wait=|Calculator',
                  '2:windows=1', '3:menu=minimize', '5:windows=1', f'5:shot={out / "taskbar.ppm"}',
                  # The button "Calculator" on the taskbar (after "Welcome to Windows 98").

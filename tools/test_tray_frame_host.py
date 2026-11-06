@@ -48,7 +48,7 @@ def main():
         drive_c, shot = out / f'drive-c-{name}', out / f'{name}.ppm'
         shutil.rmtree(drive_c, ignore_errors=True)
         shot.unlink(missing_ok=True)
-        subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
         steps = ['0:wait=Shell_TrayWnd', '1:idle=1500', f'3:shot={shot}', '3.2:menu=quit']
         env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
                    NEO98_HOST_INPUT=';'.join(steps), NEO98_HOST_DEADLINE='240')

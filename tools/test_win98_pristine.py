@@ -79,7 +79,7 @@ def part_scratch():
     OUT.mkdir(parents=True)
     live = OUT / 'c'
     source = win98_c.pristine_folder(win98_c.live_folder())
-    subprocess.run(['cp', '-c', '-R', str(source) + '/', str(live)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source) + '/', str(live)], check=True)
     shutil.copyfile(win98_c.journal(source), win98_c.journal(live))
     target = win98_c.snapshot_pristine(live)
     check('snapshot_pristine clones folder and journal', target == OUT / 'c.setup'

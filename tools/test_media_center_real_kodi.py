@@ -114,7 +114,8 @@ def main():
     args = parser.parse_args()
     program = kodi_program()
     if not program:
-        raise SystemExit('No Kodi on this computer.')
+        print('SKIP: no Kodi on this computer')
+        return 77
     if any(listening(p) for p in (RPC, HELPER)):
         raise SystemExit(f'Port {RPC} or {HELPER} is taken: is a test Kodi still running?')
     if not args.no_build:
@@ -162,7 +163,7 @@ def main():
         # A C: of its own, so the run never goes to the user's running NEO98.
         pristine = win98_c.use_pristine()
         own = run / 'c'
-        subprocess.run(['cp', '-c', '-R', str(pristine), str(own)] if sys.platform == 'darwin' else ['cp', '-a', '--reflink=auto', str(pristine), str(own)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine), str(own)] if sys.platform == 'darwin' else ['cp', '-a', '--reflink=auto', str(pristine), str(own)], check=True)
         shutil.copy(win98_c.journal(pristine), str(own) + '.registry')
         line = [str(ROOT / 'build/native-app/neo98-host')]
         if sys.platform == 'darwin':
@@ -201,4 +202,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

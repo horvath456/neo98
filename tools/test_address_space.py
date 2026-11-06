@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Test CpuBackend::None and transfer of its address space to Unicorn. Build tools/test_address_space.cpp with AddressSanitizer and UndefinedBehaviorSanitizer, then run it."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the Unicorn, FEX and ARM64 engines run on macOS only; Linux runs x86 code natively')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import subprocess
 import sys
 from pathlib import Path

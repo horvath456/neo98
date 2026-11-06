@@ -4,7 +4,7 @@
 """Original window-parent comparisons and sanitizer replay, with explicit output directory."""
 from pathlib import Path
 import argparse,hashlib,json,subprocess,sys
-P=Path(__file__).resolve();ROOT=next(p for p in P.parents if(p/'neo98.py').exists()and(p/'build/gdi-audit/USER.EXE').exists());sys.path.insert(0,str(ROOT));import neo98
+P=Path(__file__).resolve();ROOT=next((p for p in P.parents if(p/'neo98.py').exists()and(p/'build/gdi-audit/USER.EXE').exists()),None)or __import__('sys').exit('Run setup first: build/gdi-audit/USER.EXE is copied from the Windows 98 installation');sys.path.insert(0,str(ROOT));import neo98
 IMPORTS={'KERNEL32':{'ExitProcess':4,'GetCurrentThreadId':0,'GetLastError':0,'Sleep':4},'USER32':{'RegisterClassA':4,'CreateWindowExA':48,'DefWindowProcA':16,'DestroyWindow':4,'IsWindow':4,'ShowWindow':8,'SetParent':8,'GetParent':4,'GetDesktopWindow':0,'BringWindowToTop':4,'GetTopWindow':4,'GetWindow':8,'GetWindowRect':8,'ScreenToClient':8,'GetWindowLongA':8,'SetWindowLongA':12,'SetActiveWindow':4,'GetActiveWindow':0,'SetWindowPos':28,'GetClientRect':8,'SetWindowsHookExA':16,'UnhookWindowsHookEx':4,'CallNextHookEx':16}}
 def test(source_root,out):
  source_root=Path(source_root).resolve();out=Path(out).resolve();out.mkdir(parents=True,exist_ok=True);env=neo98.tool_environment();env['UBSAN_OPTIONS']='halt_on_error=1:print_stacktrace=1'

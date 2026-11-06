@@ -68,7 +68,7 @@ def main():
     drive = out / 'c'
     if drive.exists():
         raise SystemExit(f'Previous private drive still exists: {drive}')
-    subprocess.run(['cp', '-c', '-R', str(args.source.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(args.source.resolve()), str(drive)], check=True)
     assert not drive.is_symlink() and drive.resolve() != args.source.resolve()
     shot = out / 'after.ppm'
     shot.unlink(missing_ok=True)

@@ -5,6 +5,11 @@
 Unicorn only: no Hypervisor.framework process is created. The completion
 routine is the same C++ header used by Cpu::Run. Run under serial.py.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: ARM64 code; runs on macOS ARM64 only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import ctypes
 from pathlib import Path
 import re

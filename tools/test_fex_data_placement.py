@@ -2,6 +2,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """learn accesses independently and retain page rights. Use serial.py."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the Unicorn, FEX and ARM64 engines run on macOS only; Linux runs x86 code natively')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import os
 from pathlib import Path
 import re

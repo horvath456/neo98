@@ -83,7 +83,7 @@ def run(binary, out, name, cd):
              f'choose={WIZARD}', 'pause=2', 'windows=1', 'menu=quit']
     drive = out / f'drive-c-{name}'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     settings = out / f'settings-{name}'
     shutil.rmtree(settings, ignore_errors=True)
     command = [str(binary), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree',

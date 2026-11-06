@@ -84,7 +84,7 @@ def tree():
     # build/win98-c is a symlink into the main tree; cp -R copies a symlink
     # operand as the link, and the DirectX files below then went into the
     # shared Win98 folder itself. Clone the folder it points to.
-    subprocess.run(["cp", "-c", "-R", str(win98_c.FOLDER.resolve()), str(TREE)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(TREE)], check=True)
     if TREE.is_symlink() or not TREE.is_dir():
         raise SystemExit(f"{TREE} is no copy of the Win98 folder; refusing to write DirectX files into it")
     system = win98_c.path("WINDOWS/SYSTEM", TREE)

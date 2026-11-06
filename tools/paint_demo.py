@@ -102,7 +102,7 @@ def main():
         tree = ast.parse((root / 'tools/native_app.py').read_text())
         names = next(ast.literal_eval(n.value) for n in ast.walk(tree) if isinstance(n, ast.Assign) and
                      any(isinstance(t, ast.Name) and t.id == 'sources' for t in n.targets))
-        objects = [objects_dir / (name + '.cpp.o') for name in names] + [objects_dir / 'fiber_aarch64.S.o']
+        objects = [objects_dir / (name + '.cpp.o') for name in names] + [objects_dir / ('fiber_x86_64.S.o' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S.o')]
         report['object_sha256'] = {str(p): sha(p) for p in objects}
         report['runtime_sha256'] = {str(p.relative_to(root)): sha(p) for p in sorted((root / 'src').iterdir())
                                     if p.suffix in ('.h', '.cpp', '.inc', '.S')}

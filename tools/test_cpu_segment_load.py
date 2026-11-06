@@ -9,6 +9,11 @@
 Builds tools/test_cpu_segment_load.cpp against the CPU layer (and FEXCore where
 native_app.process_engine says so) and runs it under that engine.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the Unicorn, FEX and ARM64 engines run on macOS only; Linux runs x86 code natively')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import os
 import subprocess
 import sys

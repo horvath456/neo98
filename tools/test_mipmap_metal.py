@@ -7,6 +7,11 @@
 
 
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: Metal exists on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import os
 import subprocess
 import sys

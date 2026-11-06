@@ -75,7 +75,12 @@ instead of failing. `tools/public_tests.json` lists the tests known to fail on
 each platform; the run fails only on other failures.
 
 Tests that start Windows programs need an installed Windows in
-`build/win98-c`. They work on a private copy of it and keep the sound off.
+`build/win98-c` (or the folder in `NEO98_WIN98_ROOT`). They work on a private
+copy of it and keep the sound off.
+
+A few tests build their Windows or DOS fixtures with the MinGW cross compiler
+(`i686-w64-mingw32-gcc`) or with `nasm`, and skip without them. On macOS:
+`brew install mingw-w64 nasm`; on Ubuntu: `sudo apt install gcc-mingw-w64-i686 nasm`.
 
 ## Checks before every commit
 

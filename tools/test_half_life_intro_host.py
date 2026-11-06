@@ -95,7 +95,7 @@ def main():
     drive, registry = out / 'c', out / 'c.registry'
     assert args.drive_c.resolve() != drive and args.registry.resolve() != registry
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-cR', str(args.drive_c.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(args.drive_c.resolve()), str(drive)], check=True)
     shutil.copyfile(args.registry, registry)
     samples = [4, 6, 8, 10, 12, 14, 16]
     steps = [f'{t}:shot={out}/frame-{t}.ppm' for t in samples + [20, 22, 34]] + ['35:menu=quit']

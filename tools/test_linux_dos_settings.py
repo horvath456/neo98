@@ -6,6 +6,9 @@ import os
 from pathlib import Path
 import subprocess
 import time
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(1, str(Path(__file__).resolve().parent))
 import neo98
 from native_app import ROOT
 from linux_x11_test import X11

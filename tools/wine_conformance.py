@@ -173,7 +173,7 @@ def clone(source, target):
         raise RuntimeError(f'Refusing to overwrite {target}')
     Path(target).parent.mkdir(parents=True, exist_ok=True)
     if sys.platform == 'darwin':
-        subprocess.run(['cp', '-cR', str(source), str(target)], check=True)
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(target)], check=True)
     elif Path(source).is_dir():
         shutil.copytree(source, target)
     else:
@@ -243,7 +243,7 @@ def group_executable(name):
             'cbt_activation_thread': 'KCBTTHR.EXE',
             'socket_interface': 'KSOCKIF.EXE',
             'show_paint': 'KSHOWPNT.EXE', 'max_position': 'KMAXPOS.EXE', 'show_order': 'KSHOWORD.EXE', 'show_focus': 'KSHOWFOC.EXE', 'create_position': 'KCPOS.EXE', 'create_minmax': 'KCMINMAX.EXE', 'bitmap_load': 'KBITLOAD.EXE', 'stretch_reduce': 'KSTRRED.EXE', 'stretch_axis': 'KSTRAXIS.EXE',
-            'button_messages': 'KBUTMSG.EXE', 'frame_paint': 'KFRMPNT.EXE'}.get(name, 'K' + name.upper()[:7] + '.EXE')
+            'button_messages': 'KBUTMSG.EXE', 'frame_paint': 'KFRMPNT.EXE', 'global_realloc': 'KGLBREAL.EXE'}.get(name, 'K' + name.upper()[:7] + '.EXE')
 
 
 def build(args):

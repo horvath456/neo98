@@ -9,6 +9,7 @@
 static Bitu call_stop = 1, call_idle = 2;
 #include "dosbox_pure_resume.inc"
 #include <cstdio>
+#include <cstdlib>
 
 CPUBlock cpu = {};
 CPU_Regs cpu_regs = {};

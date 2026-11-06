@@ -29,6 +29,11 @@ without a Dock icon. One run covers every item:
 Results in build/host-menu/results.json.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: mounts images with hdiutil, which exists on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import os

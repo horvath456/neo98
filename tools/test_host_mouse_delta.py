@@ -35,7 +35,7 @@ def main():
     host=ROOT/'build/native-app/neo98-host' if '--no-build' in sys.argv else build_host()
     for scale in (1,2):
         drive=out/f'drive-c-{scale}'
-        if not drive.exists():subprocess.run(['cp','-c','-R',str(win98_c.FOLDER.resolve()),str(drive)],check=True)
+        if not drive.exists():subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(win98_c.FOLDER.resolve()),str(drive)],check=True)
         steps=['0:wait=HOST_MOUSE_DELTA|delta ready','0:idle=1200']
         # Old absolute positions at four edges, but the hand moved only one
         # canvas pixel; zero-motion focus-entry samples must add nothing.

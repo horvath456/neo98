@@ -33,7 +33,7 @@ def main():
     out.mkdir(parents=True)
     binary = ROOT / 'build/native-app/neo98-host' if '--no-build' in sys.argv else build_host()
     drive = out / 'c'
-    subprocess.run(['cp', '-c', '-R', str(pristine.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine.resolve()), str(drive)], check=True)
     win16_fixture.assemble(ROOT / 'tools/clipboard_name_win16_fixture.asm', out / 'CF16.EXE', 'CF16',
                            neo98.tool_environment())
     shutil.copyfile(out / 'CF16.EXE', drive / 'CF16.EXE')

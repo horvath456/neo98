@@ -8,6 +8,11 @@ and the Metal compiler (tools/test_d3d_shader_msl.cpp). macOS only.
 
 
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: Metal exists on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import subprocess
 import sys
 from pathlib import Path

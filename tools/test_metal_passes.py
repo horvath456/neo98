@@ -5,6 +5,11 @@
 Run under a shared serial test lock. --baseline accepts the pre-fix host_metal.mm
 and counts its passes without changing its rendering. Screenshots are PPM.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: Metal exists on macOS only')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 import os
 from pathlib import Path

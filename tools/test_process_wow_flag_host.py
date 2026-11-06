@@ -51,9 +51,9 @@ def main():
                     '/machine:x86', '/timestamp:0', '/out:' + str(exe), str(obj), str(library)],
                    env=env, check=True, stdin=subprocess.DEVNULL)
     binary = ROOT / 'build/native-app/neo98-host'
-    reference = Path(os.environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c').resolve()
+    reference = Path(os.environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c')).resolve()
     for engine in args.cpu or ('fex', 'unicorn'):
-        subprocess.run(['df', '-h', '/System/Volumes/Data'], check=True,
+        subprocess.run(['df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/')], check=True,
                        stdin=subprocess.DEVNULL)
         guard()
         active = subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True, text=True,
@@ -64,7 +64,7 @@ def main():
         assert not drive.exists() and not drive.is_symlink(), drive
         process = None
         try:
-            subprocess.run(['cp', '-c', '-R', str(reference) + '/', str(drive)], check=True,
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(reference) + '/', str(drive)], check=True,
                            stdin=subprocess.DEVNULL)
             assert drive.is_dir() and not drive.is_symlink()
             guard()

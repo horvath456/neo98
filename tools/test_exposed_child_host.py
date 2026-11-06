@@ -104,7 +104,7 @@ def main():
     pristine = win98_c.use_pristine()
     exe = build_fixture(out / 'fixture')
     drive_c = out / 'drive-c'
-    subprocess.run(['cp', '-c', '-R', str(pristine) + '/', str(drive_c)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine) + '/', str(drive_c)], check=True)
     (drive_c / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     shutil.copyfile(exe, drive_c / 'EXPOSED.EXE')
     expected = 'start red covered blue uncovered red mode changed mode red done'

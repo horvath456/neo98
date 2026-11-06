@@ -92,7 +92,7 @@ def main():
         binary = build_host()
     drive = out / 'drive-c'
     shutil.rmtree(drive, ignore_errors=True)
-    subprocess.run(['cp', '-c', '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive)], check=True)
     masks = {name: out / f'{name}.pgm' for name in ('small', 'ended', 'exited', 'crashed')}
     steps = ['0:wait=Shell_TrayWnd', '0:idle=3000',
              # 1. The whole way and back.

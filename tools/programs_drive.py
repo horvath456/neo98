@@ -70,11 +70,13 @@ def writable_snapshot(directory=None, parent=None):
     if not snapshot.exists():
         temporary = parent / 'drive-d.new'
         shutil.rmtree(temporary, ignore_errors=True)
-        result = subprocess.run(['cp', '-Rc', str(source), str(temporary)],
+        # A clone: APFS on macOS, reflinks (Btrfs, XFS) on Linux.
+        clone = ['-Rc'] if sys.platform == 'darwin' else ['-R', '--reflink=always']
+        result = subprocess.run(['cp', *clone, str(source), str(temporary)],
                                 capture_output=True, text=True)
         if result.returncode:
             shutil.rmtree(temporary, ignore_errors=True)
-            raise RuntimeError('cannot create the APFS program clone; no full-copy fallback is used: ' +
+            raise RuntimeError('cannot create the program clone (APFS or reflink); no full-copy fallback is used: ' +
                                (result.stderr.strip() or f'cp exited {result.returncode}'))
         temporary.rename(snapshot)
     return mount_arguments(True, snapshot)

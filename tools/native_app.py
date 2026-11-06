@@ -146,7 +146,7 @@ def stamp_flags(flags):
                                            text=True, stderr=subprocess.DEVNULL).strip()
         if subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True,
                                    stderr=subprocess.DEVNULL).strip():
-            revision += '+lokale Aenderungen'
+            revision += '+local changes'
     except Exception:
         revision = 'unbekannt'
     return [f'-DNEO98_REVISION="{revision}"', '-DNEO98_BUILD_FLAGS="' + ' '.join(flags) + '"']

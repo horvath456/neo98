@@ -14,6 +14,11 @@ a session without one it says so and is skipped.
     build/analysis-venv/bin/python tools/test_host_scroll_native.py
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the scroll events come from macOS (CGEvents)')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import os
 import subprocess

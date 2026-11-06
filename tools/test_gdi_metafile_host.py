@@ -4,6 +4,11 @@
 
 Build the host first. Run under the shared test lock when using a worktree.
 """
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 import argparse
 import os
 import re
