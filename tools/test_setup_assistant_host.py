@@ -2,6 +2,12 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Exercise the macOS setup assistant with dummy video. Check missing-tool diagnostics and invalid keys, selecting an existing installation, completing setup from a private installed-image copy, and canceling incomplete setup. Installation cases use local ISO/setup assets and skip when absent. Product keys must not appear in logs or files. Results: build/setup-assistant/results.json."""
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the setup assistant of the Mac app; Linux has its own setup '
+              '(tools/test_linux_setup.py)')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import hashlib
