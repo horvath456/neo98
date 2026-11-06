@@ -8,6 +8,8 @@
 #include "crash_report_files.h"
 #include "host_volume.h"
 #include "host_registry.h"
+#include "../src/win98_wininit.h"
+#include "../src/profile_files.h"
 #include "registry_file.h"
 #include "system_tree_host.h"
 #include "host_comm.h"
@@ -268,6 +270,22 @@ class Session
 #endif
         RegistryFile::Attach(argc, argv, drives.drive_c ? drives.drive_c : root);
         if (!HostRegistry::Start(stderr)) return false;
+        // What the macOS host does at the start of the machine: the end of an
+        // imported setup, WININIT.EXE before the first Windows process, the
+        // DirectX version of the installed files, and SYSTEM.INI and the
+        // OEM files naming the port.
+        if (HostRegistry::FinishImportedSetup(Registry::System(), drives.ram ? nullptr : drives.drive_c ? drives.drive_c : root))
+            printf("NEO98 HOST imported Windows setup completed\n");
+        Win98Wininit::Run(Files::System(), Log);
+        if (HostRegistry::SyncDirectXVersion())
+            printf("NEO98 HOST DirectX version repaired from installed 9.0c runtime files\n");
+        if (ProfileFiles::System().SyncHardware())
+            printf("NEO98 HOST SYSTEM.INI names the display adapter of the port\n");
+        if (ProfileFiles::System().SyncOemInfo())
+            printf("NEO98 HOST OEMINFO.INI names NEO98 and its GitHub repository\n");
+        if (ProfileFiles::System().SyncOemLogo())
+            printf("NEO98 HOST OEMLOGO.BMP shows the NEO98 icon\n");
+        fflush(stdout);
 #ifdef NEO98_WITH_DOSBOX
         RefreshDos();
 #endif
