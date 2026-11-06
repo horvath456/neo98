@@ -5,6 +5,7 @@ from ui_clipboard_test_support import ROOT, serial, fixture, machine, host
 from gdi_metafile_components import IMPORTS
 from test_host_clipboard import png, dump_image
 import re
+import sys
 
 
 def main():
@@ -16,6 +17,11 @@ def main():
             log = host(out / 'wmf', drive, r'E:\TEST.EXE', seconds=12,
                        extra=['--drive-readonly', 'E=' + str(exe.parent)])
             assert re.search(r'NEO98 HOST exited code=0\b', log), log[-2000:]
+        if sys.platform != 'darwin':
+            # The pasteboard switches of the macOS host (pbimage=, pbdump=);
+            # the Linux clipboard is tools/test_linux_clipboard.py.
+            print('PASS WMF records and playback; SKIP Paint selection copy: the pasteboard of the macOS host')
+            return
         paint = out / 'paint'
         paint.mkdir(exist_ok=True)
         picture = paint / 'input.png'

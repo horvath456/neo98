@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """the DOS toolbar pastes into EDIT and copies OEM screen text."""
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: the pasteboard switches of the macOS host (pbtext=FILE, pbdump=); the Linux clipboard is tools/test_linux_clipboard.py')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 from ui_clipboard_test_support import ROOT, serial, machine, host
 from test_host_clipboard import dump
 import sys
