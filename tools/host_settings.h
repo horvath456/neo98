@@ -68,14 +68,9 @@ struct Settings
     // The machine pauses while another application is in front.
     bool pause_unfocused = false;
     // View > Seamless, Show taskbar, One Mac window per guest window
-    // The app starts in the seamless view; View > Seamless
-    // leaves it and the choice is kept.
-    bool seamless =
-#ifdef __APPLE__
-        true,
-#else
-        false,
-#endif
+    // The app starts with the Windows desktop in one window; View > Seamless
+    // turns the seamless view on and the choice is kept.
+    bool seamless = false,
         seamless_taskbar = false, seamless_windows = true, seamless_icons = false, seamless_dock = true;
     // The wheel for the window with the focus, as under Win98, instead of
     // the window under the pointer.

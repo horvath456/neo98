@@ -237,8 +237,18 @@ static void tray_icon(U which,U key_value,U wanted)
     {
         H next=0;
         if(which==TRAY_WIFI-1)next=wifi_picture(key_value&7,(key_value>>3)&1);
-        else if(which==TRAY_EJECT-1)next=art_icon(&eject_tray_art);
-        else
+        /* Windows 98's own pictures, read from the installed files: the
+           PC card of the tray's hardware icon, and the power icons of the
+           Power Management control panel (plug, battery, plug charging the
+           battery). Ours stand in when a file is missing. */
+        else if(which==TRAY_EJECT-1)
+        {
+            next=original_icon("C:\\WINDOWS\\SYSTEM\\SYSTRAY.EXE",210);
+            if(!next)next=art_icon(&eject_tray_art);
+        }
+        else next=original_icon("C:\\WINDOWS\\SYSTEM\\POWERCFG.CPL",
+                                status.power.ac!=1?201:status.power.flags&8?202:200);
+        if(!next&&which==TRAY_POWER-1)
         {
             /* The fallback battery: a level bar, red when low, with a bolt on mains power. */
             char rows[16][17];for(U y=0;y<16;++y)copy(rows[y],"................",17);

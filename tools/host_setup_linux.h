@@ -185,7 +185,15 @@ inline bool FirstRun(int argc, char **argv)
         rmdir(preview_directory); g_free(preview_directory);
         if (cancelled) break;
         if (WIFEXITED(result) && WEXITSTATUS(result) == 0 && Valid(to)) { chosen = to; success = true; break; }
-        append("Setup failed. See the message above for details.\n");
+        if (WIFEXITED(result) && WEXITSTATUS(result) == 3)
+        {
+            // The key: refused by Windows Setup, or malformed. Setup removed
+            // what it made; the next Install starts from the beginning.
+            append("Windows Setup did not accept the product key. Check it and click Install again.\n");
+            gtk_widget_grab_focus(key);
+        }
+        else
+            append("Setup failed. See the message above for details.\n");
         gtk_widget_set_sensitive(folder, TRUE); gtk_widget_set_sensitive(image, TRUE); gtk_widget_set_sensitive(source, TRUE);
         gtk_widget_set_sensitive(target, TRUE); gtk_dialog_set_response_sensitive(GTK_DIALOG(window), GTK_RESPONSE_OK, TRUE);
         if (getenv("NEO98_LINUX_SETUP_SOURCE")) break;
