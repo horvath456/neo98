@@ -1,0 +1,98 @@
+name: Mac state probe
+
+on:
+  push:
+    branches: [fix-mac-state-frames]
+
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        media: ['0', 'default']
+    name: State frames probe (host media ${{ matrix.media }})
+    runs-on: macos-15
+    timeout-minutes: 120
+    env:
+      NEO98_NATIVE_JOBS: '3'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/Homebrew
+            third_party
+            build/fex-host
+            build/unicorn-host
+            build/dosbox-pure-host
+            build/release-downloads
+          key: macos15-deps-${{ hashFiles('fex/dependencies.json', 'unicorn/dependencies.json', 'sdk/dependencies.json', 'tools/build_fex*.py', 'tools/build_unicorn_host.py', 'tools/build_dosbox_pure.py', 'tools/dosbox_pure_*.h') }}
+      - name: Install build dependencies
+        run: brew install llvm lld cmake ninja pkg-config sdl2 python
+      - name: Versions
+        run: |
+          /opt/homebrew/opt/llvm/bin/clang++ --version
+          ls /opt/homebrew/opt/llvm/bin | tr '\n' ' '
+      - name: Build
+        run: |
+          if [ '${{ matrix.media }}' = 0 ]; then export NEO98_WITH_HOST_MEDIA=0; fi
+          python3 neo98.py build
+      - name: Layout
+        if: always()
+        run: |
+          mkdir -p probe
+          ls -la build/native-app/ | grep neo98-host
+          if [ -f build/native-app/neo98-host.layout-problems ]; then
+            cp build/native-app/neo98-host.layout-problems probe/
+            cat build/native-app/neo98-host.layout-problems
+          fi
+          test -f build/native-app/neo98-host.layout && echo "LAYOUT PRESENT" || echo "LAYOUT MISSING"
+      - name: Graph
+        if: always()
+        run: |
+          export PATH=/opt/homebrew/opt/llvm/bin:$PATH
+          python3 tools/state_frames.py --binary build/native-app/neo98-host --propose-sites > probe/propose-sites.calls || true
+          python3 tools/state_frames.py --binary build/native-app/neo98-host --propose > probe/propose.calls || true
+          diff src/state_rules/frames.calls probe/propose-sites.calls > probe/sites.diff || true
+          cat probe/sites.diff probe/propose.calls
+          git show origin/main:tools/state_frames.py > tools/state_frames_main.py
+          python3 tools/state_frames_main.py --binary build/native-app/neo98-host --propose-sites > probe/main-propose-sites.calls || true
+          diff src/state_rules/frames.calls probe/main-propose-sites.calls > probe/main-sites.diff || true
+          echo "== DWARF-only reader of main =="; cat probe/main-sites.diff
+          rm tools/state_frames_main.py
+      - name: Call-site DWARF
+        if: always()
+        run: |
+          export PATH=/opt/homebrew/opt/llvm/bin:$PATH
+          python3 - <<'PY' > probe/call-sites.txt
+          import re, subprocess, sys
+          from collections import Counter
+          sys.path.insert(0, 'tools')
+          import state_layout
+          from pathlib import Path
+          objects = state_layout.source_objects(Path('build/native-app/neo98-host'))
+          for source, obj in sorted(objects.items()):
+              if source.name not in ('x86_files.cpp', 'machine_state.cpp', 'x86_application.cpp'):
+                  continue
+              text = subprocess.run([state_layout.DWARFDUMP, '--debug-info', str(obj)], capture_output=True, text=True, errors='replace').stdout
+              tags = Counter(re.findall(r'DW_TAG_\w+', text))
+              print(source, obj, 'call_site', tags['DW_TAG_call_site'], 'subprogram', tags['DW_TAG_subprogram'], 'inlined', tags['DW_TAG_inlined_subroutine'])
+              blocks = re.findall(r'DW_TAG_call_site\n((?:\s+DW_AT_.*\n)+)', text)
+              attributes = Counter(a for b in blocks for a in re.findall(r'(DW_AT_\w+)', b))
+              print('  attributes', dict(attributes))
+              for b in [b for b in blocks if 'Suspend' in b or 'Application4Call' in b or 'Application4Step' in b][:6]:
+                  print('  ---\n' + b)
+              print('  sample', blocks[:3])
+          PY
+          cat probe/call-sites.txt
+          sym=$(nm build/native-app/neo98-host | grep -m1 'Win98Comm.*Dispatch' | awk '{print $3}')
+          echo "symbol $sym"
+          if [ -n "$sym" ]; then llvm-objdump -d --no-show-raw-insn --disassemble-symbols="$sym" build/native-app/neo98-host | grep -E '\b(bl|b)\b' | head -40; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mac-state-probe-${{ matrix.media }}
+          path: probe/
+          retention-days: 7
