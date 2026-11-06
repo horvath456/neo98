@@ -96,8 +96,11 @@ def main():
                 check('picture: black bars of 160 pixels left and right',
                       all(pixel(picture, x, y) == 0 for x in (0, 159, 1120, 1279) for y in (0, 360, 719)))
                 # The desktop of the installation, whatever its colour or pattern.
+                # A pattern can have black dots: one point of a small block
+                # is enough.
                 check('picture: the desktop fills the space between them',
-                      all(pixel(picture, x, y) != 0 for x, y in ((170, 700), (1110, 10), (1110, 700), (640, 700))))
+                      all(any(pixel(picture, x + dx, y + dy) != 0 for dx in range(4) for dy in range(4))
+                          for x, y in ((170, 700), (1110, 10), (1110, 700), (640, 700))))
             else:
                 check('picture: the picture was taken', False)
             check('picture: the host ends cleanly', code == 0)
