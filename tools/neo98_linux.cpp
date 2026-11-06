@@ -306,6 +306,11 @@ int main(int argc, char **argv)
         }))
         return session.forwarded ? 0 : 1;
     DosVm::EndWithProgram(!preferences.Game().empty());
+    // Windows starts here, not a program: MSGSRV32 plays the sound of the
+    // scheme's "SystemStart" before the shell, as on macOS. A program
+    // started on its own, and a machine out of a saved state, has none.
+    if (!states.Rebuilt() && options.command.empty() && !strcasecmp(options.exe.c_str(), "C:\\WINDOWS\\EXPLORER.EXE"))
+        session.app->PlayStartupSound();
     std::string launch_directory = preferences.StartDirectory();
     if (launch_directory.empty() && HostSystemFont::GuestPath(options.exe.c_str()))
     {
