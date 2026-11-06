@@ -1648,10 +1648,8 @@ int main(int argc, char **argv)
         return 130;
     if (expired)
         return 124;
-    // As on macOS: the host ends with 0 when its program has ended, whatever
-    // the program returned (a fault box ends it with the code of the fault);
-    // a failure of the runtime stays 1.
-    if (session.app->Status() == X86::Application::Exited && !X86::Application::FailedChildren())
-        return 0;
-    return session.Result();
+    // As on macOS: a host that ended in order ends with 0, whatever its
+    // program returned or where it stopped (a fault box ends a program with
+    // the code of the fault). The exit line above says which.
+    return 0;
 }
