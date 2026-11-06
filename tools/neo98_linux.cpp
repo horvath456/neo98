@@ -25,6 +25,7 @@
 #include "host_wayland/video.h"
 #endif
 #include <algorithm>
+#include <sys/resource.h>
 #include <cerrno>
 #include <filesystem>
 #include <map>
@@ -66,13 +67,14 @@ void DescribeProcess(X86::Application &app, unsigned slot)
 struct SessionEnd
 {
     bool requested = false;
-    unsigned flags = 0;
+    unsigned flags = 0, code = 0;
 };
-void EndSession(void *context, X86::Application &, unsigned flags, unsigned)
+void EndSession(void *context, X86::Application &, unsigned flags, unsigned code)
 {
     auto &end = *static_cast<SessionEnd *>(context);
     end.requested = true;
     end.flags = flags;
+    end.code = code;
 }
 std::string GuestPath(const std::string &path, const std::map<char, std::string> &roots)
 {
@@ -687,6 +689,8 @@ int main(int argc, char **argv)
     // NEO98_HOST_DEADLINE=seconds ends the host after that time whatever the
     // guest or a script does.
     const char *deadline = getenv("NEO98_HOST_DEADLINE");
+    const char *stats = getenv("NEO98_HOST_STATS");
+    auto next_stats = start + std::chrono::seconds(1);
     auto next_state_menu = start;
     while (running && !interrupted && !session.Finished())
     {
@@ -698,6 +702,20 @@ int main(int argc, char **argv)
             break;
         }
         menu_script();
+        // NEO98_HOST_STATS=1 writes a line a second, as the macOS host does:
+        // the pictures presented through DirectDraw and the frames the mixer
+        // rendered, all and those that were not silence.
+        if (stats && *stats && std::chrono::steady_clock::now() >= next_stats)
+        {
+            next_stats += std::chrono::seconds(1);
+            rusage used{}; getrusage(RUSAGE_SELF, &used);
+            const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count();
+            const long long cpu = (used.ru_utime.tv_sec + used.ru_stime.tv_sec) * 100ll + (used.ru_utime.tv_usec + used.ru_stime.tv_usec) / 10000;
+            printf("NEO98 HOST stats t=%lld.%02lld presents=%u sound=%llu audible=%llu cpu=%lld.%02lld\n",
+                   (long long)elapsed / 1000, ((long long)elapsed % 1000) / 10, session.app->HalPresents(),
+                   Sound::Shared().RenderedFrames(), Sound::Shared().AudibleFrames(), cpu / 100, cpu % 100);
+            fflush(stdout);
+        }
         hardware.Pump(*session.app,preferences.Game().empty());
 #ifdef NEO98_WITH_HOST_MEDIA
         compositor.Dispatch();
@@ -1320,6 +1338,9 @@ int main(int argc, char **argv)
         unsigned end_flags = 0, end_code = 0;
         if (session_end.requested || X86::Application::SessionCommitted(end_flags, end_code))
         {
+            printf("NEO98 HOST exitwindows flags=%08x code=%u\n", session_end.requested ? session_end.flags : end_flags,
+                   session_end.requested ? session_end.code : end_code);
+            fflush(stdout);
             reboot = !((session_end.requested ? session_end.flags : end_flags) & 9) ||
                      ((session_end.requested ? session_end.flags : end_flags) & 2);
             running = false;
