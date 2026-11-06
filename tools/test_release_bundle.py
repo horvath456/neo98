@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Release packaging must exclude Media Center, even in a developer's shell."""
 import os
+import plistlib
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import check_release_bundle as bundle
 import linux_app
@@ -37,6 +39,60 @@ class ReleaseBundleTest(unittest.TestCase):
             host.write_bytes(b'\0ordinary host\0')
             (root / 'THIRD_PARTY.md').write_text('Media Center uses Kodi in optional builds.')
             self.assertEqual(bundle.check(root), [])
+
+    def test_toolkit_requires_standard_vga_firmware(self):
+        import setup_toolkit
+        with tempfile.TemporaryDirectory() as temporary:
+            toolkit = Path(temporary)
+            firmware = toolkit / 'share/qemu'
+            firmware.mkdir(parents=True)
+            for name in setup_toolkit.QEMU_FIRMWARE:
+                if name != 'vgabios-stdvga.bin':
+                    (firmware / name).write_bytes(b'firmware')
+            with self.assertRaisesRegex(RuntimeError, 'vgabios-stdvga.bin'):
+                setup_toolkit.check(toolkit)
+
+    def test_qemu_signature_requires_allow_jit(self):
+        qemu = Path('/toolkit/bin/qemu-system-i386')
+        for entitled in (True, False):
+            result = Mock(stdout=plistlib.dumps({'com.apple.security.cs.allow-jit': entitled}))
+            with patch.object(mac_app.subprocess, 'run', return_value=result) as run:
+                if entitled:
+                    mac_app.sign_qemu(qemu, 'Developer ID')
+                else:
+                    with self.assertRaisesRegex(RuntimeError, 'missing allow-jit'):
+                        mac_app.sign_qemu(qemu)
+                signing = run.call_args_list[0].args[0]
+                self.assertIn('runtime', signing)
+                self.assertIn('--entitlements', signing)
+                entitlement = Path(signing[signing.index('--entitlements') + 1])
+                self.assertTrue(plistlib.loads(entitlement.read_bytes())['com.apple.security.cs.allow-jit'])
+
+    def test_qemu_smoke_rejects_jit_failure_and_early_crash(self):
+        for output, code, fails in ((b'jit buffer: Invalid argument', 0, True),
+                                    (b'bad firmware', 1, True), (b'', 0, False)):
+            process = Mock(returncode=code)
+            process.__enter__ = Mock(return_value=process)
+            process.__exit__ = Mock(return_value=False)
+            def start(command, **kwargs):
+                kwargs['stderr'].write(output)
+                return process
+            with patch.object(bundle.subprocess, 'Popen', side_effect=start):
+                if fails:
+                    with self.assertRaisesRegex(RuntimeError, 'TCG smoke test failed'):
+                        bundle.smoke_qemu(Path('/toolkit'))
+                else:
+                    bundle.smoke_qemu(Path('/toolkit'))
+
+    def test_qemu_smoke_stops_running_process(self):
+        process = Mock(returncode=0)
+        process.__enter__ = Mock(return_value=process)
+        process.__exit__ = Mock(return_value=False)
+        process.wait.side_effect = [subprocess.TimeoutExpired('qemu', 3), None]
+        process.poll.return_value = None
+        with patch.object(bundle.subprocess, 'Popen', return_value=process):
+            bundle.smoke_qemu(Path('/toolkit'))
+        process.terminate.assert_called_once()
 
     def test_local_build_flag_still_works(self):
         for value, expected in (('0', False), ('1', True)):
@@ -72,14 +128,17 @@ class ReleaseBundleTest(unittest.TestCase):
                      patch.object(mac_app, 'build_dmg', return_value=dmg) as disk_image, \
                      patch('check_release_embedded.check_dependencies', return_value=[]), \
                      patch.object(assets, 'source_assets'), \
+                     patch.object(bundle, 'smoke_qemu') as smoke, \
                      patch('setup_toolkit.build'), patch('setup_toolkit.check'):
                     if contaminated:
                         with self.assertRaisesRegex(RuntimeError, 'host-media code in release'):
                             assets.main()
                         disk_image.assert_not_called()
+                        smoke.assert_not_called()
                     else:
                         assets.main()
                         self.assertTrue((output / 'Neo98.dmg').is_file())
+                        smoke.assert_called_once_with(app / 'Contents/Resources/toolkit')
 
     def test_linux_release_and_no_build_reject_stale_host(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -104,7 +163,7 @@ class ReleaseBundleTest(unittest.TestCase):
             (toolkit / 'manifest.json').write_text('{}')
             binaries = root / 'build/native-app'
             binaries.mkdir()
-            for name in ('neo98-host', 'neo98-cli'):
+            for name in ('neo98-host', 'neo98-cli', 'neo98-kms'):
                 (binaries / name).write_bytes(b'host')
                 (binaries / (name + '.dependencies.json')).write_text('{}')
 
@@ -116,6 +175,7 @@ class ReleaseBundleTest(unittest.TestCase):
                  patch.object(linux_app, 'core_dylib', return_value=root / 'core.so'), \
                  patch.object(linux_app, 'build_host', side_effect=build) as host_build, \
                  patch.object(linux_app, 'build_fast'), \
+                 patch.object(linux_app, 'build_kms_host'), \
                  patch.object(linux_app.subprocess, 'run'), \
                  patch('check_release_embedded.check_dependencies', return_value=[]):
                 with patch.dict(os.environ, NEO98_WITH_HOST_MEDIA='1'):

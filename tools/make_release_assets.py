@@ -137,10 +137,11 @@ def main():
             setup_toolkit.check(setup_toolkit.OUT)
     if not args.sources_only and sys.platform.startswith('linux'):
         from linux_app import package
-        from check_release_bundle import check as check_bundle
+        from check_release_bundle import check as check_bundle, smoke_qemu
         appdir = package(release=True)
         violations = check_bundle(appdir)
         if violations: raise RuntimeError('Release bundle check failed: ' + ', '.join(violations))
+        smoke_qemu(appdir / 'usr/lib/neo98/toolkit')
         shutil.copy2(ROOT / 'build/Neo98-linux-x64.tar.gz', args.output / 'Neo98-linux-x64.tar.gz')
     elif not args.sources_only:
         if sys.platform != 'darwin': parser.error('Binary packaging requires macOS arm64 or Linux x64')
@@ -152,9 +153,10 @@ def main():
         manifest = ROOT / 'build/native-app/neo98-host.dependencies.json'
         problems = check_dependencies(json.loads(manifest.read_text()))
         if problems: raise RuntimeError('Forbidden release dependencies: ' + ', '.join(problems))
-        from check_release_bundle import check as check_bundle
+        from check_release_bundle import check as check_bundle, smoke_qemu
         violations = check_bundle(app)
         if violations: raise RuntimeError('Release bundle check failed: ' + ', '.join(violations))
+        smoke_qemu(app / 'Contents/Resources/toolkit')
         frameworks = app / 'Contents/Frameworks'
         allowed = {'libSDL2-2.0.0.dylib', 'libSDL3.dylib', 'libunicorn.2.dylib', 'libdosbox-pure.dylib'}
         unexpected = {p.name for p in frameworks.iterdir()} - allowed

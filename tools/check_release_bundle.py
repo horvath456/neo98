@@ -4,6 +4,8 @@
 from pathlib import Path
 import argparse
 import re
+import subprocess
+import tempfile
 
 PATTERNS = [re.compile(pattern) for pattern in (
     rb'/Use[r]s/[^/\x00\n]+/', rb'(?<![:/])/ho[m]e/[^/\x00\n]+/',
@@ -30,6 +32,33 @@ def check_host_media(bundle):
         if path.is_file() and HOST_MEDIA_MARKER in path.read_bytes():
             errors.append(relative + ': host-media code in release')
     return errors
+
+
+def smoke_qemu(toolkit, seconds=3):
+    """Start TCG from the packaged toolkit, without a guest disk or display."""
+    from setup_toolkit import clean_env
+    command = [toolkit / 'bin/qemu-system-i386', '-L', toolkit / 'share/qemu',
+               '-M', 'pc', '-accel', 'tcg', '-display', 'none', '-nodefaults']
+    with tempfile.TemporaryFile() as log:
+        with subprocess.Popen(list(map(str, command)), stdout=log, stderr=log,
+                              env=clean_env(toolkit)) as process:
+            try:
+                process.wait(timeout=seconds)
+            except subprocess.TimeoutExpired:
+                pass
+            finally:
+                if process.poll() is None:
+                    process.terminate()
+                    try:
+                        process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        process.kill()
+                        process.wait()
+        log.seek(0)
+        output = log.read().decode('utf-8', errors='replace')
+    if 'jit buffer' in output.lower() or process.returncode not in (0, -15):
+        raise RuntimeError(f'Toolkit QEMU TCG smoke test failed ({process.returncode}):\n{output}')
+    print('Toolkit QEMU TCG smoke test: passed')
 
 
 def check(bundle):

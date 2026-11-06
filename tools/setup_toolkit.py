@@ -44,9 +44,9 @@ DOWNLOADS = ROOT / 'build/toolkit-downloads'
 WORK = ROOT / 'build/toolkit-work'
 OUT = ROOT / 'build/setup-toolkit'
 MTOOLS_COMMANDS = ('mformat', 'mcopy', 'mdel', 'mmd', 'mdir')
-# What Setup boots: SeaBIOS, the Cirrus VGA BIOS and the option ROMs QEMU's pc
-# machine loads by default.
-QEMU_FIRMWARE = ('bios-256k.bin', 'vgabios-cirrus.bin', 'kvmvapic.bin', 'linuxboot_dma.bin')
+# What Setup boots: SeaBIOS, Cirrus and standard VGA BIOS images, and the
+# option ROMs QEMU's pc machine loads by default.
+QEMU_FIRMWARE = ('bios-256k.bin', 'vgabios-cirrus.bin', 'vgabios-stdvga.bin', 'kvmvapic.bin', 'linuxboot_dma.bin')
 # Libraries every Linux desktop has; bundling them would break the package.
 LINUX_SYSTEM = ('linux-vdso', 'ld-linux', 'libc.so', 'libm.so', 'libdl.so', 'libpthread.so', 'librt.so',
                 'libresolv.so', 'libutil.so')
@@ -195,7 +195,7 @@ def is_elf(path):
 
 def macos_bundle(out):
     sys.path.insert(0, str(ROOT / 'tools'))
-    from mac_app import collect_libraries, dependencies, fix_install_names, SYSTEM_PREFIXES
+    from mac_app import collect_libraries, dependencies, fix_install_names, sign_qemu, SYSTEM_PREFIXES
     frameworks = out / 'Frameworks'
     frameworks.mkdir(exist_ok=True)
     for program in sorted((out / 'bin').iterdir()):
@@ -217,7 +217,10 @@ def macos_bundle(out):
     # install_name_tool invalidates signatures; arm64 runs only signed code.
     for binary in [*frameworks.iterdir(), *(out / 'bin').iterdir()]:
         if not binary.is_symlink():
-            run('codesign', '--force', '--sign', '-', binary)
+            if binary == out / 'bin/qemu-system-i386':
+                sign_qemu(binary)
+            else:
+                run('codesign', '--force', '--sign', '-', binary)
 
 
 def build(out=OUT):
@@ -303,6 +306,9 @@ def clean_env(toolkit):
 
 def check(toolkit):
     """Every tool starts from the toolkit alone and reports its version."""
+    missing = [name for name in QEMU_FIRMWARE if not (toolkit / 'share/qemu' / name).is_file()]
+    if missing:
+        raise RuntimeError('Toolkit firmware missing; rebuild the toolkit: ' + ', '.join(missing))
     env = clean_env(toolkit)
     commands = [[toolkit / 'bin/qemu-system-i386', '-L', toolkit / 'share/qemu', '--version'],
                 [toolkit / 'bin/mcopy', '--version'], [toolkit / 'bin/cabextract', '--version'],

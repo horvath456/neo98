@@ -384,6 +384,19 @@ def signing_identity():
     return os.environ.get('NEO98_SIGN_IDENTITY') or '-'
 
 
+def sign_qemu(path, identity='-'):
+    """TCG needs its own JIT entitlement, including in ad-hoc builds."""
+    options = ['--options', 'runtime', '--entitlements', str(ROOT / 'tools/qemu.entitlements')]
+    if identity != '-':
+        options.append('--timestamp')
+    subprocess.run(['codesign', '--force', '--sign', identity, *options, str(path)],
+                   check=True, capture_output=True)
+    result = subprocess.run(['codesign', '-d', '--entitlements', '-', str(path)],
+                            check=True, capture_output=True)
+    if plistlib.loads(result.stdout).get('com.apple.security.cs.allow-jit') is not True:
+        raise RuntimeError(f'{path}: missing allow-jit entitlement')
+
+
 def build_app(build=True, target=APP):
     from native_app import build_host, with_host_media
     from build_dosbox_pure import core_dylib
@@ -455,8 +468,11 @@ def build_app(build=True, target=APP):
     for path in sorted((resources / 'toolkit').rglob('*')) if (resources / 'toolkit').is_dir() else ():
         if path.is_file() and not path.is_symlink() and path.read_bytes()[:4] in (
                 b'\xcf\xfa\xed\xfe', b'\xca\xfe\xba\xbe', b'\xbe\xba\xfe\xca'):
-            subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, str(path)],
-                           check=True, capture_output=True)
+            if path == resources / 'toolkit/bin/qemu-system-i386':
+                sign_qemu(path, identity)
+            else:
+                subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, str(path)],
+                               check=True, capture_output=True)
     # The program carries the entitlement of Hypervisor.framework: ARM64
     # programs run in a machine of that framework (docs/ARM64-APPS.md).
     subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, '--entitlements',

@@ -971,6 +971,54 @@ TOOLS = ("qemu-system-i386", "mformat", "mcopy", "mdel", "mmd", "mdir", "cabextr
 BREW_LINE = "brew install qemu mtools cabextract tesseract"
 
 
+def preserve_failure_logs(work):
+    """Keep diagnostic logs outside the installation before removing its disk."""
+    if sys.platform == 'darwin':
+        root = Path.home() / 'Library/Logs/Neo98'
+    else:
+        root = Path(os.environ.get('XDG_STATE_HOME') or Path.home() / '.local/state') / 'neo98/logs'
+    logs = [work / name for name in ('qemu.log', 'serial.log') if (work / name).is_file()]
+    if not logs:
+        return {}
+    root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    destination = Path(tempfile.mkdtemp(prefix=time.strftime('setup-%Y%m%d-%H%M%S-'), dir=root))
+    saved = {}
+    for log in logs:
+        target = destination / log.name
+        shutil.copyfile(log, target)
+        target.chmod(0o600)
+        saved[log] = target
+    return saved
+
+
+def failure_message(error, logs):
+    """Include the QEMU cause and point at the surviving diagnostic files."""
+    message = str(error)
+    details = []
+    for original, saved in logs.items():
+        message = message.replace(str(original), str(saved))
+        details.append(str(saved))
+    if details:
+        message += '; logs: ' + ', '.join(details)
+    tails = []
+    for original, saved in logs.items():
+        if original.name == 'qemu.log':
+            try:
+                with saved.open('rb') as stream:
+                    stream.seek(0, 2)
+                    stream.seek(max(0, stream.tell() - 65536))
+                    tail = stream.read().decode('utf-8', errors='replace').splitlines()[-40:]
+                tails.extend(tail)
+            except OSError as read_error:
+                tails.append(f'Could not read QEMU log: {read_error}')
+    # The hosts show the final line in the failure label and keep all lines
+    # in the setup log. Keep the paths and the last QEMU diagnostic there.
+    if tails:
+        return ('QEMU log (last 40 lines):\n' + '\n'.join(tails) +
+                '\nsetup: ERROR: ' + message + '; QEMU: ' + tails[-1])
+    return message
+
+
 def main(argv=None):
     """The entry of the app's assistant: no terminal, the key on standard input.
 
@@ -1024,6 +1072,8 @@ def main(argv=None):
         return 3
     except (KeyboardInterrupt, RuntimeError, subprocess.CalledProcessError, OSError) as error:
         cancelled = isinstance(error, KeyboardInterrupt)
+        logs = {}
+        log_errors = []
         if args.user and not was_ready and not win98_c.ready(folder):
             # Nothing half done stays behind: the copy and its journal, and
             # an installation that did not reach its end.
@@ -1032,8 +1082,19 @@ def main(argv=None):
                 win98_c.journal(folder).unlink(missing_ok=True)
             for work in work_root.glob("*/"):
                 if work.is_dir() and not (work / "state.json").is_file():
+                    try:
+                        logs.update(preserve_failure_logs(work))
+                    except OSError as log_error:
+                        # Keep the original logs if copying them is impossible.
+                        logs.update({work / name: work / name for name in ('qemu.log', 'serial.log')
+                                     if (work / name).is_file()})
+                        log_errors.append(f'Logs kept at {work}: {log_error}')
+                        continue
                     shutil.rmtree(work, ignore_errors=True)
-        print("setup: cancelled" if cancelled else f"setup: ERROR: {error}", flush=True)
+        message = failure_message(error, logs)
+        if log_errors:
+            message += '; ' + '; '.join(log_errors)
+        print("setup: cancelled" if cancelled else f"setup: ERROR: {message}", flush=True)
         return 2 if cancelled else 1
 
 
