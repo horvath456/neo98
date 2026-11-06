@@ -18,7 +18,7 @@ def main():
     parser.add_argument('--host', type=Path, default=ROOT/'build/native-app/neo98-host')
     parser.add_argument('--output', type=Path, default=ROOT/'build/release-data-host')
     parser.add_argument('--skip-serialui', action='store_true')
-    parser.add_argument('--engine', choices=('fex','unicorn'), action='append')
+    parser.add_argument('--engine', choices=('fex','unicorn','native'), action='append')
     args = parser.parse_args()
     out = args.output; out.mkdir(exist_ok=True)
     imports = {
@@ -28,7 +28,8 @@ def main():
     }
     exe = fixture(out / 'fixture', ROOT / 'tools/release_data_fixture.c', imports,
                   defines=['-DRELEASE_DATA_SKIP_SERIALUI'] if args.skip_serialui else [])
-    for engine in (args.engine or ('fex', 'unicorn')):
+    # The engines of macOS; Linux x64 runs x86 code on the native CPU only.
+    for engine in (args.engine or (('fex', 'unicorn') if sys.platform == 'darwin' else ('native',))):
         case = out / engine; case.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='machine-', dir=case) as temporary:
             drive = Path(temporary) / 'c'
