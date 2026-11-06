@@ -39,8 +39,8 @@ def test(source_root=ROOT):
  package=Path(subprocess.check_output([str(neo98.analysis_python()),'-c','import unicorn;print(unicorn.__file__)'],text=True).strip()).parent;library=package/'lib'/('libunicorn.2.dylib'if sys.platform=='darwin'else'libunicorn.so.2');binary=OUT/'test-image-resource-native'
  if source_root == ROOT:
   from native_app import runtime_sources, runtime_objects
-  cached = dict(zip(['fiber'] + runtime_sources(), runtime_objects()))
-  units = [str(cached['fiber']), *[str(cached[s]) for s in sources]]
+  cached = dict(zip(['fiber.S'] + runtime_sources(), runtime_objects()))
+  units = [str(cached['fiber.S']), *[str(cached[s]) for s in sources]]
  else:
   units = [str(source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')), *[str(source_root/'src'/f'{s}.cpp') for s in sources]]
  compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),str(source),*units,*_engine_link_extra(), *_native_app().unicorn_link(library),'-o',str(binary)],env=env,capture_output=True,text=True);(OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
