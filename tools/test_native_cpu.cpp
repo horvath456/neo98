@@ -333,6 +333,10 @@ int main(int argc, char **argv)
     okay(cpu->Write(Code, sys_code, sizeof sys_code)); okay(cpu->Run(Code, back)); assert(seen.interrupts == 1);
     const unsigned char nt_code[] = {0xcd, 0x2e};
     okay(cpu->Write(Code, nt_code, sizeof nt_code)); okay(cpu->Run(Code, back)); assert(seen.interrupts == 2);
+    // CLI and STI of a Win32 program go on, as under the VMM of Win98.
+    const unsigned char flag_code[] = {0xfa, 0xb8, 7, 0, 0, 0, 0xfb, 0xcd, 0x2e};
+    okay(cpu->Write(Code, flag_code, sizeof flag_code)); okay(cpu->Run(Code, back)); assert(seen.interrupts == 3);
+    okay(cpu->Get(Reg::Eax, got)); assert(got == 7);
     // Cross-thread stop must interrupt an uninterrupted native infinite loop.
     const unsigned char loop[] = {0xeb, 0xfe}; okay(cpu->Write(Code, loop, sizeof loop));
     std::thread stopper([&] { std::this_thread::sleep_for(std::chrono::milliseconds(20)); cpu->RequestStop(); });
