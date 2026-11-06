@@ -60,6 +60,10 @@ def build_fixture(out):
     return exe
 
 
+# The engines of macOS; Linux x64 runs x86 code on the native CPU only.
+BACKENDS = ('fex', 'unicorn') if sys.platform == 'darwin' else ('native',)
+
+
 def run_once(binary, drive_c, out, backend):
     record = drive_c / 'DIRECTWP.TXT'
     record.unlink(missing_ok=True)
@@ -70,7 +74,7 @@ def run_once(binary, drive_c, out, backend):
     # The host keeps the last frame of an ended program until its window
     # closes; the menu script closes it.
     env['NEO98_HOST_MENU'] = '15:quit'
-    if backend != 'fex':
+    if backend not in ('fex', 'native'):
         env['NEO98_CPU'] = backend
     command = [str(binary), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree',
                '--exe', 'C:\\DIRECTWP.EXE', '--drive-c', str(drive_c), '--crash-report-dir', str(out / 'reports')]
@@ -103,7 +107,7 @@ def main():
     (drive_c / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     shutil.copyfile(exe, drive_c / 'DIRECTWP.EXE')
     expected = 'dialog button edit static lists done'
-    runs = {backend: run_once(binary, drive_c, out, backend) for backend in ('fex', 'unicorn')}
+    runs = {backend: run_once(binary, drive_c, out, backend) for backend in BACKENDS}
     checks = {}
     for backend, result in runs.items():
         checks[f'{backend}: every direct call answered like CallWindowProc'] = result['written'] == expected
