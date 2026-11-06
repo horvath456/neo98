@@ -48,7 +48,10 @@ struct CpuError
         Hook, InvalidInstruction, Map,
         WriteProtected, ReadProtected, FetchProtected,
         Argument, ReadUnaligned, WriteUnaligned, FetchUnaligned,
-        HookExists, Resource, Exception, Overflow
+        HookExists, Resource, Exception, Overflow,
+        // An access to a device range (Cpu::MapDevice) that this engine
+        // cannot serve in place. The engine stops before the instruction.
+        Device
     };
 };
 const char *CpuErrorText(unsigned error);

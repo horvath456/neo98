@@ -1013,6 +1013,12 @@ class DirectCpu final : public NativeCpu
                 return CpuError::Exception;
             }
             const unsigned address = unsigned(bridge.address);
+            if (InDevice(address))
+            {
+                if (DeviceInstruction())
+                    continue;
+                return CpuError::Device;
+            }
             const bool fetch = bridge.error & 16, write = bridge.error & 2,
                        mapped = rights[address / Page] & Mapped;
             const unsigned kind = fetch   ? (mapped ? CpuFault::FetchProtected : CpuFault::FetchUnmapped)

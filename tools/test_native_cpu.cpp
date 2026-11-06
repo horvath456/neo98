@@ -398,6 +398,32 @@ int main(int argc, char **argv)
     // Reusing a former shared address gives private storage, initially zero.
     okay(cpu->Map(0xa0000, 4096, Prot::Read | Prot::Write)); okay(cpu->Read(0xa0000, &got, 4)); assert(!got);
     okay(cpu->Unmap(0xa0000, 4096));
+    // A device range (the VGA aperture of Application::EnsureVga) stays
+    // unmapped in the guest; moves and string moves there reach the device.
+    static unsigned char device[0x10000];
+    auto device_access = +[](void *context, unsigned address, unsigned char *data, unsigned size, bool write) {
+        auto *store = static_cast<unsigned char *>(context) + (address - 0xd0000);
+        if (write) memcpy(store, data, size); else memcpy(data, store, size);
+    };
+    okay(cpu->MapDevice(0xd0000, sizeof device, device_access, device));
+    assert(cpu->MapDevice(0xd0000, sizeof device, device_access, device) == CpuError::Argument);
+    value = 0x12345678; memcpy(device + 4, &value, 4);
+    okay(Access(*cpu, 0xa1, 0xd0004)); okay(cpu->Get(Reg::Eax, got)); assert(got == value);
+    okay(cpu->Set(Reg::Eax, 0xcafef00d)); okay(Access(*cpu, 0xa3, 0xd0010));
+    memcpy(&got, device + 0x10, 4); assert(got == 0xcafef00d);
+    okay(cpu->Read(0xd0004, &got, 4)); assert(got == value);
+    value = 0x55aa55aa; okay(cpu->Write(0xd0020, &value, 4)); memcpy(&got, device + 0x20, 4); assert(got == value);
+    // mov edi, 0xd0100; mov ecx, 4; rep stosd
+    const unsigned char fill[] = {0xbf, 0, 1, 0x0d, 0, 0xb9, 4, 0, 0, 0, 0xf3, 0xab};
+    okay(cpu->Set(Reg::Eax, 0x01020304)); okay(cpu->Write(Code, fill, sizeof fill));
+    okay(cpu->Run(Code, Code + sizeof fill, 20));
+    for (unsigned i = 0; i < 4; ++i) { memcpy(&got, device + 0x100 + 4 * i, 4); assert(got == 0x01020304); }
+    okay(cpu->Get(Reg::Ecx, got)); assert(got == 0); okay(cpu->Get(Reg::Edi, got)); assert(got == 0xd0110);
+    // movzx ecx, byte [eax + 1]; mov byte [eax + 0x10], cl
+    const unsigned char bytes[] = {0x0f, 0xb6, 0x48, 0x01, 0x88, 0x48, 0x10};
+    okay(cpu->Set(Reg::Eax, 0xd0102)); okay(cpu->Write(Code, bytes, sizeof bytes));
+    okay(cpu->Run(Code, Code + sizeof bytes, 20)); okay(cpu->Get(Reg::Ecx, got)); assert(got == 1);
+    assert(device[0x112] == 1);
     // Enter an actual 16-bit code/stack pair and return through a far API gate.
     okay(cpu->Map(0x80000, 4096, Prot::All)); okay(cpu->Map(0x90000, 4096, Prot::All));
     okay(cpu->Map(0xb0000, 4096, Prot::Read | Prot::Write));

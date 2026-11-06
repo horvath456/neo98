@@ -134,6 +134,7 @@
       "test_tapi_provider_host.py": "test copies with the macOS-only cp -c",
       "test_thread_setjmp_host.py": "test copies with the macOS-only cp -c",
       "test_tib_process_host.py": "macOS path /System/Volumes/Data in a test helper",
+      "test_time_native.py": "test build assembles src/fiber_aarch64.S on x86_64",
       "test_toolbar_input_native.py": "build/crt-locale/crt_locale is not built on Linux",
       "test_version_zero_section_host.py": "macOS path /System/Volumes/Data in a test helper",
       "test_wave_queue_host.py": "needs i686-w64-mingw32-gcc",

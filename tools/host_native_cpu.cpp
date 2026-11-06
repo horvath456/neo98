@@ -224,6 +224,169 @@ class NativeCpu : public Cpu
         return !table.base || (Descriptor(selector) & (1ull << 54));
     }
     unsigned InstructionAddress() const { return Base(state.regs[Reg::Cs]) + state.regs[Reg::Eip]; }
+    // The faulting instruction of a device access, run against Read and
+    // Write. These are the forms of VGA code: MOV between register or
+    // immediate and memory, MOVZX/MOVSX, and MOVS, STOS and LODS with or
+    // without REP. Any other instruction stops the run with CpuError::Device.
+    bool DeviceInstruction()
+    {
+        const bool code32 = Bits32(state.regs[Reg::Cs]);
+        const unsigned ip = InstructionAddress();
+        unsigned char code[15] = {};
+        unsigned length = 0, at = 0;
+        while (length < sizeof code && !Read(ip + length, code + length, 1)) ++length;
+        bool operand32 = code32, address32 = code32, rep = false;
+        int segment = -1;
+        for (;; ++at)
+        {
+            if (at >= length) return false;
+            const unsigned char b = code[at];
+            if (b == 0x66) operand32 = !code32;
+            else if (b == 0x67) address32 = !code32;
+            else if (b == 0xf3) rep = true;
+            else if (b == 0x26 || b == 0x2e || b == 0x36 || b == 0x3e) segment = Reg::Es + ((b >> 3) & 3);
+            else if (b == 0x64 || b == 0x65) segment = Reg::Fs + (b & 1);
+            else break;
+        }
+        auto take = [&](unsigned bytes, unsigned &value) {
+            if (at + bytes > length) return false;
+            value = 0;
+            for (unsigned n = 0; n < bytes; ++n) value |= unsigned(code[at++]) << (8 * n);
+            return true;
+        };
+        // The register operand: 8-bit numbers 4 to 7 are AH, CH, DH and BH.
+        auto get = [&](unsigned reg, unsigned size) -> unsigned {
+            if (size == 1) return reg < 4 ? state.regs[reg] & 255 : (state.regs[reg - 4] >> 8) & 255;
+            return size == 2 ? state.regs[reg] & 65535 : unsigned(state.regs[reg]);
+        };
+        auto set = [&](unsigned reg, unsigned size, unsigned value) {
+            if (size == 4) state.regs[reg] = value;
+            else if (size == 2) state.regs[reg] = (state.regs[reg] & 0xffff0000u) | (value & 65535);
+            else if (reg < 4) state.regs[reg] = (state.regs[reg] & ~255u) | (value & 255);
+            else state.regs[reg - 4] = (state.regs[reg - 4] & ~0xff00u) | ((value & 255) << 8);
+        };
+        auto memory = [&](unsigned address, unsigned size, unsigned &value, bool write) {
+            if (write) return Write(address, &value, size) == CpuError::Ok;
+            value = 0;
+            return Read(address, &value, size) == CpuError::Ok;
+        };
+        // The linear address of a ModRM memory operand; false for a register.
+        auto operand = [&](unsigned modrm, unsigned &address) {
+            const unsigned mode = modrm >> 6, rm = modrm & 7;
+            if (mode == 3) return false;
+            unsigned offset = 0, displacement = 0, bytes = 0;
+            int base_segment = Reg::Ds;
+            if (address32)
+            {
+                unsigned base = rm;
+                bytes = mode == 1 ? 1 : mode == 2 ? 4 : 0;
+                if (rm == 4)
+                {
+                    unsigned sib = 0;
+                    if (!take(1, sib)) return false;
+                    base = sib & 7;
+                    const unsigned index = (sib >> 3) & 7;
+                    if (index != 4) offset += unsigned(state.regs[index]) << (sib >> 6);
+                }
+                if (mode == 0 && base == 5) bytes = 4;
+                else
+                {
+                    offset += state.regs[base];
+                    if (base == Reg::Esp || base == Reg::Ebp) base_segment = Reg::Ss;
+                }
+            }
+            else
+            {
+                static const int first[8] = {Reg::Ebx, Reg::Ebx, Reg::Ebp, Reg::Ebp, Reg::Esi, Reg::Edi, Reg::Ebp, Reg::Ebx};
+                static const int second[8] = {Reg::Esi, Reg::Edi, Reg::Esi, Reg::Edi, -1, -1, -1, -1};
+                bytes = mode == 1 ? 1 : mode == 2 ? 2 : 0;
+                if (mode == 0 && rm == 6) bytes = 2;
+                else
+                {
+                    offset = state.regs[first[rm]] + (second[rm] >= 0 ? state.regs[second[rm]] : 0);
+                    if (first[rm] == Reg::Ebp) base_segment = Reg::Ss;
+                }
+            }
+            if (!take(bytes, displacement)) return false;
+            if (bytes == 1) displacement = unsigned(int(static_cast<signed char>(displacement)));
+            offset += displacement;
+            if (!address32) offset &= 65535;
+            address = Base(state.regs[segment >= 0 ? segment : base_segment]) + offset;
+            return true;
+        };
+        unsigned op = code[at++], value = 0, address = 0;
+        const unsigned wide = operand32 ? 4 : 2;
+        if (op == 0x88 || op == 0x89 || op == 0x8a || op == 0x8b || op == 0xc6 || op == 0xc7)
+        {
+            unsigned modrm = 0;
+            if (!take(1, modrm) || !operand(modrm, address)) return false;
+            const unsigned size = op & 1 ? wide : 1, reg = (modrm >> 3) & 7;
+            if (op >= 0xc6)
+            {
+                if (reg || !take(size, value) || !memory(address, size, value, true)) return false;
+            }
+            else if (op & 2)
+            {
+                if (!memory(address, size, value, false)) return false;
+                set(reg, size, value);
+            }
+            else if (value = get(reg, size), !memory(address, size, value, true)) return false;
+        }
+        else if (op == 0x0f)
+        {
+            unsigned second = 0, modrm = 0;
+            if (!take(1, second) || (second != 0xb6 && second != 0xb7 && second != 0xbe && second != 0xbf) ||
+                !take(1, modrm) || !operand(modrm, address))
+                return false;
+            const unsigned size = second & 1 ? 2 : 1;
+            if (!memory(address, size, value, false)) return false;
+            if (second & 8) value = size == 1 ? unsigned(int(static_cast<signed char>(value))) : unsigned(int(static_cast<short>(value)));
+            set((modrm >> 3) & 7, wide, value);
+        }
+        else if (op >= 0xa0 && op <= 0xa3)
+        {
+            unsigned offset = 0;
+            if (!take(address32 ? 4 : 2, offset)) return false;
+            address = Base(state.regs[segment >= 0 ? segment : Reg::Ds]) + offset;
+            const unsigned size = op & 1 ? wide : 1;
+            if (op & 2)
+            {
+                value = get(Reg::Eax, size);
+                if (!memory(address, size, value, true)) return false;
+            }
+            else
+            {
+                if (!memory(address, size, value, false)) return false;
+                set(Reg::Eax, size, value);
+            }
+        }
+        else if (op == 0xa4 || op == 0xa5 || op == 0xaa || op == 0xab || op == 0xac || op == 0xad)
+        {
+            const unsigned size = op & 1 ? wide : 1, mask = address32 ? ~0u : 65535u;
+            const unsigned step = (state.regs[Reg::Eflags] & 0x400) ? -size : size;
+            const unsigned source = Base(state.regs[segment >= 0 ? segment : Reg::Ds]), target = Base(state.regs[Reg::Es]);
+            auto advance = [&](int reg) { state.regs[reg] = (state.regs[reg] & ~mask) | ((state.regs[reg] + step) & mask); };
+            unsigned count = rep ? state.regs[Reg::Ecx] & mask : 1;
+            for (; count; --count)
+            {
+                if (op != 0xaa && op != 0xab)
+                {
+                    if (!memory(source + (state.regs[Reg::Esi] & mask), size, value, false)) return false;
+                    if (op >= 0xac) set(Reg::Eax, size, value);
+                }
+                else value = get(Reg::Eax, size);
+                if (op < 0xac && !memory(target + (state.regs[Reg::Edi] & mask), size, value, true)) return false;
+                if (op != 0xaa && op != 0xab) advance(Reg::Esi);
+                if (op < 0xac) advance(Reg::Edi);
+                if (rep) state.regs[Reg::Ecx] = (state.regs[Reg::Ecx] & ~mask) | ((count - 1) & mask);
+            }
+        }
+        else
+            return false;
+        const unsigned eip = state.regs[Reg::Eip] + at;
+        state.regs[Reg::Eip] = code32 ? eip : eip & 65535;
+        return true;
+    }
     bool ClockInstruction()
     {
         unsigned char op[3] = {};
@@ -258,6 +421,16 @@ class NativeCpu : public Cpu
                 return occupied ? CpuError::NoMemory : CpuError::Map;
         return CpuError::Ok;
     }
+    // The device range of MapDevice stays unmapped in the guest, so every
+    // guest access there faults; DeviceInstruction then performs it through
+    // Read and Write, which reach the device.
+    DeviceAccess device_access = nullptr;
+    void *device_context = nullptr;
+    unsigned device_base = 0, device_size = 0;
+    bool InDevice(unsigned long long address) const
+    { return device_access && address >= device_base && address < static_cast<unsigned long long>(device_base) + device_size; }
+    bool WithinDevice(unsigned address, unsigned size) const
+    { return size && InDevice(address) && InDevice(static_cast<unsigned long long>(address) + size - 1); }
     bool Has(unsigned address, unsigned size) const
     {
         if (static_cast<unsigned long long>(address) + size > AddressBytes) return false;
@@ -762,8 +935,16 @@ class NativeCpu : public Cpu
         }
         return CpuError::Ok;
     }
+    unsigned MapDevice(unsigned address, unsigned size, DeviceAccess access, void *context) override
+    {
+        if (device_access || !access || Range(address, size, 0)) return CpuError::Argument;
+        device_base = address; device_size = size; device_access = access; device_context = context;
+        return CpuError::Ok;
+    }
     unsigned Read(unsigned address, void *out, unsigned size) override
     {
+        if (out && WithinDevice(address, size))
+        { device_access(device_context, address, static_cast<unsigned char *>(out), size, false); return CpuError::Ok; }
         if (!Has(address, size) || (!out && size)) return CpuError::ReadUnmapped;
         memcpy(out, bytes + address, size);
         for (const auto &s : shared)
@@ -777,6 +958,11 @@ class NativeCpu : public Cpu
     }
     unsigned Write(unsigned address, const void *in, unsigned size) override
     {
+        if (in && WithinDevice(address, size))
+        {
+            device_access(device_context, address, static_cast<unsigned char *>(const_cast<void *>(in)), size, true);
+            return CpuError::Ok;
+        }
         if (!Has(address, size) || (!in && size)) return CpuError::WriteUnmapped;
         memcpy(bytes + address, in, size);
         for (const auto &s : shared)
@@ -937,6 +1123,7 @@ class NativeCpu : public Cpu
                 return CpuError::Exception;
             }
             const unsigned address = reinterpret_cast<uintptr_t>(info.si_addr);
+            if (InDevice(address)) { if (DeviceInstruction()) continue; return CpuError::Device; }
             const bool fetch = hardware_error & 16, write = hardware_error & 2;
             bool mapped = rights[address / Page] & Mapped;
             unsigned kind = fetch ? (mapped ? CpuFault::FetchProtected : CpuFault::FetchUnmapped)

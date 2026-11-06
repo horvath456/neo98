@@ -137,6 +137,7 @@ const char *CpuErrorText(unsigned error)
     case CpuError::Resource: return "Insufficient resource (UC_ERR_RESOURCE)";
     case CpuError::Exception: return "Unhandled CPU exception (UC_ERR_EXCEPTION)";
     case CpuError::Overflow: return "Provided buffer is too small (UC_ERR_OVERFLOW)";
+    case CpuError::Device: return "Device memory access the engine cannot serve";
     default: return "Unknown error code";
     }
 }
