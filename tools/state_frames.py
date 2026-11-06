@@ -133,7 +133,9 @@ def plain(names):
     """Mangled names as the list writes a function: without its parameters,
     a lambda without its number."""
     names = sorted(names)
-    out = subprocess.run(['c++filt'], input='\n'.join(names), capture_output=True, text=True, check=True).stdout.split('\n')
+    # The names come from the debug information, without the underscore
+    # of a Mach-O symbol; c++filt on macOS strips one unless told not to.
+    out = subprocess.run(['c++filt', '-n'], input='\n'.join(names), capture_output=True, text=True, check=True).stdout.split('\n')
     result = {}
     for mangled, readable in zip(names, out):
         text = readable.replace('(anonymous namespace)', '{anon}')

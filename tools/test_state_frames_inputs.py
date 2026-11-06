@@ -93,6 +93,10 @@ int main(int argc, char **) { Guest g; return Invoke(g,argc)+Tail(g,argc); }
                     state_frames.calls_of(Path(folder) / 'object.o')
             self.assertEqual(list(cache.iterdir()), [])
 
+    def test_debug_names_demangle_on_every_platform(self):
+        self.assertEqual(state_frames.plain({'_ZN3X8611Application4StepEv'}),
+                         {'_ZN3X8611Application4StepEv': 'X86::Application::Step'})
+
     def test_failed_demangler_cannot_hide_functions(self):
         with patch.object(state_frames.subprocess, 'run',
                           side_effect=subprocess.CalledProcessError(7, ['c++filt'])):
