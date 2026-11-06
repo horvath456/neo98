@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Native Linux controls. The menu queues requests; it never enters guest code.
 #pragma once
+#include <clocale>
 #include <tuple>
 #include "host_menu.h"
 #include <SDL.h>
@@ -52,7 +53,11 @@ inline bool Init()
         setenv("GDK_BACKEND", "wayland", 1);
         gdk_set_allowed_backends("wayland");
     }
-    return ready = gtk_init_check(nullptr, nullptr);
+    ready = gtk_init_check(nullptr, nullptr);
+    // GTK takes the locale of the environment. The runtime formats and
+    // reads numbers with the C library as Win98 does, with a point.
+    setlocale(LC_NUMERIC, "C");
+    return ready;
 }
 inline void Pump()
 {

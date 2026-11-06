@@ -5,6 +5,7 @@
 #include "../src/usb_keys.h"
 #include "host_menu_linux.h"
 #include <algorithm>
+#include <cmath>
 #include <cstdarg>
 #include <cstdlib>
 #include <cstring>
@@ -152,9 +153,12 @@ class Script
                 }
                 const bool expired = real - waiting_since > 240;
                 if (!met && !expired) { paused = real - step.time; return; }
-                Say("NEO98 HOST input %s=%s %s after %.1f s\n", step.action.c_str(),
+                // Tenths by hand: GTK sets the locale, whose decimal point
+                // may be a comma.
+                const long tenths = std::lround((real - waiting_since) * 10);
+                Say("NEO98 HOST input %s=%s %s after %ld.%ld s\n", step.action.c_str(),
                     step.action == "idle" ? std::to_string(step.x).c_str() : step.value.c_str(),
-                    met ? "reached" : "timed out", real - waiting_since);
+                    met ? "reached" : "timed out", tenths / 10, tenths % 10);
                 fprintf(stderr, "NEO98 Linux input %s=%s\n", step.action.c_str(), step.value.c_str());
                 waiting_since = -1;
                 Next(real);
