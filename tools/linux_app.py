@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
-from native_app import ROOT, build_host, build_fast, native_x64, with_host_media
+from native_app import ROOT, build_host, build_fast, build_kms_host, native_x64, with_host_media
 from build_dosbox_pure import core_dylib
 
 SETUP_FILES = ('linux_setup.py', 'setup_win98.py', 'win98_c.py', 'win98_folder.py', 'win98_time_zone.py',
@@ -39,6 +39,11 @@ if [ "${1-}" = --open ]; then
     if [ "$#" -gt 0 ]; then
         exec "$neo98_bundle/usr/bin/neo98-host" --open-host "$1"
     fi
+fi
+if [ "${1-}" = --kms ]; then
+    # Without X11 or Wayland: start from a text console (Ctrl+Alt+F3).
+    shift
+    exec "$neo98_bundle/usr/bin/neo98-kms" "$@"
 fi
 if [ "${1-}" = --cli ]; then
     shift
@@ -111,8 +116,9 @@ def package(no_build=False, *, release=False):
     if not no_build:
         build_host(vulkan=os.environ.get('NEO98_WITH_VULKAN', '1') == '1')
         build_fast('neo98_cli.cpp', 'neo98-cli')
+        build_kms_host(vulkan=os.environ.get('NEO98_WITH_VULKAN', '1') == '1')
     from check_release_embedded import check_dependencies
-    for name in ('neo98-host', 'neo98-cli'):
+    for name in ('neo98-host', 'neo98-cli', 'neo98-kms'):
         binary = ROOT / 'build/native-app' / name
         if b'uc_open' in binary.read_bytes():
             # The package may carry Apache-2.0 shaderc only because nothing in
@@ -128,7 +134,7 @@ def package(no_build=False, *, release=False):
     binaries = staging / 'usr/bin'; libraries = staging / 'usr/lib/neo98'
     scripts = staging / 'usr/share/neo98/setup/tools'
     for folder in (binaries, libraries, scripts): folder.mkdir(parents=True)
-    for name in ('neo98-host', 'neo98-cli'):
+    for name in ('neo98-host', 'neo98-cli', 'neo98-kms'):
         shutil.copy2(ROOT / 'build/native-app' / name, binaries / name)
         subprocess.run(['strip', '--strip-unneeded', str(binaries / name)], check=True)
     # Without the table of saved states the app keeps no Windows states (tools/native_app.py, state_problems).
@@ -138,7 +144,8 @@ def package(no_build=False, *, release=False):
     else:
         print(f'warning: {layout} is missing; this app saves no states of Windows programs', file=sys.stderr)
     shutil.copy2(core_dylib(), libraries / 'libdosbox-pure.so')
-    bundle_libraries([binaries / 'neo98-host', binaries / 'neo98-cli', libraries / 'libdosbox-pure.so'], libraries)
+    bundle_libraries([binaries / 'neo98-host', binaries / 'neo98-cli', binaries / 'neo98-kms',
+                      libraries / 'libdosbox-pure.so'], libraries)
     toolkit = ROOT / 'build/setup-toolkit'
     if not (toolkit / 'manifest.json').is_file():
         if release: raise RuntimeError('build/setup-toolkit is missing; run python3 tools/setup_toolkit.py')
@@ -169,6 +176,10 @@ def package(no_build=False, *, release=False):
     (staging / 'README.txt').write_text('Neo98 for Linux x86_64\n\n'
         'Run ./AppRun and select your Windows 98 folder, ZIP archive or ISO.\n'
         'Use ./AppRun --setup-linux to reopen setup, or ./AppRun --cli for the terminal host.\n'
+        'Without a desktop, run ./AppRun --kms from a text console (Ctrl+Alt+F3): Windows then\n'
+        'fills the screen through DRM/KMS, with keyboard and mouse through libinput;\n'
+        'Ctrl+Alt+Backspace ends it. It needs Mesa (libgbm, libEGL) and libinput, and your\n'
+        'user in the groups video and input.\n'
         'Use ./AppRun --install-launcher to install a launcher and register Neo98 for Open With.\n'
         'For double-click launching, select Neo98 as the default application in your file manager.\n'
         'This package contains no Windows files.\n'

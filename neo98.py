@@ -64,7 +64,8 @@ def generated_assets(name, regenerate, message, headers=()):
 def analysis_python():
     environment = BUILD / "analysis-venv"
     python = environment / "bin/python"
-    probe = subprocess.run([str(python), "-c", "import pefile, unicorn, capstone, PIL"],
+    modules = "pefile, unicorn, capstone, PIL" + (", dmgbuild" if sys.platform == "darwin" else "")
+    probe = subprocess.run([str(python), "-c", "import " + modules],
                            capture_output=True) if python.exists() else None
     if not probe or probe.returncode:
         # An existing environment only gets the packages it lacks.

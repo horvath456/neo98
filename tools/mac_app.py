@@ -478,6 +478,7 @@ def build_app(build=True, target=APP):
 
 
 def build_dmg(build=True, app=None, target=DMG):
+    import neo98
     app = Path(app) if app else build_app(build)
     target = Path(target)
     stage = target.with_name(target.name + '.stage')
@@ -485,12 +486,12 @@ def build_dmg(build=True, app=None, target=DMG):
     stage.mkdir(parents=True)
     try:
         subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(app), str(stage / 'Neo98.app')], check=True)
-        os.symlink('/Applications', stage / 'Applications')
-        target.unlink(missing_ok=True)
-        subprocess.run(['hdiutil', 'create', '-quiet', '-volname', 'Neo98', '-srcfolder', str(stage),
-                        '-fs', 'HFS+', '-format', 'UDZO', '-ov', str(target)], check=True)
+        # The window with background, arrow and icon places (tools/dmg_layout.py).
+        subprocess.run([str(neo98.analysis_python()), str(ROOT / 'tools/dmg_layout.py'),
+                        str(stage / 'Neo98.app'), str(target)], check=True)
     finally:
         shutil.rmtree(stage, ignore_errors=True)
+        shutil.rmtree(target.with_name(target.name + '.layout'), ignore_errors=True)
     print(f'{target}: {target.stat().st_size / (1024 * 1024):.0f} MB')
     return target
 
