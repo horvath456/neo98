@@ -114,6 +114,9 @@ class Script
             steps.push_back(step);
         }
     }
+    // When a step last handed the guest a key, a click or a move; the hang
+    // observation of the host counts from it (tools/host_hang.h).
+    std::chrono::steady_clock::time_point last_input = start;
     void Pump(Session &session, SDL_Window *window = nullptr)
     {
         auto &app = *session.app;
@@ -380,6 +383,9 @@ class Script
                 Say("NEO98 HOST input %s %d,%d\n", step.action.c_str(), step.x, step.y);
             }
             else fprintf(stderr, "Unknown Linux test input: %s\n", step.action.c_str());
+            static const char *const inputs[] = {"key", "keydown", "keyup", "type", "ctrl", "down", "up", "press", "release",
+                                                 "move", "click", "dblclick", "rclick", "wheel"};
+            for (const char *name : inputs) if (step.action == name) { last_input = std::chrono::steady_clock::now(); break; }
             fprintf(stderr, "NEO98 Linux input %s=%s\n", step.action.c_str(), step.value.c_str());
         }
     }

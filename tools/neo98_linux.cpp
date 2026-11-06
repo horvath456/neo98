@@ -18,6 +18,8 @@
 #include "host_states_linux.h"
 #include "host_setup_linux.h"
 #include "host_devices/service.h"
+#include "host_hang.h"
+#include "host_pacing.h"
 #ifdef NEO98_WITH_HOST_MEDIA
 #include "host_media/service.h"
 #include "host_media/seed.h"
@@ -701,6 +703,12 @@ int main(int argc, char **argv)
     const char *stats = getenv("NEO98_HOST_STATS");
     auto next_stats = start + std::chrono::seconds(1);
     auto next_state_menu = start;
+    // Hang observation, as on macOS: the guest has had input it did not
+    // answer, or a runnable thread, and made no API call for three seconds.
+    unsigned last_calls = HostPacing::TotalCalls(*session.app);
+    auto last_call_time = start, last_input_time = start, waiting_since = start;
+    bool was_waiting = false, hang_now = false;
+    unsigned hang_seconds_shown = 0;
     while (running && !interrupted && !session.Finished())
     {
         if (deadline && *deadline &&
@@ -888,13 +896,17 @@ int main(int argc, char **argv)
                 session.app->KeyboardModifiers(usb);
                 auto key = UsbKeys::Map(event.key.keysym.scancode, german, mods & KMOD_NUM);
                 if (key.vk && !menu.paused)
+                {
                     session.app->RawKey(key.vk, 0, event.type == SDL_KEYDOWN, key.scan, key.extended);
+                    last_input_time = std::chrono::steady_clock::now();
+                }
             }
             else if (event.type == SDL_MOUSEMOTION && !menu.paused && !auto_paused)
             {
                 int x = event.motion.x, y = event.motion.y;
                 mouse_point(event.motion.windowID, x, y);
                 session.app->MouseButtons(x, y, buttons);
+                last_input_time = std::chrono::steady_clock::now();
             }
             else if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !menu.paused)
             {
@@ -908,6 +920,7 @@ int main(int argc, char **argv)
                 int x = event.button.x, y = event.button.y;
                 mouse_point(event.button.windowID, x, y);
                 session.app->MouseButtons(x, y, buttons);
+                last_input_time = std::chrono::steady_clock::now();
             }
             else if (event.type == SDL_MOUSEWHEEL && !menu.paused)
             {
@@ -1326,6 +1339,36 @@ int main(int argc, char **argv)
             frame_pump_ms += std::chrono::duration<double, std::milli>(
                 std::chrono::steady_clock::now() - pump_begin).count();
         input.Pump(session, window.get());
+        {
+            const auto now = std::chrono::steady_clock::now();
+            if (input.last_input > last_input_time) last_input_time = input.last_input;
+            if (const unsigned calls = HostPacing::TotalCalls(*session.app); calls != last_calls)
+            {
+                last_calls = calls;
+                last_call_time = now;
+            }
+            const bool input_waiting = last_input_time > last_call_time;
+            const bool waiting = !machine_paused && (input_waiting || session.app->SystemRunnable());
+            HostHang::Observe(waiting_since, was_waiting, now, last_call_time, last_input_time, input_waiting, waiting);
+            const bool stalled = waiting && now - waiting_since >= std::chrono::seconds(3);
+            const unsigned stalled_seconds =
+                stalled ? unsigned(std::chrono::duration_cast<std::chrono::seconds>(now - waiting_since).count()) : 0;
+            if (stalled != hang_now)
+            {
+                fprintf(stderr, "NEO98 HOST hang %s\n", stalled ? "begin" : "end");
+                fflush(stderr);
+            }
+            // The window title says it, as on macOS.
+            if (LinuxGtk::shell && (stalled != hang_now || stalled_seconds != hang_seconds_shown))
+            {
+                const std::string name = preferences.Game().empty() ? "Neo98" : preferences.GameName();
+                const std::string title =
+                    stalled ? name + " [unresponsive for " + std::to_string(stalled_seconds) + " s]" : name;
+                gtk_window_set_title(GTK_WINDOW(LinuxGtk::shell), title.c_str());
+            }
+            hang_now = stalled;
+            hang_seconds_shown = stalled_seconds;
+        }
         states.Poll();
         for (const auto &failure : dos_failures)
         {
