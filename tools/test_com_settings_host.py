@@ -23,6 +23,12 @@ logs live under build/com-settings; nothing outside the checkout is touched.
 docs/BUILDING.md.
 """
 from __future__ import annotations
+if __name__ == '__main__':
+    import sys as _sys
+    if _sys.platform != 'darwin':
+        print('SKIP: settings.ini and the machine folder are the Mac app\'s; the Linux host keeps its '
+              'serial ports in the .linux-host.ini beside drive C:')  # macOS only; skipped elsewhere
+        _sys.exit(77)
 
 import json
 import re
