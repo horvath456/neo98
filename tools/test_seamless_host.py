@@ -408,7 +408,8 @@ def main():
         import first_logon
         logged_on, journal = first_logon.session()
         subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(e)], check=True)
-        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(logged_on) + '/.', str(e)], check=True)
+        # -f: a read-only file of the first copy is replaced, not refused.
+        subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto', '-f']), '-R', str(logged_on) + '/.', str(e)], check=True)
         shutil.copyfile(journal, out / 'registry-e')
         third = ['0:wait=Shell_TrayWnd', '0:idle=2000', f'0:shot={out / "e1.ppm"}', f'0:mask={out / "e1.pgm"}',
                  f'0:mask={out / "e1-items.ppm"}',

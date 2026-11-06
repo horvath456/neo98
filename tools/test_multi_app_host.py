@@ -88,7 +88,8 @@ def run(binary, out, name, steps, programs_folder, extra_env=None, prepare=None)
     # Start after RunOnce/Active Setup, with the corresponding registry.
     # A pristine tree without its journal starts installation again.
     logged_on, journal = first_logon.session()
-    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(logged_on) + '/.', str(drive)], check=True)
+    # -f: a read-only file of the first copy is replaced, not refused.
+    subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto', '-f']), '-R', str(logged_on) + '/.', str(drive)], check=True)
     registry = out / f'{name}.registry'
     shutil.copyfile(journal, registry)
     if prepare:

@@ -82,11 +82,9 @@ def with_records(source, target, records):
 
 def wave(guest_path):
     """The left channel of a PCM file of C:, and its rate."""
-    host = win98_c.FOLDER / guest_path[3:].replace('\\', '/')
-    if not host.exists():
-        for candidate in host.parent.iterdir():
-            if candidate.name.lower() == host.name.lower():
-                host = candidate
+    # Case insensitive, component by component: a file system that tells
+    # cases apart has C:\WINDOWS\MEDIA, not media.
+    host = win98_c.path(guest_path)
     data = host.read_bytes()
     at, rate, channels, samples = 12, 0, 0, None
     while at + 8 <= len(data):
