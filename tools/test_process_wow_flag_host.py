@@ -56,7 +56,7 @@ def main():
         subprocess.run(['df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/')], check=True,
                        stdin=subprocess.DEVNULL)
         guard()
-        active = subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True, text=True,
+        active = subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True, text=True,
                                 stdin=subprocess.DEVNULL)
         if active.returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active: ' + active.stdout.strip())

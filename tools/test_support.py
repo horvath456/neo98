@@ -38,6 +38,15 @@ def write_plain_desktop_registry(path):
     Path(path).write_bytes(data)
 
 
+
+def other_hosts_command():
+    """The command that lists other running hosts, for tests that need the
+    machine to themselves. Only macOS needs that: Hypervisor.framework gives
+    one VM per Mac. On Linux several hosts run side by side; the command
+    lists none there."""
+    import sys
+    return __import__('test_support').other_hosts_command() if sys.platform == 'darwin' else ['false']
+
 def skip(reason):
     print(f'SKIP: {reason}', flush=True)
     raise SystemExit(77)

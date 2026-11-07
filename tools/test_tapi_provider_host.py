@@ -33,7 +33,7 @@ def main():
     engines = ('fex', 'unicorn') if sys.platform == 'darwin' else ('native',)
     for cpu, empty in [(engine, empty) for empty in (False, True) for engine in engines]:
         case = cpu + ('-empty' if empty else '')
-        if subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True).returncode == 0:
+        if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True).returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
         if shutil.disk_usage(ROOT).free < 6*1024**3:
             raise SystemExit('STOP: fewer than 6 GiB free')

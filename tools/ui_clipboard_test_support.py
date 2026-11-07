@@ -22,7 +22,7 @@ def serial():
         subprocess.run(['df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/')], check=True)
         if shutil.disk_usage(ROOT).free < 8 * 1024**3:
             raise RuntimeError('STOP: fewer than 8 GiB free')
-        active = subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True, text=True)
+        active = subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True, text=True)
         if active.returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active: ' + active.stdout.strip())
         yield

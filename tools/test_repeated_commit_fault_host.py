@@ -32,7 +32,7 @@ def main():
                   {'KERNEL32': {'ExitProcess': 4, 'VirtualAlloc': 16, 'VirtualFree': 12}})
     for engine in args.cpu or ('fex', 'unicorn'):
         guard()
-        active = subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True,
+        active = subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True,
                                 text=True, stdin=subprocess.DEVNULL)
         if active.returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active: ' + active.stdout.strip())

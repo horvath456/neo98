@@ -48,7 +48,7 @@ def main():
                'fixture_sha256': hashlib.sha256(exe.read_bytes()).hexdigest(), 'engines': {}}
     for cpu in args.cpu or ('fex', 'unicorn'):
         guard()
-        if subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True,
+        if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True,
                           stdin=subprocess.DEVNULL).returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
         drive = out / ('c-' + cpu)

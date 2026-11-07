@@ -337,7 +337,7 @@ def run(home, game, label, seconds, phase, work=None, session=None):
     work = ROOT/'build/game-repertoire' if work is None else work
     work.mkdir(parents=True, exist_ok=True)
     guard(work)
-    active = subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True, text=True)
+    active = subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True, text=True)
     if active.returncode == 0:
         raise RuntimeError('STOP: another neo98-host is active: ' + active.stdout.strip())
     payload = prepare(home, game, work)

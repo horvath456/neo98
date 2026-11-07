@@ -21,7 +21,7 @@ def main():
  subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str(source),str(private/'AC')],check=True)
  (private/'AC/settings.ini').write_text('[Audio]\nmaster_volume = 0\n')
  try:
-  if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode==0:__import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
+  if subprocess.run(__import__('test_support').other_hosts_command(),capture_output=True).returncode==0:__import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
   env=dict(neo98.tool_environment(),SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',NEO98_CPU='fex',NEO98_HOST_STATS='1',NEO98_HOST_INPUT=f'28:shot={out}/frame.ppm;30:menu=quit',NEO98_HOST_DEADLINE='50',NEO98_SETTINGS_DIR=str(out/'settings'),NEO98_LOG_DIR=str(out/'logs'))
   with (out/'host.log').open('w') as log:
    before=resource.getrusage(resource.RUSAGE_CHILDREN);started=time.monotonic()

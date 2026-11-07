@@ -38,7 +38,7 @@ def main():
     source = args.system_root.resolve()
     assert source != (__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve() and not args.system_root.is_symlink()
     assert win98_c.legacy_read(source/'.neo98-index').is_file()
-    if subprocess.run(['pgrep','-x','neo98-host'],capture_output=True).returncode == 0:
+    if subprocess.run(__import__('test_support').other_hosts_command(),capture_output=True).returncode == 0:
         __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
     assert shutil.disk_usage('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/').free >= 8 * 1024**3
     out = ROOT/'build/position-words'

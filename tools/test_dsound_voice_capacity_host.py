@@ -51,7 +51,7 @@ def main():
         out = base / f'run-{iteration + 1:02d}-{cpu}'
         out.mkdir(exist_ok=True)
         guard()
-        if subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True,
+        if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True,
                           stdin=subprocess.DEVNULL).returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
         drive = out / ('c-' + cpu)

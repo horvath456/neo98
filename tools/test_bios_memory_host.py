@@ -41,7 +41,7 @@ def main():
     for engine in ('fex', 'unicorn'):
         run('df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/'))
         guard()
-        if subprocess.run(['pgrep', '-x', 'neo98-host'], capture_output=True).returncode == 0:
+        if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True).returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
         drive = out / ('c-' + engine)
         assert not drive.exists() and not drive.is_symlink()
