@@ -18,6 +18,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
 import struct
+from native_app import ENGINE_NAMES, test_engines
 
 
 def guard(minimum=8):
@@ -31,7 +32,7 @@ def main():
     parser.add_argument('--baseline', action='store_true')
     parser.add_argument('--reference-rgb', action='store_true')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
-    parser.add_argument('--cpu', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--cpu', choices=ENGINE_NAMES, action='append')
     args = parser.parse_args()
     guard(8.6)
     print('host sha256:', hashlib.sha256(args.host.read_bytes()).hexdigest(), flush=True)
@@ -42,7 +43,7 @@ def main():
                     *(['-DREFERENCE_RGB'] if args.reference_rgb else []), '-O1', '-nostartfiles', '-Wl,-e,_mainCRTStartup', '-mwindows',
                     '-lddraw', '-ldxguid', '-luuid', '-luser32', '-lkernel32',
                     '-o', str(exe)], check=True, stdin=subprocess.DEVNULL)
-    for engine in args.cpu or ('fex', 'unicorn'):
+    for engine in args.cpu or test_engines():
         guard()
         active = subprocess.run(['ps', '-axo', 'pid=,comm='], capture_output=True,
                                 text=True, stdin=subprocess.DEVNULL)

@@ -16,6 +16,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+from native_app import ENGINE_NAMES, test_engines
 
 
 def guard():
@@ -28,7 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', action='store_true')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
-    parser.add_argument('--cpu', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--cpu', choices=ENGINE_NAMES, action='append')
     args = parser.parse_args()
     guard()
     out = ROOT / 'build/version-zero-section'
@@ -48,7 +49,7 @@ def main():
     section=next(x for x in pe.sections if x.Name.rstrip(b'\0')==b'.rsrc')
     struct.pack_into('<I',raw,section.get_file_offset()+8,0)
     exe.write_bytes(raw)
-    for engine in args.cpu or ('fex', 'unicorn'):
+    for engine in args.cpu or test_engines():
         guard()
         active = subprocess.run(['ps', '-axo', 'pid=,comm='], capture_output=True,
                                 text=True, stdin=subprocess.DEVNULL)
