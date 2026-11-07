@@ -35,17 +35,18 @@ void run_environment_test(void)
     check(CreateTapePartition(0, 0, 0, 0) == 1 && GetLastError() == 120, 783);
     char *block = GetEnvironmentStringsA();
     check(block != 0 && GetEnvironmentStrings() == block && GetEnvironmentStringsA() == block, 784);
-    U count = 0, have_temp = 0, have_windir = 0;
+    U count = 0, have_temp = 0, have_windir = 0, have_comspec = 0;
     for (const char *p = block; *p;)
     {
         ++count;
+        have_comspec |= equal(p, "COMSPEC=C:\\WINDOWS\\COMMAND.COM");
         have_temp |= equal(p, "TEMP=C:\\WINDOWS\\TEMP");
         have_windir |= equal(p, "windir=C:\\WINDOWS");
         while (*p)
             ++p;
         ++p;
     }
-    check(count == 4 && have_temp && have_windir, 785);
+    check(count == 5 && have_temp && have_windir && have_comspec, 785);
     check(!FreeEnvironmentStringsA(block + 1) && GetLastError() == 87, 786);
     SetLastError(98);
     check(FreeEnvironmentStringsA(block) && GetLastError() == 98, 787);

@@ -61,7 +61,7 @@ def main():
     out = ROOT / 'build/native-linux/setup-ui'
     out.mkdir(parents=True, exist_ok=True)
     (out / 'results.json').unlink(missing_ok=True)
-    x = X11()
+    x = X11(); x.require_input()
     reports = {}
 
     with tempfile.TemporaryDirectory(dir=out) as temporary:
@@ -88,7 +88,7 @@ def main():
 
                 def choose(image=False):
                     current = window('Set up Neo98')
-                    x.click(current['x'] + (490 if image else 180), current['y'] + 99)
+                    x.click(current['x'] + (490 if image else 180), current['y'] + 115)
                     title = 'Choose an ISO, ZIP or 7z file' if image else 'Choose a Windows 98 folder'
                     dialog = wait(lambda: window(title))
                     time.sleep(.25)

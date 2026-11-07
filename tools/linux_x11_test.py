@@ -4,6 +4,7 @@
 import ctypes as C
 from pathlib import Path
 import struct
+import time
 import zlib
 
 U = C.c_ulong
@@ -63,6 +64,30 @@ class X11:
         if not self.display: raise RuntimeError('X11 display unavailable')
         self.root = self.x.XDefaultRootWindow(self.display)
 
+    def require_input(self):
+        # XWayland can advertise XTEST while its compositor refuses injection
+        # (for example until a remote-control portal session is authorized).
+        self.x.XQueryPointer.argtypes = [P, U, C.POINTER(U), C.POINTER(U),
+            C.POINTER(I), C.POINTER(I), C.POINTER(I), C.POINTER(I), C.POINTER(C.c_uint)]
+        def position():
+            root, child, rx, ry, wx, wy, mask = U(), U(), I(), I(), I(), I(), C.c_uint()
+            self.x.XQueryPointer(self.display, self.root, C.byref(root), C.byref(child),
+                C.byref(rx), C.byref(ry), C.byref(wx), C.byref(wy), C.byref(mask))
+            return rx.value, ry.value
+        original = position()
+        target = (original[0] - 1 if original[0] else 1, original[1])
+        self.xt.XTestFakeMotionEvent(self.display, -1, *target, 0)
+        self.x.XFlush(self.display)
+        deadline = time.monotonic() + 1
+        while position() != target and time.monotonic() < deadline:
+            time.sleep(.02)
+        moved = position() == target
+        self.xt.XTestFakeMotionEvent(self.display, -1, *original, 0)
+        self.x.XFlush(self.display)
+        if not moved:
+            from test_support import skip
+            skip('X11 compositor advertises XTEST but refuses synthetic input')
+
     def focus(self):
         window, mode = U(), I()
         self.x.XGetInputFocus(self.display,C.byref(window),C.byref(mode))
@@ -94,7 +119,13 @@ class X11:
         found = []
         def scan(window, depth=0):
             if depth > 8: return
-            if self.property(window,'_NET_WM_PID') == [pid]:
+            # GTK override-redirect menus identify their process through the
+            # client leader rather than carrying _NET_WM_PID themselves.
+            leader = self.property(window, 'WM_CLIENT_LEADER')
+            owned = self.property(window, '_NET_WM_PID') == [pid]
+            if not owned and leader:
+                owned = self.property(leader[0], '_NET_WM_PID') == [pid]
+            if owned:
                 a = Attributes()
                 if self.x.XGetWindowAttributes(self.display,window,C.byref(a)) and a.map_state == 2:
                     x,y,child = I(),I(),U()

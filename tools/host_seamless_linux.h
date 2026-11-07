@@ -233,10 +233,8 @@ class Seamless
             cursor_pixels = std::move(picture);
         }
     }
-    void Present(SDL_Window *anchor, const HostMenu::State &state, const unsigned char *pixels, bool changed)
+    void Collect(const HostMenu::State &state, const unsigned char *pixels)
     {
-        if (IsWayland()) { wayland.Present(anchor,state,pixels,changed); return; }
-        active = true;
         HostSeamless::View view;
         view.taskbar = state.seamless_taskbar;
         view.icons = state.seamless_icons;
@@ -251,6 +249,20 @@ class Seamless
             view.grace = strtoul(grace, nullptr, 10);
         HostSeamless::Collect(mask, view);
         HostSeamless::Plan(mask, items);
+    }
+    bool WriteMask(const std::string &path, const HostMenu::State &state, const unsigned char *pixels)
+    {
+        Collect(state, pixels);
+        if (!pixels || !mask.width || !mask.height) return false;
+        std::vector<unsigned> picture;
+        HostSeamless::Compose(mask, pixels, picture);
+        return HostSeamless::WriteAlpha(path.c_str(), picture, mask.width, mask.height);
+    }
+    void Present(SDL_Window *anchor, const HostMenu::State &state, const unsigned char *pixels, bool changed)
+    {
+        if (IsWayland()) { wayland.Present(anchor,state,pixels,changed); return; }
+        active = true;
+        Collect(state, pixels);
         if (!state.seamless_windows)
         {
             HostSeamless::Item layer;

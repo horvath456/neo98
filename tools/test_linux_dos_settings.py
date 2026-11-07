@@ -40,7 +40,7 @@ int main(int argc,char **argv) {
     env = dict(os.environ, SDL_VIDEODRIVER='x11', SDL_AUDIODRIVER='dummy', NEO98_CLIPBOARD='private',
         NEO98_HOST_INPUT_ONCE='1', NEO98_HOST_INPUT='4:menu=dos-settings;6:menu=state-save,PIF;10:menu=state-load;0.1:pause=0;18:menu=quit')
     for name in ('NEO98_SETTINGS_FILE', 'NEO98_LOG_TO_FILE'): env.pop(name, None)
-    x = X11(); log = out / 'host.log'
+    x = X11(); x.require_input(); log = out / 'host.log'
     with log.open('w') as stream:
         process = subprocess.Popen([str(binary), '--game-machine', str(profile), '--time-limit', '30', '--verbose'],
             cwd=ROOT, env=env, stdout=stream, stderr=stream)
@@ -58,6 +58,13 @@ int main(int argc,char **argv) {
                 if process.poll() is not None: break
                 time.sleep(.1)
             assert 'state loaded id=' in log.read_text(),log.read_text()[-4000:]
+            # Loading publishes the new windows before the scripted resume.
+            # A click while it still stands is consumed as the resume action.
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                if 'pause off (script)' in log.read_text().split('state loaded id=')[-1]: break
+                time.sleep(.05)
+            assert 'pause off (script)' in log.read_text().split('state loaded id=')[-1]
             deadline=time.monotonic()+3; properties=None
             while time.monotonic()<deadline:
                 properties=next((w for w in x.windows(process.pid) if 'HELLO Properties' in w['title']),None)

@@ -63,20 +63,12 @@ void run_time_family_test(void)
     before=(FT){0xffffffff,0x7fffffff};
     check(CompareFileTime(&file,&before)==1 && CompareFileTime(&before,&file)==-1 &&
           !CompareFileTime(&file,&file),6515);
-    /* The guest runs at the machine's own bias. KERNEL32 fills its timezone
-       cache from HKLM\System\CurrentControlSet\Control\TimeZoneInformation,
-       so the expectation follows the hive of the Win98 folder: whoever builds
-       this file passes its ActiveTimeBias as TIME_FAMILY_BIAS_MINUTES
-       (tools/build_common_fixture.py reads it with tools/win98_time_zone.py).
-       The reference system installation held W. Europe (-120), the first ISO
-       installation Pacific (420), the one since 3 October 2026 W. Europe again.
-       Without the macro the bias is 420, which tools/test_time_native.cpp
-       configures explicitly for the standalone build.
-       Only 6516 and 6521 depend on the bias. The unchanged original KERNEL32
-       and IFSMGR bodies under Unicorn give probe minus the tick bias and minus
-       the tick bias for them, at 420 and at -120 alike
-       (tools/derive_time_family_bias.py --minutes N); every other constant
-       from here on is the same at both and was produced there too. */
+    /* The guest uses the bias after timezone startup classification. The
+       shared fixture builder derives it from the hive and the headless
+       runner's fixed clock (25 June 1998), including a season change since
+       the snapshot was saved. Standalone tests configure 420 explicitly.
+       Only 6516 and 6521 depend on that bias; the other constants are stable
+       across the configured timezone profiles. */
     /* 6516: KERNEL32 reads the tick bias and subtracts it
        from the probe: at 420 local time is seven hours behind UTC and the
        probe loses 252,000,000,000 ticks. */

@@ -200,10 +200,10 @@ void run_region_family_test(void) {
   check(DeleteObject(red) && DeleteObject(green) && DeleteObject(shape) &&
             DeleteObject(got),
         7053);
-  /* This package deliberately does not claim the GDI36 affine transform helper.
-   */
+  /* An identity affine transform preserves every region rectangle. */
   U transform[6] = {0x3f800000, 0, 0, 0x3f800000, 0, 0};
-  SetLastError(999);
-  check(!ExtCreateRegion(transform, sizeof data, data) && GetLastError() == 50,
-        7038);
+  U identity = ExtCreateRegion(transform, sizeof data, data);
+  U reference = ExtCreateRegion(0, sizeof data, data);
+  check(identity && reference && EqualRgn(identity, reference) &&
+            DeleteObject(identity) && DeleteObject(reference), 7038);
 }

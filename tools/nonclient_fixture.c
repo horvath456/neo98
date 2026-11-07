@@ -25,6 +25,7 @@ API U CreateWindowExA(U, const char *, const char *, U, int, int, int, int, U, U
 API U DestroyWindow(U);
 API U DefWindowProcA(U, U, U, U);
 API U GetClientRect(U, Rect *);
+API U GetSystemMetrics(int);
 API U GetWindowRect(U, Rect *);
 API U MapWindowPoints(U, U, Point *, U);
 API U AdjustWindowRect(Rect *, U, U);
@@ -32,6 +33,7 @@ API U AdjustWindowRectEx(Rect *, U, U, U);
 API U SetWindowLongA(U, int, U);
 API U GetWindowLongA(U, int);
 API U SetWindowPos(U, U, int, int, int, int, U);
+API U ShowWindow(U, int);
 API U GetDC(U);
 API U ReleaseDC(U, U);
 API U GetPixel(U, int, int);
@@ -142,9 +144,10 @@ static void tiny_windows(void)
     client(h, 3, 4, 3599);
     origin(h, 20, 30, 3600);
     check(DestroyWindow(h), 3601);
+    /* Overlapped creation enforces the default minimum tracking size. */
     h = window(0, CAPTION_FRAME, 20, 30, 4, 10, 0, 0);
     check(h != 0, 3602);
-    client(h, 0, 0, 3603);
+    client(h, GetSystemMetrics(34) - 8, GetSystemMetrics(35) - 27, 3603);
     origin(h, 24, 53, 3604);
     check(DestroyWindow(h), 3605);
 }
@@ -242,7 +245,8 @@ void run_nonclient_test(U module)
      * for a window without WS_VISIBLE. */
     U dc = GetDC(normal);
     check(dc && ReleaseDC(normal, dc) && ValidateRect(normal, 0) && !GetUpdateRect(normal, 0, 0), 3637);
-    check(SetWindowLongA(normal, -16, 0x80000000u) == CAPTION_FRAME &&
+    /* Win98 adds WS_CLIPSIBLINGS when creating an overlapped window. */
+    check(SetWindowLongA(normal, -16, 0x80000000u) == (CAPTION_FRAME | 0x04000000u) &&
               SetWindowPos(normal, 0, 0, 0, 0, 0, FRAME_CHANGED),
           3579);
     client(normal, 300, 200, 3580);
@@ -291,9 +295,11 @@ void run_nonclient_test(U module)
     U minimized = window(0, CAPTION_FRAME | 0x20000000u, 60, 70, 300, 200, 0, 0);
     check(minimized != 0, 3629);
     client(minimized, 0, 0, 3630);
-    outer(minimized, 60, 70, 360, 270, 3631);
-    origin(minimized, 60, 70, 3632);
-    SetWindowLongA(minimized, -16, CAPTION_FRAME);
+    /* Minimized top-level windows live at the iconic parking position;
+     * restoring uses the saved normal rectangle, not a style-bit edit. */
+    outer(minimized, 3000, 3000, 3000 + GetSystemMetrics(57), 3000 + GetSystemMetrics(58), 3631);
+    origin(minimized, 3000, 3000, 3632);
+    ShowWindow(minimized, 9);
     check(SetWindowPos(minimized, 0, 0, 0, 0, 0, FRAME_CHANGED), 3633);
     client(minimized, 292, 173, 3634);
     origin(minimized, 64, 93, 3635);

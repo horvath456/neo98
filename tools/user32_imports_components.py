@@ -12,7 +12,7 @@ IMPORTS = {
         'AnimateWindow': 12, 'SetWindowRgn': 12, 'GetWindowInfo': 8, 'GetTitleBarInfo': 8, 'GetScrollBarInfo': 12, 'GetComboBoxInfo': 8, 'GetListBoxInfo': 4, 'GetCursorInfo': 4, 'GetAltTabInfo': 20, 'GetGUIThreadInfo': 8, 'RealGetWindowClass': 12, 'GetSystemMetrics': 4, 'SetScrollRange': 20, 'GetClassNameA': 12, 'SetSysColors': 12, 'SetSysColorsTemp': 12, 'GetSysColor': 4, 'GetSysColorBrush': 4, 'HiliteMenuItem': 16, 'CreateMDIWindowA': 40, 'DlgDirSelectExA': 16, 'DlgDirSelectComboBoxExA': 16, 'EnumPropsA': 8, 'EnumPropsExA': 12, 'SetPropA': 12, 'RemovePropA': 8, 'CreatePopupMenu': 0, 'AppendMenuA': 16, 'GetMenuState': 12, 'DestroyMenu': 4, 'AttachThreadInput': 12, 'GetThreadDesktop': 4, 'SetThreadDesktop': 4,
         'SetWindowsHookA': 8, 'UnhookWindowsHook': 8,
         'GetAncestor': 8, 'GetWindowModuleFileNameA': 12, 'GetKeyboardType': 4,
-        'BroadcastSystemMessageA': 20, 'PeekMessageA': 20, 'TrackMouseEvent': 4, 'GetDlgItemInt': 16,
+        'BroadcastSystemMessageA': 20, 'PeekMessageA': 20, 'TrackMouseEvent': 4, 'SetCursorPos': 8, 'GetDlgItemInt': 16,
         'PackDDElParam': 12, 'UnpackDDElParam': 16, 'FreeDDElParam': 8,
         'ReuseDDElParam': 20,
         'ToAscii': 20, 'ToAsciiEx': 24, 'VkKeyScanA': 4, 'OemKeyScan': 4,
@@ -43,5 +43,5 @@ IMPORTS = {
               'CreateCompatibleDC': 4, 'CreateCompatibleBitmap': 12, 'SelectObject': 8,
               'DeleteDC': 4, 'GetPixel': 12, 'PatBlt': 24, 'TextOutA': 20,
               'GetTextMetricsA': 8, 'SetTextColor': 8, 'SetBkColor': 8,
-              'CreateSolidBrush': 4},
+              'CreateSolidBrush': 4, 'GetObjectA': 12},
 }

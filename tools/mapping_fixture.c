@@ -402,11 +402,13 @@ static void native_capacity_contract(void)
      * currently available, and close only handles created by this fixture. */
     const char handle_name[] = "neo98-mapping-handle-capacity";
     const char handle_failure[] = "neo98-mapping-handle-failure";
-    U handles[128];
+    /* The shared handle table can grow; this bound must still require
+     * actual exhaustion rather than assuming the former 128-slot size. */
+    static U handles[4096];
     handles[0] = CreateFileMappingA(~0u, 0, PAGE_READWRITE, 0, 4096, handle_name);
     check(handles[0] != 0, 4057);
     U count = 1;
-    for (; count < 128; ++count)
+    for (; count < 4096; ++count)
     {
         U next = OpenFileMappingA(0, 0, handle_name);
         if (!next)
@@ -416,7 +418,7 @@ static void native_capacity_contract(void)
         }
         handles[count] = next;
     }
-    check(count >= 1 && count <= 128, 4059);
+    check(count >= 1 && count < 4096, 4059);
     check(!OpenFileMappingA(0, 0, handle_name) && GetLastError() == 8, 4060);
     check(!CreateFileMappingA(~0u, 0, PAGE_READWRITE, 0, 4096, handle_failure) && GetLastError() == 8, 4061);
     check(!OpenFileMappingA(0, 0, handle_failure) && GetLastError() == 123, 4062);

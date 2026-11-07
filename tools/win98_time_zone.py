@@ -71,6 +71,26 @@ def stored_active_bias(folder=None):
     raise SystemExit(f"{folder}: no ActiveTimeBias in SYSTEM.DAT")
 
 
+def startup_active_bias(folder, now):
+    """Bias after startup classifies the guest's local clock against the hive."""
+    import import_registry
+    folder = Path(folder)
+    tree = import_registry.parse(win98_c.path("C:\\WINDOWS\\SYSTEM.DAT", folder) or folder / "WINDOWS/SYSTEM.DAT")["tree"]
+    for key, (_, _, _, entries) in tree.items():
+        if not key.endswith("\\control\\timezoneinformation"):
+            continue
+        values = {name.lower(): data for name, kind, data in entries if kind == REG_BINARY}
+        minutes = struct.unpack('<i', values['activetimebias'])[0]
+        flag = classify(values['standardstart'], values['daylightstart'], now)
+        stored_flag = struct.unpack('<I', values.get('daylightflag', bytes(4)))[0]
+        if flag != stored_flag:
+            base = struct.unpack('<i', values['bias'])[0]
+            extra = struct.unpack('<i', values['daylightbias' if flag == 2 else 'standardbias'])[0]
+            minutes = base + extra
+        return minutes
+    raise SystemExit(f"{folder}: no TimeZoneInformation in SYSTEM.DAT")
+
+
 def transition(rule, year):
     """The local moment of a relative SYSTEMTIME rule in `year`
     (, src/win98_timezone.h Transition): day 1..5 is the week, 5 the
