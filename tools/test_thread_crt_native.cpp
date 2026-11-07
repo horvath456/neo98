@@ -6,6 +6,9 @@
 #include <cstring>
 #include <vector>
 #include <cstdlib>
+// The C header too, before malloc is redefined below: the one of libstdc++
+// declares std::malloc again when the adapter includes it first.
+#include <stdlib.h>
 #include <new>
 #define private public
 #include "../src/x86_app.h"
