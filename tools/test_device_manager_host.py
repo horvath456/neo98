@@ -769,7 +769,8 @@ def main():
         script.add('click=346,96', 1.5).add('click=379,421', 0.5).add('wait=|Virtual Memory', 1.0)
         script.add('shot={out}/virtual-memory.ppm').add('key=1b', 1.5)
         script.add('click=154,421', 0.5).add('wait=|File System Properties', 1.0).add('close=*', 1.5)
-        script.add('click=109,96', 1.5).add('trees=1').add('windows=1')
+        # Inspect guest windows directly: windows= lists the macOS seamless view.
+        script.add('click=109,96', 1.5).add('trees=1').add('tops=1')
         code, text, run = host(binary, out, 'pages', program, COMMAND, script.steps, int(script.time) + 25,
                                pristine, win98_c.journal(pristine))
         reached = re.findall(r'NEO98 HOST input wait=\|(.+?) reached', text)
