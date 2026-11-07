@@ -23,6 +23,9 @@ static const char other_readonly[] = "ordinary readonly data";
 struct Record { U code, flags, previous, address, count, args[15]; };
 struct Registration { struct Registration *next; void *handler; };
 static U filter_calls, handler_calls;
+// The compiler may turn a zeroed array into a call to memset; there is no
+// C library to link (/nodefaultlib).
+void *memset(void *p, int v, U n) { char *q = p; while (n--) *q++ = (char)v; return p; }
 static void check(int yes, U code) { if (!yes) ExitProcess(code); }
 static U protection(const void *at)
 {
