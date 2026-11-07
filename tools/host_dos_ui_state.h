@@ -126,7 +126,7 @@ inline bool LoadNow(X86::Application &a,const unsigned short *clock,bool &failed
  if(!MachineState::LoadDosUi(raw,host,why,sizeof why)||!a.BindRestoredDosVm(staged,start)) {
   error=why[0]?why:"The DOS core does not match this dialog state.";StopStaged();return true;
  }
- staged=nullptr;loaded=true;failed=false;
+ staged=nullptr;loaded=true;frozen=true;failed=false;
  printf("NEO98 HOST combined DOS/UI machine built; both parts held\n");fflush(stdout);return true;
 }
 inline int Poll(std::vector<unsigned char> *bytes,std::string &error) {

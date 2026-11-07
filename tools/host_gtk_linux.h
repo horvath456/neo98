@@ -72,6 +72,8 @@ inline void Pump()
 }
 inline void Notice(const char *title, const char *message)
 {
+    printf("NEO98 HOST notice %s: %s\n", title, message);
+    fflush(stdout);
     if (!Init())
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, title, message, desktop);

@@ -383,6 +383,17 @@ int main(int argc, char **argv)
     audio.Install();
     auto *gpu_backend = HostGpu::Install();
     X86::Application::SetGpuBackend(gpu_backend);
+    const auto mounted = HostVolume::Scan(argc, argv);
+    if (mounted.drive_c) printf("NEO98 HOST drive C: %s\n", mounted.drive_c);
+    for (unsigned i = 0; i < mounted.count; ++i) {
+        const auto &drive = mounted.extra[i];
+        if (!drive.directory) continue;
+        printf("NEO98 HOST drive %c: %s %s\n", drive.letter,
+               drive.cdrom ? "cdrom" : drive.readonly ? "readonly" : drive.below ? "layer" : "fixed", drive.directory);
+        if (drive.below) printf("NEO98 HOST drive %c: below %s\n", drive.letter, drive.below);
+    }
+    fflush(stdout);
+    DosVm::EndWithProgram(!preferences.Game().empty());
     if (!session.Start(true, [&]() { return states.Prepare(options.load_state); },
         [&](X86::Application &app, const unsigned short *clock) {
 #ifdef NEO98_WITH_HOST_MEDIA
@@ -409,9 +420,8 @@ int main(int argc, char **argv)
             again.push_back(nullptr);
             // No destructor may see the half-loaded machine; the lock of
             // drive C: goes over to the new image.
-            printf("NEO98 HOST restart reason=%s\n", state_restart.empty() ? "menu" : "load state");
-        fflush(stdout);
-        session.PrepareRestart();
+            printf("NEO98 HOST restart reason=state not loaded\n");
+            session.PrepareRestart();
             fflush(stdout);
             fflush(stderr);
             execvp(again[0], again.data());
@@ -420,7 +430,6 @@ int main(int argc, char **argv)
         }
         return session.forwarded ? 0 : 1;
     }
-    DosVm::EndWithProgram(!preferences.Game().empty());
     // Windows starts here, not a program: MSGSRV32 plays the sound of the
     // scheme's "SystemStart" before the shell, as on macOS. A program
     // started on its own, and a machine out of a saved state, has none.
@@ -631,12 +640,12 @@ int main(int argc, char **argv)
     std::vector<std::unique_ptr<HostVolume::Drive>> clipboard_drives;
     std::string added_drive_d;
     std::map<char, std::string> changed_cdroms;
-    const auto mounted = HostVolume::Scan(argc, argv);
     std::map<char, std::string> roots{{'C', mounted.drive_c ? mounted.drive_c : HostVolume::DefaultDriveC()}};
     for (unsigned i = 0; i < mounted.count; ++i)
         if (mounted.extra[i].directory)
         {
-            roots[mounted.extra[i].letter] = mounted.extra[i].directory;
+            const auto &drive = mounted.extra[i];
+            roots[drive.letter] = drive.directory;
             if (mounted.extra[i].letter == 'D' && !mounted.extra[i].cdrom)
                 menu.drive_d = mounted.extra[i].directory;
             if (mounted.extra[i].cdrom)
@@ -1412,7 +1421,12 @@ int main(int argc, char **argv)
             else if (request.action == Action::StateList) states.Open();
             else if (request.action == Action::DosSettings)
             {
-                const std::string path = request.path.empty() ? menu.dos_program : request.path;
+                std::string path = request.path.empty() ? menu.dos_program : request.path;
+                if (!path.empty() && !HostSystemFont::GuestPath(path.c_str())) {
+                    std::string guest;
+                    if (!map_host_file(path, guest, true)) continue;
+                    path = std::move(guest);
+                }
                 const unsigned owner = User::GetForegroundWindow();
                 const char *active = X86::Application::DosSettingsPath(owner);
                 session.app->RequestDosSettings(path.c_str(), active && path == active ? owner : 0);
@@ -1506,16 +1520,16 @@ int main(int argc, char **argv)
                     continue;
                 }
                 HostGameMachine::Request make;
-                // The machine folder of the settings when drive C: is its
-                // drive, as on macOS; else drive C: itself.
+                std::string path = request.path;
+                const auto separator = path.find('|');
+                const bool scripted = separator != std::string::npos;
+                if (scripted) { make.name = path.substr(separator + 1); path.resize(separator); }
                 make.machine = HostSettings::DriveC(LinuxHost::MachineFolder()) == LinuxHost::RealPath(roots['C'])
                                    ? LinuxHost::MachineFolder() : roots['C'];
-                make.program = HostSystemFont::GuestPath(request.path.c_str())
-                                   ? request.path
-                                   : GuestPath(request.path, roots);
-                if (make.program.empty())
-                    map_host_file(request.path, make.program, true);
-                make.program_file = request.path;
+                const bool guest_path = HostSystemFont::GuestPath(path.c_str());
+                make.program = guest_path ? path : GuestPath(path, roots);
+                if (make.program.empty()) map_host_file(path, make.program, true);
+                if (!guest_path) make.program_file = path;
                 make.source.scale = menu.scale;
                 make.source.seamless = menu.seamless;
                 make.source.online = menu.online;
@@ -1531,6 +1545,11 @@ int main(int argc, char **argv)
                 HostGameMachine::Result result;
                 if (!HostGameMachine::Create(make, HostSettings::Executable(), result))
                     LinuxGtk::Notice("Game machine", result.error.c_str());
+                else if (scripted) {
+                    printf("NEO98 HOST game machine created name=%s program=%s folder=%s\n",
+                           result.name.c_str(), make.program.c_str(), result.folder.c_str());
+                    fflush(stdout);
+                }
                 else if (!HostGameMachine::Spawn(
                              {HostSettings::Executable(), "--game-machine", result.folder}, {}))
                     LinuxGtk::Notice("Game machine",
@@ -1817,6 +1836,8 @@ int main(int argc, char **argv)
                 last_calls = calls;
                 last_call_time = now;
             }
+            // A deliberate pause is not time spent answering guest input.
+            if (machine_paused) last_call_time = now;
             const bool input_waiting = last_input_time > last_call_time;
             const bool waiting = !machine_paused && (input_waiting || session.app->SystemRunnable());
             HostHang::Observe(waiting_since, was_waiting, now, last_call_time, last_input_time, input_waiting, waiting);
@@ -1840,8 +1861,26 @@ int main(int argc, char **argv)
             hang_seconds_shown = stalled_seconds;
         }
         states.Poll();
-        for (const auto &failure : dos_failures)
+        std::vector<std::pair<std::string, std::string>> failures;
+        failures.swap(dos_failures);
+        for (const auto &failure : failures)
         {
+            printf("NEO98 HOST DOS failure %s: %s\n", failure.first.c_str(), failure.second.c_str());
+            fflush(stdout);
+            if (const char *action = getenv("NEO98_DOS_FAILURE_ACTION")) {
+                if (!strcmp(action, "settings")) session.app->RequestDosSettings(failure.first.c_str());
+                if (!strcmp(action, "retry")) {
+                    X86::Application::RequestOpen(failure.first.c_str());
+                    unsigned windows[User::WindowCapacity], count = 0;
+                    if (User::WindowSnapshot(0, windows, User::WindowCapacity, count))
+                        for (unsigned i = 0; i < count; ++i)
+                            if (User::WindowProcess(windows[i]) == session.app->process_id) {
+                                User::PostMessage(windows[i], 0, 0, 0);
+                                break;
+                            }
+                }
+                continue;
+            }
             GtkWidget *dialog = gtk_message_dialog_new(LinuxGtk::shell ? GTK_WINDOW(LinuxGtk::shell) : nullptr,
                 GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_NONE, "%s", failure.second.c_str());
             gtk_window_set_title(GTK_WINDOW(dialog), "DOS program");
@@ -1856,7 +1895,6 @@ int main(int argc, char **argv)
             }), nullptr);
             gtk_widget_show_all(dialog);
         }
-        dos_failures.clear();
         // The machine goes when ExitWindowsEx has run to its end (the hook),
         // or, as on macOS, when the shell ended on WM_ENDSESSION of an
         // ExitWindowsEx another process runs. The agreed session alone is not
@@ -2242,7 +2280,7 @@ int main(int argc, char **argv)
         for (auto &argument : arguments)
             again.push_back(argument.data());
         again.push_back(nullptr);
-        printf("NEO98 HOST restart reason=%s\n", state_restart.empty() ? "menu" : "load state");
+        printf("NEO98 HOST restart reason=%s\n", state_restart.empty() ? (getenv("NEO98_LINUX_STATE_ERROR") ? "state not loaded" : "menu") : "load state");
         fflush(stdout);
         session.PrepareRestart();
         session.Stop();
