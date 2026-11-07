@@ -300,6 +300,10 @@ class Session
         X86::Application::StartGuestClock(fields);
         if (options.desktop_width) X86::Application::SetHostDisplay(options.desktop_width, options.desktop_height, false);
         app = std::make_unique<X86::Application>(Log);
+        // The layout of the keyboard is the machine's before it runs: once
+        // the processor exists, ConfigureKeyboardLayout refuses (as the Mac
+        // host calls it right after making the application).
+        app->ConfigureKeyboardLayout(getenv("NEO98_KEYMAP") && !strcmp(getenv("NEO98_KEYMAP"), "US") ? "US" : "DE");
         if (before_start) { const int result = before_start(*app, fields); if (result) return result > 0; }
         if (SystemTreeHost::GuestPath(options.exe.c_str()))
         { if (!SystemTreeHost::ReadGuest(options.exe.c_str(), exe)) { fprintf(stderr,"Could not read program: %s\n",options.exe.c_str()); return false; } }

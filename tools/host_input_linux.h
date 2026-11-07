@@ -19,6 +19,10 @@ inline std::function<bool(const std::string &,const std::string &)> native_input
 inline std::function<void(bool trackpad, double up, double right, bool first, bool momentum)> scroll_input;
 // hostshot=PATH: the window's next frame as the host draws it, video included.
 inline std::function<void(const std::string &)> host_shot;
+// The steps the host itself takes as the macOS host does, through its own
+// mouse path: pause=0/1, hand=dx,dy, press=x,y and release=x,y (window
+// points). True when the host took the step.
+inline std::function<bool(const std::string &action, int x, int y)> host_step;
 // NEO98_HOST_INPUT="seconds:action=value;..." is the input script of the
 // macOS host (tools/neo98_host.cpp) with the same steps and the same lines
 // on stdout, so the host tests run on both. wait=CLASS|TITLE, waitchild=,
@@ -175,6 +179,7 @@ class Script
             if (native && !native_input(step.action, step.value)) return;
             Next(real);
             if (native) {}
+            else if (host_step && host_step(step.action, step.x, step.y)) {}
             else if (step.action == "shot")
             {
                 if (session.Screenshot(step.value)) Say("NEO98 HOST screenshot %s\n", step.value.c_str());
@@ -206,7 +211,11 @@ class Script
             else if (step.action == "menu")
             {
                 auto split = step.value.find('=') != std::string::npos ? step.value.find('=') : step.value.find(',');
-                HostMenu::Perform(step.value.substr(0, split).c_str(), split == std::string::npos ? nullptr : step.value.substr(split + 1).c_str());
+                const bool okay = HostMenu::Perform(step.value.substr(0, split).c_str(),
+                                                    split == std::string::npos ? nullptr : step.value.substr(split + 1).c_str());
+                // As the Mac host says it (tools/neo98_host.cpp, MenuCommand).
+                printf("NEO98 HOST menu-script %s %s\n", step.value.c_str(), okay ? "ok" : "refused");
+                fflush(stdout);
                 // The request is served at the top of the next turn; a quit
                 // must not see later steps taken.
                 fprintf(stderr, "NEO98 Linux input %s=%s\n", step.action.c_str(), step.value.c_str());
@@ -382,7 +391,7 @@ class Script
                 Say("NEO98 HOST input %s %d,%d\n", step.action.c_str(), step.x, step.y);
             }
             else fprintf(stderr, "Unknown Linux test input: %s\n", step.action.c_str());
-            static const char *const inputs[] = {"key", "keydown", "keyup", "type", "ctrl", "down", "up", "press", "release",
+            static const char *const inputs[] = {"key", "keydown", "keyup", "type", "ctrl", "down", "up", "press", "release", "hand",
                                                  "move", "click", "dblclick", "rclick", "wheel", "scroll"};
             for (const char *name : inputs) if (step.action == name) { last_input = std::chrono::steady_clock::now(); break; }
             fprintf(stderr, "NEO98 Linux input %s=%s\n", step.action.c_str(), step.value.c_str());
