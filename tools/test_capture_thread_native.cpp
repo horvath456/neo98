@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // The capture-owning worker must retrieve its button release even while
 // another thread owns the foreground window.
+#include <cstring>
 #define private public
 #include "../src/x86_app.h"
 #undef private
