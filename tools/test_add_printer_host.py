@@ -73,6 +73,15 @@ def main():
         checks[name] = bool(condition)
         print(('ok  ' if condition else 'FAIL'), name, flush=True)
 
+    def without_source_media(run):
+        # A fresh setup can retain its installation cabinets on C:. This run
+        # tests the missing-media prompt, so remove them from this clone only.
+        cabinets = win98_c.path('WINDOWS/OPTIONS/CABS', run / 'c')
+        if cabinets and cabinets.is_dir():
+            for cabinet in cabinets.iterdir():
+                if cabinet.suffix.lower() == '.cab':
+                    cabinet.unlink()
+
     # Welcome, manufacturer and model, port, name, test page, Finish.
     steps = Steps('#32770|Add Printer Wizard', 3.0)
     steps.add('tops=1', 0.5)
@@ -81,10 +90,10 @@ def main():
     # build 30 s as well.
     for page in range(5):
         steps.add(NEXT, 1.5, before=30.0 if page == 1 else 0.0)
-    steps.add('wait=#32770|Copying Files...', 4.0).add('tops=4')
+    steps.add('wait=#32770|Copying Files...', 0.1).add('wait=#32770|Insert Disk', 0.5).add('tops=4')
     code, text, run = host(binary, out, 'wizard', 'C:\\WINDOWS\\RUNDLL32.EXE',
                            'RUNDLL32.EXE SHELL32,PrintersGetCommand_RunDLL 0,18,0,WinUtils_NewObject',
-                           steps.steps, int(steps.time) + 30, pristine, journal)
+                           steps.steps, int(steps.time) + 30, pristine, journal, prepare=without_source_media)
     check('MSPRINT2.DLL connects its thunks to the hosted MSPRINT.DLL',
           'FLATTHUNK connect hosted dll16=MSPRINT.DLL name=MspThk_ThunkData16' in text
           and 'FLATTHUNK connect hosted dll16=MSPRINT.DLL name=MspFThk_ThunkData16' in text

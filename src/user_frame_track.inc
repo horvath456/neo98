@@ -500,6 +500,16 @@ bool FrameTrackMessage(const Message &m)
         return true;
     }
     if (m.message == 0x101 || m.message == 0x105) return true;
+    // A release that became a message of the window before the loop took the
+    // capture (the press activated the window first, and the release was
+    // routed meanwhile) is still the end of the drag. Dispatched, it left the
+    // loop running, and the next press of a double click went to the
+    // tracker as input and was lost.
+    if ((m.message == 0x202 || m.message == 0xa2) && m.hwnd == track.window)
+    {
+        EndTrack(false);
+        return true;
+    }
     return false;
 }
 // First refusal on raw input while a tracker owns the pointer.

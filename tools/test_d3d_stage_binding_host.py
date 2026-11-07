@@ -17,8 +17,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
-import native_app
 import struct
+from native_app import ENGINE_NAMES, test_engines
 
 
 def guard(minimum=8):
@@ -32,8 +32,18 @@ def main():
     parser.add_argument('--baseline', action='store_true')
     parser.add_argument('--reference-rgb', action='store_true')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
-    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, action='append')
+    parser.add_argument('--cpu', choices=ENGINE_NAMES, action='append')
     args = parser.parse_args()
+    # The display-driver regression uses the DirectX 9 runtime, not setup's
+    # DirectX 6.1 runtime. Keep this input explicit under the pristine suite.
+    import dx9_tree
+    runtime_tree = dx9_tree.tree()
+    if runtime_tree is None:
+        __import__('test_support').skip(dx9_tree.skip_reason())
+    if sys.platform == 'linux' and args.host == ROOT / 'build/native-app/neo98-host':
+        # The HAL needs a rasterizer. The ordinary Linux host build omits it.
+        from native_app import build_host
+        args.host = build_host(name='neo98-host-vulkan', vulkan=True)
     guard(8.6)
     print('host sha256:', hashlib.sha256(args.host.read_bytes()).hexdigest(), flush=True)
     out = ROOT / ('build/d3d-stage-binding-rgb' if args.reference_rgb else 'build/d3d-stage-binding')
@@ -43,20 +53,21 @@ def main():
                     *(['-DREFERENCE_RGB'] if args.reference_rgb else []), '-O1', '-nostartfiles', '-Wl,-e,_mainCRTStartup', '-mwindows',
                     '-lddraw', '-ldxguid', '-luuid', '-luser32', '-lkernel32',
                     '-o', str(exe)], check=True, stdin=subprocess.DEVNULL)
-    for engine in args.cpu or native_app.test_engines():
+    for engine in args.cpu or test_engines():
         guard()
         active = subprocess.run(['ps', '-axo', 'pid=,comm='], capture_output=True,
                                 text=True, stdin=subprocess.DEVNULL)
         active.check_returncode()
         hosts = [row for row in active.stdout.splitlines() if row.split() and Path(row.split()[-1]).name in ('neo98-host', 'sweep-before-b6276')]
-        if hosts:
+        # Only Hypervisor.framework on the Mac allows one host at a time.
+        if hosts and sys.platform == 'darwin':
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active: ' + '; '.join(hosts))
         drive = out / f'c-{engine}'
         assert not drive.exists() and not drive.is_symlink()
         (out / 'EXECUTE.BIN').unlink(missing_ok=True)
         process = None
         try:
-            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()) + '/',
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(runtime_tree.resolve()) + '/',
                             str(drive)], check=True, stdin=subprocess.DEVNULL)
             assert drive.is_dir() and not drive.is_symlink()
             guard()

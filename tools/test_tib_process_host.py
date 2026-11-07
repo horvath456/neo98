@@ -15,8 +15,8 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-import native_app
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+from native_app import ENGINE_NAMES, test_engines
 
 
 def guard():
@@ -29,7 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', action='store_true')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
-    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, action='append')
+    parser.add_argument('--cpu', choices=ENGINE_NAMES, action='append')
     args = parser.parse_args()
     guard()
     out = ROOT / 'build/tib-process'
@@ -39,13 +39,14 @@ def main():
                     '-O1', '-nostartfiles', '-Wl,-e,_mainCRTStartup', '-mwindows',
                     '-lkernel32',
                     '-o', str(exe)], check=True, stdin=subprocess.DEVNULL)
-    for engine in args.cpu or native_app.test_engines():
+    for engine in args.cpu or test_engines():
         guard()
         active = subprocess.run(['ps', '-axo', 'pid=,comm='], capture_output=True,
                                 text=True, stdin=subprocess.DEVNULL)
         active.check_returncode()
         hosts = [row for row in active.stdout.splitlines() if row.split() and Path(row.split()[-1]).name in ('neo98-host', 'sweep-before-b6279')]
-        if hosts:
+        # Only Hypervisor.framework on the Mac allows one host at a time.
+        if hosts and sys.platform == 'darwin':
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active: ' + '; '.join(hosts))
         drive = out / f'c-{engine}'
         assert not drive.exists() and not drive.is_symlink()

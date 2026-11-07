@@ -2206,9 +2206,12 @@ Application::Win16Block *Application::Win16GlobalBlock(unsigned handle)
     // up, so a moveable block answers for both shapes. TAPI.DLL does exactly
     // that : it locks its block, keeps the selector and asks
     // GlobalSize with it.
+    // Segment-register loads may retain a different requested privilege
+    // level. It selects the same LDT entry and therefore the same block.
     const unsigned selector = Win98NeTask::SelectorOf(handle);
     for (unsigned i = 0; i < machine.global_capacity; ++i)
-        if (machine.globals[i].handle && machine.globals[i].selector == selector)
+        if (machine.globals[i].handle &&
+            (machine.globals[i].selector & ~3u) == (selector & ~3u))
             return &machine.globals[i];
     return nullptr;
 }
