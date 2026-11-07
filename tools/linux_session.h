@@ -1,5 +1,6 @@
 #ifdef NEO98_RUNTIME_CONTENT
 #include "host_windows_data.h"
+#include "host_windows_state_data.h"
 #endif
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Shared Linux launch, drive, registry, network, serial and printing providers.
@@ -34,6 +35,13 @@ struct Options
     std::string exe = "C:\\WINDOWS\\EXPLORER.EXE", command, font, screenshot, game_machine, load_state;
     std::string reports = "build/crash-reports", printer = "build/print-output";
     std::string open_host, program_action, net_listen = "127.0.0.1";
+    // --state-save FILE and --state-load FILE, the test switches of a saved
+    // machine (tools/host_state.h), as on macOS; only the graphical host
+    // takes them.
+    std::string state_save, state_load;
+    // --native-module NAME: a module of the port in place of the file of the
+    // drive (X86::Application::AddNativeModule), as on macOS.
+    std::vector<std::string> native_modules;
     unsigned seconds = 0, scale = 1, desktop_width = 0, desktop_height = 0;
     bool quiet = true, offline = false, fullscreen = false, help = false, wifi = false, microphone = true;
     bool seamless = false, seamless_taskbar = false, seamless_windows = true, seamless_icons = false, seamless_dock = true;
@@ -81,7 +89,8 @@ inline bool Parse(int argc, char **argv, Options &out)
         else if (option == "--wheel-pointer") out.wheel_focus = false;
         else if (option == "--ram-drive" || option == "--no-registry-file" || option == "--setup-linux") {}
         else if (option == "--exe" || option == "--open-host" || option == "--activate-program" || option == "--quit-program" || option == "--command" || option == "--font" || option == "--time-limit" || option == "--game-machine" || option == "--load-state" ||
-                 option == "--scale" || option == "--screenshot" || option == "--crash-report-dir" || option == "--printer-output")
+                 option == "--scale" || option == "--screenshot" || option == "--crash-report-dir" || option == "--printer-output" ||
+                 option == "--state-save" || option == "--state-load" || option == "--native-module")
         {
             const char *value = next(); if (!value) return false;
             if (option == "--exe") out.exe = value;
@@ -95,6 +104,9 @@ inline bool Parse(int argc, char **argv, Options &out)
             else if (option == "--screenshot") out.screenshot = value;
             else if (option == "--crash-report-dir") out.reports = value;
             else if (option == "--printer-output") out.printer = value;
+            else if (option == "--state-save") out.state_save = value;
+            else if (option == "--state-load") out.state_load = value;
+            else if (option == "--native-module") out.native_modules.push_back(value);
             else
             {
                 char *end = nullptr; unsigned long number = strtoul(value, &end, 10);
@@ -146,6 +158,8 @@ inline void Help(bool window)
     if (window) puts("  --seamless             Show guest windows on the Linux desktop\n"
                      "  --no-seamless          Show the guest desktop in one window\n"
                      "  --game-machine FOLDER  Game machine with separate write layers\n"
+                     "  --state-save FILE      Where the test step wstate=save writes the machine\n"
+                     "  --state-load FILE      Start the machine from such a file\n"
                      "  Ctrl+Shift+M opens the machine menu; Ctrl+Shift+S toggles seamless view.\n"
                      "  F11 toggles full screen.");
 }
@@ -267,6 +281,9 @@ class Session
                 return HostRegistry::ReadGuestFile(files, path, bytes);
             }, error)) { fprintf(stderr, "Neo98: %s\n", error.c_str()); return false; }
         }
+        // A saved machine names the imported tables instead of carrying
+        // them, as on macOS (MachineState::ImportedRegion).
+        HostWindowsData::RegisterStateData();
 #endif
         RegistryFile::Attach(argc, argv, drives.drive_c ? drives.drive_c : root);
         if (!HostRegistry::Start(stderr)) return false;
@@ -300,6 +317,8 @@ class Session
         X86::Application::StartGuestClock(fields);
         if (options.desktop_width) X86::Application::SetHostDisplay(options.desktop_width, options.desktop_height, false);
         app = std::make_unique<X86::Application>(Log);
+        for (const auto &name : options.native_modules)
+            if (!app->AddNativeModule(name.c_str())) { fprintf(stderr, "Cannot override %s\n", name.c_str()); return false; }
         if (before_start) { const int result = before_start(*app, fields); if (result) return result > 0; }
         if (SystemTreeHost::GuestPath(options.exe.c_str()))
         { if (!SystemTreeHost::ReadGuest(options.exe.c_str(), exe)) { fprintf(stderr,"Could not read program: %s\n",options.exe.c_str()); return false; } }

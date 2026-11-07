@@ -173,6 +173,11 @@ static void PresentVideo(SDL_Renderer *renderer, SDL_Texture *texture, const uin
 
 int main(int argc, char **argv)
 {
+    // The game machines and their states from the command line, as on
+    // macOS; no machine runs for these.
+    if (const int code = LinuxHost::GameMachineCommand(argc, argv); code >= 0) return code;
+    if (const int code = LinuxHost::GameMachineStateCommand(argc, argv); code >= 0) return code;
+    LinuxHost::UseSettingsMachine(argc, argv);
     if (!LinuxSetup::FirstRun(argc, argv)) return 1;
     LinuxHost::Options options;
     LinuxHost::Preferences preferences;
@@ -185,6 +190,8 @@ int main(int argc, char **argv)
         LinuxHost::Help(true);
         return 2;
     }
+    HostState::save_path = options.state_save;
+    HostState::load_path = options.state_load;
     if (options.help)
     {
         LinuxHost::Help(true);
@@ -304,14 +311,39 @@ int main(int argc, char **argv)
             if (preferences.Game().empty() && !HostMediaSeed::Seed())
                 fprintf(stderr, "NEO98 HOST media: Media Center 98 is missing beside the host program\n");
 #endif
-            return states.BeforeStart(app, clock);
+            // The machine of a game-machine state, or of --state-load FILE
+            // (tools/host_state.h), in the place of the started program.
+            if (const int made = states.BeforeStart(app, clock)) return made;
+            return HostState::LoadMachine(app) ? 1 : 0;
         }))
+    {
+        if (states.LoadRefused())
+        {
+            std::vector<std::string> arguments;
+            for (int i = 0; i < argc; ++i)
+            {
+                if (!strcmp(argv[i], "--load-state") && i + 1 < argc) { ++i; continue; }
+                arguments.emplace_back(argv[i]);
+            }
+            std::vector<char *> again;
+            for (auto &argument : arguments) again.push_back(argument.data());
+            again.push_back(nullptr);
+            // No destructor may see the half-loaded machine; the lock of
+            // drive C: goes over to the new image.
+            session.PrepareRestart();
+            fflush(stdout);
+            fflush(stderr);
+            execvp(again[0], again.data());
+            fprintf(stderr, "Restart failed: %s\n", strerror(errno));
+            _exit(23);
+        }
         return session.forwarded ? 0 : 1;
+    }
     DosVm::EndWithProgram(!preferences.Game().empty());
     // Windows starts here, not a program: MSGSRV32 plays the sound of the
     // scheme's "SystemStart" before the shell, as on macOS. A program
     // started on its own, and a machine out of a saved state, has none.
-    if (!states.Rebuilt() && options.command.empty() && !strcasecmp(options.exe.c_str(), "C:\\WINDOWS\\EXPLORER.EXE"))
+    if (!states.Rebuilt() && !HostState::loaded && options.command.empty() && !strcasecmp(options.exe.c_str(), "C:\\WINDOWS\\EXPLORER.EXE"))
         session.app->PlayStartupSound();
     std::string launch_directory = preferences.StartDirectory();
     if (launch_directory.empty() && HostSystemFont::GuestPath(options.exe.c_str()))
@@ -320,7 +352,7 @@ int main(int argc, char **argv)
         if (slash != std::string::npos)
             launch_directory = options.exe.substr(0, slash == 2 ? 3 : slash);
     }
-    if (!states.Rebuilt() && !launch_directory.empty() && session.app->files.SetDirectory(launch_directory.c_str()))
+    if (!states.Rebuilt() && !HostState::loaded && !launch_directory.empty() && session.app->files.SetDirectory(launch_directory.c_str()))
         fprintf(stderr, "Could not open guest working directory: %s\n", launch_directory.c_str());
     int width, height;
     User::PixelsSize(width, height);
@@ -644,8 +676,11 @@ int main(int argc, char **argv)
     bool resize_after_frame = false;
     bool fullscreen_from_seamless = restore_seamless_after_fullscreen;
     bool machine_paused = false;
-    auto pause_machine = [&](bool value) {
+    // `why` goes into the line the macOS host writes as well; the tests of
+    // the saved states read it.
+    auto pause_machine = [&](bool value, const char *why = "the host") {
         if (machine_paused == value) return;
+        const unsigned tick_standing = value ? 0 : X86::Application::TickCount();
         machine_paused = value;
         X86::Application::PauseMachine(value);
         HostDosVm::Pause(value);
@@ -655,10 +690,51 @@ int main(int argc, char **argv)
             session.app->MouseButtons(session.app->mouse_x, session.app->mouse_y, 0);
             buttons = 0;
         }
+        unsigned dos_machines = 0;
+        const unsigned dos_sound = HostDosVm::AudioQueued(&dos_machines) + X86::Application::DosVmSoundQueued();
+        printf("NEO98 HOST pause %s (%s) stood=%.3f s tick=%u fast-gates=%llu dos-machines=%u dos-sound=%u\n",
+               value ? "on" : "off", why, X86::Application::PausedMicroseconds() / 1e6,
+               value ? X86::Application::TickCount() : tick_standing, session.app->fast_gate_calls, dos_machines, dos_sound);
+        fflush(stdout);
     };
-    states.Attach(*session.app, [&](bool value) {
-        pause_machine(value || menu.paused || auto_paused || states.ListOpen());
+    states.Attach(*session.app, [&](bool value, const char *why) {
+        pause_machine(value || menu.paused || auto_paused || states.ListOpen(), why);
     }, [&](const std::string &id) { state_restart = id; reboot = true; running = false; });
+    // A machine out of --state-load stands paused until a step or the menu
+    // lets it go on, as on macOS (tools/host_state.h).
+    if (HostState::loaded)
+    {
+        menu.paused = true;
+        pause_machine(true, "state loaded");
+    }
+    LinuxHost::hold_steps = [&] { return !running || states.NeedsRun(); };
+    LinuxHost::machine_step = [&](const std::string &action, const std::string &value) {
+        if (action == "pause")
+        {
+            // pause=1 stops the whole machine as the menu does, pause=0 lets
+            // it go on.
+            menu.paused = atoi(value.c_str()) != 0;
+            pause_machine(menu.paused || auto_paused, "script");
+        }
+        else if (action == "wstate")
+            HostState::Step(*session.app, value, [&](bool on, const char *why) {
+                menu.paused = on;
+                pause_machine(on || auto_paused, why);
+            }, machine_paused, [&] { session.app->Pump(8); });
+        else if (action == "state")
+        {
+            // state=save[:NAME], state=quick, state=load:ID,
+            // state=loadname:NAME, state=last: what the items of Machine >
+            // states do in a game machine.
+            const auto colon = value.find(':');
+            const std::string what = value.substr(0, colon), argument = colon == std::string::npos ? "" : value.substr(colon + 1);
+            if (what == "save") states.Save(argument, {}, "manual");
+            else if (what == "quick") states.Save("");
+            else if (what == "load") states.Load(argument);
+            else if (what == "loadname") states.Load(states.IdByName(argument));
+            else if (what == "last") states.Load("");
+        }
+    };
     auto show_seamless = [&](bool value) {
         seamless_enabled = value;
         User::SetHostWindowSurfaces(value && LinuxGtk::wayland_canvas);
@@ -979,7 +1055,7 @@ int main(int argc, char **argv)
             else if (request.action == Action::Pause)
             {
                 menu.paused = !menu.paused;
-                pause_machine(menu.paused || auto_paused);
+                pause_machine(menu.paused || auto_paused, "menu");
             }
             else if (request.action == Action::NetworkListen)
             {
@@ -1060,7 +1136,10 @@ int main(int argc, char **argv)
                     continue;
                 }
                 HostGameMachine::Request make;
-                make.machine = roots['C'];
+                // The machine folder of the settings when drive C: is its
+                // drive, as on macOS; else drive C: itself.
+                make.machine = HostSettings::DriveC(LinuxHost::MachineFolder()) == LinuxHost::RealPath(roots['C'])
+                                   ? LinuxHost::MachineFolder() : roots['C'];
                 make.program = HostSystemFont::GuestPath(request.path.c_str())
                                    ? request.path
                                    : GuestPath(request.path, roots);
@@ -1344,12 +1423,18 @@ int main(int argc, char **argv)
         if (auto_paused != pause_now)
         {
             auto_paused = pause_now;
-            pause_machine(menu.paused || auto_paused);
+            pause_machine(menu.paused || auto_paused, pause_now ? "the window lost the focus" : "the window has the focus");
         }
-        pause_machine(states.HoldUi() || (!states.NeedsRun() && (menu.paused || auto_paused || states.ListOpen())));
+        {
+            // A state that waits for the current call lets a paused machine
+            // run on until its threads stand well (tools/host_states_linux.h).
+            const bool hold = states.HoldUi() || (!states.NeedsRun() && (menu.paused || auto_paused || states.ListOpen()));
+            pause_machine(hold, !hold && states.NeedsRun() ? "a state waits for the current call" : "the host");
+        }
         const auto pump_begin = frame_stats ? std::chrono::steady_clock::now() : start;
         if (!states.HoldUi() && (states.NeedsRun() || (!menu.paused && !auto_paused && !states.ListOpen())))
             session.app->Pump(8);
+        HostState::ProbeTurn(*session.app);
         if (frame_stats)
             frame_pump_ms += std::chrono::duration<double, std::milli>(
                 std::chrono::steady_clock::now() - pump_begin).count();
@@ -1647,6 +1732,8 @@ int main(int argc, char **argv)
         if (machine_paused || !session.app->SystemRunnable())
             SDL_Delay(1);
     }
+    HostState::ProbeReport();
+    HostState::ExitTrace();
     if (menu.paused || auto_paused)
         pause_machine(false);
     auto saved_view = menu;
@@ -1665,6 +1752,13 @@ int main(int argc, char **argv)
                session.app->Status() == X86::Application::Exited ? "exited" : "failed", session.app->ExitCode(),
                session.app->ApiCalls(), session.app->Error() ? session.app->Error() : "(null)");
         fflush(stdout);
+        // A game machine ends with its game, as on macOS.
+        if (!preferences.Game().empty() && session.Finished())
+        {
+            printf("NEO98 HOST game machine ends (%s)\n",
+                   session.app->Status() == X86::Application::Exited ? "the game has ended" : "the game failed");
+            fflush(stdout);
+        }
     }
     if (!options.screenshot.empty() && !session.Screenshot(options.screenshot))
         return 1;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 #include "host_game_machine.h"
+#include "host_game_machine_command_linux.h"
 #include "host_menu.h"
 #include "host_settings.h"
 #include "linux_session.h"
@@ -56,8 +57,7 @@ class Preferences
         for (int i = 1; i + 1 < argc; ++i)
             if (!strcmp(argv[i], "--game-machine"))
             {
-                game = HostGameMachine::Resolve(argv[i + 1], drives.drive_c ? drives.drive_c
-                                                                            : HostVolume::DefaultDriveC());
+                game = HostGameMachine::Resolve(argv[i + 1], drives.drive_c ? std::string(drives.drive_c) : MachineFolder());
                 if (game.empty())
                 {
                     fprintf(stderr, "Game machine not found: %s\n", argv[i + 1]);
@@ -102,6 +102,11 @@ class Preferences
         }
         for (int i = 0; i < argc; ++i)
             arguments.emplace_back(argv[i]);
+        // A restart names the game machine by its folder: the name was
+        // looked up in the machine folder, and the restart's --drive-c is
+        // the write layer of the game machine.
+        for (size_t i = 1; i + 1 < arguments.size(); ++i)
+            if (arguments[i] == "--game-machine") arguments[i + 1] = game;
         bool letters[26] = {};
         for (unsigned i = 0; i < drives.count; ++i)
             letters[drives.extra[i].letter - 'A'] = true;

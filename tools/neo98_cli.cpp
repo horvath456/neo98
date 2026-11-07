@@ -85,6 +85,8 @@ int main(int argc, char **argv)
 {
     LinuxHost::Options options;
     if (!LinuxHost::Parse(argc, argv, options)) { LinuxHost::Help(false); return 2; }
+    if (!options.state_save.empty() || !options.state_load.empty())
+    { fprintf(stderr, "--state-save and --state-load are available in neo98-host only.\n"); return 2; }
     if (options.help) { LinuxHost::Help(false); return 0; }
     if (!options.load_state.empty()) { fprintf(stderr, "Saved states require the graphical host.\n"); return 2; }
     for (int i = 1; i < argc; ++i) if (!strcmp(argv[i], "--setup-linux")) { fprintf(stderr, "Setup requires the graphical host.\n"); return 2; }

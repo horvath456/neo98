@@ -19,6 +19,12 @@ inline std::function<bool(const std::string &,const std::string &)> native_input
 inline std::function<void(bool trackpad, double up, double right, bool first, bool momentum)> scroll_input;
 // hostshot=PATH: the window's next frame as the host draws it, video included.
 inline std::function<void(const std::string &)> host_shot;
+// pause=1 and pause=0, wstate=... and state=...: the steps that act on the
+// machine as a whole, which the host serves (tools/neo98_linux.cpp).
+inline std::function<void(const std::string &action, const std::string &value)> machine_step;
+// No step while a state is being taken or put in, or once the host is about
+// to start over: the next one meets the machine as it is afterwards.
+inline std::function<bool()> hold_steps;
 // NEO98_HOST_INPUT="seconds:action=value;..." is the input script of the
 // macOS host (tools/neo98_host.cpp) with the same steps and the same lines
 // on stdout, so the host tests run on both. wait=CLASS|TITLE, waitchild=,
@@ -128,7 +134,7 @@ class Script
         const auto now = std::chrono::steady_clock::now();
         if (app.SystemRunnable()) busy_at = now;
         const double real = std::chrono::duration<double>(now - start).count();
-        while (at < steps.size() && real - paused >= steps[at].time)
+        while (at < steps.size() && real - paused >= steps[at].time && !(hold_steps && hold_steps()))
         {
             const auto &step = steps[at];
             if (step.action == "wait" || step.action == "waitchild" || step.action == "waitfile" ||
@@ -169,6 +175,16 @@ class Script
                 fprintf(stderr, "NEO98 Linux input %s=%s\n", step.action.c_str(), step.value.c_str());
                 waiting_since = -1;
                 Next(real);
+                continue;
+            }
+            if (machine_step && (step.action == "pause" || step.action == "wstate" || step.action == "state"))
+            {
+                // A copy: a state step pumps the machine, and the script
+                // may be read again meanwhile.
+                const std::string action = step.action, value = step.value;
+                Next(real);
+                fprintf(stderr, "NEO98 Linux input %s=%s\n", action.c_str(), value.c_str());
+                machine_step(action, value);
                 continue;
             }
             const bool native = step.action.compare(0, 7, "native-") == 0 && native_input;

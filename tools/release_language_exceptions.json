@@ -236,7 +236,7 @@
   },
   "tools/host_states_linux.h": {
     "ad5bc7bf80a66ed27d1b7643c21943900e59633fb94dc399415dbe9078cc6b14": "Persisted DOS view key required for saved-state compatibility; not a displayed label.",
-    "dc2d7ccaf7dd97e2b9b40176bed98415a8f824857228aa97548e51fc4922597e": "Persisted DOS view key required for saved-state compatibility; not a displayed label."
+    "b4fce1a92ec7a8a1960114861207fbfd63a9a93d11985c98a9e296274175e252": "Persisted DOS view key required for saved-state compatibility; not a displayed label."
   },
   "tools/test_linux_savestates.py": {
     "b09132d3226e62042badd8874cea3a72e380ca7c96cf841cd4c49af55192f6e0": "Existing saved-state directory name required for backward compatibility; not a displayed UI label."
