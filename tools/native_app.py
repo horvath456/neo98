@@ -297,7 +297,7 @@ def object_directory():
     return directory
 
 
-def build_test(source, name, *, prepare_assets=True, dos_vm=False):
+def build_test(source, name, *, prepare_assets=True, dos_vm=False, vulkan=None):
     # Sources include generated headers. Materialise the cheap ones even when
     # the caller asked to skip the generators, otherwise the compile fails and
     # the caller silently keeps whatever runner was built last.
@@ -319,6 +319,14 @@ def build_test(source, name, *, prepare_assets=True, dos_vm=False):
     objects = runtime_objects()
     metal, frameworks = host_metal_objects(FLAGS, out / 'object-cache')
     extra = dos_vm_objects(FLAGS, out / 'object-cache') if dos_vm else []
+    # DOS probes use the same GPU selection as the desktop host. Without
+    # this, NEO98_PROBE_GPU silently installs no backend on Linux.
+    with_vulkan = native_x64() and (vulkan if vulkan is not None else
+                                  dos_vm and os.environ.get('NEO98_WITH_VULKAN', '1') == '1')
+    gpu_flags = ['-DNEO98_WITH_VULKAN'] if with_vulkan else []
+    if with_vulkan:
+        extra += vulkan_objects()
+        frameworks += ['-lvulkan']
     extra += fex_objects(FLAGS, out / 'object-cache')
     machine, machine_frameworks = arm64_objects(FLAGS, out / 'object-cache')
     extra += machine
@@ -326,7 +334,7 @@ def build_test(source, name, *, prepare_assets=True, dos_vm=False):
     # Two tests may want the same runner at the same time: link to a private
     # name and move it into place, so neither reads a half-written binary.
     temporary = out / f'.{name}.{os.getpid()}'
-    link_runner(FLAGS, stamp_flags(FLAGS), source, [*objects, *metal, *extra, library],
+    link_runner(FLAGS, [*stamp_flags(FLAGS), *gpu_flags], source, [*objects, *metal, *extra, library],
                 [*(['-Wl,-rpath,' + str(library.parent)] if library else ['-ldl', '-pthread']), *frameworks], temporary, env)
     os.replace(temporary, binary)
     return binary
