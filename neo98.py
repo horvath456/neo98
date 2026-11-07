@@ -223,10 +223,12 @@ def user_resource_assets():
     from tools.gdi_data_fixtures import generate as gdi_comparison_fixtures
     gdi_comparison_fixtures(win98_c.FOLDER, BUILD / "generated")
     def regenerate():
-        if not (BUILD / "gdi-audit/USER.EXE").exists():
-            target = BUILD / "gdi-audit/USER.EXE"
-            target.parent.mkdir(parents=True, exist_ok=True)
-            win98_c.copy("::/WINDOWS/SYSTEM/USER.EXE", target)
+        # Always the file of the Win98 folder in use: a copy left from an
+        # earlier installation would be imported in its place.
+        target = BUILD / "gdi-audit/USER.EXE"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.unlink(missing_ok=True)
+        win98_c.copy("::/WINDOWS/SYSTEM/USER.EXE", target)
         subprocess.run([str(analysis_python()), str(ROOT / "tools/import_user_resources.py")],
                        check=True)
     return generated_assets("user-resources-provenance.json", regenerate,
