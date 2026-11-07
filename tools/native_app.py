@@ -321,6 +321,10 @@ FAST_FLAGS = ['-std=c++17', '-O2', '-g', '-Werror=implicit-fallthrough']
 if native_x64():
     FLAGS += ['-DNEO98_NO_UNICORN']
     FAST_FLAGS += ['-DNEO98_NO_UNICORN']
+    # The chain of a waiting thread (MachineState::Chains, the step
+    # wstate=chains) follows the frame pointers of its host stack, which
+    # ARM64 always keeps and x86-64 drops at -O2.
+    FAST_FLAGS += ['-fno-omit-frame-pointer', '-mno-omit-leaf-frame-pointer']
 # The sources of src/ in the optimised builds keep every variable with static
 # storage whole and at one address: the layout table of a saved state reads
 # them out of the debug information (tools/state_layout.py), and the pass
@@ -428,12 +432,14 @@ def release_dependencies(objects, cache, binary):
     Path(str(binary) + '.dependencies.json').write_text(json.dumps(sorted(dependencies), indent=2) + '\n')
 
 
-def build_fast(source, name, *, compile_flags=(), link_flags=(), extra_inputs=()):
+def build_fast(source, name, *, compile_flags=(), link_flags=(), extra_inputs=(), replaced=None):
     """Link a headless runner against the optimised, non-sanitized runtime.
 
     Benchmarks (tools/bench_dispatch.py) use it; tests keep the sanitizer build.
     The objects are shared with build_host through object-cache-fast.
+    replaced: {name of a source of src/: a changed copy of it}, as in build_host.
     """
+    replaced = replaced or {}
     hives_only = source in ('neo98_linux.cpp', 'neo98_cli.cpp', 'neo98_kms.cpp')
     fast_flags = [*FAST_FLAGS, *(['-DNEO98_RUNTIME_CONTENT'] if hives_only else [])]
     if native_x64():
@@ -453,8 +459,12 @@ def build_fast(source, name, *, compile_flags=(), link_flags=(), extra_inputs=()
     env = neo98.tool_environment()
     arm64_table()
     objects = compile_objects(ROOT,
-        [fiber_source(), *[ROOT / 'src' / f'{s}.cpp' for s in runtime_sources() if not (hives_only and s == 'registry')]],
+        [fiber_source(), *[ROOT / 'src' / f'{s}.cpp' for s in runtime_sources()
+                           if not (hives_only and s == 'registry') and f'{s}.cpp' not in replaced]],
         [*fast_flags, *STATE_FLAGS], env, out / 'object-cache-fast')
+    if replaced:
+        objects += compile_objects(ROOT, list(replaced.values()), [*fast_flags, *STATE_FLAGS, '-I', str(ROOT / 'src')],
+                                   env, out / 'object-cache-fast')
     if hives_only:
         objects += compile_objects(ROOT, [ROOT / 'src/registry.cpp'], [*fast_flags, *STATE_FLAGS, '-DNEO98_NO_REGISTRY_IMAGE'], env, out / 'object-cache-fast')
     library = unicorn_library()
@@ -522,7 +532,7 @@ def build_host(source='neo98_host.cpp', name='neo98-host', replaced=None, saniti
     cache_name = 'object-cache-state-asan' if sanitized else 'object-cache-fast'
     if sanitized and name == 'neo98-host':
         name = 'neo98-host-asan'
-    if native_x64() and source == 'neo98_host.cpp' and replaced is None:
+    if native_x64() and source == 'neo98_host.cpp':
         if sanitized: raise RuntimeError('The Linux GUI sanitizer build is not yet connected')
         cflags = subprocess.check_output(['sdl2-config', '--cflags'], text=True).split()
         libs = subprocess.check_output(['sdl2-config', '--libs'], text=True).split()
@@ -553,7 +563,8 @@ def build_host(source='neo98_host.cpp', name='neo98-host', replaced=None, saniti
             libs += ['-lwayland-server', '-lEGL', '-lGLESv2', '-lgbm', '-ldrm']
         extra += dos_vm_objects(FAST_FLAGS, ROOT / 'build/native-app/object-cache-fast')
         cflags += ['-DNEO98_WITH_DOSBOX']
-        return build_fast('neo98_linux.cpp', name, compile_flags=cflags, link_flags=['-lz', *libs], extra_inputs=extra)
+        return build_fast('neo98_linux.cpp', name, compile_flags=cflags, link_flags=['-lz', *libs], extra_inputs=extra,
+                          replaced=replaced)
     export_contract_assets()
     if source != "neo98_host.cpp" and not runtime_content:
         from serialui_assets import generate as serialui_assets
