@@ -561,19 +561,25 @@ def _run_setup(iso, disk, floppy, work, timeout, resume, live, bootstrap=False):
         with qemu_log.open("ab") as log:
             process = subprocess.Popen(qemu_args(iso, disk, boot_floppy, serial, monitor),
                                        stdout=log, stderr=subprocess.STDOUT)
+            def read_serial():
+                if not serial.exists():
+                    return
+                for event in serial.read_text(errors="replace").splitlines():
+                    if event in MILESTONES and event not in seen:
+                        print("setup: " + MILESTONES[event], flush=True)
+                        seen.add(event)
+                    if event.endswith("_FAIL") or event == "NEO98_SETUP_RETURNED":
+                        raise RuntimeError(f"Guest stopped at {event}; see {qemu_log}")
+
             try:
                 while time.monotonic() - started < timeout:
-                    if serial.exists():
-                        events = serial.read_text(errors="replace").splitlines()
-                        for event in events:
-                            if event in MILESTONES and event not in seen:
-                                print("setup: " + MILESTONES[event], flush=True)
-                                seen.add(event)
-                            if event.endswith("_FAIL") or event == "NEO98_SETUP_RETURNED":
-                                raise RuntimeError(f"Guest stopped at {event}; see {qemu_log}")
-                        if "NEO98_SETUP_COMPLETE" in seen and completed_at is None:
-                            completed_at = time.monotonic()
+                    read_serial()
+                    if "NEO98_SETUP_COMPLETE" in seen and completed_at is None:
+                        completed_at = time.monotonic()
                     if process.poll() is not None:
+                        # What the guest wrote between the read above and
+                        # its end belongs to this boot as well.
+                        read_serial()
                         break
                     live.frame()
                     elapsed = time.monotonic() - started
