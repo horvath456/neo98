@@ -23,8 +23,8 @@ def main():
     env = neo98.tool_environment()
     objects = vulkan_objects()
     subprocess.run(['clang++', '-std=c++17', '-O2', '-DNEO98_WITH_VULKAN',
-                    str(ROOT / 'tools/test_dos_voodoo_vulkan.cpp'), str(ROOT / 'src/dos_voodoo.cpp'),
-                    *map(str, objects), '-lvulkan', '-ldl', '-o', str(binary)], env=env, check=True)
+                    str(ROOT / 'tools/test_dos_voodoo_vulkan.cpp'), 'src/dos_voodoo.cpp',
+                    *map(str, objects), '-lvulkan', '-ldl', '-o', str(binary)], env=env, cwd=ROOT, check=True)
     result = subprocess.run([str(binary)], env=dict(os.environ, NEO98_GPU='vulkan'))
     if result.returncode:
         return result.returncode
