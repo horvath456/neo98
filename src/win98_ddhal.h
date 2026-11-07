@@ -488,6 +488,7 @@ constexpr U DP2UserMemVertices = 0x1;   // D3DHALDP2_USERMEMVERTICES
 // DDRAWI_DDRAWSURFACE_LCL, _GBL and _MORE, the surface records of DDRAW.
 namespace SurfaceLocal
 {
+constexpr U Palette = 0x24;   // lpDDPalette, a DDRAWI_DDRAWPALETTE_INT pointer
 constexpr U More = 0x00, Global = 0x04, AttachList = 0x0c, AttachListFrom = 0x10, Flags = 0x1c;
 constexpr U Caps = 0x20, BackBufferCount = 0x30, SourceColorKey = 0x3c;   // DDCOLORKEY: low, high
 constexpr U DestColorKey = 0x34;   // ddckCKDestBlt, the key before ddckCKSrcBlt in ddrawi.h

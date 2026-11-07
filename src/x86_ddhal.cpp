@@ -171,6 +171,8 @@ enum StateKey : unsigned
 struct Application::HalSurface
 {
     unsigned handle = 0, lcl = 0, local = 0, generation = 1, palette = 0;
+    bool legacy_handle = false;
+    unsigned legacy_references = 0;
     // A copy of the records in the driver's own memory, for a surface whose
     // records live only as long as CreateSurfaceEx; lcl names the copy.
     unsigned shadow = 0;
@@ -616,12 +618,15 @@ bool Application::HalCreateDriverObject()
     Write32(h.callbacks3 + H::D3DCallbacks3::ValidateTextureStageState, HalGate("ValidateTextureStageState"));
     Write32(h.callbacks3 + H::D3DCallbacks3::DrawPrimitives2, HalGate("DrawPrimitives2"));
     // D3DHAL_CALLBACKS: the context entries; everything of the execute buffer
-    // model stays empty, this is a DrawPrimitives2 driver.
+    // model stays empty, this is a DrawPrimitives2 driver. Legacy runtimes
+    // still need texture handles for their translated execute streams.
     Write32(h.d3d_callbacks, H::D3DCallbacks::Size);
     Write32(h.d3d_callbacks + H::D3DCallbacks::ContextCreate, HalGate("ContextCreate"));
     Write32(h.d3d_callbacks + H::D3DCallbacks::ContextDestroy, HalGate("ContextDestroy"));
     Write32(h.d3d_callbacks + H::D3DCallbacks::ContextDestroyAll, HalGate("ContextDestroyAll"));
     Write32(h.d3d_callbacks + H::D3DCallbacks::SceneCapture, HalGate("SceneCapture"));
+    Write32(h.d3d_callbacks + H::D3DCallbacks::TextureCreate, HalGate("TextureCreate"));
+    Write32(h.d3d_callbacks + H::D3DCallbacks::TextureDestroy, HalGate("TextureDestroy"));
     // The texture formats and the Z formats.
     for (unsigned i = 0; i < CompressedFormatCount; ++i)
         Write32(h.fourcc_list + i * 4, texture_formats[TextureFormatCount - CompressedFormatCount + i].fourcc);
@@ -1038,7 +1043,7 @@ Application::HalSurface *Application::HalSurfaceByHandle(unsigned handle, bool b
                                 (Read32(s.lcl + H::SurfaceLocal::Caps) & H::DDSCAPS_EXECUTEBUFFER);
         if (executable != buffer) return false;
         const unsigned more = virtual_memory.Access(s.lcl, 4, false) ? Read32(s.lcl + H::SurfaceLocal::More) : 0;
-        if (more && virtual_memory.Access(more + H::SurfaceMore::Handle, 4, false))
+        if (!s.legacy_handle && more && virtual_memory.Access(more + H::SurfaceMore::Handle, 4, false))
             s.handle = Read32(more + H::SurfaceMore::Handle);
         return s.handle == handle;
     };
@@ -2010,6 +2015,35 @@ bool Application::HalSurfaceView(unsigned lcl, Gpu::Surface &view)
     view.owner = process_id;
     if (auto *record = HalSurfaceByLcl(lcl))
     {
+        // Legacy Direct3D does not send DP2 palette updates. Its DirectDraw
+        // surface retains the attached palette interface and color table.
+        if (view.indexed && record->legacy_handle)
+        {
+            auto pointer = [&](unsigned base, unsigned offset) {
+                return base && virtual_memory.Access(base + offset, 4, false) ? Read32(base + offset) : 0u;
+            };
+            const unsigned palette_object = pointer(lcl, H::SurfaceLocal::Palette);
+            const unsigned palette_local = pointer(palette_object, 4);
+            const unsigned palette_global = pointer(palette_local, 4);
+            const unsigned entries = pointer(palette_global, 16);
+            if (entries && virtual_memory.Access(entries, 256 * 4, false))
+                if (auto *palette = ddhal->PaletteOf(palette_global, true))
+                {
+                    const bool alpha = (pointer(palette_global, 4) & 0x2000) != 0;
+                    bool changed = record->palette != palette_global || palette->alpha != alpha;
+                    palette->alpha = alpha;
+                    for (unsigned i = 0; i < 256; ++i)
+                    {
+                        const unsigned entry = Read32(entries + i * 4);
+                        const unsigned color = ((entry & 255) << 16) | (entry & 0xff00) |
+                                               ((entry >> 16) & 255) | (entry & 0xff000000u);
+                        changed = changed || palette->colors[i] != color;
+                        palette->colors[i] = color;
+                    }
+                    record->palette = palette_global;
+                    if (changed) ++record->generation;
+                }
+        }
         view.handle = record->handle;
         view.generation = record->generation;
         if (view.indexed && record->palette)
@@ -3044,14 +3078,39 @@ unsigned Application::HalContextCreate(unsigned data)
     c.local = Read32(data + H::Data::ContextLocal);
     c.target = Read32(data + H::Data::ContextTarget);
     c.z = Read32(data + H::Data::ContextZ);
+    // Before DirectX 7, ContextCreate supplies surface interfaces rather
+    // than local records. DDRAWI_DDRAWSURFACE_INT keeps lpLcl after lpVtbl.
+    auto surface_local = [&](unsigned surface) {
+        if (!surface || !virtual_memory.Access(surface, 8, false)) return surface;
+        const unsigned table = Read32(surface);
+        // An interface starts with a vtable of code pointers; a local
+        // surface starts with its MORE record and that record's size.
+        if (virtual_memory.Access(table, 4, false) && virtual_memory.Executable(Read32(table)))
+            return Read32(surface + 4);
+        return surface;
+    };
+    const unsigned target = surface_local(c.target);
+    const bool legacy = target != c.target;
+    c.target = target;
+    c.z = surface_local(c.z);
     c.pid = Read32(data + H::Data::ContextPid);
     c.queries.Clear();
     c.signalled.Clear();
     Direct3DState::Default(c.state);
     // The render target and its Z buffer were created before the device and
     // may not have handles yet.
-    HalRegisterSurface(c.target, c.local, 0);
-    if (c.z) HalRegisterSurface(c.z, c.local, 0);
+    HalRegisterSurface(c.target, c.local, 0, !legacy);
+    if (c.z) HalRegisterSurface(c.z, c.local, 0, !legacy);
+    if (legacy)
+    {
+        const unsigned surfaces[] = {c.target, c.z};
+        for (const unsigned lcl : surfaces)
+            if (auto *surface = HalSurfaceByLcl(lcl))
+            {
+                surface->legacy_handle = true;
+                surface->handle = lcl;
+            }
+    }
     Write32(data + H::Data::ContextHandle, c.handle);
     Write32(data + H::Data::ContextResult, H::DD_OK);
     DriverTrace("DDHAL ContextCreate", c.handle);
@@ -3412,7 +3471,9 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
     const unsigned rstates = Read32(data + D::DP2RenderStates);
     unsigned stride = Read32(data + D::DP2Result);   // dwVertexSize on the way in
     const auto layout = Gpu::VertexLayout::Of(fvf);
-    if (!stride || stride < layout.stride) stride = layout.stride;
+    // Older runtimes leave an HRESULT in the size/result union when
+    // submitting translated execute buffers. It is not a vertex stride.
+    if (!stride || (stride & 0x80000000u) || stride < layout.stride) stride = layout.stride;
     auto fail = [&](unsigned offset, const char *why, bool diagnostic = true) {
         if (diagnostic) DriverTrace(why, offset);
         Write32(data + D::DP2Result, H::D3DERR_COMMAND_UNPARSED);
@@ -3452,16 +3513,16 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
     // when a primitive actually refers to it.
     unsigned vertex_count = 0;
     bool vertices_loaded = false;
-    auto read_vertices = [&]() {
-        if (vertices_loaded) return true;
-        if (!vertex_base || !vertex_length) return false;
-        const unsigned long long wide_bytes = (unsigned long long)vertex_length * stride;
+    auto read_vertices = [&](unsigned needed) {
+        if (vertices_loaded && needed <= vertex_count) return true;
+        if (!vertex_base || !needed || needed > vertex_length) return false;
+        const unsigned long long wide_bytes = (unsigned long long)needed * stride;
         if (wide_bytes > ~0u - 64) return false;
         const unsigned bytes = (unsigned)wide_bytes;
         if (!virtual_memory.Access(vertex_base, bytes, false) ||
             !Grow(h.vertices, h.vertex_capacity, bytes + 64) || !Read(vertex_base, h.vertices, bytes))
             return false;
-        vertex_count = vertex_length;
+        vertex_count = needed;
         vertices_loaded = true;
         return true;
     };
@@ -3476,7 +3537,26 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
         return begun;
     };
     auto draw = [&](Gpu::Draw &d) {
-        if (!read_vertices() || !begin()) return false;
+        // Execute runtimes can publish a maximum index range rather than
+        // the allocation's vertex count. Read only the vertices this draw
+        // references, retaining the runtime's range as an upper bound.
+        unsigned long long needed = 0;
+        if (d.indices)
+        {
+            for (unsigned i = 0; i < d.index_count; ++i)
+                if (unsigned(d.indices[i]) + 1 > needed) needed = unsigned(d.indices[i]) + 1;
+            needed += d.base_vertex;
+        }
+        else
+        {
+            const unsigned long long count = d.primitive_count;
+            const auto elements = d.primitive == Gpu::PointList ? count :
+                                  d.primitive == Gpu::LineList ? count * 2 :
+                                  d.primitive == Gpu::LineStrip ? count + 1 :
+                                  d.primitive == Gpu::TriangleList ? count * 3 : count + 2;
+            needed = d.first_vertex + elements;
+        }
+        if (needed > ~0u || !read_vertices(unsigned(needed)) || !begin()) return false;
         d.fvf = fvf;
         d.stride = stride;
         d.vertices = h.vertices;
@@ -4689,6 +4769,32 @@ unsigned Application::DisplayDriverApi(ApiName name, const unsigned *a)
         const unsigned pid = Read32(data + D::DestroyContext);
         for (auto &c : ddhal->contexts) if (c.pid == pid) c.used = false;
         Write32(data + D::DestroyContextResult, H::DD_OK);
+        return H::DriverHandled;
+    }
+    API_CASE("TextureCreate")
+    {
+        // D3DHAL_TEXTURECREATEDATA: context, surface interface, handle, result.
+        auto *c = HalContextOf(Read32(data));
+        const unsigned object = Read32(data + 4);
+        const unsigned lcl = object ? Read32(object + 4) : 0;
+        if (c && lcl && !HalSurfaceByLcl(lcl)) HalRegisterSurface(lcl, c->local, 0, false);
+        auto *surface = c && lcl ? HalSurfaceByLcl(lcl) : nullptr;
+        if (surface)
+        {
+            surface->legacy_handle = true;
+            surface->handle = lcl;
+            ++surface->legacy_references;
+        }
+        Write32(data + 8, surface ? surface->handle : 0);
+        Write32(data + 12, surface ? H::DD_OK : H::DDERR_INVALIDPARAMS);
+        return H::DriverHandled;
+    }
+    API_CASE("TextureDestroy")
+    {
+        // D3DHAL_TEXTUREDESTROYDATA: context, texture handle, result.
+        if (auto *surface = HalSurfaceByHandle(Read32(data + 4)))
+            if (surface->legacy_references && !--surface->legacy_references) HalForgetSurface(surface->lcl);
+        Write32(data + 8, H::DD_OK);
         return H::DriverHandled;
     }
     API_CASE("SceneCapture")
