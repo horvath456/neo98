@@ -825,6 +825,9 @@ int main(int argc, char **argv)
     // the pointer of the window by that much and sends the movement as a
     // real mouse does; press= and release= are the left button at a point of
     // the window.
+    // A movement of the mouse: the position in canvas pixels and the
+    // distance in points of the window (deliver_motion, below).
+    std::function<void(int, int, int, int)> deliver_motion;
     LinuxHost::host_step = [&](const std::string &action, int x, int y) {
         if (action == "pause")
         {
@@ -834,20 +837,20 @@ int main(int argc, char **argv)
         }
         if (action == "hand")
         {
+            // The distance reaches the guest as it is: an event through SDL
+            // would carry it rounded to canvas pixels. The pointer of the
+            // window follows (its event has no distance).
             int px = 0, py = 0;
             SDL_GetMouseState(&px, &py);
-            SDL_WarpMouseInWindow(window.get(), px + x, py + y);
-            SDL_Event motion{};
-            motion.type = SDL_MOUSEMOTION;
-            motion.motion.windowID = SDL_GetWindowID(window.get());
-            motion.motion.which = ScriptMouse;
-            motion.motion.x = px + x;
-            motion.motion.y = py + y;
-            motion.motion.xrel = x;
-            motion.motion.yrel = y;
-            SDL_PushEvent(&motion);
             printf("NEO98 HOST input hand %d,%d -> %d,%d\n", x, y, px + x, py + y);
             fflush(stdout);
+            if (!menu.paused && !auto_paused && !machine_paused && !mouse_hold.released && !seamless_enabled)
+            {
+                float logical_x = 0, logical_y = 0;
+                SDL_RenderWindowToLogical(renderer.get(), px + x, py + y, &logical_x, &logical_y);
+                deliver_motion(int(logical_x), int(logical_y), x, y);
+            }
+            SDL_WarpMouseInWindow(window.get(), px + x, py + y);
             return true;
         }
         if (action == "press" || action == "release")
@@ -932,6 +935,39 @@ int main(int argc, char **argv)
     // answer, or a runnable thread, and made no API call for three seconds.
     unsigned last_calls = HostPacing::TotalCalls(*session.app);
     auto last_call_time = start, last_input_time = start, waiting_since = start;
+    // As on the Mac: the hand's distance goes with the position, in
+    // mickeys, whatever the display mode and the size of the window. A
+    // program that recentres, or DirectInput's exclusive mouse, receives that
+    // distance from where the guest's pointer stands; SDL's own position may
+    // predate the guest's last SetCursorPos.
+    deliver_motion = [&](int canvas_x, int canvas_y, int distance_x, int distance_y) {
+        const Gdi::POINT motion{distance_x, distance_y};
+        int guest_width = 0, guest_height = 0, depth = 0;
+        User::ScreenMode(guest_width, guest_height, depth);
+        int gx = canvas_x, gy = canvas_y, mx = 0, my = 0;
+        if (MouseRecentres() || X86::Application::DinputMouseExclusive())
+        {
+            Gdi::POINT at{};
+            User::CursorPosition(&at);
+            mx = at.x + motion.x;
+            my = at.y + motion.y;
+            User::ConfinePointer(mx, my);
+            gx = mx;
+            gy = my;
+            GuestScreenScale::GuestToCanvas(gx, gy, guest_width, guest_height, width, height);
+        }
+        else
+        {
+            mx = gx;
+            my = gy;
+            GuestScreenScale::CanvasToGuest(mx, my, guest_width, guest_height, width, height);
+        }
+        const bool changed = gx != last_mouse_x || gy != last_mouse_y || motion.x || motion.y;
+        last_mouse_x = gx;
+        last_mouse_y = gy;
+        session.app->MouseButtons(mx, my, buttons, &motion);
+        if (changed) last_input_time = std::chrono::steady_clock::now();
+    };
     bool was_waiting = false, hang_now = false;
     unsigned hang_seconds_shown = 0;
     const bool headless = SDL_GetCurrentVideoDriver() && !strcmp(SDL_GetCurrentVideoDriver(), "dummy");
@@ -1145,41 +1181,12 @@ int main(int argc, char **argv)
                     last_input_time = std::chrono::steady_clock::now();
                     continue;
                 }
-                // As on the Mac: the hand's distance goes with the position,
-                // in mickeys, whatever the display mode and the size of the
-                // window (SDL gives it in canvas pixels). A program that
-                // recentres, or DirectInput's exclusive mouse, receives that
-                // distance from where the guest's pointer stands; SDL's own
-                // position may predate the guest's last SetCursorPos.
+                // SDL gives the distance in canvas pixels; the hand's is in
+                // points of the window.
                 float scale_x = 1, scale_y = 1;
                 SDL_RenderGetScale(renderer.get(), &scale_x, &scale_y);
-                const Gdi::POINT motion{int(std::lround(event.motion.xrel * scale_x)),
-                                        int(std::lround(event.motion.yrel * scale_y))};
-                int guest_width = 0, guest_height = 0, depth = 0;
-                User::ScreenMode(guest_width, guest_height, depth);
-                int gx = event.motion.x, gy = event.motion.y, mx = 0, my = 0;
-                if (MouseRecentres() || X86::Application::DinputMouseExclusive())
-                {
-                    Gdi::POINT at{};
-                    User::CursorPosition(&at);
-                    mx = at.x + motion.x;
-                    my = at.y + motion.y;
-                    User::ConfinePointer(mx, my);
-                    gx = mx;
-                    gy = my;
-                    GuestScreenScale::GuestToCanvas(gx, gy, guest_width, guest_height, width, height);
-                }
-                else
-                {
-                    mx = gx;
-                    my = gy;
-                    GuestScreenScale::CanvasToGuest(mx, my, guest_width, guest_height, width, height);
-                }
-                const bool changed = gx != last_mouse_x || gy != last_mouse_y || motion.x || motion.y;
-                last_mouse_x = gx;
-                last_mouse_y = gy;
-                session.app->MouseButtons(mx, my, buttons, &motion);
-                if (changed) last_input_time = std::chrono::steady_clock::now();
+                deliver_motion(event.motion.x, event.motion.y, int(std::lround(event.motion.xrel * scale_x)),
+                               int(std::lround(event.motion.yrel * scale_y)));
             }
             else if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !menu.paused)
             {
@@ -1197,9 +1204,30 @@ int main(int argc, char **argv)
                 buttons =
                     HostMouseButtons::Apply(buttons, event.button.button, event.type == SDL_MOUSEBUTTONDOWN);
                 int x = event.button.x, y = event.button.y;
-                if (!seamless_enabled) { last_mouse_x = x; last_mouse_y = y; }
                 mouse_point(event.button.windowID, x, y);
-                session.app->MouseButtons(x, y, buttons);
+                if (!seamless_enabled)
+                {
+                    // SDL reports movement separately: for a program that
+                    // recentres or DirectInput's exclusive mouse the press is
+                    // where the guest's pointer stands, without movement.
+                    int guest_width = 0, guest_height = 0, depth = 0;
+                    User::ScreenMode(guest_width, guest_height, depth);
+                    if (MouseRecentres() || X86::Application::DinputMouseExclusive())
+                    {
+                        Gdi::POINT at{};
+                        User::CursorPosition(&at);
+                        x = at.x;
+                        y = at.y;
+                    }
+                    int gx = x, gy = y;
+                    GuestScreenScale::GuestToCanvas(gx, gy, guest_width, guest_height, width, height);
+                    last_mouse_x = gx;
+                    last_mouse_y = gy;
+                    const Gdi::POINT motion{};
+                    session.app->MouseButtons(x, y, buttons, &motion);
+                }
+                else
+                    session.app->MouseButtons(x, y, buttons);
                 last_input_time = std::chrono::steady_clock::now();
             }
             else if (event.type == SDL_MOUSEWHEEL && !menu.paused)

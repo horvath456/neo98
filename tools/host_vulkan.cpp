@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <vector>
@@ -1162,6 +1163,11 @@ class Vulkan final : public Gpu::Backend
         }
         info.enabledExtensionCount = unsigned(extensions.size());
         info.ppEnabledExtensionNames = extensions.data();
+        // An empty list of drivers (VK_ICD_FILENAMES= in a shell profile)
+        // makes the loader find none at all; it means the installed ones.
+        for (const char *name : {"VK_ICD_FILENAMES", "VK_DRIVER_FILES"})
+            if (const char *files = getenv(name); files && !*files)
+                unsetenv(name);
         if (!Good(vkCreateInstance(&info, nullptr, &instance), "instance"))
             return false;
         unsigned count = 0;
