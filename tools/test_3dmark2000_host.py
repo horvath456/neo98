@@ -17,17 +17,26 @@ from PIL import Image
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT),str(ROOT/'tools')]
 import first_logon
+import win98_c
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('--source-drive',type=Path,default=__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))
+    # 3DMark is installed in the live drive C:, not in the pristine snapshot
+    # (or the per-run copy of it) that NEO98_WIN98_ROOT names during a suite.
+    p.add_argument('--source-drive',type=Path,default=win98_c.live_folder())
     p.add_argument('--source-registry',type=Path,default=ROOT/'build/win98-c.registry')
-    p.add_argument('--host',type=Path,default=ROOT/'build/native-app/neo98-host')
+    p.add_argument('--host',type=Path)
     p.add_argument('--close-only',action='store_true')
+    p.add_argument('--no-build',action='store_true')
     args=p.parse_args()
     relative=Path('Program Files/MadOnion.com/3DMark2000')
     if not (args.source_drive/relative/'3DMark2000.exe').is_file():
         raise SystemExit(f'No Windows 98 installation at {args.source_drive} with 3DMark 2000 installed')
+    if args.host is None:
+        # The host of this checkout. 3DMark needs Direct3D, which the Linux
+        # host has through its Vulkan backend (tools/host_gpu.h).
+        from native_app import build_host
+        args.host=ROOT/'build/native-app/neo98-host' if args.no_build else build_host(vulkan=sys.platform!='darwin')
     out=ROOT/('build/3dmark2000-close' if args.close_only else 'build/3dmark2000-host');out.mkdir(exist_ok=True)
     drive,reg=first_logon.clone(out/'session')
     target=drive/relative;target.parent.mkdir(parents=True,exist_ok=True)

@@ -319,6 +319,11 @@ def main():
     mac = sys.platform == 'darwin'
     if not mac and not native_app.native_x64():
         raise SystemExit('This test drives the Linux x64 host under X11 or the Mac host.')
+    if not mac and not os.environ.get('DISPLAY'):
+        # Every part runs the GUI host with its X11 window (the host's default
+        # driver); without a display it cannot start.
+        print('SKIP: the Linux host runs under X11 here, and DISPLAY is not set', flush=True)
+        raise SystemExit(77)
     if not args.no_build:
         native_app.build_host(vulkan=not mac, host_media=True)
     pristine = win98_c.use_pristine()

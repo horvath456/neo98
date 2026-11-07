@@ -30,7 +30,17 @@ static const char *const parent_file="C:\\WINDOWS\\TEMP\\SL-PARENT.DAT";
 static const char *const go_file="C:\\WINDOWS\\TEMP\\SL-GO.DAT";
 
 static void write_value(const char*name,U value){U n,h=CreateFileA(name,0x40000000,3,0,2,0,0);if(h==~0u)ExitProcess(29700);if(!WriteFile(h,&value,4,&n,0)||n!=4||!CloseHandle(h))ExitProcess(29701);}
-static U read_value(const char*name){U n,v=0,h=CreateFileA(name,0x80000000,3,0,3,0,0);if(h==~0u)ExitProcess(29702);if(!ReadFile(h,&v,4,&n,0)||n!=4||!CloseHandle(h))ExitProcess(29703);return v;}
+// The other process creates the file before it writes the value; where
+// processes run at the same time the file can still be empty.
+static U read_value(const char*name){
+ for(U i=0;i<20000;++i){
+  U n=0,v=0,h=CreateFileA(name,0x80000000,3,0,3,0,0);if(h==~0u)ExitProcess(29702);
+  U read=ReadFile(h,&v,4,&n,0);if(!read||!CloseHandle(h))ExitProcess(29703);
+  if(n==4)return v;
+  Sleep(1);
+ }
+ ExitProcess(29703);return 0;
+}
 static U await_file(const char*name){for(U i=0;i<20000;++i){if(GetFileAttributesA(name)!=~0u)return 1;Sleep(1);}return 0;}
 // Wait for a pending send without dispatching it. GetQueueStatus reports its
 // flag in the high word.
