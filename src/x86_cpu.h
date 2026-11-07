@@ -132,6 +132,12 @@ class Cpu
     // decodes every code segment as a flat 32-bit one; the pair of
     // src/x86_cpu_dual.cpp runs such code on its second engine.
     virtual bool Runs16Bit() const { return Backend() != CpuBackend::Fex; }
+    // The guest selector of a value the guest read out of a segment register
+    // itself. An engine that runs the guest on the processor gives the
+    // descriptors of the guest GDT other selectors of its own, and the
+    // instruction that reads the register is not trapped, so the guest sees
+    // those; this answers the selector of the guest tables for them.
+    virtual unsigned GuestSelector(unsigned value) const { return value; }
 
     // Registers. gpr points at the eight general registers in place, each in
     // a 64-bit slot whose low half is the 32-bit value; a write has to leave

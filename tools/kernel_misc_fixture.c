@@ -60,7 +60,10 @@ static void selector_test(void){
  unsigned char entry[8];const U cs=segment_cs(),fs=segment_fs();
  CHECK(GetThreadSelectorEntry(GetCurrentThread(),cs,P(entry))&&entry[0]==0xff&&entry[1]==0xff&&(entry[5]&0xfe)==0x9a&&entry[6]==0xcf);
  CHECK(GetThreadSelectorEntry(~1u,fs,P(entry))&&(entry[2]|entry[3]<<8|entry[4]<<16|(U)entry[7]<<24)==fs_read(0x18)&&entry[5]==0x93);
- CHECK(!GetThreadSelectorEntry(GetCurrentThread(),cs|4,P(entry))&&GetLastError()==87);
+ /* The LDT selector of the same index. Not cs|4: the native engine of Linux
+    keeps the guest GDT in the upper half of the host LDT, and CS read by
+    the guest is that LDT selector already (Cpu::GuestSelector). */
+ CHECK(!GetThreadSelectorEntry(GetCurrentThread(),(cs&0x7ff8)|7,P(entry))&&GetLastError()==87);
  CHECK(!GetThreadSelectorEntry(GetCurrentThread(),0x1000,P(entry))&&GetLastError()==87);
  CHECK(!GetThreadSelectorEntry(0x12345,cs,P(entry))&&GetLastError()==6);
 }

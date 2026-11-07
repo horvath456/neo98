@@ -826,6 +826,14 @@ class NativeCpu : public Cpu
     }
     CpuBackend Backend() const override { return CpuBackend::Native; }
     bool Runs16Bit() const override { return true; }
+    // A descriptor of the guest GDT lies in the upper half of the Linux LDT
+    // (Selector), and the guest reads that LDT selector with MOV from a
+    // segment register.
+    unsigned GuestSelector(unsigned value) const override
+    {
+        const unsigned slot = (value & 0xffff) >> 3;
+        return (value & 4) && slot >= 4096 ? (slot - 4096) * 8 | (value & 3) : value;
+    }
     unsigned Get(int reg, unsigned &value) override
     {
         if (reg < 0 || reg >= Reg::Fp0) return CpuError::Argument;

@@ -252,8 +252,11 @@ unsigned Application::MiscFamilyApi(ApiName name, const unsigned *a)
         // demands an LDT selector and bounds it by the LDT limit. NEO98
         // runs its guest on GDT selectors and has no LDT, so the table check
         // applies to the native descriptor table instead.
-        const unsigned index = a[1] & 0xfff8;
-        if ((a[1] & 4) || index >= (3 + ThreadCapacity) * 8) { last_error = 87; return 0; }
+        // A selector the guest read from its own segment register is the
+        // engine's (Cpu::GuestSelector).
+        const unsigned selector = cpu ? cpu->GuestSelector(a[1]) : a[1];
+        const unsigned index = selector & 0xfff8;
+        if ((selector & 4) || index >= (3 + ThreadCapacity) * 8) { last_error = 87; return 0; }
         unsigned char descriptor[8];
         if (!Read(SystemPageBase + index, descriptor, 8)) return 0;
         return Store(a[2], descriptor, 8) ? 1 : 0;
