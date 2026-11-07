@@ -639,6 +639,12 @@ class NativeCpu : public Cpu
         if ((op[0] != 0x8e && op[0] != 0x8c) || (op[1] & 0xc0) != 0xc0) return false;
         const unsigned seg = (op[1] >> 3) & 7, reg = op[1] & 7;
         if (seg > 5 || (op[0] == 0x8e && seg == 1)) return false;
+        // A selector without a present descriptor faults at the load, as on
+        // the processor: the general protection fault goes to the interrupt
+        // handler with the load as its instruction. Taken as it is, the
+        // register would make the next entry fail instead.
+        if (op[0] == 0x8e && (state.regs[reg] & 0xfffc) &&
+            Selector(state.regs[reg] & 0xffff, false) == ~0u) return false;
         if (op[0] == 0x8e) state.regs[Reg::Es + seg] = state.regs[reg] & 0xffff;
         else state.regs[reg] = !wide ? (state.regs[reg] & 0xffff0000) | state.regs[Reg::Es + seg]
                                     : state.regs[Reg::Es + seg];
