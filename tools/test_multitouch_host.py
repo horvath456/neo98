@@ -43,6 +43,7 @@ def x86_fixture(source, name, included_adapter=False):
         obj = OUT / f'{name}-{file.stem}.obj'
         subprocess.run(['i686-w64-mingw32-gcc', '-O1', '-ffreestanding',
                         '-fno-stack-protector', '-fno-builtin',
+                        *(['-D_WIN32_WINNT=0x0602'] if included_adapter else []),
                         '-c', str(file), '-o', str(obj)], env=env, check=True)
         objects.append(obj)
     exe = OUT / f'{name}.EXE'
