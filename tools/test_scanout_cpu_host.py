@@ -28,7 +28,7 @@ def main():
   samples=[]
   for n in range(3):
    log=out/f'{a.name}-{n}.log'
-   env=dict(neo98.tool_environment(),SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',NEO98_HOST_DEADLINE='45',NEO98_CPU='fex',NEO98_SETTINGS_DIR=str(out/'settings'),NEO98_LOG_DIR=str(out/'logs'))
+   env=dict(neo98.tool_environment(),SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',NEO98_HOST_DEADLINE='45',NEO98_CPU='fex' if sys.platform == 'darwin' else 'native',NEO98_SETTINGS_DIR=str(out/'settings'),NEO98_LOG_DIR=str(out/'logs'))
    with log.open('w') as stream:
     before=resource.getrusage(resource.RUSAGE_CHILDREN);started=time.monotonic()
     proc=subprocess.Popen([a.host,'-',ROOT/'build/generated/notepad-fixedsys.fnt','--exe','C:\\SCANCPU.EXE','--system-tree',private,'--drive-c',private,'--no-registry-file','--quiet'],stdout=stream,stderr=subprocess.STDOUT,env=env)

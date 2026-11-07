@@ -409,7 +409,9 @@ int main(int argc, char **argv)
             again.push_back(nullptr);
             // No destructor may see the half-loaded machine; the lock of
             // drive C: goes over to the new image.
-            session.PrepareRestart();
+            printf("NEO98 HOST restart reason=%s\n", state_restart.empty() ? "menu" : "load state");
+        fflush(stdout);
+        session.PrepareRestart();
             fflush(stdout);
             fflush(stderr);
             execvp(again[0], again.data());
@@ -822,7 +824,16 @@ int main(int argc, char **argv)
     int focus_script = -1;
     if (const char *video = SDL_GetCurrentVideoDriver(); video && !strcmp(video, "dummy")) focus_script = 1;
     LinuxHost::focus_input = [&](bool value) { focus_script = value ? 1 : 0; };
-    LinuxHost::describe_menu = [] { if (LinuxGtk::menu_bar) LinuxGtk::DescribeItems(LinuxGtk::menu_bar, ""); };
+    LinuxHost::describe_menu = [&] {
+        if (LinuxGtk::menu_bar) LinuxGtk::DescribeItems(LinuxGtk::menu_bar, "");
+        else {
+            // The dummy driver has no native menu, but its host menu model
+            // and shortcuts are the same as those of the windowed host.
+            printf("NEO98 HOST menu-item Machine > Pause [pause] %s%s\n",
+                   LinuxGtk::ItemKeys("pause"), menu.paused ? " (enabled)" : "");
+            fflush(stdout);
+        }
+    };
     // The keys of the window the guest holds down, by SDL scancode: what the
     // end of a pause releases when the hand let them go meanwhile.
     struct HeldKey { unsigned vk = 0, scan = 0; bool extended = false; };
@@ -898,6 +909,9 @@ int main(int argc, char **argv)
     // distance in points of the window (deliver_motion, below).
     std::function<void(int, int, int, int)> deliver_motion;
     LinuxHost::host_step = [&](const std::string &action, int x, int y) {
+        if (machine_paused && (action == "key" || action == "type" || action == "ctrl" ||
+                               action == "keydown" || action == "keyup" || action == "click" ||
+                               action == "move" || action == "wheel" || action == "scroll")) return true;
         if (action == "hand")
         {
             // The distance reaches the guest as it is: an event through SDL
@@ -965,6 +979,7 @@ int main(int argc, char **argv)
     // lets it go on, as on macOS (tools/host_state.h).
     if (HostState::loaded)
     {
+        standing = true;
         menu.paused = true;
         pause_machine(true, "state loaded");
     }
@@ -1296,7 +1311,7 @@ int main(int argc, char **argv)
                                (mods & KMOD_RALT ? 64 : 0) | (mods & KMOD_RGUI ? 128 : 0);
                 if (german && (mods & KMOD_RALT))
                     usb |= 1;
-                session.app->KeyboardModifiers(usb);
+                if (!machine_paused) session.app->KeyboardModifiers(usb);
                 auto key = UsbKeys::Map(event.key.keysym.scancode, german, mods & KMOD_NUM);
                 // Keys during a pause reach nobody; one held when it began is
                 // released when it ends (pause_machine).
@@ -1326,7 +1341,7 @@ int main(int argc, char **argv)
                 deliver_motion(event.motion.x, event.motion.y, int(std::lround(event.motion.xrel * scale_x)),
                                int(std::lround(event.motion.yrel * scale_y)));
             }
-            else if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !menu.paused)
+            else if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !machine_paused)
             {
                 if (event.type == SDL_MOUSEBUTTONDOWN && !seamless_enabled && LinuxGtk::embedded)
                 {
@@ -1368,7 +1383,7 @@ int main(int argc, char **argv)
                     session.app->MouseButtons(x, y, buttons);
                 last_input_time = std::chrono::steady_clock::now();
             }
-            else if (event.type == SDL_MOUSEWHEEL && !menu.paused)
+            else if (event.type == SDL_MOUSEWHEEL && !machine_paused)
             {
                 const double sign = event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -1 : 1;
                 const auto step = host_wheel.Convert(sign * event.wheel.preciseY,
@@ -2227,6 +2242,8 @@ int main(int argc, char **argv)
         for (auto &argument : arguments)
             again.push_back(argument.data());
         again.push_back(nullptr);
+        printf("NEO98 HOST restart reason=%s\n", state_restart.empty() ? "menu" : "load state");
+        fflush(stdout);
         session.PrepareRestart();
         session.Stop();
         cd.reset();

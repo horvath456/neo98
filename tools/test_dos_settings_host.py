@@ -39,7 +39,7 @@ def main():
         program = programs / 'TEST.COM'
         program.write_bytes(bytes.fromhex(code))
         script = ('1:menu=dos-settings-file=' + str(program) + ';' if open_settings else '') + actions + ';7:menu=quit'
-        env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
+        env = dict(os.environ, SDL_VIDEODRIVER='dummy' if sys.platform == 'darwin' else 'x11', SDL_AUDIODRIVER='dummy',
                    NEO98_HOST_INPUT=script, NEO98_HOST_MENU='', NEO98_HOST_DEADLINE='12',
                    NEO98_DOS_FAILURE_ACTION=failure_action,
                    NEO98_SETTINGS_DIR=str(case / 'settings'))

@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     layer = folder / 'C-Schicht'
     env = dict(os.environ, SDL_VIDEODRIVER='x11', SDL_AUDIODRIVER='dummy', NEO98_HOST_INPUT_ONCE='1', NEO98_CLIPBOARD='private',
                NEO98_LOG_DIR=str(out / 'logs'), NEO98_HOST_INPUT=
-               '5:key=41;5.2:key=41;5.4:key=41;6:menu=state-save,A;9:key=41;9.2:key=44;9.4:key=43;9.6:key=46;10:key=57;11:menu=state-load;16:key=57;17:key=41;18:key=57;19:menu=quit')
+               '5:key=41;5.2:key=41;5.4:key=41;6:menu=state-save,A;9:key=41;9.2:key=44;9.4:key=43;9.6:key=46;10:key=57;11:menu=state-load;15:pause=0;16:key=57;17:key=41;18:key=57;19:menu=quit')
     for key in ('NEO98_LOG_TO_FILE', 'NEO98_SETTINGS_FILE'):
         env.pop(key, None)
     log = out / 'basic.log'

@@ -41,20 +41,25 @@ def build(out, env):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cpu', choices=['fex', 'unicorn'], default='fex')
+    parser.add_argument('--cpu', choices=['fex', 'unicorn'] if sys.platform == 'darwin' else ['native'], default='fex' if sys.platform == 'darwin' else 'native')
     args = parser.parse_args()
     out = ROOT / 'build/session-section-lifetime' / args.cpu
     env = neo98.tool_environment()
     build(out, env)
     drive = out / 'drive-c'
-    drive.mkdir(exist_ok=True)
+    import win98_c
+    import shutil
+    source = win98_c.use_pristine()
+    if drive.exists():
+        shutil.rmtree(drive)
+    subprocess.run(['cp', '-R', *(['-c'] if sys.platform == 'darwin' else ['--reflink=auto']), str(source), str(drive)], check=True)
     env.update(SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_CPU=args.cpu,
                NEO98_HOST_INPUT='', NEO98_HOST_MENU='25:quit', NEO98_HOST_DEADLINE='30',
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))
     run = subprocess.run([str(ROOT / 'build/native-app/neo98-host'), '-',
                           str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
                           '--exe', 'E:\\SECTLIFE.EXE', '--drive-readonly', 'E=' + str(out),
-                          '--drive-c', str(drive), '--no-registry-file', '--quiet'],
+                          '--system-tree', str(drive), '--drive-c', str(drive), '--no-registry-file', '--quiet'],
                          env=env, capture_output=True, text=True)
     log = run.stdout + run.stderr
     (out / 'host.log').write_text(log)

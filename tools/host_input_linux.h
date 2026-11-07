@@ -474,14 +474,13 @@ class Script
         if (once && !strcmp(once, "1"))
         {
             // The steps not yet taken stay in the environment for the execv
-            // of a restart, with the seconds still to go.
+            // of a restart, with their original times from the new start.
             std::string remaining;
-            const double elapsed = real - paused;
             for (size_t i = at; i < steps.size(); ++i)
             {
                 const auto &step = steps[i];
                 const bool pixel = step.action == "pixel";
-                remaining += std::to_string(std::max(0.0, step.time - elapsed)) + ":" + (pixel ? "wait" : step.action) + "=" +
+                remaining += std::to_string(step.time) + ":" + (pixel ? "wait" : step.action) + "=" +
                              (pixel ? std::to_string(step.x) + "," + std::to_string(step.y) + "," + step.value : step.value) + ";";
             }
             setenv("NEO98_HOST_INPUT", remaining.c_str(), 1);

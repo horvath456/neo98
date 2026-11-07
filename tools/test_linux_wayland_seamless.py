@@ -34,7 +34,7 @@ def main():
         '6:native-click=Notepad|19,32','6.3:native-click=#32768|40,44','7:wait=#32770',
         f'7.5:native-shot=Notepad|{out / "covered.png"}',
         f'7.7:native-shot=#32770|{out / "dialog.png"}',
-        '8:menu=state-save,Wayland dialog','12:menu=state-load',
+        '8:menu=state-save,Wayland dialog','12:menu=state-load','13:pause=0',
         f'16:native-shot=#32770|{out / "restored-dialog.png"}',
         '16.5:native-key=#32770|1b','17:native-size=Notepad|640,420',
         '18:native-click=Notepad|100,100','18.3:native-key=Notepad|42',
