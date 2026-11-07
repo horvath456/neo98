@@ -24,7 +24,16 @@ inline bool Next(Request &request)
 inline bool Perform(const char *name, const char *path)
 {
     if (!name) return false;
-    const std::string action = name;
+    std::string action = name;
+    // The identifiers of the Mac menu bar (tools/host_menu.mm), which the
+    // scripted menu= steps of the tests use, name the same items here.
+    static const std::pair<const char *, const char *> mac[] = {
+        {"scale-1", "scale1"}, {"scale-2", "scale2"}, {"cdrom-insert", "cdrom"}, {"cdrom-eject", "eject"},
+        {"edit-cut", "cut"}, {"edit-copy", "copy"}, {"edit-paste", "paste"}, {"network-online", "network"},
+        {"open-program", "open"}, {"state-list", "states"}, {"settings", "preferences"},
+        {"guest-window", "window"}};
+    for (const auto &[from, to] : mac)
+        if (action == from) { action = to; break; }
     Request request;
     if (action == "pause") request.action = Action::Pause;
     else if (action == "reboot") request.action = Action::Reboot;

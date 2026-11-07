@@ -35,10 +35,87 @@
 namespace
 {
 volatile sig_atomic_t interrupted = 0;
+// SIGTERM and SIGHUP end the host in order, as a quit from the menu does and
+// as the macOS host ends on them (SDL_QUIT): exit code 0. SIGINT (Ctrl+C in a
+// terminal) stays an interruption with 130.
+volatile sig_atomic_t quit_requested = 0;
+// The guest holds the mouse, as on the Mac (tools/neo98_host.cpp, MouseHold):
+// a pointer clip smaller than the screen, the system mouse of DirectInput
+// taken exclusively, or a program that puts the pointer back after every
+// movement (four SetCursorPos within a second, the last of them not three
+// seconds ago). A pause lets such a mouse go and takes it back when it ends.
+struct MouseHold
+{
+    std::chrono::steady_clock::time_point warps[4]{};
+    unsigned next = 0;
+    bool released = false;
+    unsigned released_for = 0; // the foreground window at that moment
+    bool released_clip = false; // a pointer clip held it
+    int shown = 0;             // 0 free, 1 held, 2 let go
+};
+MouseHold mouse_hold;
+// Where the guest's pointer stands in canvas pixels, as the last motion or
+// SetCursorPos put it.
+int last_mouse_x = -1, last_mouse_y = -1;
+// NEO98_POINTER_TRACE=1 prints each warp of the pointer for a guest.
+const bool pointer_trace = getenv("NEO98_POINTER_TRACE") && *getenv("NEO98_POINTER_TRACE") == '1';
+// The mouse of the input script (hand=, press=, release=) in SDL's events.
+constexpr Uint32 ScriptMouse = 0x5c51;
+bool MouseRecentres()
+{
+    if (mouse_hold.next < 4) return false;
+    const auto oldest = mouse_hold.warps[mouse_hold.next & 3], newest = mouse_hold.warps[(mouse_hold.next + 3) & 3];
+    return newest - oldest < std::chrono::seconds(1) && std::chrono::steady_clock::now() - newest < std::chrono::seconds(3);
+}
+bool MouseHeld()
+{
+    if (X86::Application::DinputMouseExclusive()) return true;
+    if (User::PointerClipActive())
+    {
+        Gdi::RECT clip{};
+        int sw = 0, sh = 0, depth = 0;
+        User::ScreenMode(sw, sh, depth);
+        if (User::PointerClip(&clip) && (clip.right - clip.left < sw || clip.bottom - clip.top < sh)) return true;
+    }
+    return MouseRecentres();
+}
+bool MouseRelease(const char *why)
+{
+    if (mouse_hold.released || !MouseHeld()) return false;
+    mouse_hold.released = true;
+    mouse_hold.released_for = User::GetForegroundWindow();
+    mouse_hold.released_clip = User::PointerClipActive();
+    printf("NEO98 HOST mouse released (%s)\n", why);
+    fflush(stdout);
+    return true;
+}
+void MouseCapture(const char *why)
+{
+    if (!mouse_hold.released) return;
+    mouse_hold.released = false;
+    printf("NEO98 HOST mouse captured (%s)\n", why);
+    fflush(stdout);
+}
+void ServeMouseHold()
+{
+    // The program that held the mouse is gone: nothing is left to take back.
+    if (mouse_hold.released && mouse_hold.released_for && !User::IsWindow(mouse_hold.released_for) && !MouseHeld())
+        MouseCapture("the window that held it is gone");
+    if (mouse_hold.released && mouse_hold.released_clip && !MouseHeld()) MouseCapture("the pointer clip is gone");
+    const int now = mouse_hold.released ? 2 : MouseHeld() ? 1 : 0;
+    if (now == mouse_hold.shown) return;
+    mouse_hold.shown = now;
+    printf("NEO98 HOST mouse hold=%d released=%d\n", now ? 1 : 0, now == 2 ? 1 : 0);
+    fflush(stdout);
+}
 volatile sig_atomic_t dump_requested = 0;
 void Signal(int)
 {
     interrupted = 1;
+}
+void QuitSignal(int)
+{
+    quit_requested = 1;
 }
 void DumpSignal(int)
 {
@@ -224,7 +301,8 @@ int main(int argc, char **argv)
     }
 #endif
     signal(SIGINT, Signal);
-    signal(SIGTERM, Signal);
+    signal(SIGTERM, QuitSignal);
+    signal(SIGHUP, QuitSignal);
     signal(SIGUSR1, DumpSignal);
     // Use the same desktop and seamless path on X11 and Wayland sessions.
     // Native Wayland remains an explicit, deprecated compatibility option.
@@ -402,8 +480,24 @@ int main(int argc, char **argv)
         User::ScreenMode(guest_width, guest_height, depth);
         User::PixelsSize(canvas_width, canvas_height);
         GuestScreenScale::GuestToCanvas(x, y, guest_width, guest_height, canvas_width, canvas_height);
+        // As on the Mac: each SetCursorPos counts for the hold; a mouse that
+        // was let go is the hand's alone, and a warp to where the pointer
+        // stands moves nothing.
+        mouse_hold.warps[mouse_hold.next++ & 3] = std::chrono::steady_clock::now();
+        if (mouse_hold.released) return;
+        if (last_mouse_x == x && last_mouse_y == y) return;
+        last_mouse_x = x;
+        last_mouse_y = y;
         int window_x = 0, window_y = 0;
         SDL_RenderLogicalToWindow(renderer, float(x), float(y), &window_x, &window_y);
+        if (pointer_trace)
+        {
+            int ww = 0, wh = 0;
+            SDL_GetWindowSize(SDL_RenderGetWindow(renderer), &ww, &wh);
+            const bool centre = window_x >= ww / 2 && window_x <= (ww + 1) / 2 && window_y >= wh / 2 && window_y <= (wh + 1) / 2;
+            printf("NEO98 HOST POINTER warp window=%d,%d size=%dx%d centre=%d\n", window_x, window_y, ww, wh, centre ? 1 : 0);
+            fflush(stdout);
+        }
         SDL_WarpMouseInWindow(SDL_RenderGetWindow(renderer), window_x, window_y);
     });
     struct CursorProvider
@@ -429,7 +523,6 @@ int main(int argc, char **argv)
     LinuxHost::native_input = [&](const std::string &action,const std::string &value) { return seamless.Input(action,value); };
     User::ShowPointer(true);
     const bool german = !(getenv("NEO98_KEYMAP") && !strcmp(getenv("NEO98_KEYMAP"), "US"));
-    session.app->ConfigureKeyboardLayout(german ? "DE" : "US");
     HostMenu::State menu;
     LinuxScroll::Wheel host_wheel;
     LinuxHost::scroll_input = [&](bool trackpad, double up, double right, bool first, bool momentum) {
@@ -479,6 +572,8 @@ int main(int argc, char **argv)
     LinuxDock::game = preferences.Game();
     menu.pause_unfocused = options.pause_unfocused;
     menu.wheel_focus = options.wheel_focus;
+    // NEO98_WHEEL_FOCUS=1 is --wheel-focus for a test, as on the Mac.
+    if (const char *wanted = getenv("NEO98_WHEEL_FOCUS"); wanted && *wanted == '1') menu.wheel_focus = true;
     LinuxGtk::Check("open-ask", preferences.AskEnabled());
     for (unsigned port = 0; port < 4; ++port)
         if (const char *value = getenv(("NEO98_COM" + std::to_string(port + 1)).c_str()))
@@ -624,6 +719,46 @@ int main(int argc, char **argv)
     std::string state_restart;
     unsigned buttons = 0;
     int texture_width = 0, texture_height = 0;
+    if (options.desktop_width)
+    {
+        int offered_width = 0, offered_height = 0;
+        X86::Application::HostDisplay(offered_width, offered_height);
+        printf("NEO98 HOST desktop %ux%u %s\n", options.desktop_width, options.desktop_height,
+               offered_width ? "offered" : "refused");
+        fflush(stdout);
+    }
+    // The window for a canvas, as on the Mac (tools/neo98_host.cpp,
+    // WindowSizeFor): the canvas at the chosen scale, a smaller scale where
+    // that does not fit the usable area of the display, and else as large as
+    // the area allows with the proportions of the canvas. The dummy driver of
+    // the tests has a 1024x768 display; NEO98_HOST_SCREEN=WxH names another.
+    auto frame_window = [&](int canvas_width, int canvas_height, bool view_changed) {
+        if (menu.fullscreen || seamless_enabled)
+            return;
+        SDL_Rect usable{0, 0, 0, 0};
+        const int display = SDL_GetWindowDisplayIndex(window.get());
+        if (SDL_GetDisplayUsableBounds(display < 0 ? 0 : display, &usable))
+            usable = {0, 0, 0, 0};
+        if (const char *screen = getenv("NEO98_HOST_SCREEN"); screen && *screen)
+            sscanf(screen, "%dx%d", &usable.w, &usable.h);
+        int window_width = 0, window_height = 0;
+        GuestScreenScale::WindowForCanvas(canvas_width, canvas_height, int(menu.scale), usable.w, usable.h,
+                                          window_width, window_height);
+        LinuxGtk::Resize(window_width, window_height);
+        if (!LinuxGtk::embedded)
+            SDL_GetWindowSize(window.get(), &window_width, &window_height);
+        printf("NEO98 HOST window framed %dx%d for %dx%d resizable=0\n", window_width, window_height,
+               canvas_width, canvas_height);
+        if (view_changed)
+        {
+            const double fit = std::min(double(window_width) / canvas_width, double(window_height) / canvas_height);
+            const int guest_width = int(canvas_width * fit), guest_height = int(canvas_height * fit);
+            printf("NEO98 HOST view scale=%u fullscreen=0 window=%dx%d guest=%d,%d,%dx%d\n", unsigned(menu.scale),
+                   window_width, window_height, (window_width - guest_width) / 2, (window_height - guest_height) / 2,
+                   guest_width, guest_height);
+        }
+        fflush(stdout);
+    };
     auto start = std::chrono::steady_clock::now();
     auto last_present = start - std::chrono::milliseconds(16);
     bool texture_dirty = true, display_dirty = true;
@@ -644,8 +779,17 @@ int main(int argc, char **argv)
     bool resize_after_frame = false;
     bool fullscreen_from_seamless = restore_seamless_after_fullscreen;
     bool machine_paused = false;
-    auto pause_machine = [&](bool value) {
+    // pause_took_mouse: the pause let go a mouse the guest held, and gives it
+    // back when it ends (as on the Mac).
+    bool pause_took_mouse = false;
+    auto pause_started = std::chrono::steady_clock::now();
+    auto pause_machine = [&](bool value, const char *why = "host") {
         if (machine_paused == value) return;
+        if (value)
+        {
+            pause_took_mouse = MouseRelease("pause");
+            pause_started = std::chrono::steady_clock::now();
+        }
         machine_paused = value;
         X86::Application::PauseMachine(value);
         HostDosVm::Pause(value);
@@ -654,8 +798,90 @@ int main(int argc, char **argv)
             session.app->KeyboardModifiers(0);
             session.app->MouseButtons(session.app->mouse_x, session.app->mouse_y, 0);
             buttons = 0;
+            // The warps of a program that recentres are as old as before the
+            // pause, so it still counts as holding. The mouse the pause let
+            // go is the guest's again, and the pointer of the window returns
+            // to where the guest's stands: no jump, and no distance for a
+            // program that reads movements.
+            for (auto &at : mouse_hold.warps)
+                if (at.time_since_epoch().count()) at += std::chrono::steady_clock::now() - pause_started;
+            if (pause_took_mouse && mouse_hold.released && last_mouse_x >= 0 && last_mouse_y >= 0)
+            {
+                MouseCapture("the pause is over");
+                int window_x = 0, window_y = 0;
+                SDL_RenderLogicalToWindow(renderer.get(), float(last_mouse_x), float(last_mouse_y), &window_x, &window_y);
+                SDL_WarpMouseInWindow(window.get(), window_x, window_y);
+                printf("NEO98 HOST pause pointer back canvas=%d,%d window=%d,%d\n", last_mouse_x, last_mouse_y,
+                       window_x, window_y);
+            }
+            pause_took_mouse = false;
         }
+        printf("NEO98 HOST pause %s (%s)\n", value ? "on" : "off", why);
+        fflush(stdout);
     };
+    // The steps of the input script the macOS host takes through its own
+    // mouse and its pause switch (tools/neo98_host.cpp): pause=1 stops the
+    // machine as the menu does and pause=0 lets it go on; hand=dx,dy moves
+    // the pointer of the window by that much and sends the movement as a
+    // real mouse does; press= and release= are the left button at a point of
+    // the window.
+    // A movement of the mouse: the position in canvas pixels and the
+    // distance in points of the window (deliver_motion, below).
+    std::function<void(int, int, int, int)> deliver_motion;
+    LinuxHost::host_step = [&](const std::string &action, int x, int y) {
+        if (action == "pause")
+        {
+            menu.paused = x != 0;
+            pause_machine(menu.paused || auto_paused, "script");
+            return true;
+        }
+        if (action == "hand")
+        {
+            // The distance reaches the guest as it is: an event through SDL
+            // would carry it rounded to canvas pixels. The pointer of the
+            // window follows (its event has no distance).
+            int px = 0, py = 0;
+            SDL_GetMouseState(&px, &py);
+            printf("NEO98 HOST input hand %d,%d -> %d,%d\n", x, y, px + x, py + y);
+            fflush(stdout);
+            if (!menu.paused && !auto_paused && !machine_paused && !mouse_hold.released && !seamless_enabled)
+            {
+                float logical_x = 0, logical_y = 0;
+                SDL_RenderWindowToLogical(renderer.get(), px + x, py + y, &logical_x, &logical_y);
+                deliver_motion(int(logical_x), int(logical_y), x, y);
+            }
+            SDL_WarpMouseInWindow(window.get(), px + x, py + y);
+            return true;
+        }
+        if (action == "windows")
+        {
+            // windows=1: the work area, the windows of the seamless view
+            // (which this host shows in X11 and lists none of here), and the
+            // guest windows of the Window menu, as the macOS host prints them.
+            if (Gdi::RECT work{}; User::WorkArea(&work))
+                printf("NEO98 HOST seamless work=%d,%d,%d,%d\n", work.left, work.top, work.right, work.bottom);
+            printf("NEO98 HOST seamless items 0 mode=off native=0\n");
+            for (const auto &entry : menu.guest_windows)
+                printf("NEO98 HOST menu window id=%x title=%s\n", entry.first, entry.second.c_str());
+            fflush(stdout);
+            return true;
+        }
+        if (action == "press" || action == "release")
+        {
+            SDL_Event button{};
+            button.type = action == "press" ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+            button.button.windowID = SDL_GetWindowID(window.get());
+            button.button.which = ScriptMouse;
+            button.button.button = SDL_BUTTON_LEFT;
+            button.button.state = action == "press" ? SDL_PRESSED : SDL_RELEASED;
+            button.button.x = x;
+            button.button.y = y;
+            SDL_PushEvent(&button);
+            return true;
+        }
+        return false;
+    };
+    struct HostStepEnd { ~HostStepEnd() { LinuxHost::host_step = nullptr; } } host_step_end;
     states.Attach(*session.app, [&](bool value) {
         pause_machine(value || menu.paused || auto_paused || states.ListOpen());
     }, [&](const std::string &id) { state_restart = id; reboot = true; running = false; });
@@ -722,9 +948,43 @@ int main(int argc, char **argv)
     // answer, or a runnable thread, and made no API call for three seconds.
     unsigned last_calls = HostPacing::TotalCalls(*session.app);
     auto last_call_time = start, last_input_time = start, waiting_since = start;
+    // As on the Mac: the hand's distance goes with the position, in
+    // mickeys, whatever the display mode and the size of the window. A
+    // program that recentres, or DirectInput's exclusive mouse, receives that
+    // distance from where the guest's pointer stands; SDL's own position may
+    // predate the guest's last SetCursorPos.
+    deliver_motion = [&](int canvas_x, int canvas_y, int distance_x, int distance_y) {
+        const Gdi::POINT motion{distance_x, distance_y};
+        int guest_width = 0, guest_height = 0, depth = 0;
+        User::ScreenMode(guest_width, guest_height, depth);
+        int gx = canvas_x, gy = canvas_y, mx = 0, my = 0;
+        if (MouseRecentres() || X86::Application::DinputMouseExclusive())
+        {
+            Gdi::POINT at{};
+            User::CursorPosition(&at);
+            mx = at.x + motion.x;
+            my = at.y + motion.y;
+            User::ConfinePointer(mx, my);
+            gx = mx;
+            gy = my;
+            GuestScreenScale::GuestToCanvas(gx, gy, guest_width, guest_height, width, height);
+        }
+        else
+        {
+            mx = gx;
+            my = gy;
+            GuestScreenScale::CanvasToGuest(mx, my, guest_width, guest_height, width, height);
+        }
+        const bool changed = gx != last_mouse_x || gy != last_mouse_y || motion.x || motion.y;
+        last_mouse_x = gx;
+        last_mouse_y = gy;
+        session.app->MouseButtons(mx, my, buttons, &motion);
+        if (changed) last_input_time = std::chrono::steady_clock::now();
+    };
     bool was_waiting = false, hang_now = false;
     unsigned hang_seconds_shown = 0;
-    while (running && !interrupted && !session.Finished())
+    const bool headless = SDL_GetCurrentVideoDriver() && !strcmp(SDL_GetCurrentVideoDriver(), "dummy");
+    while (running && !interrupted && !quit_requested && !session.Finished())
     {
         if (deadline && *deadline &&
             std::chrono::steady_clock::now() - start >= std::chrono::seconds(strtol(deadline, nullptr, 10)))
@@ -733,7 +993,14 @@ int main(int argc, char **argv)
             fflush(stdout);
             break;
         }
+        // Without a screen nobody can close the window: as on the Mac, the
+        // host ends when its first program has, whatever that started (the
+        // dummy driver of the tests). A game machine runs on with it.
+        if (headless && preferences.Game().empty() &&
+            (session.app->Status() == X86::Application::Exited || session.app->Status() == X86::Application::Failed))
+            break;
         menu_script();
+        ServeMouseHold();
         // NEO98_HOST_STATS=1 writes a line a second, as the macOS host does:
         // the pictures presented through DirectDraw and the frames the mixer
         // rendered, all and those that were not silence.
@@ -916,12 +1183,23 @@ int main(int argc, char **argv)
                     last_input_time = std::chrono::steady_clock::now();
                 }
             }
-            else if (event.type == SDL_MOUSEMOTION && !menu.paused && !auto_paused)
+            else if (event.type == SDL_MOUSEMOTION && !menu.paused && !auto_paused && !machine_paused &&
+                     !mouse_hold.released)
             {
-                int x = event.motion.x, y = event.motion.y;
-                mouse_point(event.motion.windowID, x, y);
-                session.app->MouseButtons(x, y, buttons);
-                last_input_time = std::chrono::steady_clock::now();
+                if (seamless_enabled)
+                {
+                    int x = event.motion.x, y = event.motion.y;
+                    mouse_point(event.motion.windowID, x, y);
+                    session.app->MouseButtons(x, y, buttons);
+                    last_input_time = std::chrono::steady_clock::now();
+                    continue;
+                }
+                // SDL gives the distance in canvas pixels; the hand's is in
+                // points of the window.
+                float scale_x = 1, scale_y = 1;
+                SDL_RenderGetScale(renderer.get(), &scale_x, &scale_y);
+                deliver_motion(event.motion.x, event.motion.y, int(std::lround(event.motion.xrel * scale_x)),
+                               int(std::lround(event.motion.yrel * scale_y)));
             }
             else if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !menu.paused)
             {
@@ -930,11 +1208,39 @@ int main(int argc, char **argv)
                     LinuxGtk::Show();
                     LinuxGtk::FocusCanvas();
                 }
+                // Let go, the mouse is the window's again with a press.
+                if (mouse_hold.released)
+                {
+                    if (event.type != SDL_MOUSEBUTTONDOWN) continue;
+                    MouseCapture("press");
+                }
                 buttons =
                     HostMouseButtons::Apply(buttons, event.button.button, event.type == SDL_MOUSEBUTTONDOWN);
                 int x = event.button.x, y = event.button.y;
                 mouse_point(event.button.windowID, x, y);
-                session.app->MouseButtons(x, y, buttons);
+                if (!seamless_enabled)
+                {
+                    // SDL reports movement separately: for a program that
+                    // recentres or DirectInput's exclusive mouse the press is
+                    // where the guest's pointer stands, without movement.
+                    int guest_width = 0, guest_height = 0, depth = 0;
+                    User::ScreenMode(guest_width, guest_height, depth);
+                    if (MouseRecentres() || X86::Application::DinputMouseExclusive())
+                    {
+                        Gdi::POINT at{};
+                        User::CursorPosition(&at);
+                        x = at.x;
+                        y = at.y;
+                    }
+                    int gx = x, gy = y;
+                    GuestScreenScale::GuestToCanvas(gx, gy, guest_width, guest_height, width, height);
+                    last_mouse_x = gx;
+                    last_mouse_y = gy;
+                    const Gdi::POINT motion{};
+                    session.app->MouseButtons(x, y, buttons, &motion);
+                }
+                else
+                    session.app->MouseButtons(x, y, buttons);
                 last_input_time = std::chrono::steady_clock::now();
             }
             else if (event.type == SDL_MOUSEWHEEL && !menu.paused)
@@ -979,7 +1285,7 @@ int main(int argc, char **argv)
             else if (request.action == Action::Pause)
             {
                 menu.paused = !menu.paused;
-                pause_machine(menu.paused || auto_paused);
+                pause_machine(menu.paused || auto_paused, "menu");
             }
             else if (request.action == Action::NetworkListen)
             {
@@ -1344,7 +1650,7 @@ int main(int argc, char **argv)
         if (auto_paused != pause_now)
         {
             auto_paused = pause_now;
-            pause_machine(menu.paused || auto_paused);
+            pause_machine(menu.paused || auto_paused, "focus");
         }
         pause_machine(states.HoldUi() || (!states.NeedsRun() && (menu.paused || auto_paused || states.ListOpen())));
         const auto pump_begin = frame_stats ? std::chrono::steady_clock::now() : start;
@@ -1453,7 +1759,7 @@ int main(int argc, char **argv)
             pixels = User::Pixels();
         if (resize_after_frame && !menu.paused && !auto_paused)
         {
-            LinuxGtk::Resize(width * menu.scale, height * menu.scale);
+            frame_window(width, height, true);
             resize_after_frame = false;
             display_dirty = true;
         }
@@ -1535,6 +1841,9 @@ int main(int argc, char **argv)
                 fprintf(stderr, "%s\n", SDL_GetError());
                 return 1;
             }
+            // A new canvas size (a display mode, the desktop's size): the
+            // window follows it, as the Mac window does.
+            frame_window(width, height, false);
             texture_width = width;
             texture_height = height;
             SDL_RenderSetLogicalSize(renderer.get(), width, height);

@@ -76,8 +76,11 @@ def main():
     # Welcome, manufacturer and model, port, name, test page, Finish.
     steps = Steps('#32770|Add Printer Wizard', 3.0)
     steps.add('tops=1', 0.5)
-    for _ in range(5):
-        steps.add(NEXT, 1.5)
+    # SETUPX may rebuild its driver database at the first Next (setup's C:
+    # can have INF files newer than its index); the second run gives the
+    # build 30 s as well.
+    for page in range(5):
+        steps.add(NEXT, 1.5, before=30.0 if page == 1 else 0.0)
     steps.add('wait=#32770|Copying Files...', 4.0).add('tops=4')
     code, text, run = host(binary, out, 'wizard', 'C:\\WINDOWS\\RUNDLL32.EXE',
                            'RUNDLL32.EXE SHELL32,PrintersGetCommand_RunDLL 0,18,0,WinUtils_NewObject',
