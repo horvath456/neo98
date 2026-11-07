@@ -3339,6 +3339,27 @@ void Application::Slice(Cpu &cpu, unsigned address, void *context)
 void Application::Gate(Cpu &cpu, unsigned address, void *context)
 {
     auto &a = *static_cast<Application *>(context);
+    // The native engine has no block hook (Slice), so the first sign that an
+    // exception handler left through a non-local jump is the next gate the
+    // guest reaches, often the next RaiseException. Serving that call here
+    // would nest each such round in the frame of the one before; the stop
+    // ends the abandoned frames first, and the gate runs again from the
+    // outer frame. A return through the Callback gate stands above its mark
+    // and is the handler's own.
+    if (cpu.Backend() == CpuBackend::Native && a.ExceptionState().handler_frames &&
+        a.ExceptionState().abandon_from == ~0u && address != Callback)
+    {
+        const unsigned esp = a.Register(Reg::Esp);
+        unsigned left = a.ExceptionState().handler_frames;
+        while (left && esp > a.ExceptionState().handler_frame[left - 1])
+            --left;
+        if (left != a.ExceptionState().handler_frames)
+        {
+            a.ExceptionState().abandon_from = left;
+            cpu.Stop();
+            return;
+        }
+    }
     // A gate of the positive list answers here and lets the engine run the
     // return instruction the gate carries. Every other call, and every call
     // this one hands back, stops the run for Dispatch.
@@ -5154,7 +5175,11 @@ unsigned Application::Call(unsigned procedure, const unsigned *arguments, unsign
         // limit after 32 of them. The guest state stays as it is: it
         // belongs to the path the handler continued on, not to the call this
         // frame made.
-        if ((handler && (ExceptionState().abandon_from <= frame_slot || Register(Reg::Esp) > sp)) ||
+        // A return that stands on the Callback gate and is not serviced yet
+        // is the handler's own: the native engine can stop there for a time
+        // slice, with ESP already above the mark.
+        if ((handler && (ExceptionState().abandon_from <= frame_slot ||
+                         (Register(Reg::Esp) > sp && Register(Reg::Eip) != Callback))) ||
             (Arm64Process() && Register(Reg::Esp) > sp && pending != Callback && Register(Reg::Eip) != Callback))
         {
             abandoned = true;
