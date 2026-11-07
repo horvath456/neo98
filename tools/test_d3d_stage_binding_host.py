@@ -34,6 +34,12 @@ def main():
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--cpu', choices=ENGINE_NAMES, action='append')
     args = parser.parse_args()
+    # The display-driver regression uses the DirectX 9 runtime, not setup's
+    # DirectX 6.1 runtime. Keep this input explicit under the pristine suite.
+    import dx9_tree
+    runtime_tree = dx9_tree.tree()
+    if runtime_tree is None:
+        __import__('test_support').skip(dx9_tree.skip_reason())
     if sys.platform == 'linux' and args.host == ROOT / 'build/native-app/neo98-host':
         # The HAL needs a rasterizer. The ordinary Linux host build omits it.
         from native_app import build_host
@@ -61,7 +67,7 @@ def main():
         (out / 'EXECUTE.BIN').unlink(missing_ok=True)
         process = None
         try:
-            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()) + '/',
+            subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(runtime_tree.resolve()) + '/',
                             str(drive)], check=True, stdin=subprocess.DEVNULL)
             assert drive.is_dir() and not drive.is_symlink()
             guard()
