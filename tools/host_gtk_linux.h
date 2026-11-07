@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Native Linux controls. The menu queues requests; it never enters guest code.
 #pragma once
+#include <algorithm>
 #include <clocale>
 #include <tuple>
 #include "host_menu.h"
@@ -250,6 +251,7 @@ inline GtkWidget *Item(GtkWidget *menu, const char *label, const std::string &ac
         item, "activate",
         G_CALLBACK(+[](GtkMenuItem *, gpointer data) { Activate(*static_cast<std::string *>(data)); }), name,
         +[](gpointer data, GClosure *) { delete static_cast<std::string *>(data); }, GConnectFlags(0));
+    g_object_set_data_full(G_OBJECT(item), "neo98-action", g_strdup(action.c_str()), g_free);
     if (check)
         checks[action] = item;
     if (action == "state-save" || action == "state-load" || action == "states" || action == "dos-settings") checks[action] = item;
@@ -266,10 +268,49 @@ inline GtkWidget *Submenu(GtkWidget *bar, const char *label)
     gtk_menu_shell_append(GTK_MENU_SHELL(bar), item);
     return menu;
 }
+// The keys of the host for an item, as the line of menu=describe names them.
+inline const char *ItemKeys(const std::string &action)
+{
+    return action == "pause" ? "shift+ctrl+p" : action == "seamless" ? "shift+ctrl+s" : action == "fullscreen" ? "f11" : "";
+}
+// menu=describe: every item of the menu bar, a line each, as the macOS host
+// writes it: "Menu > Item [action] keys (disabled) (enabled)", the last for
+// a check mark.
+inline void DescribeItems(GtkWidget *menu, const std::string &path)
+{
+    GList *children = gtk_container_get_children(GTK_CONTAINER(menu));
+    for (GList *at = children; at; at = at->next)
+    {
+        GtkWidget *item = GTK_WIDGET(at->data);
+        if (!GTK_IS_MENU_ITEM(item) || GTK_IS_SEPARATOR_MENU_ITEM(item) || !gtk_widget_get_visible(item)) continue;
+        std::string label = gtk_menu_item_get_label(GTK_MENU_ITEM(item)) ? gtk_menu_item_get_label(GTK_MENU_ITEM(item)) : "";
+        label.erase(std::remove(label.begin(), label.end(), '_'), label.end());
+        const std::string title = path.empty() ? label : path + " > " + label;
+        if (GtkWidget *submenu = gtk_menu_item_get_submenu(GTK_MENU_ITEM(item)))
+        {
+            DescribeItems(submenu, title);
+            continue;
+        }
+        std::string line = title;
+        const char *action = static_cast<const char *>(g_object_get_data(G_OBJECT(item), "neo98-action"));
+        if (action)
+        {
+            line += std::string(" [") + action + "]";
+            if (*ItemKeys(action)) line += std::string(" ") + ItemKeys(action);
+        }
+        if (!gtk_widget_get_sensitive(item)) line += " (disabled)";
+        if (GTK_IS_CHECK_MENU_ITEM(item) && gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(item))) line += " (enabled)";
+        printf("NEO98 HOST menu-item %s\n", line.c_str());
+    }
+    g_list_free(children);
+    fflush(stdout);
+}
+inline GtkWidget *menu_bar = nullptr;
 inline GtkWidget *MenuBar()
 {
     menu_updated = false;
     GtkWidget *bar = gtk_menu_bar_new(), *menu = Submenu(bar, "_File");
+    menu_bar = bar;
     Item(menu, "_Open program…", "open");
     Item(menu, "Open as _game machine…", "game-create");
     Item(menu, "Game machines…", "game-list");

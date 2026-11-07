@@ -19,7 +19,8 @@ class States
     std::function<void(const std::string &)> restart;
     X86::Application *app = nullptr;
     const HostMachineState::Supplier *job_supplier = nullptr, *load_supplier = nullptr;
-    bool rebuilt = false, refused = false;
+    bool rebuilt = false, refused = false, settling = false;
+    std::chrono::steady_clock::time_point settle_until;
     void Refuse(const std::string &error)
     {
         refused = true;
@@ -179,7 +180,10 @@ class States
         if (const char *error = getenv("NEO98_LINUX_STATE_ERROR"); error && *error)
         { const std::string message = error; unsetenv("NEO98_LINUX_STATE_ERROR"); Notice("Could not load the state", message, true); }
     }
-    bool NeedsRun() const { return saving || loading; }
+    bool NeedsRun() const { return saving || loading || settling; }
+    // After a load the machine stands until the person goes on (a key, a
+    // click, Pause), as on macOS; `stand` is the host's switch for it.
+    std::function<void()> stand;
     bool HoldUi() const { return job_supplier == HostMachineState::DosUi() && HostDosUiState::HoldUi(); }
     bool ListOpen() const { return HostStateWindow::IsOpen(); }
     std::string Blocked(std::vector<std::pair<std::string, std::string>> *info = nullptr) const
@@ -251,6 +255,21 @@ class States
             if (!error.empty()) Notice("States", error, true);
             if (ListOpen()) HostStateWindow::Update(Model(), request.id);
         }
+        if (settling)
+        {
+            // The machine ran a moment on the state so its windows paint;
+            // now it stands on it.
+            if (std::chrono::steady_clock::now() < settle_until) return;
+            settling = false;
+            pause(true, "a state was loaded");
+            load_supplier->Release(); load_supplier = nullptr;
+            printf("NEO98 HOST state loaded id=%s name=\"%s\" after %.2f s; the machine stands\n", loaded.id.c_str(), loaded.name.c_str(),
+                   std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count());
+            fflush(stdout);
+            if (stand) stand();
+            else pause(false, "the state is loaded");
+            return;
+        }
         if (!saving && !loading) return;
         std::vector<unsigned char> bytes; std::string error;
         const auto *supplier = saving ? job_supplier : load_supplier;
@@ -278,9 +297,11 @@ class States
                 const bool dos = supplier != HostMachineState::DosUi() && app->DosVmProcess();
                 if (dos && supplier->Picture && supplier->Picture(picture,width,height)) app->DosVmShowPicture(picture.data(), width, height);
                 for (const auto &view : loaded.view) if (view.first == "dos-vollbild" && dos) app->DosVmWantFullscreen(view.second == "1");
-                printf("NEO98 HOST state loaded id=%s name=\"%s\" after %.2f s\n", loaded.id.c_str(), loaded.name.c_str(),
-                       std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count());
-                fflush(stdout);
+                // 200 ms of running for the window to paint, then it stands.
+                loading = false; settling = true;
+                settle_until = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
+                pause(false, "a state settles");
+                return;
             }
         }
         if (!okay && loading)

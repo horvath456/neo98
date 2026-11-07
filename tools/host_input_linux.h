@@ -26,6 +26,11 @@ inline std::function<bool(const std::string &action, int x, int y)> host_step;
 // pause=1 and pause=0, wstate=... and state=...: the steps that act on the
 // machine as a whole, which the host serves (tools/neo98_linux.cpp).
 inline std::function<void(const std::string &action, const std::string &value)> machine_step;
+// menu=describe prints the items of the menu bar (tools/host_gtk_linux.h).
+inline std::function<void()> describe_menu;
+// focus=0 and focus=1: the window loses and gets the keyboard focus, as the
+// macOS host's script step has it.
+inline std::function<void(bool)> focus_input;
 // No step while a state is being taken or put in, or once the host is about
 // to start over: the next one meets the machine as it is afterwards.
 inline std::function<bool()> hold_steps;
@@ -201,6 +206,25 @@ class Script
                 if (session.Screenshot(step.value)) Say("NEO98 HOST screenshot %s\n", step.value.c_str());
             }
             else if (step.action == "hostshot" && host_shot) host_shot(step.value);
+            else if (step.action == "sdlkey")
+            {
+                // sdlkey=USAGE,1 and sdlkey=USAGE,0: a key of the keyboard
+                // goes down or up as an SDL event, the way of a real key, so
+                // the host knows it as held.
+                SDL_Event key{};
+                key.type = step.y ? SDL_KEYDOWN : SDL_KEYUP;
+                key.key.windowID = window ? SDL_GetWindowID(window) : 0;
+                key.key.state = step.y ? SDL_PRESSED : SDL_RELEASED;
+                key.key.keysym.scancode = SDL_Scancode(step.x);
+                key.key.keysym.sym = SDL_GetKeyFromScancode(SDL_Scancode(step.x));
+                SDL_PushEvent(&key);
+                Say("NEO98 HOST input sdlkey %d %s\n", step.x, step.y ? "down" : "up");
+            }
+            else if (step.action == "focus" && focus_input)
+            {
+                focus_input(step.x != 0);
+                Say("NEO98 HOST input focus=%d\n", step.x ? 1 : 0);
+            }
             else if (step.action == "resize" && window)
             {
                 int width = 0, height = 0;
@@ -223,6 +247,35 @@ class Script
                 std::string text = Clipboard::current ? Clipboard::current->ReadText() : "";
                 FILE *file = fopen(step.value.c_str(), "wb");
                 if (file) { fwrite(text.data(), 1, text.size(), file); fclose(file); }
+            }
+            else if (step.action == "menu" && step.value == "describe" && describe_menu) describe_menu();
+            else if (step.action == "menu" && step.value.compare(0, 9, "shortcut=") == 0)
+            {
+                // menu=shortcut=ctrl+shift+p: the keys of the host as a hand
+                // presses them, through SDL.
+                Uint16 mods = 0; std::string keys = step.value.substr(9), last;
+                for (size_t from = 0; from <= keys.size();)
+                {
+                    auto end = keys.find('+', from); if (end == std::string::npos) end = keys.size();
+                    const std::string part = keys.substr(from, end - from); from = end + 1;
+                    if (part == "ctrl" || part == "cmd") mods |= KMOD_LCTRL;
+                    else if (part == "shift") mods |= KMOD_LSHIFT;
+                    else if (part == "alt") mods |= KMOD_LALT;
+                    else last = part;
+                }
+                const SDL_Scancode code = SDL_GetScancodeFromName(last.c_str());
+                for (const bool down : {true, false})
+                {
+                    SDL_Event key{};
+                    key.type = down ? SDL_KEYDOWN : SDL_KEYUP;
+                    key.key.windowID = window ? SDL_GetWindowID(window) : 0;
+                    key.key.state = down ? SDL_PRESSED : SDL_RELEASED;
+                    key.key.keysym.scancode = code;
+                    key.key.keysym.sym = SDL_GetKeyFromScancode(code);
+                    key.key.keysym.mod = down ? mods : 0;
+                    SDL_PushEvent(&key);
+                }
+                Say("NEO98 HOST input shortcut %s\n", keys.c_str());
             }
             else if (step.action == "menu")
             {
