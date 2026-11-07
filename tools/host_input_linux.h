@@ -13,6 +13,10 @@
 namespace LinuxHost
 {
 inline std::function<bool(const std::string &,const std::string &)> native_input;
+// wheel=UP[,RIGHT] in notches (fractions add up) and scroll=UP,RIGHT[,begin|
+// momentum], a step of a trackpad in points, as the macOS host takes them;
+// the host converts them as it converts its own wheel and touchpad.
+inline std::function<void(bool trackpad, double up, double right, bool first, bool momentum)> scroll_input;
 // hostshot=PATH: the window's next frame as the host draws it, video included.
 inline std::function<void(const std::string &)> host_shot;
 // NEO98_HOST_INPUT="seconds:action=value;..." is the input script of the
@@ -208,17 +212,12 @@ class Script
                 fprintf(stderr, "NEO98 Linux input %s=%s\n", step.action.c_str(), step.value.c_str());
                 return;
             }
-            else if (step.action == "wheel" && window)
+            else if ((step.action == "wheel" || step.action == "scroll") && scroll_input)
             {
                 double up = 0, right = 0;
                 if (sscanf(step.value.c_str(), "%lf,%lf", &up, &right) >= 1)
-                {
-                    SDL_Event event = {}; event.type = SDL_MOUSEWHEEL;
-                    event.wheel.windowID = SDL_GetWindowID(window);
-                    event.wheel.preciseY = up; event.wheel.preciseX = right;
-                    event.wheel.y = int(up); event.wheel.x = int(right);
-                    SDL_PushEvent(&event);
-                }
+                    scroll_input(step.action == "scroll", up, right, step.value.find("begin") != std::string::npos,
+                                 step.value.find("momentum") != std::string::npos);
             }
             else if (step.action == "type" || step.action == "key")
             {
@@ -384,7 +383,7 @@ class Script
             }
             else fprintf(stderr, "Unknown Linux test input: %s\n", step.action.c_str());
             static const char *const inputs[] = {"key", "keydown", "keyup", "type", "ctrl", "down", "up", "press", "release",
-                                                 "move", "click", "dblclick", "rclick", "wheel"};
+                                                 "move", "click", "dblclick", "rclick", "wheel", "scroll"};
             for (const char *name : inputs) if (step.action == name) { last_input = std::chrono::steady_clock::now(); break; }
             fprintf(stderr, "NEO98 Linux input %s=%s\n", step.action.c_str(), step.value.c_str());
         }

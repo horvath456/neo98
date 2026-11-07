@@ -432,6 +432,21 @@ int main(int argc, char **argv)
     session.app->ConfigureKeyboardLayout(german ? "DE" : "US");
     HostMenu::State menu;
     LinuxScroll::Wheel host_wheel;
+    LinuxHost::scroll_input = [&](bool trackpad, double up, double right, bool first, bool momentum) {
+        if (trackpad)
+        {
+            const HostScroll out = host_wheel.wheel.Points(up, right, double(menu.scale), first, momentum);
+            printf("NEO98 HOST input scroll up=%g right=%g units=%d,%d flags=%u pointer=%d\n", up, right, out.y, out.x,
+                   out.flags, User::WheelToPointer() ? 1 : 0);
+            fflush(stdout);
+            if (out.y || out.x) session.app->MouseScroll(out.y, out.x, out.flags);
+            return;
+        }
+        const auto step = host_wheel.Convert(up, right, User::CaptureOperation(0), User::GetForegroundWindow(),
+                                             double(menu.scale), SDL_GetTicks64());
+        if (step.kind == HostWheelStep::Notches) session.app->MouseWheel(step.steps);
+        else if (step.kind == HostWheelStep::Scroll) session.app->MouseScroll(step.out.y, step.out.x, step.out.flags);
+    };
     if (!options.open_host.empty() && (preferences.Game().empty() || options.program_action.empty()))
         HostMenu::Perform(options.program_action.empty() ? "open" : "open-normal", options.open_host.c_str());
     menu.scale = options.scale;
@@ -1387,8 +1402,13 @@ int main(int argc, char **argv)
             gtk_widget_show_all(dialog);
         }
         dos_failures.clear();
+        // The machine goes when ExitWindowsEx has run to its end (the hook),
+        // or, as on macOS, when the shell ended on WM_ENDSESSION of an
+        // ExitWindowsEx another process runs. The agreed session alone is not
+        // the end: USER still plays "SystemExit" to its end after it.
         unsigned end_flags = 0, end_code = 0;
-        if (session_end.requested || X86::Application::SessionCommitted(end_flags, end_code))
+        if (session_end.requested || (session.app->Status() == X86::Application::Exited &&
+                                      X86::Application::SessionCommitted(end_flags, end_code)))
         {
             printf("NEO98 HOST exitwindows flags=%08x code=%u\n", session_end.requested ? session_end.flags : end_flags,
                    session_end.requested ? session_end.code : end_code);
