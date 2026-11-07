@@ -853,6 +853,19 @@ int main(int argc, char **argv)
             SDL_WarpMouseInWindow(window.get(), px + x, py + y);
             return true;
         }
+        if (action == "windows")
+        {
+            // windows=1: the work area, the windows of the seamless view
+            // (which this host shows in X11 and lists none of here), and the
+            // guest windows of the Window menu, as the macOS host prints them.
+            if (Gdi::RECT work{}; User::WorkArea(&work))
+                printf("NEO98 HOST seamless work=%d,%d,%d,%d\n", work.left, work.top, work.right, work.bottom);
+            printf("NEO98 HOST seamless items 0 mode=off native=0\n");
+            for (const auto &entry : menu.guest_windows)
+                printf("NEO98 HOST menu window id=%x title=%s\n", entry.first, entry.second.c_str());
+            fflush(stdout);
+            return true;
+        }
         if (action == "press" || action == "release")
         {
             SDL_Event button{};
