@@ -8,7 +8,7 @@
 #undef private
 #include "system_tree_host.h"
 #include "registry_file.h"
-#include "host_metal.h"
+#include "host_gpu.h"
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
         if (!strcmp(argv[i], "--registry")) { if (++i == argc) return 2; continue; }
         // --gpu: the rasterizer the host window has, so the Glide driver and
         // its page GLIDEPAG.DLL exist.
-        if (!strcmp(argv[i], "--gpu")) { X86::Application::SetGpuBackend(HostMetal::Install()); continue; }
+        if (!strcmp(argv[i], "--gpu")) { X86::Application::SetGpuBackend(HostGpu::Install()); continue; }
         if (!strcmp(argv[i], "--system-tree")) {
             if (i + 1 < argc && argv[i + 1][0] != '-') ++i;
             continue;

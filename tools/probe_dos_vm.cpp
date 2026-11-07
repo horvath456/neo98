@@ -15,7 +15,7 @@
 #undef private
 #include "host_dos_vm.h"
 #include "host_comm.h"
-#include "host_metal.h"
+#include "host_gpu.h"
 #include "host_volume.h"
 #include "system_tree_host.h"
 #include <atomic>
@@ -1028,7 +1028,7 @@ int main(int argc, char **argv)
     HostDosVm::Install(logger, drives.data(), (unsigned)drives.size());
     // NEO98_PROBE_GPU: the GPU backend, so the 3dfx Voodoo of a machine is
     // drawn by it; without, the machine draws the card in software.
-    if (getenv("NEO98_PROBE_GPU")) X86::Application::SetGpuBackend(HostMetal::Install());
+    if (getenv("NEO98_PROBE_GPU")) X86::Application::SetGpuBackend(HostGpu::Install());
     // The mixer has no speaker here; its frames go into the capture buffer.
     Sound::SetCapture(sound_capture.data(), (unsigned)(sound_capture.size() / 2));
     auto exe = load(argv[1]), font = load(argv[2]);
