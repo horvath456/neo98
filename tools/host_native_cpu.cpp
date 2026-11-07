@@ -191,6 +191,11 @@ class NativeCpu : public Cpu
     PortOutputHook port_out = nullptr;
     BudgetHook budget = nullptr;
     BudgetHook time_slice = nullptr;
+    // GetWriteWatch: an armed page is mapped without write access until the
+    // guest's first write to it, which the fault reports (WatchedWrite).
+    WriteHook write_hook = nullptr;
+    void *write_context = nullptr;
+    std::vector<unsigned char> write_armed;
     void *gate_context = nullptr, *fault_context = nullptr, *interrupt_context = nullptr;
     void *port_context = nullptr, *budget_context = nullptr;
     void *time_context = nullptr;
@@ -451,6 +456,7 @@ class NativeCpu : public Cpu
     int Protection(unsigned address, unsigned prot, bool allow_gate = false) const
     {
         int result = prot & 7;
+        if (write_hook && (result & PROT_WRITE) && write_armed[address / Page]) result &= ~PROT_WRITE;
         // Gate pages trap before executing any Windows API entry.
         if (!allow_gate && !execute_gate_code && gate && address <= gate_end &&
             static_cast<unsigned long long>(address) + Page > gate_begin)
@@ -1187,6 +1193,7 @@ class NativeCpu : public Cpu
             if (InDevice(address)) { if (DeviceInstruction()) continue; return CpuError::Device; }
             const bool fetch = hardware_error & 16, write = hardware_error & 2;
             bool mapped = rights[address / Page] & Mapped;
+            if (write && mapped && WatchedWrite(address)) continue;
             unsigned kind = fetch ? (mapped ? CpuFault::FetchProtected : CpuFault::FetchUnmapped)
                                  : write ? (mapped ? CpuFault::WriteProtected : CpuFault::WriteUnmapped)
                                          : (mapped ? CpuFault::ReadProtected : CpuFault::ReadUnmapped);
@@ -1233,8 +1240,50 @@ class NativeCpu : public Cpu
         }
         time_slice = hook; time_context = context; return CpuError::Ok;
     }
-    unsigned WatchWrites(WriteHook, void *) override { return CpuError::Hook; }
-    void UnwatchWrites() override {}
+    unsigned WatchWrites(WriteHook hook, void *context) override
+    {
+        if (write_armed.empty()) write_armed.assign(AddressBytes / Page, 0);
+        write_hook = hook; write_context = context;
+        return CpuError::Ok;
+    }
+    void UnwatchWrites() override
+    {
+        if (!write_hook) return;
+        write_hook = nullptr;
+        for (size_t p = 0; p < write_armed.size(); ++p)
+            if (write_armed[p])
+            {
+                write_armed[p] = 0;
+                if (rights[p] & Mapped) ApplyPage(unsigned(p * Page));
+            }
+    }
+    void RearmWrites(unsigned address, unsigned size) override
+    {
+        if (!write_hook || !size) return;
+        for (unsigned long long p = address / Page; p <= (static_cast<unsigned long long>(address) + size - 1) / Page; ++p)
+            if (!write_armed[p])
+            {
+                write_armed[p] = 1;
+                if ((rights[p] & Mapped) && (rights[p] & Prot::Write)) ApplyPage(unsigned(p * Page));
+            }
+    }
+    // The first write of the guest to an armed page: report it and give the
+    // page its write access back.
+    bool WatchedWrite(unsigned address)
+    {
+        const unsigned p = address / Page;
+        if (!write_hook || !write_armed[p] || !(rights[p] & Mapped) || !(rights[p] & Prot::Write)) return false;
+        write_armed[p] = 0;
+        if (!ApplyPage(p * Page)) return false;
+        write_hook(*this, p * Page, Page, write_context);
+        return true;
+    }
+    // The protection of one page in the guest, after its rights or its
+    // write watch changed.
+    virtual bool ApplyPage(unsigned address)
+    {
+        return !Syscall(SYS_mprotect, address, Page, Protection(address, rights[address / Page]));
+    }
     unsigned AddTrace(TraceKind kind, unsigned begin, unsigned end, TraceHook hook, void *context) override
     {
         if (kind != TraceKind::Instruction || begin != end || !hook || instruction_traces.size() == 4)

@@ -110,6 +110,8 @@ bool Application::RegisterWriteWatch(unsigned base, unsigned pages)
         write_watch_hook = 1;
     }
     write_watches[write_watch_count++] = {base, pages, dirty};
+    // An engine that watches by page protection starts with the region.
+    cpu->RearmWrites(base, pages * 4096);
     return true;
 }
 void Application::ReleaseWriteWatch(unsigned base)

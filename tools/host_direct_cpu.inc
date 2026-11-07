@@ -681,6 +681,11 @@ class DirectCpu final : public NativeCpu
         RemoveMappings(address, size);
         return CpuError::Ok;
     }
+    bool ApplyPage(unsigned address) override
+    {
+        return Arena().owner != this ||
+               !mprotect(reinterpret_cast<void *>(uintptr_t(address)), Page, Protection(address, rights[address / Page]));
+    }
     unsigned Protect(unsigned address, unsigned size, unsigned prot) override
     {
         unsigned error = Range(address, size, 1);
@@ -1047,6 +1052,8 @@ class DirectCpu final : public NativeCpu
             }
             const bool fetch = bridge.error & 16, write = bridge.error & 2,
                        mapped = rights[address / Page] & Mapped;
+            if (write && mapped && WatchedWrite(address))
+                continue;
             const unsigned kind = fetch   ? (mapped ? CpuFault::FetchProtected : CpuFault::FetchUnmapped)
                                   : write ? (mapped ? CpuFault::WriteProtected : CpuFault::WriteUnmapped)
                                           : (mapped ? CpuFault::ReadProtected : CpuFault::ReadUnmapped);
