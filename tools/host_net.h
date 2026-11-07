@@ -149,7 +149,17 @@ class PosixSockets : public NetHost::Sockets
         const int flags = fcntl(fd, F_GETFL, 0);
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
         fcntl(fd, F_SETFD, FD_CLOEXEC);
-        return Keep(fd);
+#if defined(__linux__)
+        // The ping socket of Linux answers the ICMP message alone; Receive
+        // puts the IP header in front, with the TTL and destination of the
+        // datagram.
+        const int one = 1;
+        setsockopt(fd, IPPROTO_IP, IP_RECVTTL, &one, sizeof one);
+        setsockopt(fd, IPPROTO_IP, IP_PKTINFO, &one, sizeof one);
+#endif
+        const int id = Keep(fd);
+        if (id >= 0) held[id].icmp = true;
+        return id;
     }
     void Close(int id) override
     {
@@ -223,6 +233,12 @@ class PosixSockets : public NetHost::Sockets
     int SendTo(int id, const void *data, U bytes, int flags, U address, U port) override
     {
         if (!online && !Local(address)) return (int)bytes;   // lost on the wire
+#if defined(__linux__)
+        // Linux writes its own identifier into an echo request of a ping
+        // socket; the answer gets the guest's back (Receive).
+        if (id >= 0 && (size_t)id < held.size() && held[id].icmp && bytes >= 8)
+            held[id].icmp_id = (unsigned short)(((const unsigned char *)data)[4] << 8 | ((const unsigned char *)data)[5]);
+#endif
         const sockaddr_in in = Address(address, port);
         const ssize_t sent = ::sendto(Fd(id), data, bytes, SendFlags(flags), (const sockaddr *)&in, sizeof in);
         return sent < 0 ? -Map(errno) : (int)sent;
@@ -237,6 +253,10 @@ class PosixSockets : public NetHost::Sockets
         int host_flags = 0;
         if (flags & NetHost::ReceiveOutOfBand) host_flags |= MSG_OOB;
         if (flags & NetHost::ReceivePeek) host_flags |= MSG_PEEK;
+#if defined(__linux__)
+        if (id >= 0 && (size_t)id < held.size() && held[id].icmp)
+            return ReceiveIcmp(id, static_cast<unsigned char *>(data), bytes, host_flags, address, port);
+#endif
         const ssize_t got = ::recvfrom(Fd(id), data, bytes, host_flags, (sockaddr *)&in, &length);
         if (got < 0) return -Map(errno);
         if (address && port)
@@ -636,9 +656,78 @@ class PosixSockets : public NetHost::Sockets
         bool waiting = false;        // a connection attempt into the void
         bool timed_out = false;
         std::chrono::steady_clock::time_point deadline;
+        // A Linux ICMP socket (OpenIcmp) and the echo identifier the guest
+        // gave its last request.
+        bool icmp = false;
+        unsigned short icmp_id = 0;
     };
     std::vector<Held> held;
     const Held &Held_(int id) const { return held[id]; }
+#if defined(__linux__)
+    // The whole IP datagram of an answer on a ping socket, as the ICMP socket
+    // of macOS and the raw socket of Win98 give it: a 20-byte IPv4 header in
+    // front of the ICMP message, and the guest's identifier in an echo reply.
+    int ReceiveIcmp(int id, unsigned char *data, U bytes, int host_flags, U *address, U *port)
+    {
+        unsigned char message[65536];
+        alignas(cmsghdr) unsigned char control[256];
+        sockaddr_in in{};
+        iovec vector{message, sizeof message};
+        msghdr header{};
+        header.msg_name = &in;
+        header.msg_namelen = sizeof in;
+        header.msg_iov = &vector;
+        header.msg_iovlen = 1;
+        header.msg_control = control;
+        header.msg_controllen = sizeof control;
+        const ssize_t got = ::recvmsg(Fd(id), &header, host_flags);
+        if (got < 0) return -Map(errno);
+        unsigned ttl = 64;
+        in_addr destination{};
+        destination.s_addr = htonl(INADDR_LOOPBACK);
+        for (cmsghdr *c = CMSG_FIRSTHDR(&header); c; c = CMSG_NXTHDR(&header, c))
+        {
+            if (c->cmsg_level != IPPROTO_IP) continue;
+            if (c->cmsg_type == IP_TTL) { int value = 0; memcpy(&value, CMSG_DATA(c), sizeof value); ttl = value & 255; }
+            if (c->cmsg_type == IP_PKTINFO) { in_pktinfo info{}; memcpy(&info, CMSG_DATA(c), sizeof info); destination = info.ipi_addr; }
+        }
+        if (got >= 8 && message[0] == 0)
+        {
+            message[4] = (unsigned char)(held[id].icmp_id >> 8);
+            message[5] = (unsigned char)held[id].icmp_id;
+            // The identifier is part of the ICMP checksum.
+            message[2] = message[3] = 0;
+            unsigned sum = 0;
+            for (ssize_t i = 0; i + 1 < got; i += 2) sum += (unsigned)message[i] << 8 | message[i + 1];
+            if (got & 1) sum += (unsigned)message[got - 1] << 8;
+            while (sum >> 16) sum = (sum & 0xffff) + (sum >> 16);
+            sum = ~sum & 0xffff;
+            message[2] = (unsigned char)(sum >> 8);
+            message[3] = (unsigned char)sum;
+        }
+        unsigned char ip[20] = {0x45, 0};
+        const unsigned total = 20 + (unsigned)got;
+        ip[2] = (unsigned char)(total >> 8); ip[3] = (unsigned char)total;
+        ip[8] = (unsigned char)ttl; ip[9] = IPPROTO_ICMP;
+        memcpy(ip + 12, &in.sin_addr, 4);
+        memcpy(ip + 16, &destination, 4);
+        unsigned sum = 0;
+        for (unsigned i = 0; i < 20; i += 2) sum += (unsigned)ip[i] << 8 | ip[i + 1];
+        while (sum >> 16) sum = (sum & 0xffff) + (sum >> 16);
+        sum = ~sum & 0xffff;
+        ip[10] = (unsigned char)(sum >> 8); ip[11] = (unsigned char)sum;
+        const U head = bytes < 20 ? bytes : 20;
+        memcpy(data, ip, head);
+        const U rest = bytes - head < (U)got ? bytes - head : (U)got;
+        memcpy(data + head, message, rest);
+        if (address && port)
+        {
+            *address = ntohl(in.sin_addr.s_addr);
+            *port = 0;
+        }
+        return (int)(head + rest);
+    }
+#endif
     bool Local(U address)
     {
         if ((address >> 24) == 127 || address == 0) return true;
