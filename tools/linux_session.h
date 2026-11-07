@@ -291,18 +291,19 @@ class Session
         // imported setup, WININIT.EXE before the first Windows process, the
         // DirectX version of the installed files, and SYSTEM.INI and the
         // OEM files naming the port.
+        FILE *status_stream = allow_forward ? stdout : stderr;
         if (HostRegistry::FinishImportedSetup(Registry::System(), drives.ram ? nullptr : drives.drive_c ? drives.drive_c : root))
-            printf("NEO98 HOST imported Windows setup completed\n");
+            fprintf(status_stream, "NEO98 HOST imported Windows setup completed\n");
         Win98Wininit::Run(Files::System(), Log);
         if (HostRegistry::SyncDirectXVersion())
-            printf("NEO98 HOST DirectX version repaired from installed 9.0c runtime files\n");
+            fprintf(status_stream, "NEO98 HOST DirectX version repaired from installed 9.0c runtime files\n");
         if (ProfileFiles::System().SyncHardware())
-            printf("NEO98 HOST SYSTEM.INI names the display adapter of the port\n");
+            fprintf(status_stream, "NEO98 HOST SYSTEM.INI names the display adapter of the port\n");
         if (ProfileFiles::System().SyncOemInfo())
-            printf("NEO98 HOST OEMINFO.INI names NEO98 and its GitHub repository\n");
+            fprintf(status_stream, "NEO98 HOST OEMINFO.INI names NEO98 and its GitHub repository\n");
         if (ProfileFiles::System().SyncOemLogo())
-            printf("NEO98 HOST OEMLOGO.BMP shows the NEO98 icon\n");
-        fflush(stdout);
+            fprintf(status_stream, "NEO98 HOST OEMLOGO.BMP shows the NEO98 icon\n");
+        fflush(status_stream);
 #ifdef NEO98_WITH_DOSBOX
         RefreshDos();
 #endif
