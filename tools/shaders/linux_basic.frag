@@ -170,7 +170,10 @@ vec4 operate(uint op,vec4 a,vec4 b,vec4 current,vec4 tex) {
     }
 }
 bool compare_alpha(uint fn,float a,float b) {
-    switch(fn){case 1u:return false;case 2u:return a<b;case 3u:return abs(a-b)<0.5/255;case 4u:return a<=b;case 5u:return a>b;case 6u:return abs(a-b)>=0.5/255;case 7u:return a>=b;default:return true;}
+    // Alpha testing compares byte values. Interpolation can move a constant
+    // alpha a few float ULPs below the identical reference on Vulkan.
+    a=floor(clamp(a,0,1)*255+0.5);b=floor(clamp(b,0,1)*255+0.5);
+    switch(fn){case 1u:return false;case 2u:return a<b;case 3u:return a==b;case 4u:return a<=b;case 5u:return a>b;case 6u:return a!=b;case 7u:return a>=b;default:return true;}
 }
 vec4 finish_color(vec4 current) {
     if(ALPHA_ENABLE!=0u&&!compare_alpha(ALPHA_FUNCTION,current.a,float(u.tests.y)/255))discard;
