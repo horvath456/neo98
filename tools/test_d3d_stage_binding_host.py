@@ -34,6 +34,10 @@ def main():
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--cpu', choices=ENGINE_NAMES, action='append')
     args = parser.parse_args()
+    if sys.platform == 'linux' and args.host == ROOT / 'build/native-app/neo98-host':
+        # The HAL needs a rasterizer. The ordinary Linux host build omits it.
+        from native_app import build_host
+        args.host = build_host(name='neo98-host-vulkan', vulkan=True)
     guard(8.6)
     print('host sha256:', hashlib.sha256(args.host.read_bytes()).hexdigest(), flush=True)
     out = ROOT / ('build/d3d-stage-binding-rgb' if args.reference_rgb else 'build/d3d-stage-binding')
