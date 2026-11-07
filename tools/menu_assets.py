@@ -7,7 +7,7 @@ import hashlib
 import json
 import struct
 ROOT=Path(__file__).resolve().parents[1]
-EXPECTED='3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef'
+EXPECTED='18303935de5e88482e9630a06480a502c1b9d6281c4013c2dd1ca88086acf192'
 def convert(data):
     version,offset=struct.unpack_from('<HH',data,0)
     if version:raise ValueError('Unexpected original menu version')

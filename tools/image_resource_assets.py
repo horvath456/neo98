@@ -4,7 +4,7 @@
 """Import original USER image resources and system-image registration tables."""
 from pathlib import Path
 import hashlib,json,struct
-ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'build/image-resource';HASH='3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef'
+ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'build/image-resource';HASH='18303935de5e88482e9630a06480a502c1b9d6281c4013c2dd1ca88086acf192'
 def generate():
  p=(ROOT/'build/gdi-audit/USER.EXE').read_bytes();assert hashlib.sha256(p).hexdigest()==HASH
  u16=lambda at:struct.unpack_from('<H',p,at)[0];ne=struct.unpack_from('<I',p,60)[0];table=ne+u16(ne+36);shift=u16(table);at=table+2;entries=[]

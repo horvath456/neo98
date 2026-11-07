@@ -215,13 +215,19 @@ CALIBRATED = {
 }
 
 
+# Setup writes the registered name into USER.EXE: "NEO98" now, an earlier
+# name in installations made before. The two files differ in nothing else,
+# so a test calibrated against the one runs on the other.
+USER_NAME_VARIANTS = {"3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef": "18303935de5e88482e9630a06480a502c1b9d6281c4013c2dd1ca88086acf192"}
+
+
 def skip_unless_original(guest: str, digest: str, folder: Path | None = None):
     """End a test with a note when the Win98 folder does not hold the build it
     was calibrated against, such as a folder in which an installer replaced
     USER.EXE. Such a test is not loosened: its offsets belong to that build."""
     folder = FOLDER if folder is None else Path(folder)
     source = path(guest, require(folder))
-    if source is not None and sha256(source) == digest:
+    if source is not None and USER_NAME_VARIANTS.get(found := sha256(source), found) == digest:
         return
     what = CALIBRATED.get(guest, guest)
     print(f"SKIP: test requires {what} (SHA-256 {digest[:16]}); "

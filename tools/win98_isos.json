@@ -27,8 +27,8 @@
         "USER.EXE": {
           "size": 549664,
           "sha256": "fe4bedde380982f81e12d73de6a87d65fb21e9dba76f714c74bbd4d4e8bfad53",
-          "installed_sha256": "3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef",
-          "note": "Setup personalizes USER.EXE. sha256 pins the original cabinet bytes; installed_sha256 documents the unchanged runtime generator pin after canonical setup."
+          "installed_sha256": "18303935de5e88482e9630a06480a502c1b9d6281c4013c2dd1ca88086acf192",
+          "note": "Setup personalizes USER.EXE with the registered name NEO98. sha256 pins the original cabinet bytes; installed_sha256 the file after canonical setup."
         },
         "DIBENG.DLL": {
           "size": 202800,

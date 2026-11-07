@@ -38,7 +38,7 @@ from provenance import stamp as stamp_provenance      # noqa: E402
 
 USER = ROOT / 'build/gdi-audit/USER.EXE'
 OUT = ROOT / 'build/generated'
-EXPECTED = '3d40896c26460c9c0c79ff165e703ddb1bbaec72bae7528c9a20ddd38dae41ef'
+EXPECTED = '18303935de5e88482e9630a06480a502c1b9d6281c4013c2dd1ca88086acf192'
 
 # USER segment 21, offset 0B87h: the DrawFrameControl call each strip entry is.
 STRIP_SEGMENT, STRIP_OFFSET, STRIP_ENTRIES = 21, 0x0b87, 0x5b
