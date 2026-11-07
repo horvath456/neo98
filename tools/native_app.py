@@ -555,7 +555,10 @@ def build_host(source='neo98_host.cpp', name='neo98-host', replaced=None, saniti
         cflags += gtk_flags
         libs += gtk_libs
         extra = []
-        with_vulkan = vulkan if vulkan is not None else os.environ.get('NEO98_WITH_VULKAN') == '1'
+        # As the release package (tools/linux_app.py): Vulkan unless
+        # NEO98_WITH_VULKAN=0, so every test that builds the host gets the
+        # same one and none replaces it with a host without a rasterizer.
+        with_vulkan = vulkan if vulkan is not None else os.environ.get('NEO98_WITH_VULKAN', '1') == '1'
         if with_vulkan:
             extra = vulkan_objects()
             cflags += ['-DNEO98_WITH_VULKAN']
