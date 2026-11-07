@@ -3287,7 +3287,9 @@ void Application::Slice(Cpu &cpu, unsigned address, void *context)
     // Block-hook stops corrupt the output of the Win16 WinZip inflater even
     // when the visible registers survive the yield. Stop these runs at an
     // instruction boundary using Run's quota instead; they remain preemptible.
-    if (a.Win16Code()) { a.ArmSlice(); return; }
+    // The native engine has no such quota (Step) and comes here from its
+    // interval timer, which stops at an instruction boundary already.
+    if (a.Win16Code() && cpu.Backend() != CpuBackend::Native) { a.ArmSlice(); return; }
     // The guest code of a critical section runs as one piece: a thread switch
     // between its test and its change would let a second thread take the same
     // section. It never waits, so the next block after it stops instead.
