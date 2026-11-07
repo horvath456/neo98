@@ -19,7 +19,8 @@ class States
     std::function<void(const std::string &)> restart;
     X86::Application *app = nullptr;
     const HostMachineState::Supplier *job_supplier = nullptr, *load_supplier = nullptr;
-    bool rebuilt = false, refused = false;
+    bool rebuilt = false, refused = false, settling = false;
+    std::chrono::steady_clock::time_point settle_until;
     void Refuse(const std::string &error)
     {
         refused = true;
@@ -48,16 +49,16 @@ class States
         fflush(stdout);
         if (failed) HostMenu::Notice(title.c_str(), message.c_str());
     }
-    bool Find(const std::string &id, HostSaveState::Entry &wanted, std::string &error) const
+    bool Find(const std::string &id, HostSaveState::Entry &wanted, std::string &error, bool verify = false) const
     {
         for (const auto &state : HostSaveState::List(Context())) if (state.id == id) wanted = state;
         if (wanted.id.empty()) error = "This state is missing.";
         else if (!wanted.usable) error = wanted.reason;
-        else if (wanted.game != "off")
+        else if (verify && wanted.game != "off")
         {
             unsigned long long size = 0;
             if (HostSaveState::FileSum(HostSaveState::MachineFile(wanted.folder), size) != wanted.machine_sum || size != wanted.machine_size)
-                error = "The state file is damaged.";
+                error = "The state is damaged: its machine data (Maschine.bin) has changed since it was saved.";
         }
         return error.empty();
     }
@@ -125,19 +126,30 @@ class States
         HostSaveState::Recover(folder);
         if (id.empty()) return true;
         std::string error;
-        if (!Find(id, loaded, error)) { fprintf(stderr, "State not loaded: %s\n", error.c_str()); return false; }
+        const auto reject = [&] {
+            pending.clear();
+            printf("NEO98 HOST state load id=%s refused: %s\n", id.c_str(), error.c_str());
+            fflush(stdout);
+            Notice("Could not load the state", error, true);
+            return true;
+        };
+        if (!Find(id, loaded, error, true)) return reject();
         if (loaded.game != "off")
         {
             std::string bytes;
             if (!HostSaveState::ReadFile(HostSaveState::MachineFile(loaded.folder), bytes)) return false;
             pending.assign(bytes.begin(), bytes.end());
         }
-        const char *kept = getenv("NEO98_STATE_KEPT");
-        const bool already_kept = kept && HostSaveState::IsDirectory(HostSaveState::StateFolder(folder, kept));
+        const char *given = getenv("NEO98_STATE_KEPT");
+        const std::string kept = given ? given : "";
+        const bool already_kept = !kept.empty() && HostSaveState::IsDirectory(HostSaveState::StateFolder(folder, kept));
         unsetenv("NEO98_STATE_KEPT");
-        std::string made;
+        std::string made = kept;
         if ((!already_kept && !Write("auto", "", nullptr, made, error)) || !HostSaveState::Restore(folder, id, error))
         { fprintf(stderr, "State not loaded: %s\n", error.c_str()); return false; }
+        printf("NEO98 HOST state load id=%s game=%s files restored layers=%s machine=%zu bytes before=%s\n",
+               id.c_str(), loaded.game.c_str(), loaded.layers.empty() ? "-" : loaded.layers.c_str(), pending.size(), kept.empty() ? "-" : kept.c_str());
+        fflush(stdout);
         HostSaveState::Prune(folder, id); return true;
     }
     int BeforeStart(X86::Application &process, const unsigned short *clock)
@@ -179,8 +191,11 @@ class States
         if (const char *error = getenv("NEO98_LINUX_STATE_ERROR"); error && *error)
         { const std::string message = error; unsetenv("NEO98_LINUX_STATE_ERROR"); Notice("Could not load the state", message, true); }
     }
-    bool NeedsRun() const { return saving || loading; }
-    bool HoldUi() const { return job_supplier == HostMachineState::DosUi() && HostDosUiState::HoldUi(); }
+    bool NeedsRun() const { return saving || loading || settling; }
+    // After a load the machine stands until the person goes on (a key, a
+    // click, Pause), as on macOS; `stand` is the host's switch for it.
+    std::function<void()> stand;
+    bool HoldUi() const { return HostDosUiState::HoldUi(); }
     bool ListOpen() const { return HostStateWindow::IsOpen(); }
     std::string Blocked(std::vector<std::pair<std::string, std::string>> *info = nullptr) const
     {
@@ -216,7 +231,7 @@ class States
         if (saving || loading || folder.empty()) return;
         if (id.empty()) id = Last();
         std::string error; HostSaveState::Entry wanted;
-        if (!Find(id, wanted, error)) { Notice("Not loaded.", error, true); return; }
+        if (!Find(id, wanted, error)) { Notice("„" + wanted.name + "” could not be loaded.", error, true); return; }
         HostStateWindow::Close();
         if (Blocked().empty()) { Save("", id); return; }
         pause(true, "a state is loaded"); std::string kept;
@@ -251,6 +266,21 @@ class States
             if (!error.empty()) Notice("States", error, true);
             if (ListOpen()) HostStateWindow::Update(Model(), request.id);
         }
+        if (settling)
+        {
+            // The machine ran a moment on the state so its windows paint;
+            // now it stands on it.
+            if (std::chrono::steady_clock::now() < settle_until) return;
+            settling = false;
+            pause(true, "a state was loaded");
+            load_supplier->Release(); load_supplier = nullptr;
+            printf("NEO98 HOST state loaded id=%s name=\"%s\" after %.2f s; the machine stands\n", loaded.id.c_str(), loaded.name.c_str(),
+                   std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count());
+            fflush(stdout);
+            if (stand) stand();
+            else pause(false, "the state is loaded");
+            return;
+        }
         if (!saving && !loading) return;
         std::vector<unsigned char> bytes; std::string error;
         const auto *supplier = saving ? job_supplier : load_supplier;
@@ -278,9 +308,11 @@ class States
                 const bool dos = supplier != HostMachineState::DosUi() && app->DosVmProcess();
                 if (dos && supplier->Picture && supplier->Picture(picture,width,height)) app->DosVmShowPicture(picture.data(), width, height);
                 for (const auto &view : loaded.view) if (view.first == "dos-vollbild" && dos) app->DosVmWantFullscreen(view.second == "1");
-                printf("NEO98 HOST state loaded id=%s name=\"%s\" after %.2f s\n", loaded.id.c_str(), loaded.name.c_str(),
-                       std::chrono::duration<double>(std::chrono::steady_clock::now() - started).count());
-                fflush(stdout);
+                // 200 ms of running for the window to paint, then it stands.
+                loading = false; settling = true;
+                settle_until = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
+                pause(false, "a state settles");
+                return;
             }
         }
         if (!okay && loading)
@@ -294,8 +326,12 @@ class States
         }
         saving = loading = false; supplier->Release(); job_supplier = load_supplier = nullptr;
         pause(false, !okay ? "a state was not taken" : was_saving ? "the state is saved" : "the state is loaded");
+        if (okay && was_saving && then_load.empty()) Notice("State saved", name);
         if (!okay) { Notice(then_load.empty() ? "Not saved." : "Not loaded.", (then_load.empty() ? "" : "The current state could not be saved, so nothing was loaded. ") + error, true); then_load.clear(); }
-        else if (was_saving && !then_load.empty()) { setenv("NEO98_STATE_KEPT", kept.c_str(), 1); restart(then_load); then_load.clear(); }
+        else if (was_saving && !then_load.empty()) {
+            printf("NEO98 HOST state load id=%s: the machine starts over with it, before=%s\n", then_load.c_str(), kept.c_str());
+            fflush(stdout);
+            setenv("NEO98_STATE_KEPT", kept.c_str(), 1); restart(then_load); then_load.clear(); }
         if (ListOpen()) HostStateWindow::Update(Model(), kept);
     }
 };

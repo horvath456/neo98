@@ -258,7 +258,16 @@ unsigned Application::ComboBoxMessage(unsigned hwnd,unsigned message,unsigned wp
  }
  case 0x30:if(!Gdi::SelectObject(b->dc,wp?wp:system))return 0;s.font=wp?wp:system;b->Edit(0x30,wp,0);b->List(0x30,wp,0);if(!(s.flags&0x300)){Gdi::TEXTMETRICA metrics{};Gdi::GetTextMetricsA(b->dc,&metrics);s.height=metrics.tmHeight+2;}b->Layout();if(lp)b->Invalidate();return 0;
  case 0x31:return s.font;
- case 0xc:{unsigned result=b->edit?b->Edit(message,wp,lp):User::SetWindowText(hwnd,ReadString(lp));if(b->edit){char text[8192];User::GetWindowText(b->edit,text,sizeof text);User::SetWindowText(hwnd,text);}b->Invalidate();return result;}
+ case 0xc:{
+  // Programmatic text changes do not send CBN_EDITUPDATE/CBN_EDITCHANGE.
+  // In particular, initializing a dialog must not queue a face change that
+  // later overwrites the font style supplied by its initialization hook.
+  const bool syncing=b->syncing;b->syncing=true;
+  unsigned result=b->edit?b->Edit(message,wp,lp):User::SetWindowText(hwnd,ReadString(lp));
+  b->syncing=syncing;
+  if(b->edit){char text[8192];User::GetWindowText(b->edit,text,sizeof text);User::SetWindowText(hwnd,text);}
+  b->Invalidate();return result;
+ }
  case 0xd:return b->edit?b->Edit(message,wp,lp):b->SelectedText(wp,lp,false);
  case 0xe:return b->edit?b->Edit(message,wp,lp):b->SelectedText(0,0,true);
  case 0x87:{unsigned message=0;if(lp&&!Read(lp+4,&message,sizeof message))return 0;return Win98ComboBox::DialogCode(s.flags,wp,lp!=0,message);}

@@ -37,7 +37,9 @@ def main():
         registry = out / f'{name}.registry'
         registry.unlink(missing_ok=True)
         shots = {key: out / f'{name}-{key}.png' for key in ('before', 'resized', 'typed')}
-        steps = f'1:shot={shots["before"]};'
+        ready = '#32770' if name in ('idle', 'resize-idle') else 'Notepad' if name == 'resize-type' else ''
+        prelude = f'0:wait={ready};0:idle=300;' if ready else ''
+        steps = prelude + f'1:shot={shots["before"]};'
         if name == 'resize-type':
             steps += f'1.2:resize=1000,750;1.8:shot={shots["resized"]};2:type=abc;2.8:shot={shots["typed"]};'
         if name == 'resize-idle':

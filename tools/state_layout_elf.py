@@ -141,6 +141,8 @@ def install(layout):
         for name, offset, kind in layout.members(unit, die):
             if name: found.setdefault(name, (offset, kind))
             child = unit.dies.get(kind)
+            while child is not None and child.tag in ('DW_TAG_typedef', 'DW_TAG_const_type', 'DW_TAG_volatile_type'):
+                child = unit.dies.get(child.reference('DW_AT_type'))
             if child and child.tag in ('DW_TAG_structure_type', 'DW_TAG_class_type'):
                 for inner, (at, target) in inside(unit, child, depth + 1).items(): found.setdefault(inner, (offset + at, target))
         return found

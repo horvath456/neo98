@@ -44,7 +44,7 @@ def main():
                              '--exe',r'C:\WINDOWS\NOTEPAD.EXE')
     try:
         child = wait(lambda: next((w for w in x.windows(process.pid) if 'Linux x64' in w['title']),None))
-        shell = next(w for w in x.windows(process.pid) if w['title']=='NEO98')
+        shell = next(w for w in x.windows(process.pid) if w['title']=='Neo98')
         assert child['x']==shell['x'] and shell['y'] < child['y'] < shell['y']+60, (shell,child)
         x.click(child['x']+120,child['y']+140)
         wait(lambda: x.focus()==child['id'])
@@ -89,7 +89,7 @@ def main():
     finally: finish(process,stream)
     process,stream=launch('settings-reload','2:menu=network-listen;3:menu=quit','--exe',r'C:\WINDOWS\NOTEPAD.EXE',settings=settings)
     try:
-        layer=wait(lambda: next((w for w in x.windows(process.pid) if w['title']=='NEO98' and w['width']>=1200),None))
+        layer=wait(lambda: next((w for w in x.windows(process.pid) if w['title']=='Neo98' and w['width']>=1200),None))
         assert layer['width']>=1200,layer
         process.wait(timeout=10);assert process.returncode==0
         assert 'NEO98 network listen=any' in (out/'settings-reload.log').read_text()

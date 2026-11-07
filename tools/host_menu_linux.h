@@ -31,7 +31,7 @@ inline bool Perform(const char *name, const char *path)
         {"scale-1", "scale1"}, {"scale-2", "scale2"}, {"cdrom-insert", "cdrom"}, {"cdrom-eject", "eject"},
         {"edit-cut", "cut"}, {"edit-copy", "copy"}, {"edit-paste", "paste"}, {"network-online", "network"},
         {"open-program", "open"}, {"state-list", "states"}, {"settings", "preferences"},
-        {"guest-window", "window"}};
+        {"game-machine-create", "game-create"}, {"guest-window", "window"}};
     for (const auto &[from, to] : mac)
         if (action == from) { action = to; break; }
     Request request;

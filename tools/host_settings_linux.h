@@ -72,8 +72,7 @@ class Preferences
             !game.empty() ? HostGameMachine::SettingsFile(game)
             : override && *override
                 ? override
-                : std::string(drives.drive_c ? drives.drive_c : HostVolume::DefaultDriveC()) +
-                      ".linux-host.ini";
+                : drives.drive_c ? std::string(drives.drive_c) + ".linux-host.ini" : std::string();
         if (!HostSettings::Load(saved))
             return true;
         if (!game.empty() && !HostSettings::Ready(saved.game_source))

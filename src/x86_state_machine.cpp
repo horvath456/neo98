@@ -1413,7 +1413,9 @@ int TestContainers()
                     b.boundary_neighbour = first + 16;
                 }
         }
-#if __has_feature(address_sanitizer)
+#if __has_feature(address_sanitizer) || defined(__linux__)
+        // Linux malloc keeps metadata between blocks, so user buffers are
+        // not adjacent. Verify their end pointers with separate allocations.
         if (!b.boundary_neighbour)
         {
             b.boundary_buffer = reinterpret_cast<TestBoundaryItem *>(b.boundary_spare[0]);
@@ -1441,9 +1443,9 @@ int TestContainers()
                     b.buffer_end = b.buffer + 16;
                 }
         }
-#if __has_feature(address_sanitizer)
-        // ASan puts a red zone between allocations. Exercise the end rule
-        // there too; the unsanitized run requires adjacent allocations.
+#if __has_feature(address_sanitizer) || defined(__linux__)
+        // ASan red zones and Linux malloc metadata separate allocations.
+        // Exercise the end rule there too; other allocators require adjacency.
         if (!b.neighbour)
         {
             b.buffer = b.spare[0];

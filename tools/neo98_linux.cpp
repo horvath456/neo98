@@ -17,6 +17,7 @@
 #include "linux_session.h"
 #include "../sdk/lib/neo98_touch_abi.h"
 #include "host_states_linux.h"
+#include "host_pause_mark.h"
 #include "host_setup_linux.h"
 #include "host_devices/service.h"
 #include "host_hang.h"
@@ -383,6 +384,17 @@ int main(int argc, char **argv)
     audio.Install();
     auto *gpu_backend = HostGpu::Install();
     X86::Application::SetGpuBackend(gpu_backend);
+    const auto mounted = HostVolume::Scan(argc, argv);
+    if (mounted.drive_c) printf("NEO98 HOST drive C: %s\n", mounted.drive_c);
+    for (unsigned i = 0; i < mounted.count; ++i) {
+        const auto &drive = mounted.extra[i];
+        if (!drive.directory) continue;
+        printf("NEO98 HOST drive %c: %s %s\n", drive.letter,
+               drive.cdrom ? "cdrom" : drive.readonly ? "readonly" : drive.below ? "layer" : "fixed", drive.directory);
+        if (drive.below) printf("NEO98 HOST drive %c: below %s\n", drive.letter, drive.below);
+    }
+    fflush(stdout);
+    DosVm::EndWithProgram(!preferences.Game().empty());
     if (!session.Start(true, [&]() { return states.Prepare(options.load_state); },
         [&](X86::Application &app, const unsigned short *clock) {
 #ifdef NEO98_WITH_HOST_MEDIA
@@ -409,6 +421,7 @@ int main(int argc, char **argv)
             again.push_back(nullptr);
             // No destructor may see the half-loaded machine; the lock of
             // drive C: goes over to the new image.
+            printf("NEO98 HOST restart reason=state not loaded\n");
             session.PrepareRestart();
             fflush(stdout);
             fflush(stderr);
@@ -418,7 +431,6 @@ int main(int argc, char **argv)
         }
         return session.forwarded ? 0 : 1;
     }
-    DosVm::EndWithProgram(!preferences.Game().empty());
     // Windows starts here, not a program: MSGSRV32 plays the sound of the
     // scheme's "SystemStart" before the shell, as on macOS. A program
     // started on its own, and a machine out of a saved state, has none.
@@ -631,12 +643,12 @@ int main(int argc, char **argv)
     std::vector<std::unique_ptr<HostVolume::Drive>> clipboard_drives;
     std::string added_drive_d;
     std::map<char, std::string> changed_cdroms;
-    const auto mounted = HostVolume::Scan(argc, argv);
     std::map<char, std::string> roots{{'C', mounted.drive_c ? mounted.drive_c : HostVolume::DefaultDriveC()}};
     for (unsigned i = 0; i < mounted.count; ++i)
         if (mounted.extra[i].directory)
         {
-            roots[mounted.extra[i].letter] = mounted.extra[i].directory;
+            const auto &drive = mounted.extra[i];
+            roots[drive.letter] = drive.directory;
             if (mounted.extra[i].letter == 'D' && !mounted.extra[i].cdrom)
                 menu.drive_d = mounted.extra[i].directory;
             if (mounted.extra[i].cdrom)
@@ -814,6 +826,30 @@ int main(int argc, char **argv)
     bool resize_after_frame = false;
     bool fullscreen_from_seamless = restore_seamless_after_fullscreen;
     bool machine_paused = false;
+    // The machine stands after the load of a game machine's state until the
+    // person goes on (states.stand, state_go_on).
+    bool standing = false;
+    // Whether the picture of the current pause was drawn (its probe line).
+    bool pause_drawn = false;
+    // The focus as the script step focus= gives it; a window without a
+    // screen (SDL's dummy driver) has it until a step takes it away.
+    int focus_script = -1;
+    if (const char *video = SDL_GetCurrentVideoDriver(); video && !strcmp(video, "dummy")) focus_script = 1;
+    LinuxHost::focus_input = [&](bool value) { focus_script = value ? 1 : 0; };
+    LinuxHost::describe_menu = [&] {
+        if (LinuxGtk::menu_bar) LinuxGtk::DescribeItems(LinuxGtk::menu_bar, "");
+        else {
+            // The dummy driver has no native menu, but its host menu model
+            // and shortcuts are the same as those of the windowed host.
+            printf("NEO98 HOST menu-item Machine > Pause [pause] %s%s\n",
+                   LinuxGtk::ItemKeys("pause"), menu.paused ? " (enabled)" : "");
+            fflush(stdout);
+        }
+    };
+    // The keys of the window the guest holds down, by SDL scancode: what the
+    // end of a pause releases when the hand let them go meanwhile.
+    struct HeldKey { unsigned vk = 0, scan = 0; bool extended = false; };
+    std::map<int, HeldKey> held_keys;
     // pause_took_mouse: the pause let go a mouse the guest held, and gives it
     // back when it ends (as on the Mac). `why` goes into the line the macOS
     // host writes as well; the tests of the saved states read it.
@@ -828,10 +864,26 @@ int main(int argc, char **argv)
             pause_started = std::chrono::steady_clock::now();
         }
         machine_paused = value;
+        pause_drawn = false;
+        texture_dirty = display_dirty = true;
         X86::Application::PauseMachine(value);
         HostDosVm::Pause(value);
         if (!value)
         {
+            standing = false;
+            // A key that went up during the pause goes up for the guest
+            // now; one that went down during it is not pressed afterwards.
+            int count = 0;
+            const Uint8 *down = SDL_GetKeyboardState(&count);
+            unsigned released = 0;
+            for (auto at = held_keys.begin(); at != held_keys.end();)
+            {
+                if (at->first < count && down[at->first]) { ++at; continue; }
+                session.app->RawKey(at->second.vk, 0, false, at->second.scan, at->second.extended);
+                at = held_keys.erase(at);
+                ++released;
+            }
+            printf("NEO98 HOST pause keys settled released=%u\n", released);
             session.app->KeyboardModifiers(0);
             session.app->MouseButtons(session.app->mouse_x, session.app->mouse_y, 0);
             buttons = 0;
@@ -869,6 +921,9 @@ int main(int argc, char **argv)
     // distance in points of the window (deliver_motion, below).
     std::function<void(int, int, int, int)> deliver_motion;
     LinuxHost::host_step = [&](const std::string &action, int x, int y) {
+        if (machine_paused && (action == "key" || action == "type" || action == "ctrl" ||
+                               action == "keydown" || action == "keyup" || action == "click" ||
+                               action == "move" || action == "wheel" || action == "scroll")) return true;
         if (action == "hand")
         {
             // The distance reaches the guest as it is: an event through SDL
@@ -919,10 +974,24 @@ int main(int argc, char **argv)
     states.Attach(*session.app, [&](bool value, const char *why) {
         pause_machine(value || menu.paused || auto_paused || states.ListOpen(), why);
     }, [&](const std::string &id) { state_restart = id; reboot = true; running = false; });
+    states.stand = [&] {
+        standing = true;
+        menu.paused = true;
+        pause_machine(true, "a state was loaded");
+    };
+    // After a load the machine stands until the person goes on: any key or a
+    // click, or Pause in the menu.
+    auto state_go_on = [&](const char *why) {
+        if (!standing || !machine_paused || states.ListOpen()) return false;
+        menu.paused = false;
+        pause_machine(false, why);
+        return true;
+    };
     // A machine out of --state-load stands paused until a step or the menu
     // lets it go on, as on macOS (tools/host_state.h).
     if (HostState::loaded)
     {
+        standing = true;
         menu.paused = true;
         pause_machine(true, "state loaded");
     }
@@ -1221,6 +1290,16 @@ int main(int argc, char **argv)
             }
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
                 User::TouchCancelAll(true);
+            if (event.type == SDL_KEYDOWN && !event.key.repeat && standing && machine_paused)
+            {
+                const auto sym = event.key.keysym.sym;
+                const bool modifier = sym == SDLK_LSHIFT || sym == SDLK_RSHIFT || sym == SDLK_LCTRL || sym == SDLK_RCTRL ||
+                                      sym == SDLK_LALT || sym == SDLK_RALT || sym == SDLK_LGUI || sym == SDLK_RGUI ||
+                                      sym == SDLK_CAPSLOCK;
+                // That key is the person's word to the host, not the game's.
+                if (!modifier && !(event.key.keysym.mod & KMOD_CTRL) && state_go_on("a key after the load")) continue;
+            }
+            if (event.type == SDL_MOUSEBUTTONDOWN && state_go_on("a click after the load")) continue;
             if (getenv("NEO98_INPUT_TRACE") &&
                 (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP || event.type == SDL_WINDOWEVENT ||
                  event.type == SDL_MOUSEBUTTONDOWN))
@@ -1290,10 +1369,14 @@ int main(int argc, char **argv)
                                (mods & KMOD_RALT ? 64 : 0) | (mods & KMOD_RGUI ? 128 : 0);
                 if (german && (mods & KMOD_RALT))
                     usb |= 1;
-                session.app->KeyboardModifiers(usb);
+                if (!machine_paused) session.app->KeyboardModifiers(usb);
                 auto key = UsbKeys::Map(event.key.keysym.scancode, german, mods & KMOD_NUM);
-                if (key.vk && !menu.paused)
+                // Keys during a pause reach nobody; one held when it began is
+                // released when it ends (pause_machine).
+                if (key.vk && !machine_paused)
                 {
+                    if (event.type == SDL_KEYDOWN) held_keys[event.key.keysym.scancode] = {key.vk, key.scan, key.extended};
+                    else held_keys.erase(event.key.keysym.scancode);
                     session.app->RawKey(key.vk, 0, event.type == SDL_KEYDOWN, key.scan, key.extended);
                     last_input_time = std::chrono::steady_clock::now();
                 }
@@ -1316,7 +1399,7 @@ int main(int argc, char **argv)
                 deliver_motion(event.motion.x, event.motion.y, int(std::lround(event.motion.xrel * scale_x)),
                                int(std::lround(event.motion.yrel * scale_y)));
             }
-            else if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !menu.paused)
+            else if ((event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) && !machine_paused)
             {
                 if (event.type == SDL_MOUSEBUTTONDOWN && !seamless_enabled && LinuxGtk::embedded)
                 {
@@ -1358,7 +1441,7 @@ int main(int argc, char **argv)
                     session.app->MouseButtons(x, y, buttons);
                 last_input_time = std::chrono::steady_clock::now();
             }
-            else if (event.type == SDL_MOUSEWHEEL && !menu.paused)
+            else if (event.type == SDL_MOUSEWHEEL && !machine_paused)
             {
                 const double sign = event.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -1 : 1;
                 const auto step = host_wheel.Convert(sign * event.wheel.preciseY,
@@ -1387,7 +1470,12 @@ int main(int argc, char **argv)
             else if (request.action == Action::StateList) states.Open();
             else if (request.action == Action::DosSettings)
             {
-                const std::string path = request.path.empty() ? menu.dos_program : request.path;
+                std::string path = request.path.empty() ? menu.dos_program : request.path;
+                if (!path.empty() && !HostSystemFont::GuestPath(path.c_str())) {
+                    std::string guest;
+                    if (!map_host_file(path, guest, true)) continue;
+                    path = std::move(guest);
+                }
                 const unsigned owner = User::GetForegroundWindow();
                 const char *active = X86::Application::DosSettingsPath(owner);
                 session.app->RequestDosSettings(path.c_str(), active && path == active ? owner : 0);
@@ -1481,16 +1569,16 @@ int main(int argc, char **argv)
                     continue;
                 }
                 HostGameMachine::Request make;
-                // The machine folder of the settings when drive C: is its
-                // drive, as on macOS; else drive C: itself.
+                std::string path = request.path;
+                const auto separator = path.find('|');
+                const bool scripted = separator != std::string::npos;
+                if (scripted) { make.name = path.substr(separator + 1); path.resize(separator); }
                 make.machine = HostSettings::DriveC(LinuxHost::MachineFolder()) == LinuxHost::RealPath(roots['C'])
                                    ? LinuxHost::MachineFolder() : roots['C'];
-                make.program = HostSystemFont::GuestPath(request.path.c_str())
-                                   ? request.path
-                                   : GuestPath(request.path, roots);
-                if (make.program.empty())
-                    map_host_file(request.path, make.program, true);
-                make.program_file = request.path;
+                const bool guest_path = HostSystemFont::GuestPath(path.c_str());
+                make.program = guest_path ? path : GuestPath(path, roots);
+                if (make.program.empty()) map_host_file(path, make.program, true);
+                if (!guest_path) make.program_file = path;
                 make.source.scale = menu.scale;
                 make.source.seamless = menu.seamless;
                 make.source.online = menu.online;
@@ -1506,6 +1594,11 @@ int main(int argc, char **argv)
                 HostGameMachine::Result result;
                 if (!HostGameMachine::Create(make, HostSettings::Executable(), result))
                     LinuxGtk::Notice("Game machine", result.error.c_str());
+                else if (scripted) {
+                    printf("NEO98 HOST game machine created name=%s program=%s folder=%s\n",
+                           result.name.c_str(), make.program.c_str(), result.folder.c_str());
+                    fflush(stdout);
+                }
                 else if (!HostGameMachine::Spawn(
                              {HostSettings::Executable(), "--game-machine", result.folder}, {}))
                     LinuxGtk::Notice("Game machine",
@@ -1761,14 +1854,14 @@ int main(int argc, char **argv)
                 menu.cdrom_letter = 0;
             }
         }
-        const bool focused =
+        const bool focused = focus_script >= 0 ? focus_script != 0 :
             LinuxGtk::Active() ||
             (seamless_enabled ? seamless.HasFocus() : SDL_GetKeyboardFocus() == window.get());
         const bool pause_now = menu.pause_unfocused && !focused;
         if (auto_paused != pause_now)
         {
             auto_paused = pause_now;
-            pause_machine(menu.paused || auto_paused, pause_now ? "the window lost the focus" : "the window has the focus");
+            pause_machine(menu.paused || auto_paused, pause_now ? "NEO98 lost the focus" : "NEO98 has the focus again");
         }
         {
             // A state that waits for the current call lets a paused machine
@@ -1792,6 +1885,8 @@ int main(int argc, char **argv)
                 last_calls = calls;
                 last_call_time = now;
             }
+            // A deliberate pause is not time spent answering guest input.
+            if (machine_paused) last_call_time = now;
             const bool input_waiting = last_input_time > last_call_time;
             const bool waiting = !machine_paused && (input_waiting || session.app->SystemRunnable());
             HostHang::Observe(waiting_since, was_waiting, now, last_call_time, last_input_time, input_waiting, waiting);
@@ -1815,8 +1910,26 @@ int main(int argc, char **argv)
             hang_seconds_shown = stalled_seconds;
         }
         states.Poll();
-        for (const auto &failure : dos_failures)
+        std::vector<std::pair<std::string, std::string>> failures;
+        failures.swap(dos_failures);
+        for (const auto &failure : failures)
         {
+            printf("NEO98 HOST DOS failure %s: %s\n", failure.first.c_str(), failure.second.c_str());
+            fflush(stdout);
+            if (const char *action = getenv("NEO98_DOS_FAILURE_ACTION")) {
+                if (!strcmp(action, "settings")) session.app->RequestDosSettings(failure.first.c_str());
+                if (!strcmp(action, "retry")) {
+                    X86::Application::RequestOpen(failure.first.c_str());
+                    unsigned windows[User::WindowCapacity], count = 0;
+                    if (User::WindowSnapshot(0, windows, User::WindowCapacity, count))
+                        for (unsigned i = 0; i < count; ++i)
+                            if (User::WindowProcess(windows[i]) == session.app->process_id) {
+                                User::PostMessage(windows[i], 0, 0, 0);
+                                break;
+                            }
+                }
+                continue;
+            }
             GtkWidget *dialog = gtk_message_dialog_new(LinuxGtk::shell ? GTK_WINDOW(LinuxGtk::shell) : nullptr,
                 GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_ERROR, GTK_BUTTONS_NONE, "%s", failure.second.c_str());
             gtk_window_set_title(GTK_WINDOW(dialog), "DOS program");
@@ -1831,7 +1944,6 @@ int main(int argc, char **argv)
             }), nullptr);
             gtk_widget_show_all(dialog);
         }
-        dos_failures.clear();
         // The machine goes when ExitWindowsEx has run to its end (the hook),
         // or, as on macOS, when the shell ended on WM_ENDSESSION of an
         // ExitWindowsEx another process runs. The agreed session alone is not
@@ -2006,7 +2118,7 @@ int main(int argc, char **argv)
         {
             bool gpu_shown = false;
 #ifdef NEO98_WITH_VULKAN
-            if (!pixels && vulkan_desktop)
+            if (!pixels && vulkan_desktop && !machine_paused)
             {
                 int output_width = 0, output_height = 0;
                 SDL_GetWindowSize(window.get(), &output_width, &output_height);
@@ -2027,6 +2139,53 @@ int main(int argc, char **argv)
             if (!gpu_shown)
             {
                 if (!pixels) pixels = User::Pixels();
+                // A machine that stands shows its picture dimmed, with the
+                // mark of the pause over it, as on macOS.
+                if (machine_paused && !seamless_enabled && pixels && width > 0 && height > 0)
+                {
+                    static std::vector<unsigned char> paused_copy;
+                    const size_t bytes = size_t(width) * height * 4;
+                    paused_copy.assign(pixels, pixels + bytes);
+                    for (size_t i = 0; i < bytes; i += 4)
+                        for (size_t c = 0; c < 3; ++c) paused_copy[i + c] = (unsigned char)(paused_copy[i + c] * 2 / 5);
+                    const int unit = std::max(2, height / 150), cx = width / 2, cy = height / 2;
+                    PauseMark(cx, cy, unit, [&](int x, int y, int w, int h, bool light) {
+                        const unsigned char shade = light ? 255 : 24;
+                        for (int row = std::max(0, y); row < std::min(height, y + h); ++row)
+                            for (int column = std::max(0, x); column < std::min(width, x + w); ++column)
+                            {
+                                unsigned char *at = &paused_copy[(size_t(row) * width + column) * 4];
+                                at[0] = at[1] = at[2] = shade;
+                            }
+                    });
+                    // NEO98_HOST_PAUSE_PROBE=1 tells once a pause what the
+                    // guest drew and what the window shows: a corner, the left
+                    // bar of the mark and a grid of five by five points
+                    // without the middle one (tools/test_pause_host.py).
+                    static const bool probe = getenv("NEO98_HOST_PAUSE_PROBE") != nullptr;
+                    if (probe && !pause_drawn)
+                    {
+                        const auto at = [&](const unsigned char *bits, int x, int y) {
+                            return *reinterpret_cast<const unsigned *>(bits + (size_t(y) * width + x) * 4) & 0xffffff;
+                        };
+                        const int bar_x = cx - 22 * unit + 16 * unit, bar_y = cy - 20 * unit + 13 * unit;
+                        printf("NEO98 HOST pause picture guest=%06x shown=%06x bar=%06x\n", at(pixels, 2, 2),
+                               at(paused_copy.data(), 2, 2), at(paused_copy.data(), bar_x, bar_y));
+                        printf("NEO98 HOST pause grid");
+                        for (int gy = 0; gy < 5; ++gy)
+                            for (int gx = 0; gx < 5; ++gx)
+                            {
+                                if (gx == 2 && gy == 2) continue;
+                                const int px = (2 * gx + 1) * width / 10, py = (2 * gy + 1) * height / 10;
+                                printf(" %d,%d=%06x>%06x", px, py, at(pixels, px, py), at(paused_copy.data(), px, py));
+                            }
+                        printf("\n");
+                        fflush(stdout);
+                    }
+                    pause_drawn = true;
+                    pixels = paused_copy.data();
+                    texture_dirty = true;
+                }
 #ifdef NEO98_WITH_HOST_MEDIA
                 if (!video_areas.empty())
                     PresentVideo(renderer.get(), texture.get(), reinterpret_cast<const uint32_t *>(pixels), width, height, video_areas, video);
@@ -2170,6 +2329,8 @@ int main(int argc, char **argv)
         for (auto &argument : arguments)
             again.push_back(argument.data());
         again.push_back(nullptr);
+        printf("NEO98 HOST restart reason=%s\n", state_restart.empty() ? (getenv("NEO98_LINUX_STATE_ERROR") ? "state not loaded" : "menu") : "load state");
+        fflush(stdout);
         session.PrepareRestart();
         session.Stop();
         cd.reset();

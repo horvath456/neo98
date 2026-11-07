@@ -24,7 +24,9 @@ def main():
     # The shared state test builds the profile helper without proprietary files.
     helper = ROOT / 'build/native-linux/windows-states/create'
     assert helper.exists(), 'Run tools/test_linux_windows_states.py --only notepad first'
-    profile = Path(subprocess.check_output([str(helper),str(source),str(binary)],text=True).strip())
+    machine = out / ('machine-' + str(os.getpid()))
+    subprocess.run(['cp','-a','--reflink=auto',str(source),str(machine)],check=True)
+    profile = Path(subprocess.check_output([str(helper),str(machine),str(binary)],text=True).strip())
     steps = [
         '2:wait=Notepad','3:native-click=Notepad|100,100','3.3:native-key=Notepad|41',
         '3.5:native-ctrl=Notepad|41','3.7:native-ctrl=Notepad|43',f'4:pbdump={out / "typed.txt"}',
@@ -34,7 +36,7 @@ def main():
         '6:native-click=Notepad|19,32','6.3:native-click=#32768|40,44','7:wait=#32770',
         f'7.5:native-shot=Notepad|{out / "covered.png"}',
         f'7.7:native-shot=#32770|{out / "dialog.png"}',
-        '8:menu=state-save,Wayland dialog','12:menu=state-load',
+        '8:menu=state-save,Wayland dialog','12:menu=state-load','13:pause=0',
         f'16:native-shot=#32770|{out / "restored-dialog.png"}',
         '16.5:native-key=#32770|1b','17:native-size=Notepad|640,420',
         '18:native-click=Notepad|100,100','18.3:native-key=Notepad|42',
