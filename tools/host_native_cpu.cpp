@@ -106,11 +106,17 @@ extern "C" int posix_spawn(pid_t *pid, const char *path, const posix_spawn_file_
     NativeHostSpawn native;
     return next ? next(pid, path, actions, attributes, arguments, environment) : ENOSYS;
 }
+// A sanitized runner has its own pthread_create, which this one replaces:
+// without it the sanitizer would not know the thread, and its
+// pthread_detach and pthread_join stop the process on a thread it never saw.
+extern "C" int __interceptor_pthread_create(pthread_t *, const pthread_attr_t *, void *(*)(void *), void *)
+    __attribute__((weak));
 extern "C" int pthread_create(pthread_t *thread, const pthread_attr_t *attributes,
     void *(*start)(void *), void *argument) noexcept
 {
     using Create = int (*)(pthread_t *, const pthread_attr_t *, void *(*)(void *), void *);
-    static const auto next = reinterpret_cast<Create>(dlsym(RTLD_NEXT, "pthread_create"));
+    static const auto next = __interceptor_pthread_create ? __interceptor_pthread_create
+                                                          : reinterpret_cast<Create>(dlsym(RTLD_NEXT, "pthread_create"));
     // clone inherits PR_SET_TSC, but the new thread has no direct-CPU TLS.
     // PulseAudio and other host workers must start with their own clock.
     NativeHostSpawn native;
