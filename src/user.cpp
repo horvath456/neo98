@@ -7,17 +7,11 @@
 #include "win98_menu_tracking.h"
 #include "win98_menu_bar_info.h"
 #include "win98_menu_ownerdraw.h"
-#if defined(__APPLE__) || defined(__linux__)
 #include <stdio.h>
 #include <stdlib.h>
 #include <new>
 #include "render_profile.h"
 #define USER_PROFILE(stage) RenderProfile::Scope user_profile_scope(RenderProfile::stage)
-#else
-#include <circle/alloc.h>
-#include <circle/new.h>
-#define USER_PROFILE(stage) do {} while (0)
-#endif
 #include "user_draw.h"
 #include "rect_region.h"
 #include "input_state.h"
@@ -585,8 +579,7 @@ bool ControlContent(const Window &w) { return w.button || w.label || (w.common &
 bool GuestProcedure(const Window &w) { return w.procedure && (w.procedure & 0xffff0000u) != 0x71000000u; }
 Gdi::POINT Origin(const Window &w,unsigned depth=0);
 void FreeWindowDCs(Window &w);
-// Paint tracing is a host-only diagnostic (NEO98_TRACE_PAINT); the Pi
-// kernel has neither an environment nor stderr.
+// Paint tracing is enabled with NEO98_TRACE_PAINT.
 #if defined(__APPLE__) || defined(__linux__)
 static const bool trace_paint = getenv("NEO98_TRACE_PAINT") != nullptr;
 #define USER_TRACE(...) do { if (trace_paint) fprintf(stderr, __VA_ARGS__); } while (0)

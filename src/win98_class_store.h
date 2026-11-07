@@ -9,11 +9,7 @@
 #else
 #include "../build/generated/atom_upper.h"
 #endif
-#if defined(__APPLE__) || defined(__linux__)
 #include <string.h>
-#else
-#include <circle/util.h>
-#endif
 namespace Win98ClassStore {
 using U=unsigned;
 // Architecture provider: original WORD class links address this private arena.

@@ -2,8 +2,6 @@
 // Formatting half of the crash report: Markdown, JSON and a PNG screenshot.
 // No file access, no allocation, no exceptions; everything goes into a Sink.
 #include "crash_report.h"
-// C headers, not their <c...> forms: the Circle build has newlib, which has no
-// C++ standard library headers.
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>

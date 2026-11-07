@@ -50,8 +50,8 @@ template <class T> struct Slots
 // before the first use of System, and the store decodes them
 // (src/registry_hives.h). The bytes are only read while a store is built.
 // Without them the store decodes the image tools/import_registry.py generated
-// from the hives at build time, which the tests without a drive and the Pi
-// kernel keep; a program built with NEO98_NO_REGISTRY_IMAGE carries no such
+// from the hives at build time, which the tests without a drive
+// keep; a program built with NEO98_NO_REGISTRY_IMAGE carries no such
 // image and starts empty then.
 struct Hives
 {

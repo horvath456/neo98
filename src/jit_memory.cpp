@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// NEO98's allocation policy, independent of Circle. The current boot adapter
-// installs these ranges as 64 KiB pages before enabling the MMU.
+// Fixed allocation pool used by standalone JIT tests.
 #include "jit_memory.h"
 
 extern "C" {

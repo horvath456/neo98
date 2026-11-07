@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "text_edit.h"
-#if defined(__APPLE__) || defined(__linux__)
 #include <stdlib.h>
-#else
-#include <circle/alloc.h>
-#endif
 
 // The buffer starts small and doubles, so a control that holds a line costs a
 // line and one that holds a file of sixty kilobytes holds sixty kilobytes.

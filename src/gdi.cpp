@@ -47,19 +47,11 @@
 #include "win98_gdi_widen.h"
 #include "win98_dib_stretch.h"
 #include "win98_dib_stretch_objects.h"
-#if defined(__APPLE__) || defined(__linux__)
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <new>
-#else
-#include <circle/alloc.h>
-#include <circle/new.h>
-#include <circle/util.h>
-#endif
-// Needs calloc and free, so it follows whichever allocator header the target
-// brings. A kernel build has no <stdlib.h>, and -MG turns a missing header
-// into a prerequisite make cannot satisfy.
+// Needs calloc and free from <stdlib.h>.
 #include "win98_gdi_flood.h"
 
 namespace Gdi {

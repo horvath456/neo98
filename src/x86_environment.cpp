@@ -92,7 +92,7 @@ bool Application::InitializeProcessEnvironment()
 {
     if (process_environment) return state != Failed;
     // This is the ARM process profile, not an implementation of CONFIG.SYS,
-    // AUTOEXEC.BAT or process inheritance. Both Mac and Pi use these same bytes.
+    // AUTOEXEC.BAT or process inheritance. Both host platforms use these same bytes.
     // TEMP and TMP are the values IO.SYS of Win98 sets when AUTOEXEC.BAT does
     // not name them: the TEMP folder Setup creates below the Windows folder
 

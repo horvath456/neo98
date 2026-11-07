@@ -172,7 +172,7 @@ unsigned Application::AddFontResourceFile(const char *path)
 // fixedfon.fon, oemfonts.fon), then every font of the registry keys
 // HKEY_CURRENT_CONFIG\Display\Fonts and
 // HKLM\Software\Microsoft\Windows\CurrentVersion\Fonts and of WIN.INI [fonts].
-// The Pi and standalone comparison runners keep built-in SSERIFE.FON for
+// Standalone comparison runners keep built-in SSERIFE.FON for
 // runs without the Win98 tree. Release hosts require the installed files.
 void Application::LoadInstalledFonts()
 {

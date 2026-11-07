@@ -99,7 +99,6 @@ Build and test scripts download these, but they never end up in the app:
 
 - Tests from [Wine](https://www.winehq.org) and [ReactOS](https://reactos.org) (LGPL and GPL), to compare Neo98 with Windows
 - The SDL test suite (LGPL)
-- [Circle](https://github.com/rsta2/circle) (GPL-3.0) and the Arm GNU Toolchain, for the Raspberry Pi version, which is on hold. It is never built together with Unicorn.
 
 The Wayland protocol files in `tools/host_wayland/protocols` come from the
 Wayland project and are licensed under MIT.

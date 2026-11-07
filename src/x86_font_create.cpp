@@ -139,7 +139,7 @@ unsigned Application::FontCreateApi(ApiName name,const unsigned*a){
         // Marlett is a hidden system font and need not occur in the public
         // Fonts registry list. Use its installed TTF through the same driver
         // as other outline fonts; a synthetic FNT cannot answer GetFontData
-        // or retain glyph overhangs. Only standalone tests and the Pi keep cells.
+        // or retain glyph overhangs. Only standalone tests keep cells.
         const bool marlett=FaceEqual(physical,"Marlett");
         if(marlett&&!GdiFonts::Installed("MARLETT.TTF"))AddFontResourceFile("MARLETT.TTF");
         const auto*face=GdiFonts::Match(physical,height,Win98FontCreate::Word(logical+8),italic,logical[13]);

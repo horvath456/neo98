@@ -1,7 +1,4 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-#if defined(__circle__) && !defined(_POSIX_C_SOURCE)
-#define _POSIX_C_SOURCE 200809L // expose strnlen from the newlib headers
-#endif
 // The WINMM entries that answer without a device: the device counts and
 // capabilities of wave, MIDI, mixer, aux and joystick, the volume pairs, the
 // three error texts, the installable driver entries and the contracts of the

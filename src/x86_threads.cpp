@@ -11,11 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#if defined(__APPLE__) || defined(__linux__)
 #include <new>
-#else
-#include <circle/new.h>
-#endif
 #if defined(__APPLE__) || defined(__linux__)
 #include <time.h>
 #else

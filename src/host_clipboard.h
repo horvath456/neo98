@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // The clipboard of the machine the session runs on, behind the clipboard of
 // the session (src/x86_clipboard.cpp). On the Mac that is the NSPasteboard
-// (tools/host_pasteboard.mm); the Pi kernel has none and
-// never sets a provider. This is
-// the seam between USER's clipboard and the host.
+// (tools/host_pasteboard.mm). This is the seam between USER's clipboard and the host.
 // Host to guest. The host only says that its clipboard changed and what kinds
 // it holds (Offer). The next thread of the guest that asks for a message or
 // calls a clipboard entry takes the clipboard the way a program does

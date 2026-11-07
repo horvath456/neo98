@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Native NEO98 address-space metadata. No Circle or Unicorn dependency.
+// Native NEO98 address-space metadata. Independent of the CPU backend.
 #pragma once
 #include "win98_vmm_arena.h"
 namespace VirtualMemory

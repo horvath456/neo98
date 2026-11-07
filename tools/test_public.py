@@ -41,8 +41,8 @@ import neo98  # noqa: E402
 EXPECTATIONS = TOOLS / 'public_tests.json'
 WINDOWS_DATA = 'Runtime objects need generated Windows data'
 PRIVATE_TOOLS = 'needs internal comparison tools unavailable in the public release'
-# The runner itself, and tests that boot a kernel in QEMU.
-EXCLUDED = {'test_public.py', 'test_explorer_ui.py',
+# The runner itself and the stand-in server.
+EXCLUDED = {'test_public.py',
             # The stand-in Kodi server the media tests start; it serves until told to quit.
             'test_kodi_server.py'}
 # Tests whose required --source is the Windows folder itself.

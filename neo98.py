@@ -2,8 +2,7 @@
 """NEO98 on macOS ARM64 and Linux x64: set up, build and run the host.
 
 `python3 neo98.py` (or `run`) starts Explorer in the host window,
-`build` builds that host. The Circle/AArch64 kernel under QEMU is deferred and
-lives on as pi-build, pi-run, pi-test and pi-test-desktop.
+`build` builds that host.
 """
 from __future__ import annotations
 
@@ -14,22 +13,16 @@ import os
 from pathlib import Path
 import re
 import shutil
-import socket
-import struct
 import subprocess
 import sys
-import tempfile
-import time
 import venv
 
 ROOT = Path(__file__).resolve().parent
 BUILD = ROOT / "build"
-# Imported originals and generated assets are shared; kernel images, logs and
+# Imported originals and generated assets are shared; host logs and
 # test results go here, so a second checkout can keep its own with
 # NEO98_OUTPUT_DIR without re-importing anything.
 OUT = Path(os.environ.get("NEO98_OUTPUT_DIR") or BUILD)
-CIRCLE = ROOT / "third_party" / "circle"
-REVISION = (ROOT / "circle-revision.txt").read_text().strip()
 
 sys.path.append(str(ROOT / "tools"))
 import provenance as asset_provenance    # noqa: E402
@@ -329,418 +322,7 @@ def tool_environment():
     return env
 
 
-def build(app="notepad", out=None):
-    from tools.app_programs import application
-    application(app)  # Reject an unknown name before any asset work.
-    out = out or OUT
-    env = tool_environment()
-    BUILD.mkdir(exist_ok=True)
-    out.mkdir(parents=True, exist_ok=True)
-    original = win98_assets()
-    mines = winmine_assets()
-    dibeng = dibeng_assets()
-    text = text_assets()
-    user = user_assets()
-    dialog = dialog_assets()
-    frame_control = frame_control_assets()
-    registry = registry_assets()
-    message_table = message_table_assets()
-    # The signature table src/arm64_cpu.cpp includes (docs/ARM64-APPS.md).
-    from tools import arm64_sdk
-    arm64_sdk.generate_table()
-    from tools.unicorn_assets import generate
-    generate(app)
-    if not CIRCLE.exists():
-        CIRCLE.parent.mkdir(exist_ok=True)
-        subprocess.run(["git", "init", str(CIRCLE)], check=True, env=env)
-        subprocess.run(["git", "-C", str(CIRCLE), "remote", "add", "origin",
-                        "https://github.com/rsta2/circle.git"], check=True, env=env)
-        subprocess.run(["git", "-C", str(CIRCLE), "fetch", "--depth", "1", "origin",
-                        REVISION], check=True, env=env)
-        subprocess.run(["git", "-C", str(CIRCLE), "checkout", "--detach", "FETCH_HEAD"],
-                       check=True, env=env)
-    actual = subprocess.check_output(["git", "-C", str(CIRCLE), "rev-parse", "HEAD"],
-                                     text=True, env=env).strip()
-    if actual != REVISION:
-        raise RuntimeError(f"Circle revision differs from pin: {actual}")
-    for name in ('jit-pages.patch', 'newlib-conversions.patch'):
-        patch = ROOT / 'platform/circle' / name
-        applied = subprocess.run(['git', '-C', str(CIRCLE), 'apply', '--reverse', '--check', str(patch)], capture_output=True)
-        if applied.returncode:
-            subprocess.run(['git', '-C', str(CIRCLE), 'apply', '--check', str(patch)], check=True)
-            subprocess.run(['git', '-C', str(CIRCLE), 'apply', str(patch)], check=True)
-    subprocess.run([sys.executable, str(ROOT / 'tools/build_unicorn.py')], check=True, env=env)
-    kernel_max_size = 64 * 1024 * 1024
-    config = ("AARCH = 64\nRASPPI = 3\nCLANG = 1\nSTDLIB_SUPPORT = 0\n"
-              "DEFINE += -DNO_SDHOST -DNO_SCREEN_DMA_BURST_LENGTH -DDEPTH=32\n"
-              # Unicorn's newlib also supplies these public C conversions.
-              "DEFINE += -DNEO98_NEWLIB_CONVERSIONS\n"
-              # Reserve image and BSS below Circle's stack and heap. The
-              # runtime's static tables plus embedded DLLs exceed 32 MiB.
-              f"DEFINE += -DNEO98_UNICORN -DKERNEL_MAX_SIZE=0x{kernel_max_size:x}\n"
-              "LDFLAGS += -fuse-ld=lld -Wl,--gc-sections\n")
-    config_path = CIRCLE / "Config.mk"
-    changed = not config_path.exists() or config_path.read_text() != config
-    if changed:
-        config_path.write_text(config)
-    directories = [CIRCLE / "lib", CIRCLE / "lib/input", CIRCLE / "lib/fs",
-                   CIRCLE / "lib/usb", ROOT / "src"]
-    # The asset header moves with the application, so its timestamp cannot tell
-    # make that the selection changed. Drop the one object that embeds it.
-    marker = ROOT / "src/.application"
-    if not marker.exists() or marker.read_text().strip() != app:
-        for name in ["app_ui.o", "app_ui.d"]:
-            (ROOT / "src" / name).unlink(missing_ok=True)
-        marker.write_text(app + "\n")
-    assets = f"../build/generated/app-{app}"
-    with (out / "build.log").open("w") as log:
-        for directory in directories:
-            if changed:
-                subprocess.run(["make", "clean"], cwd=directory, env=env,
-                               stdout=log, stderr=subprocess.STDOUT, check=True)
-            print(f"Building {directory.relative_to(ROOT)}", flush=True)
-            log.flush()
-            start = log.tell()
-            result = subprocess.run(["make", "-j", str(min(os.cpu_count() or 2, 8)),
-                                     *([f"NEO98_APP_ASSETS={assets}"] if directory == ROOT / "src" else [])],
-                                    cwd=directory, env=env, stdout=log,
-                                    stderr=subprocess.STDOUT)
-            if result.returncode:
-                log.flush()
-                with (out / "build.log").open("rb") as text:
-                    text.seek(start)
-                    lines = text.read().decode(errors="replace").splitlines()
-                # Everything goes to stderr, next to the NEO98: line, so a
-                # failure is never reduced to one line without its cause.
-                print("\n".join(lines[-65:]), file=sys.stderr)
-                raise RuntimeError(f"make in {directory.relative_to(ROOT)} exited with status "
-                                   f"{result.returncode}" + ("" if any(line.strip() for line in lines)
-                                                             else " without a message") +
-                                   f"; see {out / 'build.log'}")
-    for suffix in ["img", "elf", "map", "lst"]:
-        shutil.copy2(ROOT / "src" / f"kernel8.{suffix}", out / f"kernel8.{suffix}")
-    elf = (out / "kernel8.elf").read_bytes()
-    if elf[:6] != b"\x7fELF\x02\x01" or struct.unpack_from("<H", elf, 18)[0] != 183:
-        raise RuntimeError("Build did not produce a little-endian AArch64 ELF64 executable")
-    symbols = subprocess.check_output(["llvm-nm", "-n", str(out / "kernel8.elf")], env=env, text=True)
-    kernel_end = re.search(r"^([0-9a-fA-F]+)\s+\w\s+_end$", symbols, re.M)
-    # Circle's raspi3 AArch64 image starts at 80000h. Its stack begins after
-    # KERNEL_MAX_SIZE; BSS must fit too, although it is absent from kernel8.img.
-    if not kernel_end or int(kernel_end[1], 16) > 0x80000 + kernel_max_size:
-        raise RuntimeError("Kernel image and BSS overlap Circle's stack; increase KERNEL_MAX_SIZE")
-    manifest = {"circle_revision": REVISION, "architecture": "AArch64 ELF64",
-                "machine": "raspi3b", "application": app,
-                "application_assets": json.loads((BUILD / "generated" / f"app-{app}/provenance.json").read_text()),
-                "image_bytes": (out / "kernel8.img").stat().st_size,
-                "image_sha256": hashlib.sha256((out / "kernel8.img").read_bytes()).hexdigest(),
-                "win98_user32": original["user32"], "win98_font": original["font"],
-                "winmine": mines,
-                "dibeng": dibeng, "dibeng_text": text, "user_drawing": user,"dialog":dialog,
-                "frame_control": frame_control,
-                "registry": {"hives": registry["hives"], "imported": registry["imported"]},
-                "cpu": json.loads((BUILD / 'unicorn-circle/manifest.json').read_text()),
-                "compiler": subprocess.check_output(["clang", "--version"], env=env,
-                                                     text=True).splitlines()[0]}
-    (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
-    print(f"Built AArch64 kernel: {manifest['image_bytes']:,} bytes")
-
-
-def qemu_args(display, serial, qmp=None, app="lab", image=None):
-    from tools.app_programs import application
-    keymap = os.environ.get("NEO98_KEYMAP", "DE").upper()
-    if keymap not in ("DE", "US"):
-        raise RuntimeError("NEO98_KEYMAP must be DE or US")
-    args = ["qemu-system-aarch64", "-M", "raspi3b", "-accel", "tcg", "-m", "1G",
-            "-kernel", str(image or OUT / "kernel8.img"), "-display", display,
-            "-append", f"keymap={keymap} app={app}",
-            "-global", "bcm2835-fb.xres=800", "-global", "bcm2835-fb.yres=600",
-            "-device", "usb-kbd", "-device", "usb-mouse", "-serial", serial, "-monitor", "none",
-            "-name", "Neo98 - Win98 " + application(app)["window"] + " on ARM64"]
-    if qmp:
-        args += ["-qmp", f"unix:{qmp},server=on,wait=off"]
-    return args
-
-
-class QMP:
-    def __init__(self, path, process):
-        self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.socket.settimeout(5)
-        deadline = time.monotonic() + 10
-        while True:
-            try:
-                self.socket.connect(str(path))
-                break
-            except (FileNotFoundError, ConnectionRefusedError):
-                if process.poll() is not None or time.monotonic() > deadline:
-                    self.socket.close()
-                    raise RuntimeError("QEMU did not start its control socket")
-                time.sleep(0.05)
-        self.stream = self.socket.makefile("rwb", buffering=0)
-        if "QMP" not in json.loads(self.stream.readline()):
-            raise RuntimeError("Invalid QMP greeting")
-        self.command("qmp_capabilities")
-
-    def command(self, name, arguments=None):
-        self.stream.write(json.dumps({"execute": name, "arguments": arguments or {}}).encode() + b"\n")
-        while True:
-            line = self.stream.readline()
-            if not line:
-                raise RuntimeError("QMP disconnected")
-            response = json.loads(line)
-            if "error" in response:
-                raise RuntimeError(f"QMP {name}: {response['error']}")
-            if "return" in response:
-                return response["return"]
-
-    def close(self):
-        self.stream.close()
-        self.socket.close()
-
-
-def wait_for(path, text, process, timeout=25):
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        data = path.read_text(errors="replace") if path.exists() else ""
-        if text in data:
-            return data
-        if "NEO98 FAIL" in data or process.poll() is not None:
-            raise RuntimeError(f"Guest failed before {text!r}:\n{data[-3000:]}")
-        time.sleep(0.05)
-    raise RuntimeError(f"Timed out waiting for {text!r}:\n{data[-3000:]}")
-
-
-def screenshot(qmp, name, directory=None):
-    directory = directory or OUT
-    path = directory / f"{name}.ppm"
-    qmp.command("screendump", {"filename": str(path)})
-    with path.open("rb") as f:
-        if f.readline().strip() != b"P6":
-            raise RuntimeError("Unexpected screenshot format")
-        dimensions = f.readline()
-        while dimensions.startswith(b"#"):
-            dimensions = f.readline()
-        width, height = map(int, dimensions.split())
-        if f.readline().strip() != b"255" or (width, height) != (800, 600):
-            raise RuntimeError("Unexpected framebuffer dimensions/depth")
-        pixels = f.read()
-    if len(pixels) != width * height * 3:
-        raise RuntimeError("Incomplete framebuffer screenshot")
-    # Keep a PNG for convenient viewing. QEMU produces it from the same display.
-    qmp.command("screendump", {"filename": str(directory / f"{name}.png"), "format": "png"})
-    return pixels
-
-
-def test():
-    from tools.native_app import test as test_native_app
-    from tools.test_app_ui import test_app_ui
-    from tools.native_components import test as test_native_components
-    component_report = test_native_components()
-    native_host_report = test_native_app()
-    native_report = test_app_ui(sys.modules[__name__])
-    from tools.test_calculator_ui import test_calculator_ui
-    calculator_report=test_calculator_ui(sys.modules[__name__])
-    from tools.test_regedit_ui import test_regedit_ui
-    regedit_report=test_regedit_ui(sys.modules[__name__])
-    from tools.test_taskman_ui import test_taskman_ui
-    taskman_report=test_taskman_ui(sys.modules[__name__])
-    from tools.test_notepad_file_ui import test_notepad_file_ui
-    notepad_file_report=test_notepad_file_ui(sys.modules[__name__])
-    from tools.test_notepad_find_ui import test_notepad_find_ui
-    notepad_find_report=test_notepad_find_ui(sys.modules[__name__])
-    # WordPad needs its own kernel image. It is built into build/wordpad-kernel,
-    # so the default image the desktop regression boots stays in place.
-    from tools.test_wordpad_ui import test_wordpad_ui
-    wordpad_report = test_wordpad_ui(sys.modules[__name__])
-    # Explorer likewise carries its own original shell DLLs, so it gets its own
-    # image in build/explorer-kernel.
-    from tools.test_explorer_ui import test_explorer_ui
-    explorer_report = test_explorer_ui(sys.modules[__name__])
-    pe_test = BUILD / 'unicorn-circle/test-pe32'
-    subprocess.run(['clang++', '-std=c++17', '-g', '-O1', '-fsanitize=address,undefined',
-                    str(ROOT / 'tools/test_pe32.cpp'), str(ROOT / 'src/pe32.cpp'), str(ROOT / 'src/win98_exports.cpp'), '-o', str(pe_test)],
-                   check=True, env=tool_environment())
-    subprocess.run([str(pe_test)], check=True)
-    test_desktop({"native_notepad": native_report,
-                  "native_notepad_host": native_host_report,
-                  "native_components": component_report,
-                  "native_calculator": calculator_report,
-                  "native_regedit": regedit_report,
-                  "native_taskman_startup": taskman_report,
-                  "native_notepad_files": notepad_file_report,
-                  "native_notepad_find": notepad_find_report,
-                  "native_wordpad": wordpad_report,
-                  "native_explorer": explorer_report})
-
-
-def test_desktop(application_reports=None):
-    """Run the graphics/input regression on the current kernel image.
-
-    A targeted run gets its own report and never marks the full suite passed.
-    """
-    full_suite = application_reports is not None
-    test_gdi_host()
-    test_user_drawing_host()
-    if not full_suite:
-        # A targeted run covers the Explorer image too. It boots first, on its
-        # own, so only one QEMU at a time competes for the host CPU. An image
-        # from an earlier build is reused; test builds a fresh one.
-        from tools.test_explorer_ui import test_explorer_ui
-        existing = BUILD / "explorer-kernel/kernel8.img"
-        application_reports = {"native_explorer": test_explorer_ui(
-            sys.modules[__name__], existing if existing.is_file() else None)}
-    serial_log = OUT / "test-serial.log"
-    serial_log.write_text("")
-    report_path = BUILD / ("test-results.json" if full_suite else "desktop-test-results.json")
-    report_path.unlink(missing_ok=True)
-    checks = []
-    with tempfile.TemporaryDirectory(prefix="neo98-") as temp, (OUT / "test-qemu.log").open("w") as log:
-        process = subprocess.Popen(qemu_args("none", f"file:{serial_log}", Path(temp) / "qmp"),
-                                   stdout=log, stderr=subprocess.STDOUT, env=tool_environment())
-        qmp = None
-        try:
-            qmp = QMP(Path(temp) / "qmp", process)
-            # Boot includes the original-code and process self-tests. Match the
-            # application runner's allowance for QEMU under host CPU contention.
-            wait_for(serial_log, "NEO98 READY", process, timeout=240)
-            wait_for(serial_log, "NEO98 SELFTEST raster-clipping=PASS", process)
-            checks += ["AArch64 boot", "guest raster clipping and guard words"]
-            wait_for(serial_log, "NEO98 SELFTEST unicorn=PASS host=aarch64 guest=x86 backend=tcg", process)
-            checks.append("Unicorn x86-to-AArch64 JIT in the kernel: loops, code invalidation, memory permissions, API hook, lifecycle")
-            wait_for(serial_log, "NEO98 SELFTEST unicorn-original-user32=PASS functions=9 vectors=1908 pe_loader=native", process)
-            checks.append("native PE loader executes nine original USER32.DLL exports through the in-kernel JIT across 1908 cases")
-            wait_for(serial_log, "NEO98 SELFTEST original-user32=PASS functions=9", process)
-            checks.append("nine native USER32 routines match original x86 oracle vectors in ARM guest")
-            wait_for(serial_log, "NEO98 SELFTEST original-user-draw=PASS", process)
-            wait_for(serial_log, "NEO98 SELFTEST original-dialog=PASS vectors=2862", process)
-            wait_for(serial_log, "NEO98 SELFTEST native-threads=PASS threads=3", process)
-            wait_for(serial_log, "NEO98 SELFTEST native-common-controls=PASS", process)
-            wait_for(serial_log, "windows=PASS", process)
-            wait_for(serial_log, "global-atoms=PASS window-properties=PASS nls-composite=PASS nls-decompose=PASS", process)
-            checks.append("original global and registration atom tables, USER property arrays and both SBCS composition directions through x86 imports on ARM")
-            wait_for(serial_log, "local-heap-atoms=PASS", process)
-            checks.append("original KRNL386 atom table and internal local heap run together as native ARM code, including allocation, exhaustion and reuse")
-            wait_for(serial_log, "virtual-memory=PASS", process)
-            wait_for(serial_log, "NEO98 SELFTEST native-page-protection=PASS x86-write=PASS api-write=PASS decommit=PASS noaccess-execution=PASS", process)
-            checks.append("native virtual memory: reserve/commit/decommit/release and query; x86 and native API writes obey page protection; decommitted reads and noaccess execution fail")
-            wait_for(serial_log, "NEO98 SELFTEST native-modules=PASS", process)
-            checks.append("native DLL loader: relocated dependencies, DllMain, exports, loader lock, thread notifications and 20 reloads")
-            checks.append("original Win98 USER edge and button-frame code: pixels, geometry and draw-call order match on ARM")
-            wait_for(serial_log, "NEO98 INPUT usb-keyboard=ready", process)
-            checks.append("USB keyboard enumeration")
-            from tools.test_editor_ui import test_editor_ui
-            editor_report = test_editor_ui(qmp, serial_log, process, BUILD, wait_for, screenshot)
-            checks.append("original DIB text on ARM: fonts, reflow, editing, selection, clipboard, undo, scrolling, idle stability")
-            from tools.test_gdi_ui import test_gdi_ui
-            gdi_report = test_gdi_ui(qmp, serial_log, process, BUILD, wait_for, screenshot)
-            checks.append("GDI window composition, clipping, restored occlusion, raster operations, scrolling, idle stability")
-            qmp.command("human-monitor-command", {"command-line": "sendkey m"})
-            wait_for(serial_log, "NEO98 VIEW minesweeper", process)
-            time.sleep(0.2)
-            from tools.test_mines import test_mines
-            mine_report = test_mines(qmp, serial_log, process, BUILD, wait_for, screenshot)
-            checks.append("playable ARM Minesweeper: mouse, flag cycle, first-click safety, loss, restart, win, menu, levels")
-            qmp.command("human-monitor-command", {"command-line": "sendkey d"})
-            wait_for(serial_log, "NEO98 VIEW diagnostics", process)
-            time.sleep(0.2)
-            first = screenshot(qmp, "boot")
-
-            def pixel(data, x, y):
-                pos = (y * 800 + x) * 3
-                return tuple(data[pos:pos + 3])
-
-            for x, y, expected in [(10, 90, (0, 128, 128)), (95, 103, (0, 0, 128)),
-                                   (120, 310, (255, 255, 255)), (400, 480, (192, 192, 192))]:
-                if pixel(first, x, y) != expected:
-                    raise RuntimeError(f"Wrong framebuffer pixel at {x},{y}: {pixel(first, x, y)}")
-            checks.append("800x600 framebuffer: desktop, title bar, panel, window colours")
-
-            def key(name):
-                qmp.command("human-monitor-command", {"command-line": f"sendkey {name}"})
-
-            key("spc")
-            wait_for(serial_log, "action=count counter=1", process)
-            time.sleep(0.2)
-            counted = screenshot(qmp, "count")
-            if counted == first:
-                raise RuntimeError("Counter did not change visibly")
-            for y in range(600):
-                row = y * 800 * 3
-                spans = [(0, 126 * 3), (660 * 3, 800 * 3)] if 252 <= y < 270 else [(0, 800 * 3)]
-                for start, end in spans:
-                    if counted[row + start:row + end] != first[row + start:row + end]:
-                        raise RuntimeError(f"Counter update changed pixels outside the status area, row {y}")
-            checks.append("counter update changes only the 534x18 status rectangle")
-            key("c")
-            wait_for(serial_log, "action=colour counter=1 palette=1", process)
-            time.sleep(0.2)
-            changed = screenshot(qmp, "interaction")
-            if pixel(changed, 10, 90) != (96, 64, 128):
-                raise RuntimeError("Keyboard colour action did not redraw the framebuffer")
-            checks.append("USB keyboard -> native command handler -> framebuffer redraw")
-            key("r")
-            wait_for(serial_log, "action=reset counter=0 palette=0", process)
-            checks.append("reset action")
-            wait_for(serial_log, "NEO98 TICK", process)
-            checks.append("interrupt-driven timer")
-            time.sleep(0.2)
-            key("q")
-            wait_for(serial_log, "NEO98 HALTED", process)
-            checks.append("guest halt")
-            frames = [{"kind": kind, "pixels": int(pixels), "elapsed_us": int(elapsed)}
-                      for kind, pixels, elapsed in re.findall(
-                          r"NEO98 FRAME kind=(\w+) pixels=(\d+) elapsed_us=(\d+)", serial_log.read_text())]
-            full = [f for f in frames if f["kind"] == "full"]
-            partial = [f for f in frames if f["kind"] == "partial"]
-            if len(full) != 3 or not partial or any(f["pixels"] > 14236 for f in partial):
-                raise RuntimeError(f"Unexpected full-screen redraw or dirty rectangle size: {frames}")
-            checks.append("full redraws restricted to boot and two palette changes")
-            report = {"passed": checks,
-                      "suite": "full" if full_suite else "desktop",
-                      **(application_reports or {}),
-                      "frames": frames,
-                      "minesweeper": mine_report,
-                      "gdi": gdi_report,
-                      "text": editor_report,
-                      "user_drawing": json.loads((BUILD / "generated/user-provenance.json").read_text()),
-                      "win98": json.loads((BUILD / "generated/provenance.json").read_text()),
-                      "image_sha256": hashlib.sha256((OUT / "kernel8.img").read_bytes()).hexdigest()}
-            report_path.write_text(json.dumps(report, indent=2) + "\n")
-            print("PASS: " + "; ".join(checks))
-            print(f"Screenshots: {OUT / 'boot.png'} and {OUT / 'interaction.png'}")
-        finally:
-            if qmp:
-                try:
-                    qmp.command("quit")
-                except (OSError, RuntimeError):
-                    pass
-                qmp.close()
-            try:
-                process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                process.kill()
-                process.wait()
-
-
-def run(background, app="notepad"):
-    display = "cocoa" if sys.platform == "darwin" else "gtk"
-    if background:
-        with (OUT / "interactive.log").open("w") as log:
-            process = subprocess.Popen(qemu_args(display, f"file:{OUT / 'interactive-serial.log'}", app=app),
-                                       env=tool_environment(), stdout=log, stderr=subprocess.STDOUT,
-                                       stdin=subprocess.DEVNULL, start_new_session=True)
-        time.sleep(1)
-        if process.poll() is not None:
-            raise RuntimeError((OUT / "interactive.log").read_text())
-        (OUT / "interactive.pid").write_text(str(process.pid) + "\n")
-        print(f"QEMU window started (PID {process.pid}); close the window to stop it.")
-    else:
-        from tools.app_programs import application
-        print(application(app)["hint"], flush=True)
-        subprocess.run(qemu_args(display, "stdio", app=app), env=tool_environment(), check=True)
-
-
 HOST_COMMANDS = ("run", "host", "build", "cli", "build-cli")
-PI_COMMANDS = ("pi-build", "pi-run", "pi-test", "pi-test-desktop")
 
 
 def host_command(args, build_only=False):
@@ -856,10 +438,9 @@ def main():
         description="NEO98: Windows 98 programs on macOS ARM64 or Linux x64. Without a command: run.",
         epilog="run/host: start Explorer in the host window; build: build the host; "
                "cli/build-cli: Linux terminal runtime; app: platform app package; dmg: macOS disk image; "
-               "test: the host test suite (same as test-host). "
-               "pi-build/pi-run/pi-test/pi-test-desktop: the deferred Circle/QEMU kernel.")
+               "test: the host test suite (same as test-host).")
     parser.add_argument("command", nargs="?", default="run",
-                        choices=[*HOST_COMMANDS, "app", "dmg", "test", "test-host", *PI_COMMANDS, "setup",
+                        choices=[*HOST_COMMANDS, "app", "dmg", "test", "test-host", "setup",
                                  "import-winmine", "import-dibeng", "import-text", "import-user"])
     parser.add_argument("--iso", type=Path, help="setup: local, bootable Windows 98 SE ISO; without it setup only completes a finished build/win98-c")
     parser.add_argument("--setup-timeout", type=int, default=7200,
@@ -868,15 +449,13 @@ def main():
                         help="setup: discard this ISO's incomplete generated install and start again")
     parser.add_argument("--winmine-exe", type=Path, help="original Windows 95 OSR2 WINMINE.EXE")
     parser.add_argument("--dibeng-dll", type=Path, help="original Windows 98 SE DIBENG.DLL")
-    parser.add_argument("--background", action="store_true", help="pi-run: leave a graphical QEMU window running")
     parser.add_argument("--no-build", action="store_true",
-                        help="run: use the existing host binary; pi-*: use the existing kernel image")
+                        help="run: use the existing host binary")
     from tools.host_build_options import add_arguments, configure
     add_arguments(parser)
     from tools.app_programs import APPLICATIONS
     parser.add_argument("--app", choices=tuple(APPLICATIONS),
-                        help="profile of tools/app_programs.py; run starts explorer, the pi-* commands "
-                             "default to notepad")
+                        help="profile of tools/app_programs.py; run starts explorer")
     parser.add_argument("--exe", help="run: start any program without a profile, by guest path "
                                       "(\"C:\\\\WINDOWS\\\\SOL.EXE\") out of the Win98 folder "
                                       "or by host path")
@@ -920,7 +499,6 @@ def main():
             "import-winmine": "import_winmine.py", "import-dibeng": "import_dibeng.py",
             "import-text": "import_text.py", "import-user": "import_user.py",
             "test": "test_host.py", "test-host": "test_host.py",
-            **{command: "import_win98.py" for command in PI_COMMANDS},
         }
         required = internal_commands.get(args.command)
         if required and not (ROOT / "tools" / required).is_file():
@@ -970,16 +548,6 @@ def main():
             if args.command in ("cli", "build-cli"):
                 return cli_command(args)
             return subprocess.call(host_command(args, build_only=args.command == "build"))
-        # The deferred Circle/QEMU kernel keeps Notepad as its default.
-        app = args.app or "notepad"
-        if args.command == "pi-build" or not args.no_build or not (OUT / "kernel8.img").exists():
-            build(app)
-        if args.command == "pi-test":
-            test()
-        elif args.command == "pi-test-desktop":
-            test_desktop()
-        elif args.command == "pi-run":
-            run(args.background, app)
     except (RuntimeError, subprocess.CalledProcessError, OSError) as error:
         print(f"NEO98: {error}", file=sys.stderr)
         return 1

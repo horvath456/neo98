@@ -3,11 +3,7 @@
 #include "win98_process_entry.h"
 #include "win98_process_command.h"
 #include "win98_open_process.h"
-#if defined(__APPLE__) || defined(__linux__)
 #include <new>
-#else
-#include <circle/new.h>
-#endif
 namespace X86 {
 namespace {
 struct ChildProcess {

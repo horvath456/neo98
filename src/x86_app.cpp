@@ -52,7 +52,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h> // strcasecmp: newlib keeps it out of string.h
+#include <strings.h> // strcasecmp
 #include "../sdk/lib/neo98_touch_abi.h"
 
 namespace X86

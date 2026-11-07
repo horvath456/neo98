@@ -46,7 +46,7 @@ void Application::RequestOpen(const char *guest_path)
     }
 }
 #else
-// The Pi kernel has no host desktop sending files into its session.
+// Unsupported hosts do not receive desktop file requests.
 void Application::RequestOpen(const char *) {}
 #endif
 

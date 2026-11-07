@@ -6,11 +6,7 @@
 #include "win98_crt_system_clock.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined(__APPLE__) || defined(__linux__)
 #include <new>
-#else
-#include <circle/new.h>
-#endif
 #include <string.h>
 namespace X86
 {

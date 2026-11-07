@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #pragma once
 
-// NEO98 owns cooperative host execution contexts. No Circle scheduler dependency.
+// NEO98 owns cooperative host execution contexts. The host supplies the scheduler.
 // This preserves a native Windows-service call stack while an API waits for input.
 class Fiber
 {

@@ -219,7 +219,7 @@ def run():
         with patch.object(neo98, 'ROOT', Path('/nonexistent-release-checkout')):
             with self.assertRaisesRegex(RuntimeError, 'unavailable in the public release'):
                 neo98.winmine_assets()
-            for command in ('import-winmine', 'import-dibeng', 'import-text', 'import-user', 'pi-build'):
+            for command in ('import-winmine', 'import-dibeng', 'import-text', 'import-user'):
                 with self.subTest(command=command), patch.object(sys, 'argv', ['neo98.py', command]), contextlib.redirect_stderr(io.StringIO()):
                     with self.assertRaises(SystemExit) as error:
                         neo98.main()

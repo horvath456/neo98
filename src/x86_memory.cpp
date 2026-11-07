@@ -15,8 +15,6 @@
 #include <mach/mach.h>
 #elif defined(__linux__)
 #include <sys/sysinfo.h>
-#else
-#include <circle/memory.h>
 #endif
 #include <string.h>
 namespace X86

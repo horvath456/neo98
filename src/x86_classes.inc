@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Guest memory/resource boundary around the original native USER class records.
 #include <stdio.h>
-#if defined(__APPLE__) || defined(__linux__)
 #include <stdlib.h>
-#else
-#include <circle/alloc.h>
-#endif
 namespace X86 {
 unsigned Application::RegisterNativeClass(const unsigned f[12],const char*name,const char*menu) {
  const unsigned result=User::RegisterNativeClass(f,name,menu);if(User::NativeClassError())last_error=User::NativeClassError();return result;

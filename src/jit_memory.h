@@ -7,16 +7,8 @@
 #define NEO98_JIT_SLOTS 4
 #define NEO98_JIT_SLOT_BYTES (2 * 1024 * 1024)
 #define NEO98_JIT_BYTES (NEO98_JIT_SLOTS * NEO98_JIT_SLOT_BYTES)
-// The translation cache one engine may fill. On the Pi the cache is a slot of
-// the fixed pool above, so the slot size is the limit. A host with an MMU lets
-// Unicorn take the buffer from mmap and has no such limit, and a program that
-// translates more code than fits flushes the whole cache and translates the
-// same blocks again.
-#if defined(__APPLE__) || defined(__linux__)
+// The translation cache one engine may fill before it flushes translated blocks.
 #define NEO98_JIT_CACHE_BYTES (64 * 1024 * 1024)
-#else
-#define NEO98_JIT_CACHE_BYTES NEO98_JIT_SLOT_BYTES
-#endif
 #ifdef __cplusplus
 extern "C" {
 #endif

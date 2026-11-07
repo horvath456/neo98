@@ -6,8 +6,7 @@
 // LoadDosCore copies it to a private path per session slot and opens the
 // copy, which gives the slot its own globals in the same process. The
 // libretro callbacks carry no context, so each slot hands the core callbacks
-// of its own that lead to its Machine. On the Pi kernel the module loader
-// will load the same image N times; only LoadDosCore changes.
+// of its own that lead to its Machine.
 // Threads. The core starts its own thread for the DOS machine inside
 // retro_load_game and synchronises it with retro_run through two semaphores:
 // every retro_run hands the machine one frame of time and collects the

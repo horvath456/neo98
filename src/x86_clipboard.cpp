@@ -11,11 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#if defined(__APPLE__) || defined(__linux__)
 #include <new>
-#else
-#include <circle/new.h>
-#endif
 namespace X86 {
 namespace {
 using namespace Win98Clipboard;

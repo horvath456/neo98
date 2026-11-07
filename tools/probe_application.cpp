@@ -675,11 +675,9 @@ static void snapshot_delay_failure(X86::Application &app)
     }
 }
 // A scripted sequence of real input packets and captures.
-// Every step drives the same entries an emulated USB mouse drives in the Pi
-// kernel: Application::MouseButtons and Application::RawKey. Nothing here
+// Every step drives Application::MouseButtons and Application::RawKey. Nothing here
 // writes guest memory, enters a callback or edits a window; `window` and
-// `text` only read the compositor's window list to find where to click, the
-// way tools/test_explorer_ui.py reads the serial trace for the same purpose.
+// `text` only read the compositor's window list to find where to click.
 namespace script {
 struct Step
 {
@@ -1554,9 +1552,7 @@ int main(int argc, char **argv)
                 }
             }
             if (const auto dialog = visible_dialog(accept_caption)) {
-                // Click OK, the same gesture tools/test_explorer_ui.py sends
-                // through the emulated USB mouse in the Pi kernel, so both
-                // runtimes drive the dialog the same way. Creation and the
+                // Click OK through the input path. Creation and the
                 // first paint need to finish first; this is observation
                 // scheduling, not a callback or a guest-state edit. A dialog
                 // without a visible IDOK still takes the default-button key.
@@ -1567,7 +1563,6 @@ int main(int argc, char **argv)
                 // the second one: USER renumbers its single button during
                 // WM_INITDIALOG so that Escape and the close command have a
                 // target, and USER repairs the public result back to IDOK.
-                // It is the same button the Pi test clicks.
                 auto button = User::GetDlgItem(dialog, 1);
                 if (!button) button = User::GetDlgItem(dialog, 2);
                 Gdi::RECT bounds{};

@@ -59,14 +59,8 @@ unsigned FaultKind(uc_mem_type type)
 // The functions of the patch groups "budget" and "registers" of
 // tools/build_unicorn_host.py. Other builds of the engine (the pip package of
 // the guest tests under tools/) lack them, so on the host they are looked up at
-// run time. The kernel links tools/build_unicorn.py, which carries the same
-// patch groups, and calls them directly.
+// run time.
 using BudgetCallback = void (*)(uc_engine *, uint64_t, uint32_t, void *);
-#if !defined(__APPLE__) && !defined(__linux__)
-extern "C" void uc_neo98_budget(uc_engine *, int);
-extern "C" void uc_neo98_budget_hook(uc_engine *, BudgetCallback, void *);
-extern "C" uint64_t *uc_neo98_x86_registers(uc_engine *, uint64_t **);
-#endif
 struct EngineExtensions
 {
     void (*budget)(uc_engine *, int) = nullptr;
@@ -77,17 +71,12 @@ const EngineExtensions &Extensions()
 {
     static const EngineExtensions found = [] {
         EngineExtensions e;
-#if defined(__APPLE__) || defined(__linux__)
         e.budget = reinterpret_cast<void (*)(uc_engine *, int)>(dlsym(RTLD_DEFAULT, "uc_neo98_budget"));
         e.budget_hook = reinterpret_cast<void (*)(uc_engine *, BudgetCallback, void *)>(
             dlsym(RTLD_DEFAULT, "uc_neo98_budget_hook"));
         e.registers = reinterpret_cast<uint64_t *(*)(uc_engine *, uint64_t **)>(
             dlsym(RTLD_DEFAULT, "uc_neo98_x86_registers"));
-#else
-        e.budget = uc_neo98_budget;
-        e.budget_hook = uc_neo98_budget_hook;
-        e.registers = uc_neo98_x86_registers;
-#endif
+
         if (!e.budget || !e.budget_hook)
             e.budget = nullptr, e.budget_hook = nullptr;
         return e;

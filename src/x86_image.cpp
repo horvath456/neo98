@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "x86_app.h"
 #include <string.h>
-#if defined(__APPLE__) || defined(__linux__)
 #include <stdlib.h>
-#else
-#include <circle/alloc.h>
-#endif
 #include "win98_image_resource.h"
 #include "win98_image_probe.h"
 #include "win98_image_file.h"
@@ -24,11 +20,7 @@
 #else
 #include "../build/image-resource/system_assets.h"
 #endif
-#if defined(__APPLE__) || defined(__linux__)
 #include <new>
-#else
-#include <circle/new.h>
-#endif
 namespace X86 {
 Application::Icon *Application::SharedIcons() {
   struct Store {

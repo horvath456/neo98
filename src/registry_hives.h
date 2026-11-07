@@ -287,8 +287,7 @@ struct TreeSink final : Win98Creg::Sink
     }
 };
 
-// SYSTEM.DAT belongs to HKLM, USER.DAT to HKU. The host imports every
-// subtree; only the generated Pi image retains the size-limited selection.
+// SYSTEM.DAT belongs to HKLM, USER.DAT to HKU. The host imports every subtree.
 constexpr U Hkcr = 0, Hkcu = 1, Hklm = 2, Hku = 3, Hkcc = 5;
 
 // What the store receives: the keys, every parent ahead of its children.

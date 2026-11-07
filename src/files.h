@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// New NEO98 file service. Shared RAM volume, independent of Circle and the host.
+// New NEO98 file service. Shared RAM volume, independent of the host.
 #pragma once
 namespace Volume
 {

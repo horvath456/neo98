@@ -10,7 +10,7 @@
 // is the realization at GDI's default height and describes the face for
 // enumeration, CreateFont realizes it anew at the requested size. Nothing in
 // this catalogue is a constant: without the
-// files, it stays empty. Only the Pi and standalone comparison runners install
+// files, it stays empty. Only standalone comparison runners install
 // built-in SSERIFE.FON resources instead (see InstallFnt).
 #pragma once
 #include "dib_text.h"

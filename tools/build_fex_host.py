@@ -10,7 +10,7 @@ build/fex-host belongs to the worktree it lies in; it is never shared.
 
 The build is skipped while the stamp matches: same pins, same patches, same
 compatibility headers, same compiler and CMake arguments. Only the macOS host
-uses it; the Pi kernel keeps Unicorn.
+uses it.
 
     build/analysis-venv/bin/python tools/build_fex_host.py [--force] [--jobs N]
 """

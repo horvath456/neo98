@@ -5,7 +5,7 @@ using U32 = unsigned;
 using Size = __SIZE_TYPE__;
 enum Permission : unsigned { Read = 1, Write = 2, Execute = 4 };
 // NEO98 guest address space. Neither PE parsing nor Windows code depends on
-// Circle or Unicorn. A future native x86 process supplies another backend.
+// the CPU backend. A future native x86 process supplies another backend.
 class AddressSpace {
 public:
     // Map supplies zero-filled storage. The caller owns cleanup of a partially

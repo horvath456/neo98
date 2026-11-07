@@ -1,11 +1,9 @@
 #include "host_windows_state_data.h"
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Interactive host runner: the same native USER/GDI/kernel code and Unicorn
-// x86 execution as the Pi kernel and the probe runner, presented in an SDL2
+// x86 execution as the probe runner, presented in an SDL2
 // window on the development machine. Mouse and keyboard events enter through
-// the same Application::MouseButtons / RawKey packets the USB path in
-// src/app_ui.cpp produces, so the guest cannot tell this apart from the Pi.
-// This is a display and input
+// Application::MouseButtons / RawKey packets. This is a display and input
 // adapter around the existing runtime.
 #define private public
 #include "../src/x86_app.h"
@@ -150,8 +148,7 @@ static bool screenshot(const char *path,X86::Application *app)
     }
     return fclose(file) == 0;
 }
-// SDL scancodes use the USB HID usage numbers for every key the Pi's boot
-// keyboard reports, so the kernel's own usage table applies unchanged.
+// SDL scancodes use USB HID usage numbers, so the shared usage table applies.
 // With the German layout the right Option key is AltGr. A PC keyboard sends
 // CONTROL with it for such a layout, so the key state holds CONTROL and ALT
 // and KEYBOARD.DRV translates with the AltGr state (Q gives @, E the euro).

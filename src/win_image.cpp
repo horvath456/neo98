@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "win_image.h"
-#if defined(__APPLE__) || defined(__linux__)
 #include <stdlib.h>
-#else
-#include <circle/alloc.h>
-#endif
 namespace WinImage {
 void*Image::operator new(__SIZE_TYPE__ n) noexcept{return malloc(n);}
 void Image::operator delete(void*p) noexcept{free(p);}

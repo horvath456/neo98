@@ -18,11 +18,7 @@
 #include "win16_machine.h"
 #include "truetype_machine.h"
 #include "sound.h"
-#if defined(__APPLE__) || defined(__linux__)
 #include <new>
-#else
-#include <circle/new.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

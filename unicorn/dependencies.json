@@ -5,11 +5,6 @@
   "url": "https://codeload.github.com/unicorn-engine/unicorn/tar.gz/8028ec436f2d9376525352dd38ed9ed6b9f6be10",
   "sha256": "9d2a2003f0307d0fc239af439654564fe6ef17b67f7c5a39b45fad4c69d6aec2"
  },
- "newlib": {
-  "version": "Arm GNU Toolchain 14.2.Rel1, aarch64-none-elf LP64",
-  "url": "https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/14.2.rel1/binrel/arm-gnu-toolchain-14.2.rel1-darwin-arm64-aarch64-none-elf.tar.xz",
-  "sha256": "fc111bb4bb4871e521e3c8a89bd0af51cddfd00fe3f526f4faa09398b7c613f5"
- },
  "dosbox-pure": {
   "version": "DOSBox Pure 73e03aa145e0549ed4d5a20f8e65532714da33f5 (2026-09)",
   "revision": "73e03aa145e0549ed4d5a20f8e65532714da33f5",

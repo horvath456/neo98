@@ -70,8 +70,7 @@ const char *Leaf(const char *path)
         if (*p == '\\' || *p == '/' || *p == ':') leaf = p + 1;
     return leaf;
 }
-// Case-insensitive comparisons of DOS names; the Pi kernel's C library lacks
-// the POSIX ones.
+// Case-insensitive comparisons of DOS names.
 unsigned Fold(unsigned c) { return c >= 'a' && c <= 'z' ? c - 32 : c; }
 bool SameText(const char *a, const char *b)
 {

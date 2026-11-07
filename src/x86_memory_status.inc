@@ -9,10 +9,6 @@ bool PlatformMemoryPages(unsigned&physical,unsigned&free){
  mach_port_deallocate(mach_task_self(),host);if(!okay)return false;available=static_cast<unsigned long long>(statistics.free_count)*page;
 #elif defined(__linux__)
  struct sysinfo info{};if(sysinfo(&info))return false;total=static_cast<unsigned long long>(info.totalram)*info.mem_unit;available=static_cast<unsigned long long>(info.freeram)*info.mem_unit;
-#else
- auto*memory=CMemorySystem::Get();total=memory->GetMemSize();available=memory->GetHeapFreeSpace(HEAP_ANY);
- // Circle reports unallocated heap tail, excluding reusable bucket free lists.
- // This is a conservative count, not a claim to include every reusable block.
 #endif
  if(available>total)available=total;total>>=12;available>>=12;if(!total||total>0xffffffffull)return false;
  physical=unsigned(total);free=unsigned(available);return true;

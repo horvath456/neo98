@@ -15,7 +15,7 @@
 // not taken while a thread has one (MachineState, ThreadStands).
 #include "x86_app.h"
 #include <string.h>
-#include <strings.h> // strcasecmp is declared separately by newlib.
+#include <strings.h> // strcasecmp
 namespace X86
 {
 namespace

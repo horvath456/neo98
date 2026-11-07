@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h> // strcasecmp: newlib keeps it out of string.h
+#include <strings.h> // strcasecmp
 namespace X86
 {
 namespace

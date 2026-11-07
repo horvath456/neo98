@@ -27,8 +27,7 @@
 #include "x86_app.h"
 #include <stdio.h>
 #include <string.h>
-// The Pi kernel is built without a C++ library and without a rasterizer, so
-// it gets the driver that is never there (the end of this file).
+// Standalone builds without the rendering context use the stub below.
 #if __has_include(<vector>)
 #include "opengl_context.h"
 #include "opengl_batch.h"

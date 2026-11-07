@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
-"""Build the own x86 virtual-memory fixture for host and Pi execution."""
+"""Build the own x86 virtual-memory fixture for host execution."""
 from pathlib import Path
 import subprocess
 import sys

@@ -23,7 +23,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 DIRECTORIES = {'src', 'tools', 'sdk', 'fex', 'unicorn', 'platform', 'LICENSES'}
 FILES = {'CMakeLists.txt', 'neo98.py', 'Run.command', 'COPYING', 'README.md',
-         'ARCHITECTURE.md', '.gitignore', '.gitattributes', 'circle-revision.txt',
+         'ARCHITECTURE.md', '.gitignore', '.gitattributes',
          'THIRD_PARTY.md', 'NOTICE', 'NOTICE.md', '.github/workflows/release.yml'}
 DOCS = {'docs/BUILDING.md', 'docs/ARM64-APPS.md', 'docs/FREEDOS-BOOT.md'}
 # Screenshots and the icon shown by README.md. Every other image is rejected.

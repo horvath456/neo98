@@ -164,7 +164,7 @@ namespace { OutlineText outline_text = nullptr; }
 void SetOutlineText(OutlineText hook) { outline_text = hook; }
 #ifdef NEO98_RUNTIME_CONTENT
 // The host's catalogue owns the FNT resources read from C:\WINDOWS\FONTS.
-// Standalone tests and the Pi keep their generated six-font fixture below.
+// Standalone tests keep their generated six-font fixture below.
 unsigned FontCount()
 {
     unsigned count = 0;

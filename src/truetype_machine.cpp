@@ -694,15 +694,6 @@ bool Start()
     if (machine.started || machine.tried)
         return machine.started;
     machine.tried = true;
-#if !defined(__APPLE__) && !defined(__linux__)
-    // The Pi kernel backs every engine with one slot of its fixed JIT pool
-    // (src/jit_memory.cpp); a host takes the translation buffer from mmap.
-    if (!neo98_jit_free_slots())
-    {
-        snprintf(machine.failure, sizeof machine.failure, "TrueType machine: no JIT slot left");
-        return false;
-    }
-#endif
     // The engine of the 32-bit processes: the driver is flat 32-bit code.
     // It runs inside a GDI call, that is inside the Run of a guest processor
     // on this thread; FexCpu nests the run of one processor in the syscall

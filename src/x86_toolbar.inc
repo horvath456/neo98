@@ -7,11 +7,7 @@
 #include "win98_toolbar_bitmap.h"
 #include "win98_toolbar_input.h"
 #include "user_draw.h"
-#if defined(__APPLE__) || defined(__linux__)
 #include <stdlib.h>
-#else
-#include <circle/alloc.h>
-#endif
 namespace X86 {
 struct Application::ToolbarMemory {
  Application&app;Toolbar&owner;

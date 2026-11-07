@@ -7,7 +7,7 @@ package. That copy cannot be changed, and guest CPU profiles put most of the gue
 same pinned version from `third_party/unicorn`, so a patch there reaches the
 host.
 
-Like `tools/build_unicorn.py` it never edits the pinned tree. It clones the tree
+It never edits the pinned tree. It clones the tree
 into `build/unicorn-host/source` (an APFS block clone where the file system
 offers one) and writes the patched files into the clone. Upstream stays byte for
 byte what `third_party/unicorn/neo98-import.json` records.
@@ -45,7 +45,7 @@ def patch_uc_c(text):
 
     The pinned tree carries only the i386 target, because that is the one this
     port runs. uc.c includes every target's unicorn.h, so the other includes
-    have to go, exactly as in tools/build_unicorn.py.
+    have to go.
 
     The counters measure how often the guest
     leaves the fast store path, how often that costs a mapping lookup, and

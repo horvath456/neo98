@@ -141,7 +141,7 @@ unsigned Application::TimeApi(ApiName name, const unsigned *a)
             void Write32(unsigned p,unsigned value) { app.Write32(p,value); }
             unsigned VwinQuery(unsigned p) {
                 // Now is CLOCK_MONOTONIC in microseconds on the native host,
-                // and neo98_clock_us/CTimer::GetClockTicks64 on Circle/AArch64.
+                // and the host monotonic clock.
                 return Win98Performance::Pack(*this,p,Win98Performance::FromMicroseconds(Application::Now()));
             }
         } e{*this};

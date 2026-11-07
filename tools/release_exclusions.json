@@ -535,7 +535,6 @@
   "tools/shell_509_components.py": "Depends on excluded analysis tool audit_shell_509.",
   "tools/shell_policy_components.py": "Depends on excluded analysis tool audit_shell_policy.",
   "tools/test_datafile_module_guest.py": "Requires internal comparison fixtures.",
-  "tools/test_taskman_ui.py": "Requires internal comparison fixtures.",
   "tools/test_view_resource_native.py": "Requires internal comparison fixtures.",
   "tools/native_components.py": "Requires internal comparison fixtures.",
   "tools/test_cpl_wizards.py": "Requires internal comparison fixtures.",
@@ -823,13 +822,6 @@
   "tools/path_components.py": "Depends on excluded analysis tool test_kernel_paths_threads.py.",
   "tools/test_state_win16_file_paint_host.py": "Depends on excluded analysis tool test_state_win16_file_host.",
   "tools/test_state_fault_context_lifetime_host.py": "Depends on excluded analysis tool test_state_fault_box_host.",
-  "tools/test_app_ui.py": "Requires the internal Pi kernel comparison fixtures.",
-  "tools/test_explorer_ui.py": "Requires the internal Pi kernel comparison fixtures.",
-  "tools/test_wordpad_ui.py": "Requires the internal Pi kernel comparison fixtures.",
-  "tools/test_regedit_ui.py": "Depends on excluded analysis tool test_app_ui.",
-  "tools/test_notepad_file_ui.py": "Depends on excluded analysis tool test_app_ui.",
-  "tools/test_calculator_ui.py": "Depends on excluded analysis tool test_app_ui.",
-  "tools/test_notepad_find_ui.py": "Depends on excluded analysis tool test_app_ui.",
   "tools/test_api_inventory_evidence.py": "Tests the internal API inventory, which is omitted from the release.",
   "tools/test_runtime_data_state_host.py": "Depends on excluded analysis tools through test_state_host."
 }

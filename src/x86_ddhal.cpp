@@ -213,8 +213,7 @@ struct Application::HalDeclaration9
     HalElement elements[32];
     unsigned usage[32] = {};
 };
-// A list of words that grows on the port's heap. The Pi kernel has no C++
-// library, so no std::vector here.
+// A list of words that grows on the runtime heap.
 struct HalWords
 {
     unsigned *items = nullptr;

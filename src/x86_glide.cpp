@@ -17,8 +17,7 @@
 #include "x86_app.h"
 #include <stdio.h>
 #include "win98_glide_exports.h"
-// The Pi kernel is built without a C++ library and without a rasterizer, so
-// it gets the driver that is never there (the end of this file).
+// Standalone builds without the rendering context use the stub below.
 #if __has_include(<vector>)
 #include "glide_context.h"
 #include "user.h"

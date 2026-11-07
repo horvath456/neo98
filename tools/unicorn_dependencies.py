@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
-"""Import verified, pinned source and target C libraries without a full toolchain."""
+"""Import verified, pinned host dependencies without a full toolchain."""
 from pathlib import Path, PurePosixPath
 import hashlib
 import json
@@ -15,7 +15,7 @@ PINS = json.loads((ROOT / 'unicorn/dependencies.json').read_text())
 
 
 # Where each pin is imported to under third_party/.
-DESTINATIONS = {'unicorn': 'unicorn', 'newlib': 'aarch64-newlib', 'dosbox-pure': 'dosbox-pure', 'stb': 'stb'}
+DESTINATIONS = {'unicorn': 'unicorn', 'dosbox-pure': 'dosbox-pure', 'stb': 'stb'}
 
 
 def selected(name, parts):
@@ -38,13 +38,6 @@ def selected(name, parts):
         other_tcg = ('arm', 'i386', 'mips', 'ppc', 'riscv', 's390', 'sparc', 'loongarch64')
         if len(parts) > 2 and parts[:2] == ('qemu', 'tcg') and parts[2] in other_tcg: return None
         return PurePosixPath(*parts)
-    if len(parts) > 2 and parts[:2] == ('aarch64-none-elf', 'include') and parts[2] != 'c++':
-        return PurePosixPath(*parts[1:])
-    if parts == ('aarch64-none-elf', 'lib', 'libg.a'): return PurePosixPath('lib/libc.a')
-    if parts == ('aarch64-none-elf', 'lib', 'libm.a'): return PurePosixPath('lib/libm.a')
-    if parts == ('lib', 'gcc', 'aarch64-none-elf', '14.2.1', 'libgcc.a'): return PurePosixPath('lib/libgcc.a')
-    # Source/license notices shipped in Arm's binary distribution.
-    if parts[0] == 'share' and any('license' in p.lower() for p in parts): return PurePosixPath(*parts)
     return None
 
 

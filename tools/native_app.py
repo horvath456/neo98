@@ -607,7 +607,7 @@ def build_host(source='neo98_host.cpp', name='neo98-host', replaced=None, saniti
     # registry. A runner with a main of its own keeps the image.
     hives_only = source == 'neo98_host.cpp'
     # Release hosts load COMDLG32 and fonts from the user's installed C:.
-    # Standalone comparison runners and the Pi retain their generated fixtures.
+    # Standalone comparison runners retain their generated fixtures.
     runtime_content = hives_only or runtime_content
     if runtime_content:
         fast = [*fast, '-DNEO98_RUNTIME_CONTENT']

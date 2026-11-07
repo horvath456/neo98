@@ -181,7 +181,6 @@ def main():
         command.append('--seamless')
     if args.no_seamless:
         command.append('--no-seamless')
-    # The hints of app_programs.py describe the Pi kernel under QEMU.
     platform = 'Linux x64' if sys.platform.startswith('linux') else 'macOS'
     menu_hint = 'Ctrl+Shift+M opens the machine menu.' if sys.platform.startswith('linux') else 'Use the Machine menu for restart, media and reports.'
     print(hint if args.exe else

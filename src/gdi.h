@@ -85,7 +85,7 @@ bool ValidDC(HDC);
 bool DisplayLikeDC(HDC);
 bool InformationDC(HDC);
 bool ResizeSurfaceDC(HDC, const DibEng::Bitmap &); // Keep a leased window DC valid.
-HDC CreateSurfaceDC(const DibEng::Bitmap &); // Circle/native display adapter
+HDC CreateSurfaceDC(const DibEng::Bitmap &); // Native display adapter
 // A surface with a colour table. Below nine bits per pixel a device has no
 // colour of its own: the driver answers a COLORREF with the nearest entry of
 // the table GDI gave it. A surface DC without a table therefore refuses every
