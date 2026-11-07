@@ -41,6 +41,10 @@ def game_cleanup(folder):
 
 
 def main():
+    import importlib.util
+    if importlib.util.find_spec('gi') is None:
+        print('SKIP: desktop launch integration requires PyGObject (gi) in this Python')
+        return 77
     source=win98_c.use_pristine(); binary=ROOT/'build/native-app/neo98-host'
     out=ROOT/'build/native-linux/desktop';out.mkdir(parents=True,exist_ok=True)
     x=X11(); reports={}
@@ -172,4 +176,4 @@ def main():
     (out/'results.json').write_text(json.dumps(reports,indent=2)+'\n')
     print('LINUX DESKTOP PASS: file handlers, opening decisions, remembered choices, dock activate/quit')
 
-if __name__=='__main__':main()
+if __name__=='__main__':raise SystemExit(main())

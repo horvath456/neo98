@@ -84,15 +84,41 @@ int main(int argc, char **argv) {
     assert not (game / 'LOG.TXT').exists(), 'Original drive was changed'
     # A corrupted CPU image must be refused before swapping any disk layer.
     machine_file = manual / 'Maschine.bin'; original = machine_file.read_bytes()
-    before = {str(p.relative_to(layer)): hashlib.sha256(p.read_bytes()).hexdigest() for p in layer.rglob('*') if p.is_file()}
+    # Refusal starts the current game normally, as on macOS. The fixture
+    # initializes these three files; all other progress must remain intact.
+    startup_files = {'SSGAME/LOG.TXT', 'SSGAME/KEEP.TXT', 'SSGAME/DATA.TXT'}
+    sentinel = layer / 'refusal-sentinel.txt'
+    sentinel.write_text('keep the current layer')
+    def fingerprint():
+        result = {}
+        for path in layer.rglob('*'):
+            if not path.is_file(): continue
+            relative = str(path.relative_to(layer))
+            if relative in startup_files: continue
+            data = path.read_bytes()
+            if path.name == '.neo98-index':
+                # Normal startup refreshes metadata for its three files and
+                # notices the sentinel created by the host-side test.
+                lines = []
+                for line in data.decode().splitlines():
+                    name = line.rsplit('\t', 1)[-1]
+                    entry = str(path.parent.relative_to(layer) / name)
+                    if entry not in startup_files and entry != 'refusal-sentinel.txt': lines.append(line)
+                data = '\n'.join(lines).encode()
+            result[relative] = hashlib.sha256(data).hexdigest()
+        return result
+    before = fingerprint()
     machine_file.write_bytes(bytes([original[0] ^ 1]) + original[1:])
     try:
         with (out / 'corrupt.log').open('w') as stream:
             failed = subprocess.run([str(binary), '--game-machine', str(folder), '--load-state', manual.name],
-                cwd=ROOT, env=env, stdout=stream, stderr=stream, timeout=30)
-        assert failed.returncode == 1
+                cwd=ROOT, env=dict(env, NEO98_HOST_INPUT='0:wait=tty;1:menu=quit'), stdout=stream, stderr=stream, timeout=30)
+        assert failed.returncode == 0
         assert 'damaged' in (out / 'corrupt.log').read_text()
-        assert before == {str(p.relative_to(layer)): hashlib.sha256(p.read_bytes()).hexdigest() for p in layer.rglob('*') if p.is_file()}
+        after = fingerprint()
+        assert before == after, {key:(before.get(key),after.get(key)) for key in before.keys() | after.keys() if before.get(key) != after.get(key)}
+        assert 'files restored' not in (out / 'corrupt.log').read_text()
+        assert sentinel.read_text() == 'keep the current layer'
     finally: machine_file.write_bytes(original)
     # DOS must read the original D: through its profile's write layer.
     d_folder = Path(subprocess.check_output([str(helper), str(source), str(binary), str(game)], text=True).strip())

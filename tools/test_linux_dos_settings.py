@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Resume a DOS game with its original Windows property sheet open."""
 import json
+import shutil
 import os
 from pathlib import Path
 import subprocess
@@ -17,6 +18,8 @@ import win98_c
 
 def main():
     root = win98_c.use_pristine(); out = ROOT / 'build/native-linux/dos-settings-test'; out.mkdir(parents=True, exist_ok=True)
+    machine = out / ('machine-' + str(os.getpid()))
+    subprocess.run(['cp','-a','--reflink=auto',str(root),str(machine)],check=True)
     programs = out / 'programs'; programs.mkdir(exist_ok=True)
     (programs / 'HELLO.COM').write_bytes(bytes.fromhex('b400cd16b8004ccd21'))
     helper_source = out / 'create.cpp'
@@ -33,9 +36,9 @@ int main(int argc,char **argv) {
     helper = out / 'create'; binary = ROOT / 'build/native-app/neo98-host'
     subprocess.run(['clang++', '-std=c++17', '-O1', '-I'+str(ROOT), str(helper_source), '-o', str(helper)],
         env=neo98.tool_environment(), check=True)
-    profile = Path(subprocess.check_output([str(helper), str(root), str(programs), str(binary)], text=True).strip())
+    profile = Path(subprocess.check_output([str(helper), str(machine), str(programs), str(binary)], text=True).strip())
     env = dict(os.environ, SDL_VIDEODRIVER='x11', SDL_AUDIODRIVER='dummy', NEO98_CLIPBOARD='private',
-        NEO98_HOST_INPUT_ONCE='1', NEO98_HOST_INPUT='4:menu=dos-settings;6:menu=state-save,PIF;10:menu=state-load;18:menu=quit')
+        NEO98_HOST_INPUT_ONCE='1', NEO98_HOST_INPUT='4:menu=dos-settings;6:menu=state-save,PIF;10:menu=state-load;0.1:pause=0;18:menu=quit')
     for name in ('NEO98_SETTINGS_FILE', 'NEO98_LOG_TO_FILE'): env.pop(name, None)
     x = X11(); log = out / 'host.log'
     with log.open('w') as stream:

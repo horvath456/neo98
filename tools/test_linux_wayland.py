@@ -45,7 +45,7 @@ def main():
     text=(out / 'host.log').read_text()
     assert 'NEO98 display=wayland canvas=gtk' in text
     assert 'native Wayland output is deprecated.' in text
-    assert 'xdg_toplevel' in text and '.set_title("NEO98")' in text
+    assert 'xdg_toplevel' in text and '.set_title("Neo98")' in text
     assert (out / 'copied.txt').read_text()=='Wayland'
     assert 'CRITICAL' not in text and 'CRITICAL' not in (out / 'canvas.log').read_text()
     assert not win98_c.pristine_problems(source)

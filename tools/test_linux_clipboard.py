@@ -45,7 +45,7 @@ def main():
         nonlocal clock
         clock += after; steps.append(f'{clock}:{action}')
     def run(name):
-        step(f'menu=open,D:\\{name}.EXE')
+        step(f'guestopen=D:\\{name}.EXE')
         step(f'waitfile={prog / (name + ".OUT")}',0)
     step(f'pbtextfile={out / "text.txt"}'); run('CLIPGET1')
     step(f'pbfiles={letter}|{folder}',2); run('CLIPGET2')
