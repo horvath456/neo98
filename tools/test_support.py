@@ -45,7 +45,7 @@ def other_hosts_command():
     one VM per Mac. On Linux several hosts run side by side; the command
     lists none there."""
     import sys
-    return __import__('test_support').other_hosts_command() if sys.platform == 'darwin' else ['false']
+    return ['pgrep', '-x', 'neo98-host'] if sys.platform == 'darwin' else ['false']
 
 def skip(reason):
     print(f'SKIP: {reason}', flush=True)
