@@ -24,7 +24,7 @@ def main():
     win98_c.use_pristine()
     out = ROOT / 'build/native-linux/ui'; out.mkdir(parents=True,exist_ok=True)
     binary = ROOT / 'build/native-app/neo98-host'
-    x = X11(); reports = {}
+    x = X11(); x.require_input(); reports = {}
     def launch(name,steps,*args,settings=None):
         env = dict(os.environ, NEO98_CLIPBOARD='private',NEO98_KEYMAP='US',SDL_AUDIODRIVER='dummy',
                    NEO98_HOST_INPUT=steps,NEO98_MENU_TRACE='1',NEO98_SEAMLESS_DUMP=str(out/(name+'.windows')))
@@ -50,7 +50,7 @@ def main():
         wait(lambda: x.focus()==child['id'])
         for key in 'abc': x.chord(key); time.sleep(.08)
         x.chord('Control_L','a'); time.sleep(.2)
-        x.click(shell['x']+91,shell['y']+12)
+        x.click(shell['x']+60,shell['y']+12)
         popup = wait(lambda: next((w for w in x.windows(process.pid) if w['id'] not in (child['id'],shell['id'])),None))
         x.capture(popup['id'],out / 'edit-menu.png')
         assert x.focus() in [w['id'] for w in x.windows(process.pid)], 'Menu does not own the keyboard'

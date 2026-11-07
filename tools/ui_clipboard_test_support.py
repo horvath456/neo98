@@ -68,6 +68,13 @@ def host(out, drive, exe, steps='', seconds=30, extra=()):
                NEO98_HOST_DEADLINE=str(seconds + 15), NEO98_HOST_PASTEBOARD='unique',
                NEO98_HOST_INPUT=steps + f';{seconds}:menu=quit',
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))
+    # Linux seamless windows need the X11 window and shape providers. SDL's
+    # dummy driver remains sufficient for ordinary framebuffer tests.
+    if sys.platform.startswith('linux') and '--seamless' in extra:
+        if not os.environ.get('DISPLAY'):
+            from test_support import skip
+            skip('Linux seamless windows require an X11 display')
+        env.update(SDL_VIDEODRIVER='x11', GDK_BACKEND='x11')
     command = [str(ROOT / 'build/native-app/neo98-host'), '-', r'C:\WINDOWS\FONTS\VGAFIX.FON',
                '--exe', exe, '--quiet', '--system-tree', str(drive), '--drive-c', str(drive),
                '--registry', str(out / 'c.registry'), *extra]

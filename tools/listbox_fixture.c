@@ -16,8 +16,11 @@ static void pump(void)
 {
     CaptureMessage message;
     unsigned n;
-    for (n = 0; n < 8; ++n)
-        PeekMessageA(&message, 0, 0, 0, 0);
+    for (n = 0; n < 256 && PeekMessageA(&message, 0, 0, 0, 1); ++n)
+    {
+        TranslateMessage(&message);
+        DispatchMessageA(&message);
+    }
 }
 typedef struct
 {
@@ -152,7 +155,9 @@ static U __stdcall procedure(U h, U m, U w, U l)
 }
 static U create(U parent, U id, U flags, int x, int width)
 {
-    return CreateWindowExA(0, "LISTBOX", "", flags, x, 8, width, 190, parent, id, instance, 0);
+    /* hMenu is a child ID only for child windows. A top-level control
+     * needs a real menu handle or NULL. */
+    return CreateWindowExA(0, "LISTBOX", "", flags, x, 8, width, 190, parent, parent ? id : 0, instance, 0);
 }
 static U __stdcall dialog(U h, U m, U w, U l)
 {

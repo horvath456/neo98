@@ -43,7 +43,9 @@ struct Application::CommonMemory final : Win98Strings::Environment {
       app.Fail("Unsupported COMCTL32 heap handle");
       return false;
     }
-    return app.Free(p);
+    // Resize uses LocalAlloc/LocalReAlloc. Those blocks belong to the local
+    // heap, not the host scratch allocator behind Application::Free.
+    return p && app.Api("LocalFree", &p) == 0;
   }
   int Compare(unsigned proc, unsigned a, unsigned b,
               unsigned parameter) override {

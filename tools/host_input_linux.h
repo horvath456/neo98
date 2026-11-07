@@ -19,6 +19,7 @@ inline std::function<bool(const std::string &,const std::string &)> native_input
 inline std::function<void(bool trackpad, double up, double right, bool first, bool momentum)> scroll_input;
 // hostshot=PATH: the window's next frame as the host draws it, video included.
 inline std::function<void(const std::string &)> host_shot;
+inline std::function<void(const std::string &)> mask_shot;
 // The steps the host itself takes as the macOS host does, through its own
 // mouse path: pause=0/1, hand=dx,dy, press=x,y and release=x,y (window
 // points). True when the host took the step.
@@ -205,6 +206,7 @@ class Script
             {
                 if (session.Screenshot(step.value)) Say("NEO98 HOST screenshot %s\n", step.value.c_str());
             }
+            else if (step.action == "mask" && mask_shot) mask_shot(step.value);
             else if (step.action == "hostshot" && host_shot) host_shot(step.value);
             else if (step.action == "sdlkey")
             {

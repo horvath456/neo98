@@ -83,6 +83,7 @@ API U GetWindowModuleFileNameA(U, char *, U);
 API U GetKeyboardType(int);
 API U BroadcastSystemMessageA(U, U *, U, U, U);
 API U TrackMouseEvent(Track *);
+API U SetCursorPos(int, int);
 API U GetDlgItemInt(U, int, U *, U);
 API U PackDDElParam(U, U, U);
 API U UnpackDDElParam(U, U, U *, U *);
@@ -111,6 +112,7 @@ typedef struct { U icon; U x, y, mask, color; } IconInfo;
 API U CreateIcon(U, int, int, U, U, const void *, const void *);
 API U CreateCursor(U, int, int, int, int, const void *, const void *);
 API U GetIconInfo(U, IconInfo *);
+API U GetObjectA(U, int, void *);
 API U DestroyCursor(U);
 typedef struct { int height, ascent, descent, internal_leading, external_leading,
                  ave_width, max_width, weight, overhang, aspect_x, aspect_y;
@@ -235,9 +237,13 @@ void run_user32_imports_test(void)
     U frame_dc = GetDCEx(parent, 0, 0x00010001);
     check(frame_dc != 0, 14013);
     check(ReleaseDC(parent, frame_dc) != 0, 14014);
-    /* A rejected DCX bit and a handle that is not a region both fail. */
+    /* Win98 accepts and ignores NORESETATTRS. An unknown flag and a
+       handle that is not a region still fail. */
+    U noreset_dc = GetDCEx(parent, 0, 0x00000006);
+    check(noreset_dc != 0, 14450);
+    check(ReleaseDC(parent, noreset_dc) != 0, 14451);
     SetLastError(0);
-    check(GetDCEx(parent, 0, 0x00000004) == 0 && GetLastError() == 87, 14015);
+    check(GetDCEx(parent, 0, 0x00080000) == 0 && GetLastError() == 87, 14015);
     SetLastError(0);
     check(GetDCEx(parent, parent, 0x00000080) == 0 && GetLastError() == 87, 14016);
 
@@ -328,7 +334,7 @@ void run_user32_imports_test(void)
     check(GetAncestor(child, 1) == parent, 14057);
     check(GetAncestor(child, 2) == parent, 14058);
     check(GetAncestor(parent, 2) == parent, 14059);
-    check(GetAncestor(parent, 1) == GetParent(parent), 14060);
+    check(GetAncestor(parent, 1) == GetDesktopWindow(), 14060);
     SetLastError(0);
     check(GetAncestor(0x7fff, 2) == 0 && GetLastError() == 1400, 14061);
 
@@ -358,7 +364,11 @@ void run_user32_imports_test(void)
     check(BroadcastSystemMessageA(0, &recipients, 0x0400, 0, 0) == 0xffffffffu &&
           GetLastError() == 120, 14068);
 
-    /* Mouse leave tracking, its query form and the missing hover producer. */
+    /* Mouse leave and hover tracking, query and cancellation. */
+    /* Tracking is installed only while the pointer is over this client.
+       Outside it Win98 immediately posts leave and keeps no hover request. */
+    check(SetCursorPos(200, 160) != 0, 14458);
+    PeekMessageA(&posted, 0, 0, 0, 0);
     Track track = {sizeof(Track), 2, parent, 0};
     check(TrackMouseEvent(&track) != 0, 14069);
     Track query = {sizeof(Track), 0x40000000, parent, 0};
@@ -369,7 +379,12 @@ void run_user32_imports_test(void)
     check(TrackMouseEvent(&query) != 0 && query.flags == 0, 14072);
     Track hover = {sizeof(Track), 1, parent, 100};
     SetLastError(0);
-    check(TrackMouseEvent(&hover) == 0 && GetLastError() == 120, 14073);
+    check(TrackMouseEvent(&hover) != 0, 14073);
+    query.flags = 0x40000000;
+    check(TrackMouseEvent(&query) != 0 && query.flags == 1 &&
+          query.hwnd == parent && query.hover == 100, 14452);
+    hover.flags = 0x80000001u;
+    check(TrackMouseEvent(&hover) != 0, 14453);
     Track wrong = {8, 2, parent, 0};
     SetLastError(0);
     check(TrackMouseEvent(&wrong) == 0 && GetLastError() == 87, 14074);
@@ -530,8 +545,8 @@ void run_user32_imports_test(void)
 
     /* USER walks the list the display driver builds. The driver of
        NEO98 is the screen surface of the compositor, so the list is 640x480
-       and 800x600 at 8, 16, 24 and 32 bits, and the walk ends after the
-       eighth entry. -1 is the mode that is up. */
+       and 800x600 at 8, 16, 24 and 32 bits, with additional linear modes
+       below. -1 is the mode that is up. */
     {
         unsigned char mode[148];
         U *fields = (U *)(mode + 40);
@@ -548,12 +563,18 @@ void run_user32_imports_test(void)
         check(EnumDisplaySettingsA(0, 7, mode) != 0, 14243);
         check(*(U *)(mode + 108) == 800 && *(U *)(mode + 112) == 600 &&
               *(U *)(mode + 104) == 32, 14244);
-        /* The list also carries 1024x768 as well, so it has twelve
-           entries: three sizes at 8, 16, 24 and 32 bits. */
+        /* The first twelve entries cover three sizes at four depths.
+           Two further linear modes preserve those existing indices. */
         check(EnumDisplaySettingsA(0, 11, mode) != 0, 14248);
         check(*(U *)(mode + 108) == 1024 && *(U *)(mode + 112) == 768 &&
               *(U *)(mode + 104) == 32, 14249);
-        check(EnumDisplaySettingsA(0, 12, mode) == 0, 14236);
+        check(EnumDisplaySettingsA(0, 12, mode) != 0, 14454);
+        check(*(U *)(mode + 108) == 320 && *(U *)(mode + 112) == 240 &&
+              *(U *)(mode + 104) == 16, 14455);
+        check(EnumDisplaySettingsA(0, 13, mode) != 0, 14456);
+        check(*(U *)(mode + 108) == 640 && *(U *)(mode + 112) == 400 &&
+              *(U *)(mode + 104) == 8, 14457);
+        check(EnumDisplaySettingsA(0, 14, mode) == 0, 14236);
         /* The mode that is up needs no change; a mode outside the list is
            BADMODE even when only asked for with CDS_TEST. */
         check(EnumDisplaySettingsA(0, 7, mode) != 0, 14250);
@@ -760,7 +781,13 @@ void run_user32_imports_test(void)
         info.icon = info.x = info.y = info.mask = info.color = 0;
         check(GetIconInfo(hicon, &info) != 0, 14162);
         check(info.icon == 1 && info.x == 8 && info.y == 8, 14163);
-        check(info.mask != 0 && info.color != 0, 14164);
+        /* Monochrome icons return a double-height AND/XOR mask and no
+           colour bitmap, as monochrome cursors do. */
+        check(info.mask != 0 && info.color == 0, 14164);
+        U mask_bitmap[6];
+        check(GetObjectA(info.mask, sizeof mask_bitmap, mask_bitmap) == sizeof mask_bitmap, 14459);
+        check(mask_bitmap[1] == 16 && mask_bitmap[2] == 32 &&
+              (mask_bitmap[4] >> 16) == 1, 14460);
         DeleteObject(info.mask);
         DeleteObject(info.color);
         check(DestroyIcon(hicon) != 0, 14165);

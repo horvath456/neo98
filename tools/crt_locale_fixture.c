@@ -157,7 +157,8 @@ void run_crt_locale_test(void)
     check(GetLocaleInfoA(0x409, 0x20001004, &number, 4) == 4 && number == 1252, 3293);
     check(GetLocaleInfoA(0x409, 0x1004, 0, 0) == 5, 3294);
     number = 0x98989898;
-    check(!GetLocaleInfoA(0x409, 0x1004, &number, 4) && GetLastError() == 122 && number == 0x98989898, 3295);
+    /* Win98 copies the ANSI prefix on overflow, without a terminator. */
+    check(!GetLocaleInfoA(0x409, 0x1004, &number, 4) && GetLastError() == 122 && number == 0x32353231, 3295);
     check(!GetLocaleInfoA(0x409, 0x20000014, 0, 0) && GetLastError() == 1004, 3296);
     /* common_fixture.c runs this before registering the separate exit tests. */
     cleanup_armed = 1;

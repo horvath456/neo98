@@ -10,6 +10,7 @@ API U GetLastError(void);
 API U GetModuleHandleA(const char *);
 API U LoadImageA(U, U, U, U, U, U);
 API U DestroyIcon(U);
+API U GetIconInfo(U, void *);
 API U ImageList_Create(U, U, U, U, U);
 API U ImageList_Destroy(U);
 API U ImageList_ReplaceIcon(U, int, U);
@@ -303,7 +304,10 @@ void mainCRTStartup(void) {
   check(ImageList_ReplaceIcon(list, -1, icon) == 0 &&
             ImageList_GetImageCount(list) == 1,
         34);
-  check(DestroyIcon(icon) && !DestroyIcon(icon), 35);
+  /* Win98 reports success for a stale nonzero icon too. Verify that the
+   * first call really freed it through GetIconInfo instead. */
+  U icon_info[5];
+  check(DestroyIcon(icon) && DestroyIcon(icon) && !GetIconInfo(icon, icon_info) && GetLastError() == 6, 35);
   check(ImageList_ReplaceIcon(list, 0, shared) == 0 &&
             ImageList_GetImageCount(list) == 1,
         36);

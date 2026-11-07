@@ -809,6 +809,11 @@ int main(int argc, char **argv)
     auto start = std::chrono::steady_clock::now();
     auto last_present = start - std::chrono::milliseconds(16);
     bool texture_dirty = true, display_dirty = true;
+    LinuxHost::mask_shot = [&](const std::string &path) {
+        const bool okay = seamless_enabled && seamless.WriteMask(path, menu, User::Pixels());
+        printf("NEO98 HOST seamless mask %s %s\n", path.c_str(), okay ? "written" : "refused");
+        fflush(stdout);
+    };
     std::string host_shot_path;
     LinuxHost::host_shot = [&](const std::string &path) { host_shot_path = path; display_dirty = true; };
     const unsigned char *last_console = nullptr;
@@ -919,8 +924,10 @@ int main(int argc, char **argv)
     // the window.
     // A movement of the mouse: the position in canvas pixels and the
     // distance in points of the window (deliver_motion, below).
+    bool script_cursor = true;
     std::function<void(int, int, int, int)> deliver_motion;
     LinuxHost::host_step = [&](const std::string &action, int x, int y) {
+        if (action == "cursor") { script_cursor = x != 0; return true; }
         if (machine_paused && (action == "key" || action == "type" || action == "ctrl" ||
                                action == "keydown" || action == "keyup" || action == "click" ||
                                action == "move" || action == "wheel" || action == "scroll")) return true;
@@ -1876,6 +1883,9 @@ int main(int argc, char **argv)
         if (frame_stats)
             frame_pump_ms += std::chrono::duration<double, std::milli>(
                 std::chrono::steady_clock::now() - pump_begin).count();
+        // Publish acquisition changes made by this guest turn before a script
+        // observes its title or sends the next input packet.
+        ServeMouseHold();
         input.Pump(session, window.get());
         {
             const auto now = std::chrono::steady_clock::now();
@@ -1963,7 +1973,7 @@ int main(int argc, char **argv)
         const bool mouse_in_guest = LinuxGtk::wayland_canvas ? LinuxGtk::canvas_pointer : SDL_GetMouseFocus() == window.get();
         if (!seamless_enabled)
         {
-            User::ShowPointer(mouse_in_guest && !last_console);
+            User::ShowPointer(script_cursor && mouse_in_guest && !last_console);
             SDL_ShowCursor(mouse_in_guest && !last_console ? SDL_DISABLE : SDL_ENABLE);
             LinuxGtk::CanvasCursor(!(mouse_in_guest && !last_console));
         }
