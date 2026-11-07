@@ -153,6 +153,8 @@ int main(int argc, char **argv)
 {
     LinuxHost::Options options;
     if (!LinuxHost::Parse(argc, argv, options)) { LinuxHost::Help(true); return 2; }
+    if (!options.state_save.empty() || !options.state_load.empty())
+    { fprintf(stderr, "--state-save and --state-load are available in neo98-host only.\n"); return 2; }
     if (options.help) { LinuxHost::Help(true); return 0; }
     signal(SIGINT, Signal);
     signal(SIGTERM, Signal);

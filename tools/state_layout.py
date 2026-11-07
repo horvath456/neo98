@@ -899,7 +899,10 @@ def check_and_write(binary, output, types, variables, rules, quiet=False):
         if rule[0] == 'as' and not fits:
             problems.append(f'{rule[2]}: {name} has {actual if actual is not None else extent} bytes in the program and {key} has {size}')
             continue
-        readable = subprocess.run(['c++filt', name], capture_output=True, text=True, check=True).stdout.strip() or name
+        # The names keep the leading underscore of Mach-O on every platform;
+        # c++filt of macOS drops it by itself, GNU c++filt when asked to.
+        demangle = ['c++filt'] if sys.platform == 'darwin' else ['c++filt', '--strip-underscore']
+        readable = subprocess.run([*demangle, name], capture_output=True, text=True, check=True).stdout.strip() or name
         writable.append({'name': readable, 'symbol': name, 'source': '', 'address': address, 'type': key,
                          'section': '__DATA,__data', 'guard': 0, 'guards': 0,
                          'fixed': ('none', '', '') if rule[0] == 'as' else (rule[0], '', rule[2])})

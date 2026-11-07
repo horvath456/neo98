@@ -47,7 +47,9 @@ inline bool Perform(const char *name, const char *path)
     else if (action == "state-save") request.action = Action::StateSave;
     else if (action == "state-load") request.action = Action::StateLoad;
     else if (action == "states") request.action = Action::StateList;
-    else if (action == "dos-settings") request.action = Action::DosSettings;
+    // dos-settings-file: "Configure another DOS file", the file named
+    // by the caller (a script) instead of the one running.
+    else if (action == "dos-settings" || action == "dos-settings-file") request.action = Action::DosSettings;
     else if (action == "quit") request.action = Action::Quit;
     else if (action == "open") request.action = Action::Open;
     else if (action == "drive-d") request.action = Action::ChooseDriveD;

@@ -134,6 +134,10 @@ def demangle(names):
     # of a Mach-O symbol; c++filt on macOS strips one unless told not to.
     if not names:
         return []
+    # A symbol of the state layout keeps the Mach-O underscore on every
+    # platform (MachineState::SymbolOf, the step wstate=chains); LLVM's
+    # c++filt reads "__Z" as well, GNU c++filt only "_Z".
+    names = [name[1:] if name.startswith('__Z') else name for name in names]
     return subprocess.run(['c++filt', '-n'], input='\n'.join(names), capture_output=True, text=True,
                           check=True).stdout.split('\n')[:len(names)]
 

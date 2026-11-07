@@ -32,8 +32,12 @@ def install(layout):
         return rows
     def source_objects(binary):
         manifest = json.loads(Path(str(binary) + '.objects.json').read_text())
-        return {Path(row['source']): Path(row['object']) for row in manifest
-                if Path(row['source']).parent == layout.ROOT / 'src' and Path(row['source']).suffix == '.cpp'}
+        # The sources of src/, and changed copies of them under build/ (a
+        # host built with `replaced`), as the Mach-O reader takes them.
+        def runtime(source):
+            return source.suffix == '.cpp' and (layout.ROOT / 'src' / source.name).exists() and \
+                (source.parent == layout.ROOT / 'src' or layout.ROOT / 'build' in source.parents)
+        return {Path(row['source']): Path(row['object']) for row in manifest if runtime(Path(row['source']))}
     def symbols(obj):
         return {address: name for address, kind, name, source in nm(obj)}
     @lru_cache(maxsize=1024)
