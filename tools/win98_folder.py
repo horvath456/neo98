@@ -529,6 +529,11 @@ def write_volume(folder, serial, label):
     (Path(folder) / ".neo98-volume").write_text(f"{serial:08x}\t{label}\n", encoding="latin-1")
 
 
+# Windows Setup keeps a copy of its answer file, product key included, in
+# the Windows folder. Nothing reads it after the installation; it stays out.
+ANSWER_FILES = {"WINDOWS/MSBATCH.INF"}
+
+
 def copy_tree(image, offset, out, quiet=False):
     """Copy the whole FAT volume into the empty folder `out`, once.
 
@@ -549,7 +554,7 @@ def copy_tree(image, offset, out, quiet=False):
     truncated = []
     for entry in walk(volume):
         path = entry["path"]
-        if not safe(path) or path.split("/")[0].upper() in SETUP_HELPERS:
+        if not safe(path) or path.split("/")[0].upper() in SETUP_HELPERS or path.upper() in ANSWER_FILES:
             continue
         parent = folders.get(path.rpartition("/")[0])
         if parent is None:
