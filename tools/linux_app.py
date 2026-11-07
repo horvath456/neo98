@@ -158,6 +158,8 @@ def package(no_build=False, *, release=False):
     # distributed under the GPL version 3, which accepts Apache-2.0 shaderc.
     candidates = [ROOT / 'build/toolchain/usr/lib/x86_64-linux-gnu/libshaderc.so.1',
                   Path('/usr/lib/x86_64-linux-gnu/libshaderc.so.1')]
+    if os.environ.get('NEO98_SYSROOT'):
+        candidates.insert(0, Path(os.environ['NEO98_SYSROOT']) / 'usr/lib/x86_64-linux-gnu/libshaderc.so.1')
     shaderc = next((p for p in candidates if p.is_file()), None)
     if shaderc: shutil.copy2(shaderc, libraries / 'libshaderc.so.1')
 
