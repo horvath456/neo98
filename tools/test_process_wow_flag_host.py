@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import neo98
 
+import native_app
 IMPORTS = {'ExitProcess': 4, 'GetCommandLineA': 0, 'GetModuleFileNameA': 12,
            'GetCurrentProcessId': 0, 'CreateProcessA': 40, 'WaitForSingleObject': 8,
            'ResumeThread': 4, 'GetExitCodeProcess': 8, 'GetLastError': 0, 'CloseHandle': 4}
@@ -30,7 +31,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--expect-rejection', action='store_true',
                         help='Check the unfixed host rejects the first 0x800 launch')
-    parser.add_argument('--cpu', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, action='append')
     args = parser.parse_args()
     guard()
     out = ROOT / 'build/process-wow-flag'
@@ -52,7 +53,7 @@ def main():
                    env=env, check=True, stdin=subprocess.DEVNULL)
     binary = ROOT / 'build/native-app/neo98-host'
     reference = Path(os.environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c')).resolve()
-    for engine in args.cpu or ('fex', 'unicorn'):
+    for engine in args.cpu or native_app.test_engines():
         subprocess.run(['df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/')], check=True,
                        stdin=subprocess.DEVNULL)
         guard()

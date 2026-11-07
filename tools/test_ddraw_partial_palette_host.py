@@ -2,11 +2,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """visible display colors after partial palette updates. Use serial.py."""
 if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
-if __name__ == '__main__':
     import shutil as _shutil, sys as _sys
     _missing = [_t for _t in ['i686-w64-mingw32-gcc'] if not _shutil.which(_t)]
     if _missing:  # this test builds its fixture with them; docs/BUILDING.md
@@ -25,6 +20,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'tools'))
+import native_app
 from test_d3d_execute_texture_host import guard
 
 
@@ -42,7 +38,7 @@ def main():
                     '-O1', '-nostartfiles', '-Wl,-e,_mainCRTStartup', '-mwindows',
                     '-lddraw', '-luser32', '-lkernel32', '-o', str(out / 'PALETTE.EXE')],
                    check=True, stdin=subprocess.DEVNULL)
-    for engine in ('fex', 'unicorn'):
+    for engine in native_app.test_engines():
         guard()
         drive = out / ('c-' + engine)
         assert not drive.exists() and not drive.is_symlink()

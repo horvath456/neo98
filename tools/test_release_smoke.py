@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 
+import native_app
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -37,13 +38,13 @@ def main():
     parser.add_argument('--settings-source', type=Path)
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--app', type=Path, default=ROOT / 'build/Neo98.app/Contents/MacOS/Neo98')
-    parser.add_argument('--engine', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--engine', choices=native_app.ENGINE_NAMES, action='append')
     parser.add_argument('--program', choices=('NOTEPAD.EXE', 'EXPLORER.EXE', 'MSPAINT.EXE', 'SYSEDIT.EXE', 'app'), action='append')
     args = parser.parse_args()
     out = ROOT / 'build/release-smoke'
     out.mkdir(parents=True, exist_ok=True)
     results = []
-    for engine in (args.engine or ('fex', 'unicorn')):
+    for engine in (args.engine or native_app.test_engines()):
         for program, window in (('NOTEPAD.EXE', 'Notepad'), ('EXPLORER.EXE', 'Shell_TrayWnd'), ('MSPAINT.EXE', 'MSPaintApp'), ('SYSEDIT.EXE', '|System Configuration Editor'), ('app', 'Shell_TrayWnd')):
             if args.program and program not in args.program:
                 continue

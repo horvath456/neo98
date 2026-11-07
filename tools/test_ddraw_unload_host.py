@@ -22,6 +22,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+import native_app
 import neo98
 
 
@@ -29,7 +30,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--system-tree', type=Path)
-    parser.add_argument('--cpu', choices=['fex', 'unicorn'], default='fex')
+    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, default=native_app.test_engines()[0])
     parser.add_argument('--clean', action='store_true')
     args = parser.parse_args()
     out = ROOT / 'build/ddraw-unload' / (args.cpu + ('-clean' if args.clean else '-orphan'))

@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import disk_room
 import neo98
+import native_app
 import win98_c
 
 
@@ -34,7 +35,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--out', type=Path, default=ROOT / 'build/display-bitmap-host')
-    parser.add_argument('--engine', action='append', choices=('fex', 'unicorn'))
+    parser.add_argument('--engine', action='append', choices=native_app.ENGINE_NAMES)
     parser.add_argument('--reference', type=Path)
     args = parser.parse_args()
     out = args.out.resolve()
@@ -48,7 +49,7 @@ def main():
                     str(ROOT / 'tools/display_bitmap_fixture.c'), '-luser32', '-lgdi32', '-lkernel32'],
                    env=environment, check=True, stdin=subprocess.DEVNULL)
     summary = {'fixture_sha256': hashlib.sha256(exe.read_bytes()).hexdigest(), 'engines': {}}
-    for engine in args.engine or ('fex', 'unicorn'):
+    for engine in args.engine or native_app.test_engines():
         disk_room.require(8.0)
         drive = out / ('c-' + engine)
         assert not drive.exists() and not drive.is_symlink()

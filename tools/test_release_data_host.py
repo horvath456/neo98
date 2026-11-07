@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ui_clipboard_test_support import ROOT, fixture
+import native_app
 from test_release_smoke import run
 
 
@@ -29,7 +30,7 @@ def main():
     exe = fixture(out / 'fixture', ROOT / 'tools/release_data_fixture.c', imports,
                   defines=['-DRELEASE_DATA_SKIP_SERIALUI'] if args.skip_serialui else [])
     # The engines of macOS; Linux x64 runs x86 code on the native CPU only.
-    for engine in (args.engine or (('fex', 'unicorn') if sys.platform == 'darwin' else ('native',))):
+    for engine in (args.engine or native_app.test_engines()):
         case = out / engine; case.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='machine-', dir=case) as temporary:
             drive = Path(temporary) / 'c'

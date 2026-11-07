@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """WinHelp's structure command preserves every payload byte."""
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import os
 import re
 from ui_clipboard_test_support import ROOT, fixture, machine, host
@@ -15,7 +10,8 @@ imports = {'KERNEL32': {'ExitProcess': 4}, 'USER32': {
     'DestroyWindow': 4, 'WinHelpA': 16}}
 out = ROOT / 'build/winhelp-structure'
 exe = fixture(out / 'fixture', ROOT / 'tools/winhelp_structure_fixture.c', imports)
-for cpu in ('fex', 'unicorn'):
+import native_app
+for cpu in native_app.test_engines():
     os.environ['NEO98_CPU'] = cpu
     with machine(out / cpu) as drive:
         log = host(out / cpu, drive, r'E:\TEST.EXE', seconds=12,

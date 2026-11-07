@@ -17,6 +17,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+import native_app
 import neo98
 
 
@@ -41,7 +42,7 @@ def build(out, env):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cpu', choices=['fex', 'unicorn'], default='fex')
+    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, default=native_app.test_engines()[0])
     args = parser.parse_args()
     out = ROOT / 'build/session-section-lifetime' / args.cpu
     env = neo98.tool_environment()

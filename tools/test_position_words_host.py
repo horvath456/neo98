@@ -5,11 +5,6 @@
 Run through serial.py; requires an explicitly selected private Windows tree
 and POSWORD.TXT from the unchanged fixture on Win98. No live C: is used.
 """
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 from test_support import ExternalInputParser
 import hashlib
@@ -25,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT/'tools')]
 import neo98
 import win98_c
+import native_app
 from game_repertoire import wait_host
 
 
@@ -51,7 +47,7 @@ def main():
     expected = args.reference.read_text().splitlines()
     assert len(expected) == 21
     records = []
-    for cpu in ('fex','unicorn'):
+    for cpu in native_app.test_engines():
         folder = tempfile.mkdtemp(prefix='private-',dir=out)
         process = None
         try:

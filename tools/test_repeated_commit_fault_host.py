@@ -10,6 +10,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+import native_app
 from ui_clipboard_test_support import fixture
 
 
@@ -23,14 +24,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', action='store_true')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
-    parser.add_argument('--cpu', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, action='append')
     args = parser.parse_args()
     guard()
     out = ROOT / 'build/repeated-commit-fault'
     out.mkdir(exist_ok=True)
     exe = fixture(out / 'fixture', ROOT / 'tools/repeated_commit_fault_fixture.c',
                   {'KERNEL32': {'ExitProcess': 4, 'VirtualAlloc': 16, 'VirtualFree': 12}})
-    for engine in args.cpu or ('fex', 'unicorn'):
+    for engine in args.cpu or native_app.test_engines():
         guard()
         active = subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True,
                                 text=True, stdin=subprocess.DEVNULL)

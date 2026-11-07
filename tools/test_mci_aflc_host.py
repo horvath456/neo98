@@ -6,11 +6,6 @@ Run through a shared serial test lock. Requires the pinned Virtual Chess sharewa
 corpus, or --film pointing to its unmodified AVI/TITUS.AVI. No codecs or game
 files are changed. Every engine gets a temporary private C: clone.
 """
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -26,6 +21,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
 import neo98
 
 
+import native_app
 from external_paths import external_path
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -46,7 +42,7 @@ def main():
                     str(ROOT / 'tools/mci_aflc_fixture.c'), '-o', str(exe),
                     '-lwinmm', '-luser32', '-lkernel32'], env=neo98.tool_environment(), check=True)
     records = []
-    for cpu in ('fex', 'unicorn'):
+    for cpu in native_app.test_engines():
         if shutil.disk_usage(out).free < 6 * 1024**3:
             raise RuntimeError('STOP: fewer than 6 GiB free')
         with tempfile.TemporaryDirectory(prefix='private-', dir=out) as temporary:

@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """resource-write retry through real SEH and public memory APIs."""
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -19,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
 import pefile
 from native_app import build_host
+import native_app
 from ui_clipboard_test_support import fixture
 
 
@@ -60,7 +56,7 @@ def main():
     assert not drive.is_symlink()
     try:
         results = []
-        for cpu in ('fex', 'unicorn'):
+        for cpu in native_app.test_engines():
             suffix = cpu + ('-before' if args.baseline else '')
             env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_CPU=cpu,
                        NEO98_HOST_DEADLINE='12', NEO98_HOST_INPUT='3:key=0d;5:menu=quit',

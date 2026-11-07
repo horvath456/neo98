@@ -5,11 +5,6 @@
 
 Run through a shared serial test lock. Uses a RAM drive, dummy SDL, FEX and Unicorn.
 """
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -21,6 +16,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
 from native_app import build_host
+import native_app
 from ui_clipboard_test_support import fixture
 
 
@@ -41,7 +37,7 @@ def main():
     exe = fixture(out / 'fixture', ROOT / 'tools/screen_dc_focus_fixture.c', imports)
     host = (args.host or build_host()).resolve()
     results = []
-    for cpu in ('fex', 'unicorn'):
+    for cpu in native_app.test_engines():
         suffix = cpu + ('-before' if args.baseline else '')
         env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_CPU=cpu,
                    NEO98_HOST_DEADLINE='15', NEO98_HOST_INPUT='12:menu=quit',

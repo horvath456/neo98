@@ -21,6 +21,7 @@ import subprocess
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import native_app
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -32,7 +33,7 @@ def guard():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', action='store_true')
-    parser.add_argument('--cpu', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, action='append')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     args = parser.parse_args()
     guard()
@@ -46,7 +47,7 @@ def main():
     host = args.host.resolve()
     summary = {'host_sha256': hashlib.sha256(host.read_bytes()).hexdigest(),
                'fixture_sha256': hashlib.sha256(exe.read_bytes()).hexdigest(), 'engines': {}}
-    for cpu in args.cpu or ('fex', 'unicorn'):
+    for cpu in args.cpu or native_app.test_engines():
         guard()
         if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True,
                           stdin=subprocess.DEVNULL).returncode == 0:

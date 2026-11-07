@@ -40,6 +40,7 @@ IMPORTS = {'KERNEL32': {'GetModuleHandleA': 4, 'CreateFileA': 28, 'WriteFile': 2
                       'GetWindowTextA': 12, 'DestroyWindow': 4}}
 
 
+import native_app
 def build_fixture(out):
     env = neo98.tool_environment()
     out.mkdir(parents=True, exist_ok=True)
@@ -61,7 +62,7 @@ def build_fixture(out):
 
 
 # The engines of macOS; Linux x64 runs x86 code on the native CPU only.
-BACKENDS = ('fex', 'unicorn') if sys.platform == 'darwin' else ('native',)
+BACKENDS = native_app.test_engines()
 
 
 def run_once(binary, drive_c, out, backend):

@@ -13,6 +13,7 @@ import sys
 sys.path[:0] = [str(Path(__file__).resolve().parent), str(Path(__file__).resolve().parents[1])]
 import neo98
 from native_app import ROOT, build_host
+import native_app
 from ui_clipboard_test_support import fixture
 
 
@@ -30,7 +31,7 @@ def main():
     if '--host' in sys.argv: host = Path(sys.argv[sys.argv.index('--host')+1]).resolve()
     results = []
     # The engines of macOS; Linux x64 runs x86 code on the native CPU only.
-    engines = ('fex', 'unicorn') if sys.platform == 'darwin' else ('native',)
+    engines = native_app.test_engines()
     for cpu, empty in [(engine, empty) for empty in (False, True) for engine in engines]:
         case = cpu + ('-empty' if empty else '')
         if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True).returncode == 0:

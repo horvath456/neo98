@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """complete thread-start SEH and original Indeo open on FEX and Unicorn. Use serial.py."""
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -17,6 +12,7 @@ import sys
 import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+import native_app
 from ui_clipboard_test_support import fixture
 
 def main():
@@ -29,7 +25,7 @@ def main():
         'ExitProcess':4,'CreateThread':24,'WaitForSingleObject':8,'GetExitCodeThread':8,
         'CloseHandle':4,'IsBadReadPtr':8}, 'MSVFW32':{'ICOpen':12,'ICClose':4}})
     digest=hashlib.sha256(exe.read_bytes()).hexdigest();results=[]
-    for cpu in ('fex','unicorn'):
+    for cpu in native_app.test_engines():
         if shutil.disk_usage('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/').free < 8 * 1024**3:
             raise SystemExit('STOP: fewer than 8 GiB free before host run')
         with tempfile.TemporaryDirectory(prefix='private-c-',dir=out) as temporary:

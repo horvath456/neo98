@@ -19,6 +19,7 @@ import shutil
 import struct
 import subprocess
 
+import native_app
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -30,7 +31,7 @@ def guard():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baseline', action='store_true')
-    parser.add_argument('--cpu', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, action='append')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--repeat', type=int, default=1, help='Independent starts per CPU; any failure fails the run')
     args = parser.parse_args()
@@ -47,7 +48,7 @@ def main():
     summary = {'host_sha256': hashlib.sha256(host.read_bytes()).hexdigest(),
                'fixture_sha256': hashlib.sha256(exe.read_bytes()).hexdigest(), 'engines': {}}
     base = out
-    for iteration, cpu in ((n, cpu) for n in range(args.repeat) for cpu in (args.cpu or ('fex', 'unicorn'))):
+    for iteration, cpu in ((n, cpu) for n in range(args.repeat) for cpu in (args.cpu or native_app.test_engines())):
         out = base / f'run-{iteration + 1:02d}-{cpu}'
         out.mkdir(exist_ok=True)
         guard()

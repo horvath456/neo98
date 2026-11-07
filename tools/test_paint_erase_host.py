@@ -4,15 +4,11 @@
 
 Run through a shared serial test lock with an already built host.
 """
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 import hashlib
 import json
 import os
+import native_app
 from ui_clipboard_test_support import ROOT, fixture, machine, host
 
 
@@ -28,7 +24,7 @@ def main():
                    'EndPaint': 8, 'GetUpdateRect': 12, 'DestroyWindow': 4}})
     results = {'host_sha256': hashlib.sha256((ROOT / 'build/native-app/neo98-host').read_bytes()).hexdigest(),
                'fixture_sha256': hashlib.sha256(exe.read_bytes()).hexdigest(), 'tests': {}}
-    for cpu in ('fex', 'unicorn'):
+    for cpu in native_app.test_engines():
         os.environ['NEO98_CPU'] = cpu
         folder = out / (cpu + ('-before' if args.baseline else '-after'))
         with machine(folder) as drive:

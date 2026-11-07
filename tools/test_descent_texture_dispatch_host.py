@@ -5,11 +5,6 @@
 Run through a shared serial test lock. Only dimension, DirectDraw and upload providers are supplied;
 no installed game or original DLL is patched. Each run uses a private C: clone.
 """
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 from test_support import ExternalInputParser
 import hashlib
@@ -23,6 +18,7 @@ import pefile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import neo98
+import native_app
 SHA = 'd1d91a98578ba50233bdfdc56a1e171029e7df6dbf0860e0a47c3e9f77b990f7'
 
 
@@ -55,7 +51,7 @@ def main():
         '-fno-stack-protector', '-I', out, '-c', ROOT / 'tools/descent_texture_dispatch_fixture.c', '-o', obj)
     run('lld-link', '/entry:mainCRTStartup', '/subsystem:windows,4.0', '/nodefaultlib',
         '/machine:x86', '/base:0x400000', '/timestamp:0', '/out:' + str(exe), obj, library)
-    for engine in ('fex', 'unicorn'):
+    for engine in native_app.test_engines():
         run('df', '-h', ('/System/Volumes/Data' if __import__('sys').platform == 'darwin' else '/'))
         guard()
         if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True).returncode == 0:

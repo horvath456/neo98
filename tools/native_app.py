@@ -215,6 +215,21 @@ def fex_objects(flags, cache):
     return [*objects, *libraries]
 
 
+def test_engines():
+    """The x86 engines a test runs its checks on, one after the other: FEX
+    and Unicorn on macOS, the native CPU on Linux x64, Unicorn elsewhere. The
+    names are values of NEO98_CPU (src/x86_cpu.cpp, ProcessCpuBackend)."""
+    if native_x64():
+        return ('native',)
+    if sys.platform == 'darwin':
+        return ('fex', 'unicorn')
+    return ('unicorn',)
+
+
+# Every engine name a test accepts on its command line (--cpu, --engine).
+ENGINE_NAMES = ('fex', 'unicorn', 'native')
+
+
 def process_engine():
     """The engine a runner built by this module gives a 32-bit process:
     'fex' on macOS unless NEO98_CPU=unicorn or NEO98_WITH_FEX=0 say

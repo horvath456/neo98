@@ -2,11 +2,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """a foreign window locks DirectDraw during mode-change repositioning."""
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import hashlib
 import json
 import os
@@ -17,6 +12,7 @@ import sys
 sys.path[:0] = [str(Path(__file__).resolve().parent), str(Path(__file__).resolve().parents[1])]
 import neo98
 from native_app import ROOT, build_host
+import native_app
 from ui_clipboard_test_support import fixture
 
 
@@ -37,7 +33,7 @@ def main():
     host = ROOT/'build/native-app/neo98-host' if '--no-build' in sys.argv else build_host()
     if '--host' in sys.argv: host = Path(sys.argv[sys.argv.index('--host')+1]).resolve()
     results = []
-    for cpu in ('fex', 'unicorn'):
+    for cpu in native_app.test_engines():
         if subprocess.run(__import__('test_support').other_hosts_command(), capture_output=True).returncode == 0:
             __import__('test_support').skip('exclusive host access is unavailable: another neo98-host is active')
         if shutil.disk_usage(ROOT).free < 6*1024**3:

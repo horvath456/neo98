@@ -5,11 +5,6 @@
 Run through a shared serial test lock with an already built host.
 """
 if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
-if __name__ == '__main__':
     import shutil as _shutil, sys as _sys
     _missing = [_t for _t in ['i686-w64-mingw32-gcc'] if not _shutil.which(_t)]
     if _missing:  # this test builds its fixture with them; docs/BUILDING.md
@@ -22,6 +17,7 @@ import os
 import shutil
 import subprocess
 from PIL import Image
+import native_app
 from ui_clipboard_test_support import ROOT, machine, host
 
 
@@ -37,7 +33,7 @@ def main():
                     '-lddraw', '-luser32', '-lkernel32', '-o', str(exe)], check=True)
     results = {'host_sha256': hashlib.sha256((ROOT / 'build/native-app/neo98-host').read_bytes()).hexdigest(),
                'fixture_sha256': hashlib.sha256(exe.read_bytes()).hexdigest(), 'tests': {}}
-    for cpu in ('fex', 'unicorn'):
+    for cpu in native_app.test_engines():
         if shutil.disk_usage(ROOT).free < 8 * 1024**3:
             raise RuntimeError('STOP: fewer than 8 GiB free')
         os.environ['NEO98_CPU'] = cpu

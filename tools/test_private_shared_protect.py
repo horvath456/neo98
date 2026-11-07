@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """private MEM_SHARED protection on FEX and Unicorn. Use serial.py."""
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 import hashlib
 import json
@@ -17,6 +12,7 @@ import tempfile
 import pefile
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
+import native_app
 from ui_clipboard_test_support import fixture
 
 def main():
@@ -34,7 +30,7 @@ def main():
         drive=Path(temporary)/'c'
         subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R',str((__import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or __import__('pathlib').Path(__import__('os').environ.get('NEO98_WIN98_ROOT') or ROOT / 'build/win98-c'))).resolve()),str(drive)],check=True)
         assert not drive.is_symlink()
-        for cpu in ('fex','unicorn'):
+        for cpu in native_app.test_engines():
             path=out/(cpu+('-before' if args.baseline else '-after')+'.log')
             env=dict(os.environ,SDL_VIDEODRIVER='dummy',SDL_AUDIODRIVER='dummy',NEO98_CPU=cpu,
                 NEO98_HOST_DEADLINE='8',NEO98_SETTINGS_DIR=str(out/'settings'),NEO98_LOG_DIR=str(out/'logs'))

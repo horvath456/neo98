@@ -15,6 +15,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+import native_app
 sys.path[:0] = [str(ROOT), str(ROOT / 'tools')]
 
 
@@ -29,7 +30,7 @@ def main():
     parser.add_argument('--baseline', action='store_true', help='Use --cpu unicorn: FEX did not reproduce the baseline failure')
     parser.add_argument('--nonlocal', dest='nonlocal_regression', action='store_true', help='Run the existing nested/nonlocal SEH callback regression')
     parser.add_argument('--host', type=Path, default=ROOT / 'build/native-app/neo98-host')
-    parser.add_argument('--cpu', choices=('fex', 'unicorn'), action='append')
+    parser.add_argument('--cpu', choices=native_app.ENGINE_NAMES, action='append')
     args = parser.parse_args()
     guard()
     out = ROOT / ('build/seh-nonlocal-host' if args.nonlocal_regression else 'build/seh-thread')
@@ -49,7 +50,7 @@ def main():
     subprocess.run(['i686-w64-mingw32-gcc', str(ROOT / 'tools' / source),
                     *objects, '-O1', '-nostartfiles', '-Wl,-e,_mainCRTStartup', '-mwindows',
                     '-luser32', '-lkernel32', '-o', str(exe)], check=True, stdin=subprocess.DEVNULL)
-    for engine in args.cpu or ('fex', 'unicorn'):
+    for engine in args.cpu or native_app.test_engines():
         guard()
         active = subprocess.run(['ps', '-axo', 'pid=,comm='], capture_output=True,
                                 text=True, stdin=subprocess.DEVNULL)

@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Exercise the Device Manager SERIALUI page provider on private drive copies."""
-if __name__ == '__main__':
-    import sys as _sys
-    if _sys.platform != 'darwin':
-        print('SKIP: compares the FEX and Unicorn engines of macOS')  # macOS only; skipped elsewhere
-        _sys.exit(77)
 import argparse
 import os
 from pathlib import Path
@@ -15,6 +10,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(1, str(Path(__file__).resolve().parent))
 import neo98
+import native_app
 from test_release_smoke import run, ROOT
 
 
@@ -51,7 +47,7 @@ def main():
     out = ROOT / 'build/release-serialui-enum'
     out.mkdir(parents=True, exist_ok=True)
     fixture = build(out)
-    for engine in ('fex', 'unicorn'):
+    for engine in native_app.test_engines():
         case = out / engine
         case.mkdir(exist_ok=True)
         drive = case / 'c'
