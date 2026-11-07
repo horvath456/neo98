@@ -181,7 +181,7 @@ class Script
                 Next(real);
                 continue;
             }
-            if (machine_step && (step.action == "pause" || step.action == "wstate" || step.action == "state"))
+            if (machine_step && (step.action == "pause" || step.action == "wstate" || step.action == "state" || step.action == "touch" || step.action == "touchcancel"))
             {
                 // A copy: a state step pumps the machine, and the script
                 // may be read again meanwhile.

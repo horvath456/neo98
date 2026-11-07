@@ -15,6 +15,7 @@
 #include "host_settings_linux.h"
 #include "guest_screen_scale.h"
 #include "linux_session.h"
+#include "../sdk/lib/neo98_touch_abi.h"
 #include "host_states_linux.h"
 #include "host_setup_linux.h"
 #include "host_devices/service.h"
@@ -540,6 +541,8 @@ int main(int argc, char **argv)
         }
     } cursor_provider;
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+    SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+    SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
     SDL_RenderSetLogicalSize(renderer.get(), width, height);
     std::unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> texture(nullptr, SDL_DestroyTexture);
     static LinuxHost::Clipboard clipboard;
@@ -924,8 +927,36 @@ int main(int argc, char **argv)
         pause_machine(true, "state loaded");
     }
     LinuxHost::hold_steps = [&] { return !running || states.NeedsRun(); };
+    auto deliver_touch = [&](unsigned long long device, unsigned long long finger, unsigned phase,
+                             int x, int y, int pressure, unsigned timestamp) {
+        if (machine_paused) return;
+        int guest_width = 0, guest_height = 0, depth = 0;
+        User::ScreenMode(guest_width, guest_height, depth);
+        GuestScreenScale::CanvasToGuest(x, y, guest_width, guest_height, width, height);
+        const auto mouse = User::TouchInput(device, finger, phase, x, y, timestamp, pressure);
+        if (mouse.activate) X86::Application::RequestForeground(mouse.activate);
+        if (mouse.emit) session.app->MouseButtons(mouse.x, mouse.y, mouse.buttons);
+    };
+    User::SetTouchscreenProbe([]() {
+        for (int i = 0; i < SDL_GetNumTouchDevices(); ++i)
+            if (SDL_GetTouchDeviceType(SDL_GetTouchDevice(i)) == SDL_TOUCH_DEVICE_DIRECT) return true;
+        return false;
+    });
     LinuxHost::machine_step = [&](const std::string &action, const std::string &value) {
-        if (action == "pause")
+        if (action == "touchcancel") User::TouchCancelAll(true);
+        else if (action == "touch")
+        {
+            unsigned long long finger = 0;
+            char phase[16] = {};
+            int x = 0, y = 0, pressure = -1;
+            if (sscanf(value.c_str(), "%llu,%15[^,],%d,%d,%d", &finger, phase, &x, &y, &pressure) >= 4)
+            {
+                unsigned kind = !strcmp(phase, "down") ? NEO98_TOUCH_DOWN : !strcmp(phase, "move") ? NEO98_TOUCH_MOVE :
+                                !strcmp(phase, "up") ? NEO98_TOUCH_UP : !strcmp(phase, "cancel") ? NEO98_TOUCH_CANCEL : 0;
+                if (kind) deliver_touch(~0ull, finger, kind, x, y, pressure, SDL_GetTicks());
+            }
+        }
+        else if (action == "pause")
         {
             // pause=1 stops the whole machine as the menu does, pause=0 lets
             // it go on.
@@ -1169,9 +1200,27 @@ int main(int argc, char **argv)
             display_dirty = true;
             LinuxGtk::redraw = false;
         }
+        User::TouchPump();
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
+            if (event.type == SDL_FINGERDOWN || event.type == SDL_FINGERMOTION || event.type == SDL_FINGERUP)
+            {
+                if (SDL_GetTouchDeviceType(event.tfinger.touchId) != SDL_TOUCH_DEVICE_DIRECT) continue;
+                int window_width = 0, window_height = 0;
+                SDL_GetWindowSize(window.get(), &window_width, &window_height);
+                float x = 0, y = 0;
+                SDL_RenderWindowToLogical(renderer.get(), int(event.tfinger.x * window_width),
+                                           int(event.tfinger.y * window_height), &x, &y);
+                const unsigned phase = event.type == SDL_FINGERDOWN ? NEO98_TOUCH_DOWN :
+                                       event.type == SDL_FINGERUP ? NEO98_TOUCH_UP : NEO98_TOUCH_MOVE;
+                if (mouse_hold.released && phase == NEO98_TOUCH_DOWN) continue;
+                deliver_touch(event.tfinger.touchId, event.tfinger.fingerId, phase, int(x), int(y),
+                              int(event.tfinger.pressure * 1024), event.tfinger.timestamp);
+                continue;
+            }
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+                User::TouchCancelAll(true);
             if (getenv("NEO98_INPUT_TRACE") &&
                 (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP || event.type == SDL_WINDOWEVENT ||
                  event.type == SDL_MOUSEBUTTONDOWN))
