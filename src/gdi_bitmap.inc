@@ -19,7 +19,16 @@ struct BitmapStore
         BitmapIO *io = nullptr;
     };
     Range *ranges=nullptr;U range_capacity=0;
-    ~BitmapStore(){delete[] ranges;}
+    // The pixels of global bitmap memory a program never freed go with the
+    // table that holds them; the leak checker of a sanitized Linux runner
+    // runs after this destructor.
+    ~BitmapStore()
+    {
+        for (const auto &g : globals)
+            if (g.range && g.range <= range_capacity)
+                ::free(ranges[g.range - 1].data);
+        delete[] ranges;
+    }
     struct Global
     {
         U range = 0, locks = 0;
