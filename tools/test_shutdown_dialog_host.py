@@ -130,7 +130,10 @@ def main():
     # Press and release lie apart, the menu takes the capture on the press.
     # The script waits for the guest, not for the clock (NEO98_HOST_INPUT of
     # tools/neo98_host.cpp), so a loaded machine only makes it slower.
-    steps = ['0:wait=Shell_TrayWnd', '0:idle=2000', '1:click=25,587', '1:idle=1000',
+    # On setup's C: the Welcome window of the first logon has periodic
+    # timers and the machine is never quiet for long; a short idle interval
+    # as in tools/test_mouse_routing_host.py.
+    steps = ['0:wait=Shell_TrayWnd', '0:idle=200', '1:click=25,587', '1:idle=1000',
              f'2:shot={out / "menu.ppm"}', '2.5:move=95,557', '3:down=95,557',
              '3.3:up=95,557', '3.3:wait=#32770|Shut Down Windows', '3.3:idle=1000',
              f'5:shot={out / "dialog.ppm"}', '6:move=423,310', '7:down=423,310',
