@@ -311,7 +311,11 @@ class States
                 // 200 ms of running for the window to paint, then it stands.
                 loading = false; settling = true;
                 settle_until = std::chrono::steady_clock::now() + std::chrono::milliseconds(200);
-                pause(false, "a state settles");
+                // The combined provider already restored its full picture
+                // and holds both UI and core through settling. Unpausing just
+                // the mixer here leaks a block of saved audio before the
+                // next host turn reinstates that hold.
+                if (supplier != HostMachineState::DosUi()) pause(false, "a state settles");
                 return;
             }
         }
