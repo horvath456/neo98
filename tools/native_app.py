@@ -556,6 +556,9 @@ def build_host(source='neo98_host.cpp', name='neo98-host', replaced=None, saniti
     if sanitized and name == 'neo98-host':
         name = 'neo98-host-asan'
     if native_x64() and source == 'neo98_host.cpp':
+        if host_media:
+            from unicorn_dependencies import ensure
+            ensure('stb')
         if sanitized: raise RuntimeError('The Linux GUI sanitizer build is not yet connected')
         cflags = subprocess.check_output(['sdl2-config', '--cflags'], text=True).split()
         libs = subprocess.check_output(['sdl2-config', '--libs'], text=True).split()
@@ -699,6 +702,9 @@ def build_kms_host(*, vulkan=True, host_media=None):
     if host_media:
         from build_host_media import build as build_media_center
         build_media_center()
+    if host_media:
+        from unicorn_dependencies import ensure
+        ensure('stb')
     sdl_flags = subprocess.check_output(['sdl2-config', '--cflags'], text=True).split()
     sdl_libs = subprocess.check_output(['sdl2-config', '--libs'], text=True).split()
     gtk_flags, _ = linux_gtk_flags()
