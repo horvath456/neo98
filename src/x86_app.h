@@ -149,6 +149,8 @@ class Application final : private Pe32::AddressSpace
     // host calls this once per machine start.
     void PlayStartupSound();
     const unsigned *ConsolePixels(); // Native host view of the active text buffer.
+    // Write the GPU's pending surface changes back before the host reads pixels.
+    void SyncSurfaces() { HalSyncAll(); }
     unsigned long long ConsoleFrameHash() const;
     // A CLI host may copy console stream writes to its terminal. The bytes
     // retain the guest's console code page, currently CP437.

@@ -366,7 +366,7 @@ class Session
     }
     bool Screenshot(const std::string &path)
     {
-        if (app) app->HalSyncAll();
+        if (app) app->SyncSurfaces();
         User::Render(); int width, height; User::PixelsSize(width, height);
         const auto *pixels = app ? reinterpret_cast<const unsigned char *>(app->ConsolePixels()) : nullptr;
         if (pixels) { width = 800; height = 600; } else pixels = User::Pixels();
