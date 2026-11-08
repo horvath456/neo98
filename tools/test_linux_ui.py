@@ -40,20 +40,27 @@ def main():
         try: process.wait(timeout=15)
         finally: stream.close()
 
-    process,stream = launch('desktop',f'10:pbdump={out / "native-copy.txt"};11:menu=quit',
+    focused = out / 'canvas-focused'
+    focused.unlink(missing_ok=True)
+    process,stream = launch('desktop',f'0:wait=Notepad;0:waitfile={focused};0:idle=100;10:pbdump={out / "native-copy.txt"};11:menu=quit',
                              '--exe',r'C:\WINDOWS\NOTEPAD.EXE')
     try:
         child = wait(lambda: next((w for w in x.windows(process.pid) if 'Linux x64' in w['title']),None))
         shell = next(w for w in x.windows(process.pid) if w['title']=='Neo98')
         assert child['x']==shell['x'] and shell['y'] < child['y'] < shell['y']+60, (shell,child)
+        # The host surface appears before the guest has created its editor.
+        wait(lambda: 'wait=Notepad reached' in (out / 'desktop.log').read_text())
         x.click(child['x']+120,child['y']+140)
         wait(lambda: x.focus()==child['id'])
+        # Let the guest serve the asynchronous activation before typing.
+        focused.touch()
+        wait(lambda: 'idle=100 reached' in (out / 'desktop.log').read_text())
         for key in 'abc': x.chord(key); time.sleep(.08)
         x.chord('Control_L','a'); time.sleep(.2)
         x.click(shell['x']+60,shell['y']+12)
         popup = wait(lambda: next((w for w in x.windows(process.pid) if w['id'] not in (child['id'],shell['id'])),None))
         x.capture(popup['id'],out / 'edit-menu.png')
-        assert x.focus() in [w['id'] for w in x.windows(process.pid)], 'Menu does not own the keyboard'
+        assert x.owns(x.focus(), process.pid), 'Menu does not own the keyboard'
         x.chord('Down'); x.chord('Down'); x.chord('Return')
         time.sleep(.3); x.capture(shell['id'],out / 'desktop.png')
         process.wait(timeout=20)

@@ -422,6 +422,13 @@ class Seamless
         auto found = windows.find(guest);
         if (found != windows.end())
         {
+            // Raising an iconic X11 window does not map it. Restore first,
+            // so dock activation also reaches the guest's restore event path.
+            if (found->second->minimized || (SDL_GetWindowFlags(found->second->window) & SDL_WINDOW_MINIMIZED))
+            {
+                SDL_ShowWindow(found->second->window);
+                SDL_RestoreWindow(found->second->window);
+            }
             SDL_RaiseWindow(found->second->window);
             SDL_SetWindowInputFocus(found->second->window);
             return true;

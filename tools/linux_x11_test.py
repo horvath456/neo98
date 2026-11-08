@@ -101,6 +101,22 @@ class X11:
         message.data[0]=2
         self.x.XSendEvent(self.display,self.root,False,(1<<19)|(1<<20),event)
         self.x.XFlush(self.display)
+        # EWMH activation is asynchronous; do not send the next keystroke to
+        # whichever window happened to own focus before the WM handled it.
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            focused = self.focus()
+            while focused and focused != self.root:
+                if focused == window:
+                    return
+                root, parent, children, count = U(), U(), C.POINTER(U)(), C.c_uint()
+                if not self.x.XQueryTree(self.display, focused, C.byref(root), C.byref(parent),
+                                         C.byref(children), C.byref(count)):
+                    break
+                self.x.XFree(children)
+                focused = parent.value
+            time.sleep(.02)
+        raise AssertionError('Window manager did not focus the requested window')
 
     def property(self, window, name):
         atom = self.x.XInternAtom(self.display, name.encode(), False)
@@ -113,6 +129,23 @@ class X11:
         else: result = C.string_at(data,count.value * fmt.value // 8)
         self.x.XFree(data)
         return result
+
+    def owns(self, window, pid):
+        # GTK directs keyboard focus to an internal child of its top-level.
+        # That input-only window has no PID or client-leader properties.
+        while window and window != self.root:
+            if self.property(window, '_NET_WM_PID') == [pid]:
+                return True
+            leader = self.property(window, 'WM_CLIENT_LEADER')
+            if leader and self.property(leader[0], '_NET_WM_PID') == [pid]:
+                return True
+            root, parent, children, count = U(), U(), C.POINTER(U)(), C.c_uint()
+            if not self.x.XQueryTree(self.display, window, C.byref(root), C.byref(parent),
+                                     C.byref(children), C.byref(count)):
+                return False
+            self.x.XFree(children)
+            window = parent.value
+        return False
 
     def windows(self, pid):
         self.errors.clear()

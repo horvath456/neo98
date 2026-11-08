@@ -532,6 +532,32 @@ inline bool Create(SDL_Window *window)
         // reparents the managed window back into its own frame.
         XWithdrawWindow(info.info.x11.display, info.info.x11.window, DefaultScreen(info.info.x11.display));
         XSync(info.info.x11.display, False);
+        // XSync waits for the server, not for the WM to finish withdrawing.
+        // Openbox (and other reparenting WMs) can otherwise unmap the SDL
+        // window after we have embedded and mapped it. WM_STATE is removed
+        // when the WM releases its client; without a WM it is already absent.
+        const Atom wm_state = XInternAtom(info.info.x11.display, "WM_STATE", False);
+        const Uint32 deadline = SDL_GetTicks() + 2000;
+        for (;;)
+        {
+            Atom type = 0; int format = 0;
+            unsigned long count = 0, remaining = 0;
+            unsigned char *data = nullptr;
+            XGetWindowProperty(info.info.x11.display, info.info.x11.window, wm_state, 0, 2, False,
+                               AnyPropertyType, &type, &format, &count, &remaining, &data);
+            const bool withdrawn = !type || (format == 32 && count &&
+                *reinterpret_cast<unsigned long *>(data) == WithdrawnState);
+            if (data) XFree(data);
+            if (withdrawn) break;
+            if (SDL_TICKS_PASSED(SDL_GetTicks(), deadline))
+            {
+                fprintf(stderr, "NEO98 window manager did not release the desktop window\n");
+                gtk_widget_destroy(shell); shell = canvas = status = nullptr;
+                SDL_ShowWindow(window);
+                return false;
+            }
+            SDL_Delay(1);
+        }
         XSetWindowAttributes attributes = {};
         attributes.override_redirect = True;
         XChangeWindowAttributes(info.info.x11.display, info.info.x11.window, CWOverrideRedirect, &attributes);

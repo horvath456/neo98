@@ -101,16 +101,22 @@ def main():
                     x.capture(dialog['id'], out / ('image.png' if image else 'folder.png'))
                     return title, dialog
 
-                def header_button(dialog, right=False):
+                def chooser_button(dialog, right=False):
                     extents = x.property(dialog['id'], '_GTK_FRAME_EXTENTS')
-                    left, border_right, top = (extents[:3] if len(extents) == 4 else (0, 0, 0))
-                    dx = dialog['width'] - border_right - 54 if right else left + 54
-                    x.click(dialog['x'] + dx, dialog['y'] + top + 23)
+                    if len(extents) == 4:
+                        left, border_right, top = extents[:3]
+                        dx = dialog['width'] - border_right - 54 if right else left + 54
+                        dy = top + 23
+                    else:
+                        # GTK uses a bottom action area with server-side WM decorations.
+                        dx = dialog['width'] - (54 if right else 144)
+                        dy = dialog['height'] - 23
+                    x.click(dialog['x'] + dx, dialog['y'] + dy)
 
                 # This click hung in the previous build: the modal setup window
                 # kept the GTK input grab while its non-modal child was visible.
                 title, dialog = choose()
-                header_button(dialog)
+                chooser_button(dialog)
                 wait(lambda: not window(title))
                 time.sleep(.2)
                 assert window('Set up Neo98')
@@ -126,7 +132,7 @@ def main():
                 reports['folder_escape'] = True
 
                 title, dialog = choose(image=True)
-                header_button(dialog)
+                chooser_button(dialog)
                 wait(lambda: not window(title))
                 time.sleep(.2)
                 assert window('Set up Neo98')
@@ -143,7 +149,7 @@ def main():
                 time.sleep(.5)
                 if window(title):
                     x.capture(dialog['id'], out / 'folder-path-entered.png')
-                    header_button(dialog, right=True)
+                    chooser_button(dialog, right=True)
                 wait(lambda: not window(title))
                 x.capture(setup['id'], out / 'selected.png')
                 x.click(setup['x'] + setup['width'] - 75, setup['y'] + setup['height'] - 37)

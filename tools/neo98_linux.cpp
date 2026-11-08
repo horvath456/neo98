@@ -1231,7 +1231,14 @@ int main(int argc, char **argv)
                             char program[PATH_MAX] = {};
                             if (!X86::Application::HostWindowProgramPath(windows[i], program, sizeof program) || strcasecmp(path.c_str(), program)) continue;
                             if (quit) User::PostMessage(windows[i], 0x10, 0, 0);
-                            else if (!found) X86::Application::RequestForeground(windows[i]);
+                            else if (!found)
+                            {
+                                X86::Application::HostActivation(true);
+                                X86::Application::RequestForeground(windows[i]);
+                                // The foreground can be empty after minimizing;
+                                // restore the chosen program's native window.
+                                if (seamless_enabled) seamless.Raise(windows[i]);
+                            }
                             found = true;
                         }
                     if (!quit && !found) HostMenu::Perform("open-normal", path.c_str());
@@ -1410,7 +1417,10 @@ int main(int argc, char **argv)
             {
                 if (event.type == SDL_MOUSEBUTTONDOWN && !seamless_enabled && LinuxGtk::embedded)
                 {
-                    LinuxGtk::Show();
+                    // Presenting the GTK shell also queues focus for GTK's
+                    // internal window, after our SDL focus request. A canvas
+                    // click only needs to raise the shell before focusing SDL.
+                    gdk_window_raise(gtk_widget_get_window(LinuxGtk::shell));
                     LinuxGtk::FocusCanvas();
                 }
                 // Let go, the mouse is the window's again with a press.
