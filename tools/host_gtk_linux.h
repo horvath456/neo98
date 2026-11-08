@@ -5,6 +5,7 @@
 #include <clocale>
 #include <tuple>
 #include "host_menu.h"
+#include "../src/neo98_oem_logo.h"
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <X11/Xatom.h>
@@ -467,7 +468,25 @@ inline bool Create(SDL_Window *window)
         return false;
     shell = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(shell), "Neo98");
-    gtk_window_set_icon_name(GTK_WINDOW(shell), "computer");
+    // Use our own pixels. A themed icon can synchronously start an external
+    // image decoder while the window is realized, before the host loop can
+    // serve input or its deadline. Reuse the port's System Properties artwork.
+    unsigned char logo[Neo98OemLogo::Bytes];
+    Neo98OemLogo::Draw(logo);
+    const unsigned side = Neo98OemLogo::Height;
+    if (GdkPixbuf *icon = gdk_pixbuf_new(GDK_COLORSPACE_RGB, FALSE, 8, side, side))
+    {
+        auto *pixels = gdk_pixbuf_get_pixels(icon);
+        const unsigned stride = gdk_pixbuf_get_rowstride(icon);
+        for (unsigned y = 0; y < side; ++y)
+            for (unsigned x = 0; x < side; ++x)
+                for (unsigned k = 0; k < 3; ++k)
+                    pixels[y * stride + x * 3 + k] = logo[Neo98OemLogo::Header +
+                        (side - 1 - y) * Neo98OemLogo::RowBytes +
+                        (x + (Neo98OemLogo::Width - side) / 2) * 3 + 2 - k];
+        gtk_window_set_icon(GTK_WINDOW(shell), icon);
+        g_object_unref(icon);
+    }
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(shell), box);
     gtk_box_pack_start(GTK_BOX(box), MenuBar(), FALSE, FALSE, 0);
