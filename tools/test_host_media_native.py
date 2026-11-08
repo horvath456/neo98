@@ -69,6 +69,8 @@ def runner():
     if not native_app.native_x64():
         raise SystemExit('The runner is built for Linux x64; on the Mac the provider runs in the host (tools/test_media_center_host.py).')
     from native_build import compile_objects
+    from unicorn_dependencies import ensure
+    ensure('stb')  # picture_linux.cpp decodes with stb_image.h
     gtk_flags, gtk_libs = native_app.linux_gtk_flags()
     extra = compile_objects(ROOT, [ROOT / 'tools/host_media/picture_linux.cpp'], [*native_app.FAST_FLAGS, *gtk_flags],
                             neo98.tool_environment(), ROOT / 'build/native-app/object-cache-fast')
