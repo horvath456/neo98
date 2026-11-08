@@ -51,6 +51,12 @@ class LinkCacheTest(unittest.TestCase):
         self.assertTrue(self.build())
         self.assertFalse(self.build())
 
+    def test_tool_path_is_idempotent(self):
+        with patch.dict(os.environ, {'PATH': '/usr/bin:/bin'}), patch('shutil.which', return_value='/usr/bin/tool'):
+            first = native_app.neo98.tool_environment()['PATH']
+            os.environ['PATH'] = first
+            self.assertEqual(first, native_app.neo98.tool_environment()['PATH'])
+
     def test_layout_retained_by_image_identity(self):
         layout = self.root / 'runner.layout'
         identity = bytes(range(16))
