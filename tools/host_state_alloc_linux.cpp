@@ -21,6 +21,15 @@ struct Entry { const void *base; size_t bytes; Entry *next; };
 constexpr size_t Buckets = 16384;
 Entry *entries[Buckets] = {};
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+// GTK's image loaders and the native CPU can fork after audio and other
+// worker threads have started. The child must not inherit a registry lock
+// held by a thread that no longer exists there.
+void BeforeFork() { pthread_mutex_lock(&lock); }
+void AfterFork() { pthread_mutex_unlock(&lock); }
+__attribute__((constructor)) void ForkHandlers()
+{
+    pthread_atfork(BeforeFork, AfterFork, AfterFork);
+}
 size_t Bucket(const void *p) { return (reinterpret_cast<uintptr_t>(p) >> 4) % Buckets; }
 void Remove(const void *p)
 {
