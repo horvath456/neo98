@@ -792,10 +792,7 @@ class NativeCpu : public Cpu
         mapped = mmap(nullptr, SignalBytes, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
         if (mapped == MAP_FAILED) return CpuError::NoMemory;
         signal_stack = static_cast<unsigned char *>(mapped);
-        // The child becomes a ptraced CPU and never resumes host work. Host
-        // libraries may have worker threads and atfork callbacks whose locks
-        // cannot be taken here; use the async-signal-safe fork without them.
-        child = _Fork();
+        child = fork();
         if (child < 0) return CpuError::Resource;
         if (!child)
         {
