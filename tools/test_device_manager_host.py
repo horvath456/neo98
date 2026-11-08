@@ -783,7 +783,7 @@ def main():
         # The same adapter in the display properties: the page Settings names
         # it, and Advanced opens its sheet under that name (USER.271).
         sheet = f'{hardware["DisplayName"]} Properties'
-        steps = ['0:wait=|Display Properties', '3:tops=2', '4:click=402,442', f'5:wait=|{sheet}', '6:tops=2',
+        steps = ['0:wait=|Display Properties', '3:tops=2', '4:button=Advanced...', f'5:wait=|{sheet}', '6:tops=2',
                  '7:shot={out}/adapter.ppm', '8:close=*', '10:windows=1']
         code, text, run = host(binary, out, 'display', program, 'RUNDLL32.EXE shell32.dll,Control_RunDLL desk.cpl,,3',
                                steps, 40, pristine, win98_c.journal(pristine))

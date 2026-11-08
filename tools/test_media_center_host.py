@@ -158,7 +158,9 @@ def host(out, name, steps, program, kodi, drive=None, command=None, seconds=40, 
     # A C: of its own: a host on build/win98-c would hand the program to the
     # user's running NEO98 instead of starting.
     drive = drive or OWN_C
-    line = [str(ROOT / 'build/native-app/neo98-host')]
+    # Other host tests build the default runner without media support.
+    # Keep this feature-specific runner for every part of this test.
+    line = [str(ROOT / 'build/native-app/neo98-media-host')]
     if sys.platform == 'darwin':
         # Positional arguments select the development CLI instead of the app wizard.
         line += ['-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree', str(drive)]
@@ -257,11 +259,11 @@ def screen(out, check):
     x = X11()
     kodi_window = stand_in(x)
     log = (run / 'log.txt').open('w')
-    process = subprocess.Popen([str(ROOT / 'build/native-app/neo98-host'), '--drive-c', str(OWN_C), '--registry', str(OWN_C) + '.registry', '--exe',
+    process = subprocess.Popen([str(ROOT / 'build/native-app/neo98-media-host'), '--drive-c', str(OWN_C), '--registry', str(OWN_C) + '.registry', '--exe',
                                 r'C:\WINDOWS\MEDIACTR.EXE', '--time-limit', '60'], cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT)
 
     def shown():
-        return any(w['title'] == 'NEO98' for w in x.windows(process.pid))
+        return any(w['title'] == 'Neo98' for w in x.windows(process.pid))
 
     def until(condition, seconds):
         deadline = time.monotonic() + seconds
@@ -325,7 +327,7 @@ def main():
         print('SKIP: the Linux host runs under X11 here, and DISPLAY is not set', flush=True)
         raise SystemExit(77)
     if not args.no_build:
-        native_app.build_host(vulkan=not mac, host_media=True)
+        native_app.build_host(name='neo98-media-host', vulkan=not mac, host_media=True)
     pristine = win98_c.use_pristine()
     out = ROOT / 'build/media-center-host'
     out.mkdir(parents=True, exist_ok=True)
