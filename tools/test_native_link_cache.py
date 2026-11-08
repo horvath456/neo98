@@ -54,6 +54,14 @@ class LinkCacheTest(unittest.TestCase):
         self.assertTrue(self.build())
         self.assertFalse(self.build())
 
+    def test_layout_guard_change_invalidates_link(self):
+        guard = self.root / 'tools/state_layout_elf.py'
+        guard.write_text('# original guard\n')
+        self.assertTrue(self.build())
+        self.assertFalse(self.build())
+        guard.write_text('# revised guard\n')
+        self.assertTrue(self.build())
+
     def test_tool_path_is_idempotent(self):
         with patch.dict(os.environ, {'PATH': '/usr/bin:/bin'}), patch('shutil.which', return_value='/usr/bin/tool'):
             first = native_app.neo98.tool_environment()['PATH']

@@ -120,8 +120,10 @@ def cached_runner(binary, flags, compile_flags, source, inputs, link_flags, env,
     # Explicit file operands on the link line include runtime objects.
     files = [runner, *inputs, *[Path(i) for i in link_flags if Path(i).is_file()]]
     files += [Path(__file__), ROOT / 'tools/native_build.py',
-              ROOT / 'tools/state_layout.py', ROOT / 'tools/state_frames.py',
-              *sorted((ROOT / 'src/state_rules').glob('*'))]
+              ROOT / 'tools/state_layout.py', ROOT / 'tools/state_layout_elf.py',
+              ROOT / 'tools/state_frames.py',
+              *sorted((ROOT / 'src/state_rules').glob('*')),
+              *sorted(Path(env.get('NEO98_STATE_RULES') or ROOT / 'src/state_rules').glob('*'))]
     if sys.platform == 'darwin':
         files.append(ROOT / 'tools/arm64_hypervisor.entitlements')
     key = _identity({'flags': flags, 'compile_flags': compile_flags,
