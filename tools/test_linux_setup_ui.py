@@ -5,8 +5,10 @@ import argparse
 import ctypes as C
 import json
 import os
+import platform
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -58,15 +60,20 @@ def main():
     parser.add_argument('--runner', type=Path,
                         help='AppRun of an existing package (default: build the current one)')
     args = parser.parse_args()
-    if args.runner is None:
-        import linux_app
-        linux_app.package()
-        args.runner = ROOT / 'build/Neo98.AppDir/AppRun'
+    if args.runner is None and not (sys.platform.startswith('linux') and platform.machine() == 'x86_64'):
+        print('SKIP: the Linux package is built only on Linux x86_64')
+        return 77
     root = win98_c.use_pristine()
     out = ROOT / 'build/native-linux/setup-ui'
     out.mkdir(parents=True, exist_ok=True)
     (out / 'results.json').unlink(missing_ok=True)
     x = X11(); x.require_input()
+    # Build only once the test can run: the build is long, and other
+    # tests may be building the same programs at the same time.
+    if args.runner is None:
+        import linux_app
+        linux_app.package()
+        args.runner = ROOT / 'build/Neo98.AppDir/AppRun'
     reports = {}
 
     with tempfile.TemporaryDirectory(dir=out) as temporary:
@@ -174,4 +181,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
