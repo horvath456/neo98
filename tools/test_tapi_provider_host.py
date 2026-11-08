@@ -64,7 +64,7 @@ def main():
         results.append({'cpu': cpu, 'empty_provider_list': empty, 'guest_exit': expected, 'status': 'PASS'})
         print(case, 'TAPI provider PASS', flush=True)
     (out/'results.json').write_text(json.dumps({'host_sha256': hashlib.sha256(host.read_bytes()).hexdigest(),
-        'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+        'revision': neo98.source_revision(),
         'tests': results}, indent=2)+'\n')
 
 

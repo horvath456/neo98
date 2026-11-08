@@ -18,6 +18,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT),str(ROOT/'tools')]
 import first_logon
 import win98_c
+import neo98
 
 def main():
     p=argparse.ArgumentParser()
@@ -69,7 +70,7 @@ def main():
         pixels=list(frame.crop((50,70,950,450)).getdata())
         gray=sum(abs(r-g)<4 and abs(g-b)<4 for r,g,b in pixels)
         assert len(set(pixels))>500 and gray<len(pixels)//5,'benchmark scene did not render'
-    (out/'results.json').write_text(json.dumps({'status':'PASS','revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+    (out/'results.json').write_text(json.dumps({'status':'PASS','revision':neo98.source_revision(),
         'host_sha256':hashlib.sha256(args.host.read_bytes()).hexdigest(),'checks':['create project','Alt-F4 destroys MFC views','normal exit'],
         'benchmark_started':not args.close_only,'full_benchmark_tested':False,'render_target_warnings':text.count('DP2 render target unusable')},indent=2)+'\n')
     print('3DMARK2000 PASS: project, optional benchmark/Escape, MFC view cleanup, normal exit')

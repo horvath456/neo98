@@ -3,7 +3,9 @@
 # Copyright (C) 2026 Andreas Horvath
 """Import original USER image resources and system-image registration tables."""
 from pathlib import Path
-import hashlib,json,struct
+import hashlib,json,struct,sys
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+from generated_file import write_text
 ROOT=Path(__file__).resolve().parents[1];OUT=ROOT/'build/image-resource';HASH='18303935de5e88482e9630a06480a502c1b9d6281c4013c2dd1ca88086acf192'
 def generate():
  p=(ROOT/'build/gdi-audit/USER.EXE').read_bytes();assert hashlib.sha256(p).hexdigest()==HASH
@@ -21,6 +23,6 @@ def generate():
  for i,(typ,key,name,data,off)in enumerate(entries):h.append(f'inline constexpr unsigned char OriginalImageBytes{i}[]={{'+','.join(str(x)for x in data)+'};')
  h.append('inline constexpr OriginalImageResource OriginalImageResources[]={')
  for i,(typ,key,name,data,off)in enumerate(entries):h.append('{'+f'{typ},{key},'+json.dumps(name)+f',OriginalImageBytes{i},sizeof OriginalImageBytes{i}'+'},')
- h.append('};');(OUT/'system_assets.h').write_text('\n'.join(h)+'\n')
+ h.append('};');write_text(OUT/'system_assets.h','\n'.join(h)+'\n')
  result={'sha256':HASH,'resources':[{'type':t,'id':i,'name':s,'file_offset':o,'size':len(b),'sha256':hashlib.sha256(b).hexdigest()}for t,i,s,b,o in entries]};(OUT/'system-assets.json').write_text(json.dumps(result,indent=2)+'\n');return result
 if __name__=='__main__':print(json.dumps({'resources':len(generate()['resources']),'header':str(OUT/'system_assets.h')}))

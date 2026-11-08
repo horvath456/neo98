@@ -56,7 +56,7 @@ def main():
         results.append({'cpu': cpu, 'status': 'PASS'})
         print(cpu, 'DirectDraw reposition PASS', flush=True)
     (out/'results.json').write_text(json.dumps({'host_sha256': hashlib.sha256(host.read_bytes()).hexdigest(),
-        'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+        'revision': neo98.source_revision(),
         'tests': results}, indent=2)+'\n')
 
 

@@ -25,6 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / 'tools/game_repertoire.json'
 sys.path.insert(0, str(ROOT / 'tools'))
 from external_paths import external_path
+sys.path.insert(0, str(ROOT))
+from neo98 import source_revision
 HOME = None
 GIB = 1024 ** 3
 
@@ -413,7 +415,7 @@ def run(home, game, label, seconds, phase, work=None, session=None):
         if recipe.get('command'):
             command += ['--command', recipe['command']]
         metadata = {'id':game['id'], 'phase':phase, 'package_sha256':game['sha256'],
-                    'revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+                    'revision':source_revision(),
                     'host_sha256':digest(ROOT/'build/native-app/neo98-host'), 'command':command,
                     'environment':{k:v for k,v in env.items() if k.startswith(('NEO98_', 'SDL_'))}}
         (out/'command.json').write_text(json.dumps(metadata,indent=2)+'\n')
