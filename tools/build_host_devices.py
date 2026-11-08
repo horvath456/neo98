@@ -55,7 +55,11 @@ def icon_header(out):
     for name in ('eject-tray', 'eject-dialog'):
         pixels, mask = icon_art(ICONS / (name + '.ico'))
         text += 'static const ART %s_art={{%s},{%s}};\n' % (name.replace('-', '_'), ','.join('0x%06x' % p for p in pixels), ','.join(str(m) for m in mask))
-    (out / 'eject_icons.h').write_text(text)
+    try:
+        from generated_file import write_text
+    except ImportError:
+        from tools.generated_file import write_text
+    write_text(out / 'eject_icons.h', text)
 
 CAPTURE_RC = """1 VERSIONINFO
 FILEVERSION 1,0,0,0

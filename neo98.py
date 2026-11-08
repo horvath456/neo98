@@ -302,6 +302,19 @@ def shared_library_flags():
     return ['-dynamiclib'] if sys.platform == 'darwin' else ['-shared', '-fPIC']
 
 
+def source_revision(short=False):
+    """The commit of the sources, for reports: NEO98_REVISION when a tool such
+    as a workspace runs a copy without a repository, otherwise git."""
+    revision = os.environ.get("NEO98_REVISION")
+    if not revision:
+        try:
+            revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+                                               stderr=subprocess.DEVNULL).strip()
+        except (OSError, subprocess.CalledProcessError):
+            return "unknown"
+    return revision[:12] if short else revision
+
+
 def tool_environment():
     env = os.environ.copy()
     # Tests and tools play no sound; the user hears only `neo98.py run`.
