@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Decoding of the catalogue's pictures (JPEG, PNG, WebP as far as the host
-// can), with the host's own image library: picture_linux.cpp (GdkPixbuf),
+// can), with the host's own image library: picture_linux.cpp (stb_image and GdkPixbuf),
 // picture_macos.mm (ImageIO).
 #pragma once
 #include <cstddef>

@@ -21,9 +21,9 @@ DESTINATIONS = {'unicorn': 'unicorn', 'dosbox-pure': 'dosbox-pure', 'stb': 'stb'
 def selected(name, parts):
     """Return a relative output path, or None. Never extract archive links."""
     if name == 'stb':
-        # The TrueType rasterizer of the MS-DOS window's text mode and its
-        # licence; nothing else of the collection.
-        if parts in (('stb_truetype.h',), ('LICENSE',)): return PurePosixPath(*parts)
+        # The DOS TrueType rasterizer, the Linux media image decoder and
+        # their licence; nothing else of the collection.
+        if parts in (('stb_truetype.h',), ('stb_image.h',), ('LICENSE',)): return PurePosixPath(*parts)
         return None
     if name == 'dosbox-pure':
         # The libretro core and the DOSBox sources it is built from. The CI
@@ -52,7 +52,8 @@ def ensure(name):
             path = destination / relative
             if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
                 raise RuntimeError(f'{name} dependency differs: {path}')
-        return previous
+        if name != 'stb' or 'stb_image.h' in previous['files']:
+            return previous
     destination.parent.mkdir(parents=True, exist_ok=True)
     print(f'Importing {name}: {pin["version"]}', flush=True)
     digest = hashlib.sha256()

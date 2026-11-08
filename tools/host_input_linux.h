@@ -195,6 +195,9 @@ class Script
                 Next(real);
                 fprintf(stderr, "NEO98 Linux input %s=%s\n", action.c_str(), value.c_str());
                 machine_step(action, value);
+                // A burst of touch input is one unread packet, as with SDL
+                // events on macOS. Let the guest run after the whole burst.
+                if (action == "touch" || action == "touchcancel") continue;
                 // State scans and saves can take substantial host time. The
                 // next step must observe a fresh clock and runnable status,
                 // as it does after the deferred state steps on macOS.
