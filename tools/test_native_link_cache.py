@@ -4,6 +4,7 @@
 """Exercise the real compiler/link cache with a small runner."""
 from concurrent.futures import ThreadPoolExecutor
 import os
+import shutil
 from pathlib import Path
 import tempfile
 import struct
@@ -19,6 +20,8 @@ class LinkCacheTest(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
         (self.root / 'tools').mkdir()
+        shutil.copyfile(native_app.ROOT / 'tools/arm64_hypervisor.entitlements',
+                        self.root / 'tools/arm64_hypervisor.entitlements')
         (self.root / 'src/state_rules').mkdir(parents=True)
         self.header = self.root / 'tools/value.h'
         self.header.write_text('#define VALUE 1\n')
