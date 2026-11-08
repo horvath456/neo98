@@ -1831,6 +1831,17 @@ struct FieldReader
     bool validating = false;
     bool observing = false;
     unsigned native_depth = 0;
+    // Observation needs continuation metadata, not every pixel and cached
+    // byte owned by the application. The first pass still reads all fields.
+    std::vector<std::string> observation_roots;
+    bool WantsObservation(const std::string &path) const
+    {
+        if (observation_roots.empty() || path.empty()) return true;
+        for (const auto &root : observation_roots)
+            if (path == root || (path.size() > root.size() && path.compare(0, root.size(), root) == 0 && path[root.size()] == '.') ||
+                (root.size() > path.size() && root.compare(0, path.size(), path) == 0 && root[path.size()] == '.')) return true;
+        return false;
+    }
     std::map<std::string, unsigned> observed_pointer_tags;
     std::map<std::string, uint64_t> observed;
     std::map<std::string, std::pair<uint32_t, std::string>> observed_objects;
@@ -1843,6 +1854,7 @@ struct FieldReader
     bool ObserveFlat(uint32_t id, const unsigned char *data, const std::string &prefix, unsigned depth = 0)
     {
         if (depth > 256) return Fail("a flat type recurses beyond its input limit");
+        if (!WantsObservation(prefix)) return true;
         const auto &t = types[id];
         if (t.kind == Scalar && t.size <= 8) {
             uint64_t value = 0; memcpy(&value, data, t.size); observed[prefix] = value;
@@ -2555,6 +2567,14 @@ FieldReader *LoadFields(Source &source, void *first, const Outside &outside, cha
             return fail("the types of the state name a type they do not have");
         for (const auto &f : t.fields)
             if (f.type >= type_count) return fail("a field names a type the state does not have");
+        // Check flat layouts once, including fields observation does not need.
+        if (t.flat) {
+            if (t.kind == Array && r.types[t.a].size && t.b > t.size / r.types[t.a].size)
+                return fail("a flat array exceeds its type");
+            for (const auto &f : t.fields)
+                if (f.offset > t.size || r.types[f.type].size > t.size - f.offset)
+                    return fail("a flat field exceeds its structure");
+        }
     }
     // The objects first: where each one's values stand. That needs reading
     // over the variables once.
@@ -2642,6 +2662,12 @@ FieldReader *LoadFields(Source &source, void *first, const Outside &outside, cha
         if (entry.count != 1 || r.types[entry.type].name != "X86::Application")
             return fail("the combined UI has no native application root");
         r.observing = true;
+        r.observation_roots = {"current_thread", "dos_vm", "threads.0.host_frames", "threads.0.call_marks",
+                               "threads.0.host_waiting", "threads.0.block"};
+        for (unsigned i = 0; i < 16; ++i) {
+            r.observation_roots.push_back("threads." + std::to_string(i) + ".depth");
+            r.observation_roots.push_back("threads." + std::to_string(i) + ".host_frame_count");
+        }
         In entry_values{r.body_bytes.data(), r.body_bytes.size(), entry.data};
         if (!r.Get(entry_values, entry.type, -1, 0)) return fail(r.failure);
         auto value = [&](const char *name, uint64_t &out) {
@@ -2731,6 +2757,7 @@ FieldReader *LoadFields(Source &source, void *first, const Outside &outside, cha
         if (owner.count != 1 || r.types[owner.type].name != "X86::Application::DosVmState")
             return fail("the combined UI has an invalid DOS window owner type");
         r.observed.clear(); r.observed_objects.clear();
+        r.observation_roots = {"window", "finished", "closed", "waiting_process", "voodoo_overlay", "launch"};
         In owner_values{r.body_bytes.data(), r.body_bytes.size(), owner.data};
         if (!r.Get(owner_values, owner.type, -1, 0)) return fail(r.failure);
         uint64_t owner_window = 0, finished = 0, closed = 0, child = 0;
@@ -2756,6 +2783,7 @@ FieldReader *LoadFields(Source &source, void *first, const Outside &outside, cha
         {
             // The integrated native sheet resumes through two permanent
             // registries. Check their typed owners before assigning globals.
+            r.observation_roots.clear();
             auto launch_values=std::move(r.observed);
             auto observe_object=[&](uint32_t index) {
                 r.observed.clear();r.observed_objects.clear();r.observed_pointer_tags.clear();
