@@ -24,6 +24,8 @@ namespace MachineState
 // The number of the format. It changes when a state written before can no
 // longer be read at all; a new field or a field less does not change it.
 constexpr unsigned FormatVersion = 1;
+// Identity of the loaded image, also used to find its immutable field table.
+bool BuildIdentity(unsigned char out[16]);
 // True when a state can be saved and loaded here at all: the host has
 // handed over the layout table of its build (SetLayout, x86_state_fields.h).
 bool Available(const char **why = nullptr);

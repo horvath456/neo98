@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
 """Build and exercise the native Windows process runtime on the ARM Mac."""
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -101,6 +102,82 @@ def link_runner(flags, compile_flags, source, inputs, link_flags, temporary, env
         sign_for_hypervisor(temporary)
     finally:
         obj.unlink(missing_ok=True)
+
+
+@contextmanager
+def cached_runner(binary, flags, compile_flags, source, inputs, link_flags, env,
+                  cache, sidecars=()):
+    """Serialize links and reuse only a complete build of these exact inputs.
+
+    The runner uses the object cache too: clang -MD tracks its transitive
+    headers, compiler, environment and revision defines, just as for src/.
+    The commit record is written last, after the binary and all sidecars.
+    """
+    from native_build import compile_objects, locked, _hash, _identity, _response_files
+    runner, = compile_objects(ROOT, [ROOT / 'tools' / source],
+                              [*flags, *compile_flags], env, cache)
+    inputs = [Path(i) for i in inputs if i is not None]
+    # Explicit file operands on the link line include runtime objects.
+    files = [runner, *inputs, *[Path(i) for i in link_flags if Path(i).is_file()]]
+    files += [Path(__file__), ROOT / 'tools/native_build.py',
+              ROOT / 'tools/state_layout.py', ROOT / 'tools/state_frames.py',
+              *sorted((ROOT / 'src/state_rules').glob('*'))]
+    if sys.platform == 'darwin':
+        files.append(ROOT / 'tools/arm64_hypervisor.entitlements')
+    key = _identity({'flags': flags, 'compile_flags': compile_flags,
+                     'link_flags': list(map(str, link_flags)), 'inputs': list(map(str, inputs)),
+                     'environment': env, 'response_files': _response_files([*flags, *map(str, link_flags)], ROOT),
+                     'files': {str(p): _hash(p) for p in files if p.is_file()}})
+    stamp = Path(str(binary) + '.link.json')
+    with locked(Path(str(binary) + '.link.lock')):
+        reuse = False
+        try:
+            record = json.loads(stamp.read_text())
+            outputs = [binary, *[Path(str(binary) + suffix) for suffix in sidecars]]
+            reuse = record['key'] == key and all(
+                str(p) in record['outputs'] for p in outputs) and all(
+                Path(p).is_file() and _hash(p) == digest
+                for p, digest in record['outputs'].items())
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
+        if reuse:
+            yield None
+            return
+        temporary = binary.parent / f'.{binary.name}.{os.getpid()}'
+        try:
+            subprocess.run(['clang++', *flags, str(runner), *map(str, inputs),
+                            *map(str, link_flags), '-o', str(temporary)],
+                           cwd=ROOT, env=env, check=True)
+            sign_for_hypervisor(temporary)
+            yield temporary
+            outputs = [binary, *[Path(str(binary) + suffix) for suffix in sidecars]]
+            if '.layout' in sidecars:
+                layout = Path(str(binary) + '.layout')
+                if layout.is_file():
+                    identity = layout.read_bytes()[28:44].hex()
+                    outputs.append(binary.parent / '.state-layouts' / (identity + '.layout'))
+            if all(p.is_file() for p in outputs):
+                pending = Path(str(temporary) + '.link.json')
+                pending.write_text(json.dumps({'key': key, 'outputs': {
+                    str(p): _hash(p) for p in outputs}}, sort_keys=True) + '\n')
+                os.replace(pending, stamp)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+
+def retain_layout(layout):
+    """Publish the validated table by image identity before publishing its image.
+
+    Old hosts may ask for their table after another build replaces the host.
+    Keep these immutable tables for the lifetime of the build tree.
+    """
+    identity = layout.read_bytes()[28:44].hex()
+    directory = layout.parent / '.state-layouts'
+    directory.mkdir(exist_ok=True)
+    target = directory / (identity + '.layout')
+    temporary = directory / f'.{identity}.{os.getpid()}'
+    shutil.copyfile(layout, temporary)
+    os.replace(temporary, target)
 
 
 def sign_for_hypervisor(binary):
@@ -501,30 +578,36 @@ def build_fast(source, name, *, compile_flags=(), link_flags=(), extra_inputs=()
     binary = out / name
     if hives_only:
         release_dependencies(objects, out / 'object-cache-fast', binary)
-    temporary = out / f'.{name}.{os.getpid()}'
-    link_runner(fast_flags, [*stamp_flags(fast_flags), *compile_flags], source, [*metal, library, *extra_inputs],
-                [*(['-Wl,-rpath,' + str(library.parent)] if library else ['-ldl', '-pthread']), *frameworks,
-                 *map(str, objects), *link_flags], temporary, env)
-    if native_x64():
-        records = []
-        linked = {str(obj) for obj in objects}
-        for entry in (out / 'object-cache-fast/entries').glob('*.json'):
-            record = json.loads(entry.read_text())
-            obj = out / 'object-cache-fast/objects' / (record['object_sha256'] + '.o')
-            if str(obj) in linked: records.append({'source': record['source'], 'object': str(obj)})
-        manifest = Path(str(temporary) + '.objects.json')
-        manifest.write_text(json.dumps(records))
-        layout = Path(str(temporary) + '.layout')
-        try:
-            found = state_guards(temporary, env, output=layout) if source == 'neo98_linux.cpp' else []
+    sidecars = ('.objects.json', '.layout') if source == 'neo98_linux.cpp' else (
+        ('.objects.json',) if native_x64() else ())
+    with cached_runner(binary, fast_flags, [*stamp_flags(fast_flags), *compile_flags],
+                       source, [*metal, library, *extra_inputs],
+                       [*(['-Wl,-rpath,' + str(library.parent)] if library else ['-ldl', '-pthread']),
+                        *frameworks, *map(str, objects), *link_flags], env,
+                       out / 'object-cache-fast', sidecars) as temporary:
+        if temporary is None:
+            return binary
+        if native_x64():
+            records = []
+            linked = {str(obj) for obj in objects}
+            for entry in (out / 'object-cache-fast/entries').glob('*.json'):
+                record = json.loads(entry.read_text())
+                obj = out / 'object-cache-fast/objects' / (record['object_sha256'] + '.o')
+                if str(obj) in linked: records.append({'source': record['source'], 'object': str(obj)})
+            manifest = Path(str(temporary) + '.objects.json')
+            manifest.write_text(json.dumps(records))
+            layout = Path(str(temporary) + '.layout')
+            try:
+                found = state_guards(temporary, env, output=layout) if source == 'neo98_linux.cpp' else []
+                if layout.exists() and not found: retain_layout(layout)
+                os.replace(temporary, binary)
+                os.replace(manifest, Path(str(binary) + '.objects.json'))
+                if layout.exists() and not found: os.replace(layout, Path(str(binary) + '.layout'))
+                if source == 'neo98_linux.cpp': state_problems(binary, found)
+            finally:
+                temporary.unlink(missing_ok=True); manifest.unlink(missing_ok=True); layout.unlink(missing_ok=True)
+        else:
             os.replace(temporary, binary)
-            os.replace(manifest, Path(str(binary) + '.objects.json'))
-            if layout.exists() and not found: os.replace(layout, Path(str(binary) + '.layout'))
-            if source == 'neo98_linux.cpp': state_problems(binary, found)
-        finally:
-            temporary.unlink(missing_ok=True); manifest.unlink(missing_ok=True); layout.unlink(missing_ok=True)
-    else:
-        os.replace(temporary, binary)
     return binary
 
 
@@ -648,15 +731,25 @@ def build_host(source='neo98_host.cpp', name='neo98-host', replaced=None, saniti
     dos_vm += machine
     frameworks += machine_frameworks
     binary = out / name
-    temporary = out / f'.{name}.{os.getpid()}'
-    link_runner(fast, [*stamp_flags(fast), *cflags], source, [*metal, *dos_vm, library],
-                 [*(['-Wl,-rpath,' + str(library.parent)] if library else ['-ldl', '-pthread']), '-lz', *libs, *frameworks,
-                 *map(str, objects)], temporary, env)
-    if runtime_content:
-        release_dependencies(objects, out / cache_name, binary)
-    os.replace(temporary, binary)
-    if name.startswith('neo98-host'):
-        state_layout(binary, cache_name)
+    with cached_runner(binary, fast, [*stamp_flags(fast), *cflags], source,
+                       [*metal, *dos_vm, library],
+                       [*(['-Wl,-rpath,' + str(library.parent)] if library else ['-ldl', '-pthread']),
+                        '-lz', *libs, *frameworks, *map(str, objects)], env, out / cache_name,
+                       ('.layout',) if name.startswith('neo98-host') else ()) as temporary:
+        if temporary is not None:
+            if runtime_content:
+                release_dependencies(objects, out / cache_name, binary)
+            if name.startswith('neo98-host'):
+                state_layout(temporary, cache_name)
+                layout = Path(str(temporary) + '.layout')
+                if layout.exists():
+                    retain_layout(layout)
+                    os.replace(layout, Path(str(binary) + '.layout'))
+                problems = Path(str(temporary) + '.layout-problems')
+                if problems.exists():
+                    os.replace(problems, Path(str(binary) + '.layout-problems'))
+                    Path(str(binary) + '.layout').unlink(missing_ok=True)
+            os.replace(temporary, binary)
     if name == 'neo98-host':
         build_dock_helper(out, env)
     return binary

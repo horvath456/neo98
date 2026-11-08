@@ -68,10 +68,35 @@ inline bool Layout()
     path[count] = 0;
 #endif
     char real[4096];
+#ifdef __APPLE__
     if (!realpath(path, real)) return false;
+#else
+    // procfs already gives an absolute resolved path. An unlinked executable
+    // remains mapped, with this suffix, and still needs its own field table.
+    std::string image_path = path;
+    const std::string deleted = " (deleted)";
+    if (image_path.size() >= deleted.size() &&
+        image_path.compare(image_path.size() - deleted.size(), deleted.size(), deleted) == 0)
+        image_path.resize(image_path.size() - deleted.size());
+    snprintf(real, sizeof real, "%s", image_path.c_str());
+#endif
     // Beside the program, or in the Resources of its bundle (tools/mac_app.py).
     std::string name = std::string(real) + ".layout";
-    FILE *file = fopen(name.c_str(), "rb");
+    // A rebuild can replace the pathname before this process first saves.
+    // Prefer the immutable table for the image actually mapped in this process.
+    unsigned char identity[16];
+    FILE *file = nullptr;
+    if (MachineState::BuildIdentity(identity)) {
+        char hex[33];
+        for (unsigned i = 0; i < 16; ++i) snprintf(hex + i * 2, 3, "%02x", identity[i]);
+        const std::string path_text = real;
+        name = path_text.substr(0, path_text.rfind('/')) + "/.state-layouts/" + hex + ".layout";
+        file = fopen(name.c_str(), "rb");
+    }
+    if (!file) {
+        name = std::string(real) + ".layout";
+        file = fopen(name.c_str(), "rb");
+    }
     if (!file) {
         const std::string path_text = real;
         const size_t slash = path_text.rfind('/');

@@ -314,7 +314,10 @@ def tool_environment():
         candidates.append(str(local_llvm))
     candidates += ["/opt/homebrew/opt/llvm/bin", "/opt/homebrew/opt/lld/bin",
                    "/usr/local/opt/llvm/bin", "/usr/local/opt/lld/bin"]
-    env["PATH"] = os.pathsep.join(candidates + [env.get("PATH", "")])
+    # build_fast also installs this PATH for generators. Keep repeated calls
+    # stable so an unchanged compiler environment can reuse native objects.
+    env["PATH"] = os.pathsep.join(dict.fromkeys(
+        candidates + env.get("PATH", "").split(os.pathsep)))
     for tool in ["git", "make", "clang", "clang++", "ld.lld", "llvm-ar",
                  "llvm-objcopy", "llvm-objdump", "llvm-cxxfilt"]:
         if not shutil.which(tool, path=env["PATH"]):
