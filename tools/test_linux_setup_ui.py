@@ -55,8 +55,13 @@ def type_path(x, path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--runner', type=Path, default=ROOT / 'build/Neo98.AppDir/AppRun')
+    parser.add_argument('--runner', type=Path,
+                        help='AppRun of an existing package (default: build the current one)')
     args = parser.parse_args()
+    if args.runner is None:
+        import linux_app
+        linux_app.package()
+        args.runner = ROOT / 'build/Neo98.AppDir/AppRun'
     root = win98_c.use_pristine()
     out = ROOT / 'build/native-linux/setup-ui'
     out.mkdir(parents=True, exist_ok=True)
