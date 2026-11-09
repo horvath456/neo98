@@ -20,6 +20,18 @@ SOURCE = r'''
 #include <sys/wait.h>
 #include <unistd.h>
 int main() {
+    for (unsigned alignment = 12; alignment <= 16; ++alignment) {
+        auto *pages = static_cast<unsigned char *>(LinuxSharedMemory::AllocateAligned(65536, alignment));
+        if (!pages || (reinterpret_cast<uintptr_t>(pages) & ((1ull << alignment) - 1))) return 4;
+        int fd = -1; uint64_t offset = 0;
+        if (!LinuxSharedMemory::Find(pages + 4096, 4096, fd, offset) || offset != 4096) return 5;
+        void *view = mmap(nullptr, 4096, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
+        if (view == MAP_FAILED) return 6;
+        static_cast<unsigned char *>(view)[17] = 0x98;
+        if (pages[4096 + 17] != 0x98) return 7;
+        munmap(view, 4096);
+        if (!LinuxSharedMemory::Free(pages)) return 8;
+    }
     std::atomic<bool> held{false};
     std::thread worker([&] {
         pthread_mutex_lock(&lock);
@@ -53,7 +65,7 @@ def main():
                         str(Path(__file__).resolve().parent), str(source), '-o', str(binary)],
                        env=neo98.tool_environment(), check=True)
         subprocess.run([str(binary)], timeout=10, check=True)
-    print('ok fork preserves allocation registry ownership and permits child allocations')
+    print('ok aligned service pages preserve aliases; fork permits child allocations')
 
 if __name__ == '__main__':
     main()
