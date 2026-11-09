@@ -2,15 +2,15 @@
 
 <h1 align="center">Neo98</h1>
 
-<p align="center">Windows 98 programs and games on your Apple Silicon Mac.</p>
+<p align="center">Windows 98 programs and games on your Apple Silicon Mac and on Linux.</p>
 
 <p align="center"><a href="https://github.com/horvath456/neo98/releases/latest"><b>Download</b></a> · <a href="#getting-started">Getting started</a> · <a href="#building-from-source">Building from source</a></p>
 
 ![The Windows 98 desktop in Neo98, with Explorer, Notepad and Paint open](docs/images/desktop.png)
 
-Neo98 brings the software of the late 90s back to your Mac. You install your old Windows 98 CD once. After that, Explorer, Paint and the games you played back then start with a double-click, right next to your Mac apps.
+Neo98 brings the software of the late 90s back to your Mac. You install your old Windows 98 CD once. After that, Explorer, Paint and the games you played back then start with a double-click, right next to your Mac apps. There's a version for Linux PCs too.
 
-Neo98 doesn't boot Windows in a virtual PC. It brings its own implementation of the core of Windows, written for the Mac, and translates each program's x86 code to ARM while it runs. The rest of Windows, from Explorer to the file dialogs, comes from your own CD and runs unchanged, so everything looks and behaves the way you remember it.
+Neo98 doesn't boot Windows in a virtual PC. It brings its own implementation of the core of Windows, written for today's systems. On the Mac it translates each program's x86 code to ARM while it runs; on a Linux PC the code runs directly on the processor. The rest of Windows, from Explorer to the file dialogs, comes from your own CD and runs unchanged, so everything looks and behaves the way you remember it.
 
 In seamless mode, the Windows desktop steps aside and the programs sit right on your Mac desktop, each in its own window:
 
@@ -32,10 +32,10 @@ The project is young. Plenty of programs already work, some don't yet. If you ru
 
 ## What you need
 
-- A Mac with Apple Silicon (M1 or newer) and macOS 13 or later
+- A Mac with Apple Silicon (M1 or newer) and macOS 13 or later, with [Homebrew](https://brew.sh) for the tools that run the one-time Windows installation
+- or a 64-bit x86 PC with Linux 5.11 or newer and a desktop with X11 or XWayland. Neo98 is tested on Ubuntu 24.04; for 3D games you need a Vulkan driver.
 - A Windows 98 Second Edition CD image in English. It has to be the full version, not the upgrade. An `.iso` file works, and so does an `.iso` inside a `.zip` or `.7z` archive.
 - The product key that came with your copy of Windows
-- [Homebrew](https://brew.sh), for the tools that run the one-time Windows installation
 - About 2 GB of free disk space
 
 Neo98 contains no Microsoft software. Setup takes everything it needs from your CD image.
@@ -61,6 +61,18 @@ brew install qemu mtools cabextract tesseract
 <p align="center"><img src="docs/images/setup-progress.png" width="560" alt="Windows 98 Setup running inside the Neo98 setup assistant"></p>
 
 When Setup is done, the Windows 98 desktop appears. From now on, Neo98 starts right there.
+
+### On Linux
+
+Download `Neo98-linux-x64.tar.gz` from the [latest release](https://github.com/horvath456/neo98/releases/latest) and unpack it. The package brings everything the setup needs, QEMU included.
+
+```sh
+tar xzf Neo98-linux-x64.tar.gz
+NEO98.AppDir/AppRun                    # opens the setup the first time
+NEO98.AppDir/AppRun --install-launcher # optional: adds Neo98 to your app menu
+```
+
+Setup works the same way as on the Mac: choose your CD image, type in your product key, and Windows installs itself. The package needs a glibc at least as new as Ubuntu 24.04's.
 
 ## Using Neo98
 
@@ -90,7 +102,17 @@ Some limits you should know about:
 
 - Only the English Windows 98 Second Edition CD can be installed for now.
 - Saving a game's state doesn't work in every situation yet.
-- There's an experimental version for Linux. It isn't part of the releases, but you can build it yourself.
+- The Linux version is newer than the Mac version and has seen fewer programs so far. Its shortcuts differ: Ctrl+Shift+M opens the machine menu, Ctrl+Shift+S switches seamless mode and F11 fullscreen.
+
+## Questions
+
+**How is this different from a virtual machine like 86Box, PCem or UTM?** Those emulate a whole PC and boot Windows on it. Neo98 runs Windows programs directly, as apps on your Mac or Linux desktop, without a virtual PC in between. That makes it fast and lets Windows programs share your desktop, clipboard and files.
+
+**And from Wine?** Wine reimplements all of Windows from scratch and focuses on newer programs. Neo98 uses your own Windows 98, so everything from Explorer to the dialogs is the real thing from 1999, and it is made for the programs and games of that time.
+
+**Do I need my own Windows?** Yes. Neo98 contains no Microsoft software. You need a Windows 98 SE CD image and the product key that came with it.
+
+**Which games run?** Many, including 3D games through Direct3D, OpenGL and 3dfx Glide, and DOS games. See [Games](#games) for a few examples, and please [tell me](https://github.com/horvath456/neo98/issues) about the ones that don't work.
 
 ## Building from source
 
