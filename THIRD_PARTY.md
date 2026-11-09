@@ -58,12 +58,15 @@ of Tesseract) are copied from the build machine with their licenses.
 ## Source code for the GPL parts
 
 Unicorn, DOSBox Pure and the FreeDOS boot sector are licensed under the GPL,
-like Neo98 itself. That's why every release on GitHub comes with their
+like Neo98 itself. That's why every release on GitHub links to their
 complete source code, at exactly the versions used for that release and
 including Neo98's changes: `unicorn-source.tar.gz`,
-`dosbox-pure-source.tar.gz` and `freedos-boot-source.tar.gz`, next to
-`Neo98-source.tar.gz`. The unchanged source archives of QEMU, mtools and
-cabextract from the setup toolkit are attached as well.
+`dosbox-pure-source.tar.gz` and `freedos-boot-source.tar.gz`. The unchanged
+source archives of QEMU, mtools and cabextract from the setup toolkit are
+there as well. They are published in a release of their own, "Third-party
+sources", in this repository; releases built from the same versions and
+changes share it. Neo98's own source code is the source archive of each
+release.
 
 ## In the Linux version
 
