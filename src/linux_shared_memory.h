@@ -25,6 +25,23 @@ inline void *Allocate(uint64_t bytes, void *reserved = nullptr, int protection =
     blocks.push_back({static_cast<unsigned char *>(host), bytes, fd});
     return host;
 }
+// Saved service blocks may require more than page alignment. Keep them
+// file-backed on reload too, so all guest views still alias the same bytes.
+inline void *AllocateAligned(uint64_t bytes, unsigned alignment)
+{
+    if (alignment <= 12) return Allocate(bytes);
+    if (alignment > 16 || !bytes || (bytes & 4095) || bytes > (1ull << 32)) return nullptr;
+    const uint64_t boundary = 1ull << alignment, total = bytes + boundary;
+    void *reservation = mmap(nullptr, total, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (reservation == MAP_FAILED) return nullptr;
+    const auto begin = reinterpret_cast<uintptr_t>(reservation);
+    const auto aligned = (begin + boundary - 1) & ~(boundary - 1);
+    void *result = Allocate(bytes, reinterpret_cast<void *>(aligned));
+    if (!result) { munmap(reservation, total); return nullptr; }
+    if (aligned > begin) munmap(reservation, aligned - begin);
+    munmap(reinterpret_cast<void *>(aligned + bytes), begin + total - aligned - bytes);
+    return result;
+}
 inline bool Find(const void *host, uint64_t bytes, int &fd, uint64_t &offset)
 {
     const auto pointer = reinterpret_cast<uintptr_t>(host);

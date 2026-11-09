@@ -2031,7 +2031,7 @@ struct FieldReader
             // than its object would be another object when saved again.
             void *block = nullptr;
 #ifdef __linux__
-            if (o.aligned <= 12 && !(bytes & 4095)) block = LinuxSharedMemory::Allocate(bytes);
+            if (!(bytes & 4095)) block = LinuxSharedMemory::AllocateAligned(bytes, o.aligned);
             else
 #endif
             if (posix_memalign(&block, (size_t)1 << (o.aligned > 16 ? 16 : o.aligned), bytes)) block = nullptr;
