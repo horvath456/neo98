@@ -262,14 +262,15 @@ class Session
                     // A package update can replace the executable while its
                     // machine is running. procfs then appends " (deleted)" to
                     // the old image's path; it is still our handoff peer.
-                    if (count > 0)
+                    const bool resolved = count > 0 && realpath(argv[0], own);
+                    if (resolved && strcmp(executable, own))
                     {
                         constexpr const char deleted[] = " (deleted)";
                         const size_t length = strlen(executable), suffix = sizeof deleted - 1;
                         if (length >= suffix && !strcmp(executable + length - suffix, deleted))
                             executable[length - suffix] = 0;
                     }
-                    if (count > 0 && realpath(argv[0], own) && !strcmp(executable, own) &&
+                    if (resolved && !strcmp(executable, own) &&
                         HostSingle::Hand(drive, !options.open_host.empty() ? options.open_host :
                             !options.game_machine.empty() || !strcasecmp(options.exe.c_str(), "C:\\WINDOWS\\EXPLORER.EXE") ? "" : options.exe,
                             options.program_action.empty() ? "open" : options.program_action.c_str()))
