@@ -27,7 +27,7 @@ FILES = {'CMakeLists.txt', 'neo98.py', 'Run.command', 'COPYING', 'README.md',
          'THIRD_PARTY.md', 'NOTICE', 'NOTICE.md', '.github/workflows/release.yml'}
 DOCS = {'docs/BUILDING.md', 'docs/ARM64-APPS.md', 'docs/FREEDOS-BOOT.md'}
 # README screenshots, animations, video companions and icon. Every other image is rejected.
-IMAGES = {'docs/images/icon.png', 'docs/images/desktop.png', 'docs/images/setup.png',
+IMAGES = {'docs/images/icon.png', 'docs/images/setup.png',
           'docs/images/setup-progress.png', 'docs/images/games.jpg', 'docs/images/seamless.png',
           'docs/images/linux-desktop-apps.gif', 'docs/images/linux-desktop-apps.mp4',
           'docs/images/linux-desktop.png', 'docs/images/linux-seamless.gif',
