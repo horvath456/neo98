@@ -26,9 +26,14 @@ FILES = {'CMakeLists.txt', 'neo98.py', 'Run.command', 'COPYING', 'README.md',
          'ARCHITECTURE.md', '.gitignore', '.gitattributes',
          'THIRD_PARTY.md', 'NOTICE', 'NOTICE.md', '.github/workflows/release.yml'}
 DOCS = {'docs/BUILDING.md', 'docs/ARM64-APPS.md', 'docs/FREEDOS-BOOT.md'}
-# Screenshots and the icon shown by README.md. Every other image is rejected.
+# README screenshots, animations, video companions and icon. Every other image is rejected.
 IMAGES = {'docs/images/icon.png', 'docs/images/desktop.png', 'docs/images/setup.png',
-          'docs/images/setup-progress.png', 'docs/images/games.jpg', 'docs/images/seamless.png'}
+          'docs/images/setup-progress.png', 'docs/images/games.jpg', 'docs/images/seamless.png',
+          'docs/images/linux-desktop-apps.gif', 'docs/images/linux-desktop-apps.mp4',
+          'docs/images/linux-desktop.png', 'docs/images/linux-seamless.gif',
+          'docs/images/linux-seamless.mp4', 'docs/images/linux-seamless.png',
+          'docs/images/linux-wonderland.gif', 'docs/images/linux-wonderland.mp4',
+          'docs/images/linux-wonderland.png'}
 PATTERNS = [re.compile(p, re.I) for p in (
     rb'andreashorvat[h]', rb'/User[s]/', rb'a[r]m98', rb'pico_it[x]', rb'win95-phon[e]',
     rb'\b[A-Z0-9]{5}(?:-[A-Z0-9]{5}){4}\b', # retail product keys
