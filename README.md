@@ -16,6 +16,16 @@ In seamless mode, the Windows desktop steps aside and the programs sit right on 
 
 ![Paint, Explorer, Notepad and the Windows 98 taskbar on a Mac desktop in seamless mode](docs/images/seamless.png)
 
+And the same on a Linux PC, with the desktop in a window, in seamless mode and in a game:
+
+<table>
+<tr>
+<td width="33%"><img src="docs/images/linux-desktop-apps.gif" alt="Neo98 on Linux: drawing in Windows 98 Paint next to Notepad on the Windows 98 desktop"></td>
+<td width="33%"><img src="docs/images/linux-seamless.gif" alt="Windows 98 Notepad and Calculator as separate windows on a Linux desktop in seamless mode, adding 2 and 3"></td>
+<td width="33%"><img src="docs/images/linux-wonderland.gif" alt="Playing the 3D game Wonderland in Neo98 on Linux"></td>
+</tr>
+</table>
+
 The project is young. Plenty of programs already work, some don't yet. If you run into one that doesn't, please [let me know](#when-something-doesnt-work).
 
 ## What it can do
@@ -73,6 +83,8 @@ NEO98.AppDir/AppRun --install-launcher # optional: adds Neo98 to your app menu
 ```
 
 Setup works the same way as on the Mac: choose your CD image, type in your product key, and Windows installs itself. The package needs a glibc at least as new as Ubuntu 24.04's.
+
+<p align="center"><img src="docs/images/linux-desktop.png" width="560" alt="Windows 98 Notepad and Paint inside the Neo98 window on Linux, with its GTK menu bar"></p>
 
 ## Using Neo98
 
