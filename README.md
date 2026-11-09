@@ -145,6 +145,6 @@ This builds `build/Neo98.app`. The first build fetches and compiles a few depend
 
 Neo98 is free software under the GNU General Public License, version 2 or (at your option) any later version. See [COPYING](COPYING).
 
-Neo98 builds on the work of other open source projects; [THIRD_PARTY.md](THIRD_PARTY.md) lists them. Every release comes with the source code of the GPL components inside the app.
+Neo98 builds on the work of other open source projects; [THIRD_PARTY.md](THIRD_PARTY.md) lists them. Every release links to the source code of the GPL components inside the app.
 
 Neo98 is an independent project and isn't affiliated with Microsoft, which owns the Windows trademark.

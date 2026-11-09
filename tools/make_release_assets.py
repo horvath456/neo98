@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 """Build local release assets (macOS: Neo98.dmg, Linux: Neo98-linux-x64.tar.gz)
-and complete pinned GPL source archives.
+and complete pinned source archives of the GPL components they contain.
+
+The component sources go into the folder third-party-sources beside the
+packages, with their own SHA256SUMS. The archives are reproducible: the same
+pins and patches give the same bytes, so a release can link to sources that
+are already published instead of attaching them again. Neo98's own source is
+the release tag (GitHub's source archive of it).
 
 Run from the release checkout. No upload or GitHub operation is performed.
 """
 import argparse
+import gzip
 import hashlib
 import io
 import json
@@ -29,20 +36,28 @@ def add_bytes(archive, name, data, mode=0o644):
     archive.addfile(info, io.BytesIO(data))
 
 
+class reproducible_tar:
+    """A .tar.gz whose bytes depend only on what goes in: no time in the gzip
+    header, and add_bytes gives every member the time 0 and no owner."""
+    def __init__(self, path):
+        self.path = path
+    def __enter__(self):
+        self.file = open(self.path, 'wb')
+        self.gzip = gzip.GzipFile(filename='', mode='wb', fileobj=self.file, mtime=0)
+        self.archive = tarfile.open(fileobj=self.gzip, mode='w', format=tarfile.PAX_FORMAT)
+        return self.archive
+    def __exit__(self, *problem):
+        self.archive.close(); self.gzip.close(); self.file.close()
+
+
+SOURCES = 'third-party-sources'
+
+
 def source_assets(output):
-    from export_release import export
     from build_unicorn_host import patched_sources as unicorn_patches
     from build_dosbox_pure import patched_sources as dos_patches
     from unicorn_dependencies import ensure, PINS
     output.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='release-source-', dir=output) as temporary:
-        tree = Path(temporary) / 'neo98'
-        export(ROOT, tree)
-        with tarfile.open(output / 'Neo98-source.tar.gz', 'w:gz') as archive:
-            for path in sorted(tree.rglob('*')):
-                if path.is_file():
-                    add_bytes(archive, 'neo98/' + path.relative_to(tree).as_posix(), path.read_bytes(),
-                              0o755 if os.access(path, os.X_OK) else 0o644)
     for name, patches in [('unicorn', unicorn_patches), ('dosbox-pure', dos_patches)]:
         ensure(name)
         pin = PINS[name]
@@ -57,7 +72,7 @@ def source_assets(output):
         data = cache.read_bytes()
         if hashlib.sha256(data).hexdigest() != pin['sha256']:
             raise RuntimeError('Cached source checksum mismatch: ' + name)
-        with tarfile.open(output / (name + '-source.tar.gz'), 'w:gz') as archive:
+        with reproducible_tar(output / (name + '-source.tar.gz')) as archive:
             add_bytes(archive, name + '/upstream.tar.gz', data)
             add_bytes(archive, name + '/pin.json', (json.dumps(pin, indent=2)+'\n').encode())
             for path, text in sorted(patches().items()):
@@ -68,8 +83,9 @@ def source_assets(output):
                 'upstream.tar.gz is the unchanged upstream release. pin.json has its download\n'
                 'address and SHA-256 checksum. The modified folder contains the files Neo98\n'
                 'changes, in their changed form.\n\n'
-                'To build it the way Neo98 does, unpack Neo98-source.tar.gz from the same\n'
-                f'release and run python3 neo98.py app. {builder} applies the changes and\n'
+                'To build it the way Neo98 does, take the source code of the Neo98 release\n'
+                'that links to this archive (the release tag on GitHub) and run\n'
+                f'python3 neo98.py app. {builder} applies the changes and\n'
                 'sets the build flags. docs/BUILDING.md lists what you need to install.\n')
             add_bytes(archive, name + '/BUILD.txt', instructions.encode())
     # The setup toolkit's programs, built unchanged from these archives
@@ -79,11 +95,12 @@ def source_assets(output):
         archive = fetch(name)
         suffix = ''.join(archive.suffixes[-2:])
         shutil.copy2(archive, output / f'{name}-{TOOLKIT[name]["version"]}-source{suffix}')
-    # FreeDOS boot sources, macros, license and build recipe are also in Neo98-source.
-    with tarfile.open(output / 'freedos-boot-source.tar.gz', 'w:gz') as archive:
+    # FreeDOS boot sources, macros, license and build recipe, also in Neo98's own tree.
+    with reproducible_tar(output / 'freedos-boot-source.tar.gz') as archive:
         for path in sorted((ROOT / 'tools/freedos_boot').rglob('*')):
             if path.is_file(): add_bytes(archive, 'freedos-boot/' + path.relative_to(ROOT / 'tools/freedos_boot').as_posix(), path.read_bytes())
         add_bytes(archive, 'freedos-boot/BUILD.md', (ROOT / 'docs/FREEDOS-BOOT.md').read_bytes())
+    checksums(output)
 
 
 def notarize(path, profile):
@@ -178,7 +195,7 @@ def main():
             notarize(dmg, args.notarize)
         shutil.copy2(dmg, args.output / 'Neo98.dmg')
     if not args.no_sources:
-        source_assets(args.output)
+        source_assets(args.output / SOURCES)
     checksums(args.output)
     print('Release assets: ' + str(args.output))
 
