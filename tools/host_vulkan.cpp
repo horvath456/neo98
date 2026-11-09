@@ -1722,6 +1722,76 @@ class Vulkan final : public Gpu::Backend
                         bool glide = false, const GlideUniforms *uniforms = nullptr,
                         const Gpu::Draw *packed = nullptr, unsigned packed_count = 0)
     {
+        // Lavapipe can discard clipped triangle-list primitives and corrupt
+        // their interpolants. Clip fixed-function lists on the CPU on that
+        // driver; Metal and hardware Vulkan keep their native clipping path.
+        if (!glide && !packed && !state.vertex_shader.tokens &&
+            properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU &&
+            strstr(properties.deviceName, "llvmpipe") &&
+            topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST &&
+            std::any_of(converted.begin(), converted.end(), [](const Vertex &v) {
+                const auto &p = v.position;
+                return p[0] < -p[3] || p[0] > p[3] || p[1] < -p[3] || p[1] > p[3] ||
+                       p[2] < 0 || p[2] > p[3];
+            }))
+        {
+            std::vector<Vertex> clipped;
+            const unsigned count = indexed ? unsigned(index_data.size()) : unsigned(converted.size());
+            auto distance = [](const Vertex &v, unsigned plane) -> double {
+                const auto &p = v.position;
+                switch (plane) {
+                case 0: return p[2]; case 1: return double(p[3]) - p[2];
+                case 2: return double(p[3]) + p[0]; case 3: return double(p[3]) - p[0];
+                case 4: return double(p[3]) + p[1]; default: return double(p[3]) - p[1];
+                }
+            };
+            for (unsigned i = 0; i + 2 < count; i += 3)
+            {
+                std::vector<Vertex> polygon;
+                for (unsigned j = 0; j < 3; ++j)
+                    polygon.push_back(converted[indexed ? index_data[i+j] : i+j]);
+                for (unsigned plane = 0; plane < 6 && !polygon.empty(); ++plane)
+                {
+                    std::vector<Vertex> next;
+                    Vertex a = polygon.back(); double da = distance(a, plane);
+                    for (const auto &b : polygon)
+                    {
+                        const double db = distance(b, plane);
+                        if ((da < 0) != (db < 0))
+                        {
+                            const double t = da / (da - db);
+                            Vertex v;
+                            auto mix = [](float a, float b, double t) { return float(a + (double(b)-a)*t); };
+                            for (unsigned k=0; k<4; ++k) v.position[k] = mix(a.position[k], b.position[k], t);
+                            // Colours are affine in screen space; UVs and the
+                            // fog/W varyings use homogeneous interpolation.
+                            const double screen_t = v.position[3] != 0 ? t*b.position[3]/v.position[3] : t;
+                            for (unsigned k=0; k<4; ++k) {
+                                v.color[k] = mix(a.color[k], b.color[k], screen_t);
+                                v.specular[k] = mix(a.specular[k], b.specular[k], screen_t);
+                                for (unsigned unit=0; unit<8; ++unit)
+                                    v.tex[unit][k] = mix(a.tex[unit][k], b.tex[unit][k], t);
+                            }
+                            v.depth = mix(a.depth,b.depth,t); v.point_size = mix(a.point_size,b.point_size,t);
+                            for (unsigned k=0; k<6; ++k) v.clip[k] = mix(a.clip[k],b.clip[k],t);
+                            if (plane == 0) v.position[2] = 0;
+                            else if (plane == 1) v.position[2] = v.position[3];
+                            else v.position[(plane-2)/2] = (plane & 1) ? v.position[3] : -v.position[3];
+                            next.push_back(v);
+                        }
+                        if (db >= 0) next.push_back(b);
+                        a = b; da = db;
+                    }
+                    polygon.swap(next);
+                }
+                for (unsigned j=1; j+1<polygon.size(); ++j) {
+                    clipped.push_back(polygon[0]); clipped.push_back(polygon[j]); clipped.push_back(polygon[j+1]);
+                }
+            }
+            converted.swap(clipped);
+            indexed = false;
+            if (converted.empty()) return;
+        }
         VkPipeline pipeline = Pipeline(topology, state, glide, packed != nullptr);
         if (!pipeline)
             return;

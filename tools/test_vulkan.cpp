@@ -286,6 +286,47 @@ static void TestPackedClip(Gpu::Backend &gpu)
     gpu.Release(surface.bits,pixels.size()*4); gpu.Release(texture.bits,sizeof(texels));
     puts("VULKAN PACKED CLIP PASS: general-path comparison, colours, perspective UVs, two textures, indices");
 }
+static void TestClippedSky(Gpu::Backend &gpu)
+{
+    // A perspective sky plane extends just past all four viewport edges.
+    // Every pixel must be covered, including both halves of the diagonal.
+    struct Vertex { float x,y,z,w; unsigned color; };
+    const Vertex vertices[] = {{-2.02f,-2.02f,1,2,0xff000040},
+        {2.02f,-2.02f,1,2,0xffff0040}, {1.01f,1.01f,.5f,1,0xffffff40},
+        {-1.01f,1.01f,.5f,1,0xff00ff40}};
+    const unsigned short indices[] = {0,1,2,0,2,3};
+    std::vector<unsigned> pixels(64*64);
+    Gpu::Surface surface;
+    surface.bits = reinterpret_cast<unsigned char *>(pixels.data());
+    surface.width = surface.height = 64; surface.pitch = 256; surface.bit_count = 32;
+    surface.r_mask = 0xff0000; surface.g_mask = 0xff00; surface.b_mask = 0xff;
+    Gpu::State state; state.viewport_width = state.viewport_height = 64;
+    state.render[22] = 1; state.render[9] = 2;
+    state.stage[0][1] = 2; state.stage[0][2] = 0; state.stage[1][1] = 1;
+    for (bool indexed : {false, true}) {
+        assert(gpu.Begin(surface, nullptr)); gpu.Clear(1,0,1,0,nullptr,0,state);
+        Vertex expanded[6];
+        for (unsigned i=0; i<6; ++i) expanded[i] = vertices[indices[i]];
+        Gpu::Draw d; d.primitive = Gpu::TriangleList;
+        d.primitive_count = 2; d.fvf = 0x4042; d.stride = sizeof(Vertex);
+        d.vertices = reinterpret_cast<const unsigned char *>(indexed ? vertices : expanded);
+        d.vertex_count = indexed ? 4 : 6;
+        d.indices = indexed ? indices : nullptr; d.index_count = indexed ? 6 : 0;
+        gpu.Draw(d,state); gpu.End(); gpu.Sync(surface,false);
+        for (unsigned y=0; y<64; ++y) for (unsigned x=0; x<64; ++x) {
+            const unsigned p = pixels[y*64+x];
+            // Clip-space Y points up. Colours must remain affine in screen
+            // space even though W changes by a factor of two across the quad.
+            const int red = int(((x+.5f)/32-1+1.01f)/2.02f*255+.5f);
+            const int green = int((1-(y+.5f)/32+1.01f)/2.02f*255+.5f);
+            assert(std::abs(int((p>>16)&255)-red) <= 1);
+            assert(std::abs(int((p>>8)&255)-green) <= 1);
+            assert((p&255) == 64);
+        }
+    }
+    gpu.Release(surface.bits,pixels.size()*4);
+    puts("VULKAN CLIPPED SKY PASS: indexed and expanded lists cover all viewport edges");
+}
 int main()
 {
     Test16(5);
@@ -296,6 +337,7 @@ int main()
         fprintf(stderr, "No Vulkan device is available for this test.\n");
         return 77;
     }
+    TestClippedSky(*gpu);
     TestBatches(*gpu);
     TestPackedClip(*gpu);
     TestResidentReads(*gpu);
