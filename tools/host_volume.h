@@ -61,7 +61,7 @@ inline std::string Upper(const std::string &text)
 {
     std::string out = text;
     for (auto &c : out)
-        c = char(Fold((unsigned char)c));
+        c = char(Win98ShortAlias::NameFold((unsigned char)c));
     return out;
 }
 inline bool Same(const std::string &a, const std::string &b)

@@ -3,6 +3,7 @@
 #include "x86_app.h"
 #include "win98_path_family.h"
 #include "win98_search_path.h"
+#include "win98_short_alias.h"
 #include "win98_nls.h"
 #ifdef NEO98_RUNTIME_CONTENT
 #include "windows_runtime_data.h"
@@ -113,7 +114,7 @@ struct Application::KernelPathEnvironment
         if (error) { Error(error); return ~0u; }
         return app.files.store.Get(node)->attributes;
     }
-    static U Fold(U c) { return c >= 'a' && c <= 'z' ? c - 32 : c; }
+    static U Fold(U c) { return Win98ShortAlias::NameFold(c); }
     // DOS keeps the current directory of every drive but the current one in a
     // "=X:" environment variable, and the original path core asks for it by
     // that name. Here that directory lives in Files::Session.

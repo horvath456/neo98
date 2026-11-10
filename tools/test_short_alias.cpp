@@ -22,7 +22,7 @@ namespace
 std::string Upper(std::string text)
 {
     for (auto &c : text)
-        c = char(Win98ShortAlias::Fold((unsigned char)c));
+        c = char(Win98ShortAlias::NameFold((unsigned char)c));
     return text;
 }
 // tools/host_volume.h ToHost: a byte above 127 is the UTF-8 form of the code

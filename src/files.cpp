@@ -3,6 +3,7 @@
 #include "system_tree.h"
 #include "volume.h"
 #include "win98_cache_pool.h"
+#include "win98_short_alias.h"
 #include "win98_vmm_bitmap.h"
 #include <new>
 #include <stdio.h>
@@ -32,7 +33,7 @@ TimeStamp WriteTime(TimeStamp value){value.hundredths=0;return value;}
 unsigned Fold(unsigned c) { return c >= 'a' && c <= 'z' ? c - 32 : c; }
 bool Equal(const char *a, const char *b)
 {
-    while (*a && Fold((unsigned char)*a) == Fold((unsigned char)*b))
+    while (*a && Win98ShortAlias::NameFold((unsigned char)*a) == Win98ShortAlias::NameFold((unsigned char)*b))
         ++a, ++b;
     return *a == *b;
 }

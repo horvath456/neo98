@@ -15,6 +15,15 @@ namespace Win98ShortAlias
 {
 using U = unsigned;
 inline U Fold(U c) { return c >= 'a' && c <= 'z' ? c - 32 : c; }
+// Two names are the same file when they match without regard to case. VFAT
+// compares long names in Unicode, so the letters of the ANSI code page above
+// 127 match too: a directory written as "Zubeh\xf6r" is found as "ZUBEH\xd6R".
+inline U NameFold(U c)
+{
+    if (c >= 0xe0 && c <= 0xfe && c != 0xf7) return c - 32;
+    if (c == 0x9a || c == 0x9c || c == 0x9e) return c - 16;
+    return c == 0xff ? 0x9f : Fold(c);
+}
 // Characters a FAT short name cannot hold. Everything else, including bytes
 // above 127, is taken as it is; this port has no OEM conversion table.
 inline bool Invalid(U c)
@@ -65,7 +74,7 @@ inline void Basis(const char *name, char (&base)[9], char (&extension)[4])
     U n = 0;
     for (const char *p = name; *p && (!last || p < last); ++p)
     {
-        const U c = Fold((unsigned char)*p);
+        const U c = NameFold((unsigned char)*p);
         if (c == ' ' || c == '.')
             continue;
         if (n < 8)
@@ -76,7 +85,7 @@ inline void Basis(const char *name, char (&base)[9], char (&extension)[4])
     if (last)
         for (const char *p = last + 1; *p && n < 3; ++p)
         {
-            const U c = Fold((unsigned char)*p);
+            const U c = NameFold((unsigned char)*p);
             if (c == ' ' || c == '.')
                 continue;
             extension[n++] = char(Invalid(c) ? '_' : c);
@@ -126,7 +135,7 @@ template <class E> inline bool Generate(E &e, const char *name, char (&out)[13])
     {
         U n = 0;
         for (const char *p = name; *p && n < 12; ++p)
-            out[n++] = char(Fold((unsigned char)*p));
+            out[n++] = char(NameFold((unsigned char)*p));
         out[n] = 0;
         // A name that already is a short name needs no separate alias.
         return false;
