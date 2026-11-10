@@ -448,6 +448,23 @@ int main(int argc, char **argv)
     okay(cpu->Set(Reg::Eax, 0xd0102)); okay(cpu->Write(Code, bytes, sizeof bytes));
     okay(cpu->Run(Code, Code + sizeof bytes, 20)); okay(cpu->Get(Reg::Ecx, got)); assert(got == 1);
     assert(device[0x112] == 1);
+    // A program probes the window before it draws: test byte [eax], 0, then
+    // cmp byte [eax + 2], 3 and cmp dword [eax + 4], ecx. They read through
+    // the device and leave only the flags.
+    device[0x200] = 0x80; device[0x202] = 2; value = 0x11223344; memcpy(device + 0x204, &value, 4);
+    const unsigned char probe[] = {0xf6, 0x00, 0x00};
+    okay(cpu->Set(Reg::Eax, 0xd0200)); okay(cpu->Set(Reg::Eflags, 0x202 | 0x8d5)); okay(cpu->Write(Code, probe, sizeof probe));
+    okay(cpu->Run(Code, Code + sizeof probe, 20)); okay(cpu->Get(Reg::Eflags, got)); assert((got & 0x8d5) == 0x44);
+    const unsigned char test_sign[] = {0xf6, 0x00, 0x80};
+    okay(cpu->Write(Code, test_sign, sizeof test_sign)); okay(cpu->Run(Code, Code + sizeof test_sign, 20));
+    okay(cpu->Get(Reg::Eflags, got)); assert((got & 0x8d5) == 0x80);
+    const unsigned char compare[] = {0x80, 0x78, 0x02, 0x03};
+    okay(cpu->Write(Code, compare, sizeof compare)); okay(cpu->Run(Code, Code + sizeof compare, 20));
+    okay(cpu->Get(Reg::Eflags, got)); assert((got & 0x8d5) == 0x95);
+    const unsigned char compare_wide[] = {0x39, 0x48, 0x04};
+    okay(cpu->Set(Reg::Ecx, 0x11223344)); okay(cpu->Write(Code, compare_wide, sizeof compare_wide));
+    okay(cpu->Run(Code, Code + sizeof compare_wide, 20)); okay(cpu->Get(Reg::Eflags, got)); assert((got & 0x8d5) == 0x44);
+    assert(device[0x200] == 0x80 && device[0x202] == 2);
     // Enter an actual 16-bit code/stack pair and return through a far API gate.
     okay(cpu->Map(0x80000, 4096, Prot::All)); okay(cpu->Map(0x90000, 4096, Prot::All));
     okay(cpu->Map(0xb0000, 4096, Prot::Read | Prot::Write));

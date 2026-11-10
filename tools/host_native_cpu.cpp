@@ -253,8 +253,8 @@ class NativeCpu : public Cpu
     unsigned InstructionAddress() const { return Base(state.regs[Reg::Cs]) + state.regs[Reg::Eip]; }
     // The faulting instruction of a device access, run against Read and
     // Write. These are the forms of VGA code: MOV between register or
-    // immediate and memory, MOVZX/MOVSX, and MOVS, STOS and LODS with or
-    // without REP. Any other instruction stops the run with CpuError::Device.
+    // immediate and memory, MOVZX/MOVSX, TEST and CMP, and MOVS, STOS and LODS
+    // with or without REP. Any other instruction stops the run with CpuError::Device.
     bool DeviceInstruction()
     {
         const bool code32 = Bits32(state.regs[Reg::Cs]);
@@ -359,6 +359,39 @@ class NativeCpu : public Cpu
             }
             else if (value = get(reg, size), !memory(address, size, value, true)) return false;
         }
+        else if (op == 0x84 || op == 0x85 || (op >= 0x38 && op <= 0x3b) || op == 0xf6 || op == 0xf7 ||
+                 op == 0x80 || op == 0x81 || op == 0x83)
+        {
+            // TEST and CMP read the memory operand and leave only the flags:
+            // the way a program probes for the VGA window before it draws.
+            unsigned modrm = 0, other = 0;
+            if (!take(1, modrm) || !operand(modrm, address)) return false;
+            const unsigned digit = (modrm >> 3) & 7, size = op & 1 ? wide : 1;
+            const bool test = op == 0x84 || op == 0x85 || op >= 0xf6;
+            if (op >= 0x80)
+            {
+                if (digit != (test ? 0u : 7u) || !take(op == 0x83 ? 1 : size, other)) return false;
+                if (op == 0x83) other = unsigned(int(static_cast<signed char>(other)));
+            }
+            else other = get(digit, size);
+            if (!memory(address, size, value, false)) return false;
+            const unsigned sign = 1u << (8 * size - 1), range = sign | (sign - 1);
+            other &= range;
+            const bool reversed = op == 0x3a || op == 0x3b;
+            const unsigned left = reversed ? other : value, right = reversed ? value : other;
+            unsigned result = left & right, flags = 0;
+            if (!test)
+            {
+                result = (left - right) & range;
+                if (left < right) flags |= 1;
+                if ((left ^ right ^ result) & 0x10) flags |= 0x10;
+                if ((left ^ right) & (left ^ result) & sign) flags |= 0x800;
+            }
+            if (!result) flags |= 0x40;
+            if (result & sign) flags |= 0x80;
+            if (!(__builtin_popcount(result & 255) & 1)) flags |= 4;
+            state.regs[Reg::Eflags] = (state.regs[Reg::Eflags] & ~0x8d5u) | flags;
+        }
         else if (op == 0x0f)
         {
             unsigned second = 0, modrm = 0;
@@ -413,6 +446,18 @@ class NativeCpu : public Cpu
         const unsigned eip = state.regs[Reg::Eip] + at;
         state.regs[Reg::Eip] = code32 ? eip : eip & 65535;
         return true;
+    }
+    // Name the instruction the engine stops at, for the log and the crash
+    // report: the bytes say which form is missing.
+    void ReportInstruction(const char *what)
+    {
+        unsigned char code[15] = {};
+        unsigned length = 0;
+        const unsigned ip = InstructionAddress();
+        while (length < sizeof code && !Read(ip + length, code + length, 1)) ++length;
+        char text[3 * sizeof code + 1] = {};
+        for (unsigned i = 0; i < length; ++i) snprintf(text + 3 * i, 4, " %02x", code[i]);
+        fprintf(stderr, "CPU native %s at %08x:%s\n", what, ip, text);
     }
     // CPUID as a program of Win98's time expects it: the features of this
     // processor, but at most leaf 2 and extended leaf 0x80000008. Programs of
@@ -1158,7 +1203,7 @@ class NativeCpu : public Cpu
                 interrupt(*this, 3, interrupt_context);
                 continue;
             }
-            if (signal == SIGILL) return CpuError::InvalidInstruction;
+            if (signal == SIGILL) { ReportInstruction("invalid instruction"); return CpuError::InvalidInstruction; }
             if (signal == SIGFPE)
             {
                 if (!interrupt) return CpuError::Exception;
@@ -1198,7 +1243,12 @@ class NativeCpu : public Cpu
                 return CpuError::Exception;
             }
             const unsigned address = reinterpret_cast<uintptr_t>(info.si_addr);
-            if (InDevice(address)) { if (DeviceInstruction()) continue; return CpuError::Device; }
+            if (InDevice(address))
+            {
+                if (DeviceInstruction()) continue;
+                ReportInstruction("device access by an instruction without a decoder");
+                return CpuError::Device;
+            }
             const bool fetch = hardware_error & 16, write = hardware_error & 2;
             bool mapped = rights[address / Page] & Mapped;
             if (write && mapped && WatchedWrite(address)) continue;
