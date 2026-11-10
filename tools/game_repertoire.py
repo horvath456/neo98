@@ -393,7 +393,7 @@ def run(home, game, label, seconds, phase, work=None, session=None):
             if not inside(drive if executable[0] == 'C' else writable, relative).is_file():
                 raise ValueError(f'Missing launch executable: {executable}')
         stage_system_libraries(writable, drive, recipe)
-        steps = recipe.get('input', '')
+        steps = localized_buttons(recipe.get('input', ''))
         if recipe.get('via_explorer'):
             steps = '3:guestopen=' + executable + ';' + steps
         steps = bounded_steps(steps, seconds)
@@ -501,6 +501,24 @@ def run(home, game, label, seconds, phase, work=None, session=None):
             for scratch in (writable, drive):
                 if scratch.exists():
                     shutil.rmtree(scratch)
+
+
+# Setup programs and message boxes take the button names of the Windows they
+# run on. With NEO98_RECIPE_LANGUAGE=DE (a German reference tree) a scripted
+# press also accepts the German name; the host reads "A|B" as either.
+BUTTON_NAMES = {'DE': {'Next >': 'Weiter >', '< Back': '< Zurück', 'Yes': 'Ja', 'No': 'Nein',
+                       'Finish': 'Fertig stellen', 'Install': 'Installieren', 'Cancel': 'Abbrechen'}}
+
+
+def localized_buttons(steps):
+    names = BUTTON_NAMES.get(os.environ.get('NEO98_RECIPE_LANGUAGE', '').upper(), {})
+    def one(step):
+        at, _, rest = step.partition(':')
+        action, _, value = rest.partition('=')
+        if action != 'button' or value not in names:
+            return step
+        return f'{at}:button={value}|{names[value]}'
+    return ';'.join(one(step) for step in steps.split(';')) if names and steps else steps
 
 
 def play(home, game, label, seconds, work):

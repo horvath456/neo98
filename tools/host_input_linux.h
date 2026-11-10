@@ -417,7 +417,16 @@ class Script
             }
             else if (step.action == "button")
             {
-                // A named button through BM_CLICK.
+                // A named button through BM_CLICK; "A|B" takes either name,
+                // for setup programs that follow the language of Windows.
+                auto named = [&](const std::string &title) {
+                    for (size_t at = 0;;) {
+                        const size_t end = step.value.find('|', at);
+                        if (step.value.compare(at, end == std::string::npos ? std::string::npos : end - at, title) == 0) return true;
+                        if (end == std::string::npos) return false;
+                        at = end + 1;
+                    }
+                };
                 auto find = [&](auto &&self, unsigned parent, unsigned depth) -> unsigned {
                     if (depth >= User::WindowCapacity) return 0;
                     for (unsigned h = User::GetTopWindow(parent); h; h = User::GetWindow(h, 2))
@@ -425,7 +434,7 @@ class Script
                         if (!User::IsVisible(h) || !User::IsEnabled(h)) continue;
                         std::string title = Title(h);
                         title.erase(std::remove(title.begin(), title.end(), '&'), title.end());
-                        if (User::IsButton(h) && title == step.value) return h;
+                        if (User::IsButton(h) && named(title)) return h;
                         if (const unsigned child = self(self, h, depth + 1)) return child;
                     }
                     return 0;

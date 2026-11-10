@@ -272,5 +272,9 @@
   },
   "tools/setup_win98.py": {
     "5cf3a097f33adb9dc26a3e16a914273104c3f35aa46aa9eb1de84bedb27540ab": "Text of the German Windows Setup pages, matched against the screen to drive the installation."
+  },
+  "tools/game_repertoire.py": {
+    "16ab5b3434a8ba7d81a29693ef4a3eb92def3e44c0c7f7993672790ce4bf915f": "German button names of setup programs on a German Windows, for scripted presses in game recipes.",
+    "877910300647e8c338f7bf9a041222a0fd8281f3f581f9280c7a46ddc8817f20": "German button names of setup programs on a German Windows, for scripted presses in game recipes."
   }
 }
