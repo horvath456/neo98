@@ -39,7 +39,7 @@ The project is young. Plenty of programs already work, some don't yet. If you ru
 You need:
 
 - A Mac with Apple Silicon (M1 or newer) and macOS 13 or later, or a 64-bit x86 PC with Linux 5.11 or newer and a desktop with X11 or XWayland (tested on Ubuntu 24.04; 3D games need a Vulkan driver)
-- A Windows 98 Second Edition CD image in English. It has to be the full version, not the upgrade. An `.iso` file works, and so does an `.iso` inside a `.zip` or `.7z` archive.
+- A Windows 98 Second Edition CD image in English or German. It has to be the full version, not the upgrade. An `.iso` file works, and so does an `.iso` inside a `.zip` or `.7z` archive.
 - The product key that came with your copy of Windows
 - About 2 GB of free disk space
 
@@ -113,7 +113,7 @@ Not every program runs yet, and some run with glitches. If you find one, please 
 
 Some limits you should know about:
 
-- Only the English Windows 98 Second Edition CD can be installed for now.
+- Only the English and the German Windows 98 Second Edition CD can be installed for now. The German one is new and has seen little testing.
 - Saving a game's state doesn't work in every situation yet.
 - The Linux version is newer than the Mac version and has seen fewer programs so far.
 
