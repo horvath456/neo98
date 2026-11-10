@@ -60,7 +60,13 @@ unsigned Application::ToolhelpApi(ApiName name,const unsigned *a){
         const unsigned processes=User::ProcessContextCount();
         unsigned threads=0;
         for(unsigned i=0;i<processes;++i)if(auto *app=static_cast<Application*>(User::ProcessContextAt(i)))threads+=app->LiveThreads();
-        const unsigned capacities[]={processes,threads,32,33};
+        // Every list holds what the selection can yield: a process has as
+        // many module rows as it has modules, and one heap row per heap of
+        // its heap system besides the first heap.
+        unsigned module_rows=0,heap_rows=1;
+        if(target){for(const auto &m:target->modules)if(m.kind&&!m.unloading)++module_rows;
+            if(target->heap_system)for(unsigned heap:target->heap_system->heaps)if(heap)++heap_rows;}
+        const unsigned capacities[]={processes,threads,module_rows,heap_rows};
         for(unsigned i=0;i<4;++i){s->rows[i]=new(std::nothrow) ToolhelpState::Row[capacities[i]];if(!s->rows[i]){delete s;last_error=8;return ~0u;}}
         const auto add=[&](unsigned group,const unsigned *fields,unsigned words,const char *text=nullptr){
             auto &row=s->rows[group][s->counts[group]++];row.size=fields[0];memcpy(row.bytes,fields,words*4);
