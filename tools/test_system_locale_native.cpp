@@ -61,12 +61,14 @@ int main(int argc, char **argv)
     for (U profile = 0; profile < 7; ++profile)
     {
         reset();
-        U ansi = 1252, oem = 437, resource = 0x409;
+        // German has no sort weights of its own in CP_1252.NLS and is served;
+        // the one locale record then also stands for the user locale.
+        U ansi = 1252, oem = 437, resource = 0x409, locale = 0x409;
         if (profile == 1)
         {
             value(2, machine, "", "00000407");
             value(1, personal, "Locale", "00000411");
-            resource = 0x407;
+            resource = locale = 0x407;
         }
         else if (profile == 2)
         {
@@ -74,7 +76,7 @@ int main(int argc, char **argv)
                                "ACP=850\r\nOEMCP=850\r\n";
             assert(!Files::System().Seed("C:\\WINDOWS\\SYSTEM.INI", ini, sizeof ini - 1));
             ansi = oem = 850;
-            resource = 0x407;
+            resource = locale = 0x407;
         }
         else if (profile == 3)
         {
@@ -114,7 +116,7 @@ int main(int argc, char **argv)
             fprintf(stderr, "NLS profile %u: %s\n", profile, app->Error());
         assert(started && app->system_locale.initialized);
         const auto &state = app->system_locale;
-        assert(state.ansi == ansi && state.oem == oem && state.system == 0x409 && state.user == 0x409);
+        assert(state.ansi == ansi && state.oem == oem && state.system == locale && state.user == locale);
         assert(state.resource == resource && state.heap >= 0x80000000u && state.heap < 0xc0000000u);
         check_block(*app, state.tableStorage, 0x22c);
         check_block(*app, state.codepageBuckets, 0x90);
@@ -133,12 +135,12 @@ int main(int argc, char **argv)
         assert(app->AnsiWide(0x80) == (ansi == 1252 ? 0x20acu : 0xc7u));
         assert(app->AnsiNarrow(0xe9) == (ansi == 1252 ? 0xe9u : 0x82u));
         value(1, personal, "Locale", "\"00000407\"");
-        assert(app->DefaultLocaleApi("GetUserDefaultLCID") == 0x409);
+        assert(app->DefaultLocaleApi("GetUserDefaultLCID") == locale);
         assert(app->DefaultLocaleApi("InvalidateNLSCache") == 1);
         assert(app->DefaultLocaleApi("GetThreadLocale") == 0);
         assert(app->DefaultLocaleApi("GetUserDefaultLCID") == 0x407);
         assert(app->DefaultLocaleApi("GetThreadLocale") == 0x407);
-        assert(app->DefaultLocaleApi("GetSystemDefaultLCID") == 0x409);
+        assert(app->DefaultLocaleApi("GetSystemDefaultLCID") == locale);
         const U buffer = app->Allocate(32);
         U info[] = {0x400, 1, buffer, 32};
         char name[5];
@@ -152,12 +154,12 @@ int main(int argc, char **argv)
         assert(!app->LocaleInfo(info) && app->last_error == 87);
         info[0] = 0x800;
         assert(app->LocaleInfo(info) == 5);
-        assert(app->Read(buffer, name, sizeof name) && !strcmp(name, "0409"));
+        assert(app->Read(buffer, name, sizeof name) && !strcmp(name, locale == 0x407 ? "0407" : "0409"));
         info[0] = 9;
         assert(app->LocaleInfo(info) == 5);
         value(1, personal, "Locale", nullptr);
         assert(app->DefaultLocaleApi("InvalidateNLSCache") == 1);
-        assert(app->DefaultLocaleApi("GetUserDefaultLCID") == 0x409);
+        assert(app->DefaultLocaleApi("GetUserDefaultLCID") == locale);
         assert(app->Status() != X86::Application::Failed);
         delete app;
     }

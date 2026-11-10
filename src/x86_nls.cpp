@@ -332,20 +332,44 @@ struct Application::NlsSystem
             }
         return 14;
     }
-    unsigned LoadLocale(unsigned lcid, unsigned &out, bool create)
+    // The page of a locale whose sort and case routes read the shared tables
+    // of code page 1252, or 0. A locale with weights of its own in that file
+    // (French, Spanish, the Nordic ones) is not served; German and English
+    // have none.
+    unsigned SharedPage(unsigned lcid)
     {
-        if (lcid != 0x409)
-            return 2;
         const char *id = Win98Locale::SystemInfo(lcid, 1);
         const char *cp = Win98Locale::SystemInfo(lcid, 0x1004);
-        const char *language = Win98Locale::SystemInfo(lcid, 0x1001);
-        const char *country = Win98Locale::SystemInfo(lcid, 0x1002);
-        if (!id || !cp || !language || !country || Win98SystemLocale::ParseHex(id) != lcid)
-            return 2;
+        if (!id || !cp || !Win98Locale::SystemInfo(lcid, 0x1001) || !Win98Locale::SystemInfo(lcid, 0x1002) ||
+            Win98SystemLocale::ParseHex(id) != lcid)
+            return 0;
         const unsigned page = Win98SystemLocale::ParseDecimal(cp);
         NlsEnvironment data(app);
-        if (!data.CodePage(page))
+        const auto *table = data.CodePage(page);
+        if (!table)
+            return 0;
+        if (lcid == 0x409)
+            return page;
+        if (page != 1252)
+            return 0;
+        auto word = [&](unsigned p) { return table->Half(p) | (table->Half(p + 2) << 16); };
+        const unsigned overrides = table->Offset(18), count = word(overrides);
+        for (unsigned i = 0; i < count && i < 4096; ++i)
+            if (word(overrides + 4 + i * 8) == lcid)
+                return 0;
+        return page;
+    }
+    unsigned LoadLocale(unsigned lcid, unsigned &out, bool create)
+    {
+        // One record: the system locale of the installation. A user locale
+        // other than it is not loaded, and startup falls back to this one.
+        if (locale.handle && locale.number != lcid)
             return 2;
+        const unsigned page = SharedPage(lcid);
+        if (!page)
+            return 2;
+        const char *language = Win98Locale::SystemInfo(lcid, 0x1001);
+        const char *country = Win98Locale::SystemInfo(lcid, 0x1002);
         if (!locale.handle)
         {
             if (!create)
@@ -538,9 +562,11 @@ struct Application::CharacterTypeEnvironment {
     unsigned SystemLocale() { return app.system_locale.system; }
     unsigned UserLocale() { return app.UserDefaultLocale(); }
     unsigned SystemTable() { return app.system_locale.systemTable; }
+    // Every locale on the shared tables has the descriptor of the system's.
     unsigned LookupLocale(unsigned lcid) {
         unsigned result = 0;
-        return app.nls_system->LoadLocale(lcid, result, false) ? 0 : result;
+        if (!app.nls_system->LoadLocale(lcid, result, false)) return result;
+        return app.nls_system->locale.handle && app.nls_system->locale.page == app.nls_system->SharedPage(lcid) ? SystemTable() : 0;
     }
     const Win98Nls::Table *Table(unsigned descriptor) {
         const auto &locale = app.nls_system->locale;

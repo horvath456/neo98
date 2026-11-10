@@ -87,7 +87,7 @@ unsigned Application::LcMapStringApi(const unsigned *a)
             void Unsupported(const char *what) {app.Fail(what);}
         } sort(*this);
         const auto *table=sort.Table(descriptor);
-        if(!table || nls_system->locale.page!=1252 || nls_system->locale.number!=0x409) {
+        if(!table || nls_system->locale.page!=1252) {
             Fail("LCMapStringA sort/removal locale provider is not installed");return 0;
         }
         const unsigned result=route==Win98LcMap::SortKeyRoute

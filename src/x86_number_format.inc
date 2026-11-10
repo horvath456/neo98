@@ -14,7 +14,7 @@ unsigned Application::NumberFormatApi(ApiName name,const unsigned *a) {
     if(!InitializeNls())return 0;
     U lcid=Win98SystemLocale::ResolveLocale(a[0],system_locale.system,[this]{return UserDefaultLocale();});
     struct Errors {U &value;void Error(U v){value=v;}} errors{last_error};
-    if(!Request(errors,lcid==0x409,a[1],a[2],a[3],a[4],a[5]))return 0;
+    if(!Request(errors,Win98Locale::SystemInfo(lcid,1)!=nullptr,a[1],a[2],a[3],a[4],a[5]))return 0;
     auto text=[&](U address,char *out,U capacity) {
         if(!address){last_error=87;return false;}
         for(U n=0;n<capacity;++n) {

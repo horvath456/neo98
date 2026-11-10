@@ -90,7 +90,7 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
         unsigned n=strlen(text);if(n>=a[2])n=a[2]-1;Store(a[1],text,n);unsigned char zero=0;Store(a[1]+n,&zero,1);return n;
     }
     API_CASE("SetLocaleInfoA"){
-        if(locale(a[0])!=0x409||!a[2])return bad(87);
+        if(locale(a[0])!=UserDefaultLocale()||!a[2])return bad(87);
         unsigned field=a[1]&~0x40000000u;const char *key=LocaleOverrideName(field);if(!key)return bad(1004);
         const char *value=ReadString(a[2]);const unsigned size=strlen(value);
         if(size>80)return bad(87);
