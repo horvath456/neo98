@@ -5,7 +5,8 @@
 compile_objects(root, sources_paths, flags, env, cache_dir) returns object Paths
 in source order. Flags contain compilation options, not sources or link outputs.
 Clang -MD records transitive dependencies, including generated/system headers.
-Reuse requires matching compiler/options/environment and content hashes of every
+Reuse requires matching compiler/options, the variables of the environment the
+compiler and linker read (build_environment) and content hashes of every
 reported dependency and the object. At most four compilers run concurrently.
 Manifests commit atomically after successful compilation; objects have content
 addresses so concurrent links retain their files. The caller owns cache cleanup.
@@ -102,6 +103,26 @@ def _compiler(env, root):
                         "version": version, "resources": resources}
 
 
+# The variables clang++ and the linker read: where they find their programs,
+# headers, libraries and SDK, and what they write into their output. Nothing
+# else of the environment can change an object or a link, and much of the rest
+# differs between two runs of the same build: the display and session bus of a
+# headless test, the private machine, settings and log folders of a suite
+# worker. Those must not turn an unchanged object into a cache miss.
+BUILD_ENVIRONMENT = (
+    "PATH", "CPATH", "C_INCLUDE_PATH", "CPLUS_INCLUDE_PATH", "OBJC_INCLUDE_PATH",
+    "OBJCPLUS_INCLUDE_PATH", "LIBRARY_PATH", "COMPILER_PATH", "GCC_EXEC_PREFIX",
+    "LD_LIBRARY_PATH", "LD_RUN_PATH", "DYLD_LIBRARY_PATH", "DYLD_FALLBACK_LIBRARY_PATH",
+    "DYLD_FRAMEWORK_PATH", "SDKROOT", "DEVELOPER_DIR", "TOOLCHAINS", "CCC_OVERRIDE_OPTIONS",
+    "SOURCE_DATE_EPOCH", "ZERO_AR_DATE")
+
+
+def build_environment(env):
+    """The part of `env` that belongs to the identity of a compile or link."""
+    return {str(key): str(value) for key, value in sorted(env.items())
+            if key in BUILD_ENVIRONMENT or str(key).endswith("_DEPLOYMENT_TARGET")}
+
+
 @contextmanager
 def locked(path):
     """Exclusive lock on `path`; other processes wait instead of interleaving."""
@@ -130,6 +151,9 @@ def compile_objects(root, sources_paths, flags, env, cache_dir):
     sources = [_absolute(path, root) for path in sources_paths]
     flags = [str(flag) for flag in flags]
     environment = {str(key): str(value) for key, value in (os.environ if env is None else env).items()}
+    # clang takes the directory of its debug information from PWD when that
+    # names the working directory; the caller's spelling of it is not ours.
+    environment["PWD"] = str(root)
     if not sources:
         return []
     compiler, compiler_info = _compiler(environment, root)
@@ -142,8 +166,9 @@ def compile_objects(root, sources_paths, flags, env, cache_dir):
                                             '-disable-output', '/dev/null'], text=True, env=environment).strip()
         pipeline = ','.join(part for part in pipeline.split(',') if part != 'globalopt')
     response_files = _response_files(flags, root)
-    configuration = {"schema": 1, "root": str(root), "compiler": compiler_info,
-                     "flags": flags, "environment": environment, "response_files": response_files}
+    configuration = {"schema": 2, "root": str(root), "compiler": compiler_info,
+                     "flags": flags, "environment": build_environment(environment),
+                     "response_files": response_files}
     if state_build: configuration["state_pipeline"] = pipeline
     options = _identity(configuration)
     for name in ("objects", "entries", "locks", "temporary"):

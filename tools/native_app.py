@@ -110,10 +110,10 @@ def cached_runner(binary, flags, compile_flags, source, inputs, link_flags, env,
     """Serialize links and reuse only a complete build of these exact inputs.
 
     The runner uses the object cache too: clang -MD tracks its transitive
-    headers, compiler, environment and revision defines, just as for src/.
+    headers, compiler, build environment and revision defines, just as for src/.
     The commit record is written last, after the binary and all sidecars.
     """
-    from native_build import compile_objects, locked, _hash, _identity, _response_files
+    from native_build import build_environment, compile_objects, locked, _hash, _identity, _response_files
     runner, = compile_objects(ROOT, [ROOT / 'tools' / source],
                               [*flags, *compile_flags], env, cache)
     inputs = [Path(i) for i in inputs if i is not None]
@@ -128,7 +128,7 @@ def cached_runner(binary, flags, compile_flags, source, inputs, link_flags, env,
         files.append(ROOT / 'tools/arm64_hypervisor.entitlements')
     key = _identity({'flags': flags, 'compile_flags': compile_flags,
                      'link_flags': list(map(str, link_flags)), 'inputs': list(map(str, inputs)),
-                     'environment': env, 'response_files': _response_files([*flags, *map(str, link_flags)], ROOT),
+                     'environment': build_environment(env), 'response_files': _response_files([*flags, *map(str, link_flags)], ROOT),
                      'files': {str(p): _hash(p) for p in files if p.is_file()}})
     stamp = Path(str(binary) + '.link.json')
     with locked(Path(str(binary) + '.link.lock')):

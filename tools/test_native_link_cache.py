@@ -31,9 +31,10 @@ class LinkCacheTest(unittest.TestCase):
         self.patch.start()
         self.addCleanup(self.patch.stop)
 
-    def build(self, **kwargs):
+    def build(self, environment=None, **kwargs):
         with native_app.cached_runner(self.binary, [], [], 'main.cpp', [], [],
-                                      dict(os.environ), self.root / 'cache', **kwargs) as temporary:
+                                      {**os.environ, **(environment or {})},
+                                      self.root / 'cache', **kwargs) as temporary:
             if temporary is not None:
                 os.replace(temporary, self.binary)
             return temporary is not None
@@ -46,6 +47,34 @@ class LinkCacheTest(unittest.TestCase):
         self.header.write_text('#define VALUE 2\n')
         self.assertTrue(self.build())
         self.assertNotEqual(before, self.binary.stat().st_mtime_ns)
+
+    def entries(self):
+        return len(list((self.root / 'cache/entries').glob('*.json')))
+
+    def test_session_variables_keep_the_build(self):
+        # What a headless suite worker changes from run to run: its display,
+        # its session bus and the folders of its private machine.
+        first = {'DISPLAY': ':101', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/one',
+                 'NEO98_WIN98_ROOT': '/machines/one', 'NEO98_SETTINGS_DIR': '/settings/one',
+                 'NEO98_LOG_DIR': '/logs/one', 'PWD': '/somewhere'}
+        second = {'DISPLAY': ':102', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/two',
+                  'NEO98_WIN98_ROOT': '/machines/two', 'NEO98_SETTINGS_DIR': '/settings/two',
+                  'NEO98_LOG_DIR': '/logs/two', 'PWD': '/elsewhere', 'XAUTHORITY': '/run/two.auth'}
+        self.assertTrue(self.build(first))
+        self.assertEqual(self.entries(), 1)
+        self.assertFalse(self.build(second))
+        self.assertEqual(self.entries(), 1)
+
+    def test_compiler_variables_rebuild(self):
+        # A header folder the compiler reads from its environment decides
+        # what an include finds, so it belongs to the identity.
+        headers = self.root / 'other'
+        headers.mkdir()
+        self.assertTrue(self.build())
+        self.assertTrue(self.build({'CPATH': str(headers)}))
+        self.assertEqual(self.entries(), 2)
+        self.assertFalse(self.build({'CPATH': str(headers)}))
+        self.assertTrue(self.build({'CPATH': str(headers), 'MACOSX_DEPLOYMENT_TARGET': '13.0'}))
 
     def test_missing_sidecar_and_damaged_binary(self):
         self.assertTrue(self.build())
