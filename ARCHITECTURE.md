@@ -1,8 +1,8 @@
 # How Neo98 works
 
 A Windows 98 program needs three things: its own code in memory, the Windows
-system around it, and a PC underneath. Neo98 provides all three on a Mac,
-without booting Windows. This page explains the main parts and where they
+system around it, and a PC underneath. Neo98 provides all three on a Mac
+and on a Linux PC, without booting Windows. This page explains the main parts and where they
 live in the source.
 
 ## Loading a program
@@ -18,9 +18,11 @@ dialogs, menus and icons are read from the same files.
 On the Mac, FEX translates the program's x86 code to ARM64 in blocks and
 caches the result (`tools/host_fex_cpu.cpp`). Unicorn, which is based on
 QEMU, runs 16-bit code and serves as a second backend for 32-bit code.
-On Linux x64 the code runs directly on the processor. All of them sit behind
-one interface, `X86::Cpu` in `src/x86_cpu.h`, so the rest of Neo98 doesn't
-care which one runs.
+On Linux x64 the code runs directly on the processor, 32-bit and 16-bit
+alike (`tools/host_native_cpu.cpp`): Neo98 gives the program the segments
+Windows 98 would, and the kernel hands back every system call and fault the
+program causes. All of them sit behind one interface, `X86::Cpu` in
+`src/x86_cpu.h`, so the rest of Neo98 doesn't care which one runs.
 
 When a program calls a Windows function that Neo98 implements, execution
 leaves the translated code and continues in C++. Guest addresses are always
@@ -56,11 +58,13 @@ task, as they did on Windows 98.
 
 Everything a program draws ends up in Neo98's display driver. 2D drawing is
 done in software, the way Windows 98's own display drivers did it. Direct3D,
-OpenGL and Glide go to the GPU: on the Mac through Metal
-(`tools/host_metal.mm`), with Direct3D shaders translated to the Metal
-shading language (`src/d3d_shader_msl.cpp`). Sound from all programs is mixed
-in `src/sound*` and played through SDL. SDL also provides the window and
-input; the Mac menu bar is native (`tools/host_menu.mm`).
+OpenGL and Glide go to the GPU through one interface, `Gpu::Backend` in
+`src/gpu_backend.h`: on the Mac through Metal (`tools/host_metal.mm`), with
+Direct3D shaders translated to the Metal shading language
+(`src/d3d_shader_msl.cpp`), on Linux through Vulkan (`tools/host_vulkan.cpp`).
+Sound from all programs is mixed in `src/sound*` and played through SDL. SDL
+also provides the window and input. The menu bar is native on both: AppKit on
+the Mac (`tools/host_menu.mm`), GTK on Linux (`tools/host_gtk_linux.h`).
 
 ## Drives, registry and machines
 
@@ -77,8 +81,8 @@ DOS programs run in DOSBox Pure, which Neo98 drives through its libretro
 interface (`tools/host_dos_vm.cpp`). Their settings live in the usual PIF
 property pages.
 
-Programs compiled for Windows on ARM run directly on the Mac's processor,
-right next to x86 programs on the same desktop. [docs/ARM64-APPS.md](docs/ARM64-APPS.md)
+On the Mac, programs compiled for Windows on ARM run directly on the
+processor, right next to x86 programs on the same desktop. [docs/ARM64-APPS.md](docs/ARM64-APPS.md)
 explains how that works and how to build such programs.
 
 ## Finding your way around
@@ -87,13 +91,14 @@ explains how that works and how to build such programs.
 | --- | --- |
 | `src/pe32.*`, `src/ne_loader.*` | Loading programs and DLLs |
 | `src/x86_app.*`, `src/x86_modules.cpp` | Processes, modules and the dispatch of API calls |
-| `src/x86_cpu*`, `tools/host_fex_cpu.cpp` | CPU backends |
+| `src/x86_cpu*`, `tools/host_fex_cpu.cpp`, `tools/host_native_cpu.cpp` | CPU backends |
 | `src/user*`, `src/gdi*`, `src/dib*` | Windows, controls, painting and text |
 | `src/win98_*` | Windows 98 behavior that doesn't depend on the host |
 | `src/virtual_memory.*`, `src/x86_memory.cpp` | Memory reservations and page protection |
 | `src/files.*`, `src/registry*` | Drives, files and the registry |
-| `tools/neo98_host.cpp`, `tools/host_*` | The Mac and Linux side: window, menus, input, sound, graphics, devices |
-| `tools/mac_app.py`, `tools/native_app.py` | Building the host and the app |
+| `tools/neo98_host.cpp`, `tools/host_*` | The Mac side and what both hosts share: window, menus, input, sound, graphics, devices |
+| `tools/neo98_linux.cpp`, `tools/linux_*`, `tools/host_*_linux.h` | The Linux side |
+| `tools/mac_app.py`, `tools/linux_app.py`, `tools/native_app.py` | Building the host and the app |
 | `sdk/` | The SDK for native ARM64 Windows programs |
 | `tools/test_*.py` | Tests |
 
