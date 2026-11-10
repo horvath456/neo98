@@ -23,7 +23,8 @@ def main():
     out = ROOT / 'build/native-linux'
     out.mkdir(parents=True, exist_ok=True)
     env = neo98.tool_environment()
-    exports = {'GetStdHandle': 4, 'WriteFile': 20, 'ReadFile': 20, 'ExitProcess': 4}
+    exports = {'GetStdHandle': 4, 'WriteFile': 20, 'ReadFile': 20, 'ExitProcess': 4,
+               'GetCommandLineA': 0, 'GetCurrentDirectoryA': 8}
     definition = out / 'cli-kernel32.def'
     definition.write_text('LIBRARY KERNEL32.DLL\nEXPORTS\n' + ''.join(f'{name}@{size}\n' for name, size in exports.items()))
     library, obj, exe = out / 'cli-kernel32.lib', out / 'cli-fixture.obj', out / 'CLI.EXE'
@@ -55,10 +56,22 @@ def main():
         input=b'explicit root\n', capture_output=True, timeout=30)
     assert explicit.returncode == 7, explicit.stderr.decode(errors='replace')
     assert explicit.stdout == b'NEO98 native Linux CLI\r\nexplicit root\r\n'
+    # --directory names the guest folder the program starts in, as on macOS.
+    for folder, shown in (('C:\\WINDOWS\\SYSTEM', b'C:\\WINDOWS\\SYSTEM\r\n'), ('C:\\', b'C:\\\r\n')):
+        placed = subprocess.run([str(binary), '--drive-c', str(win98_c.use_pristine()), '--exe', str(exe),
+            '--command', 'CLI.EXE cwd', '--directory', folder, '--ram-drive', '--no-registry-file'],
+            env=env, input=b'', capture_output=True, timeout=30)
+        assert placed.returncode == 7, placed.stderr.decode(errors='replace')
+        assert placed.stdout == b'NEO98 native Linux CLI\r\n' + shown, (folder, placed.stdout)
+    absent = subprocess.run([str(binary), '--drive-c', str(win98_c.use_pristine()), '--exe', str(exe),
+        '--directory', 'C:\\NO-SUCH-FOLDER', '--ram-drive', '--no-registry-file'],
+        env=env, input=b'', capture_output=True, timeout=30)
+    assert absent.returncode == 7 and b'Could not open guest working directory: C:\\NO-SUCH-FOLDER' in absent.stderr, absent.stderr
     assert all(name not in dependencies for name in ('unicorn', 'fex', 'sdl', 'vulkan', 'gtk', 'gdk')), dependencies
     report = {'status': 'PASS', 'engine': 'native', 'guest_exit_code': result.returncode,
               'checks': ['hardware executes own PE32', 'stdin', 'stdout', 'stderr', 'UTF-8 and OEM text',
-                         'input exceeding the console queue', 'EOF', 'line endings', 'exit code', 'explicit drive C overrides default'],
+                         'input exceeding the console queue', 'EOF', 'line endings', 'exit code', 'explicit drive C overrides default',
+                         'start directory'],
               'dependencies_exclude': ['FEX', 'Unicorn', 'SDL', 'Vulkan', 'GTK', 'GDK']}
     (out / 'cli-results.json').write_text(json.dumps(report, indent=2) + '\n')
     print('LINUX CLI PASS: native PE32, stdin/stdout/stderr, UTF-8, long input, EOF, exit code 7, no emulator or GUI dependency')

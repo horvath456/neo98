@@ -1,4 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+// The host adapter reaches the runtime's host service methods (the guest
+// directory of --directory), as tools/neo98_linux.cpp does.
+#define private public
+#include "../src/x86_app.h"
+#undef private
 #include "linux_session.h"
 #include <iconv.h>
 #include <poll.h>

@@ -35,6 +35,9 @@ struct Options
     std::string exe = "C:\\WINDOWS\\EXPLORER.EXE", command, font, screenshot, game_machine, load_state;
     std::string reports = "build/crash-reports", printer = "build/print-output";
     std::string open_host, program_action, net_listen = "127.0.0.1";
+    // --directory PATH: the guest directory the program starts in, as on
+    // macOS; without it a program starts in its own folder.
+    std::string directory;
     // --state-save FILE and --state-load FILE, the test switches of a saved
     // machine (tools/host_state.h), as on macOS; only the graphical host
     // takes them.
@@ -90,7 +93,7 @@ inline bool Parse(int argc, char **argv, Options &out)
         else if (option == "--ram-drive" || option == "--no-registry-file" || option == "--setup-linux") {}
         else if (option == "--exe" || option == "--open-host" || option == "--activate-program" || option == "--quit-program" || option == "--command" || option == "--font" || option == "--time-limit" || option == "--game-machine" || option == "--load-state" ||
                  option == "--scale" || option == "--screenshot" || option == "--crash-report-dir" || option == "--printer-output" ||
-                 option == "--state-save" || option == "--state-load" || option == "--native-module")
+                 option == "--state-save" || option == "--state-load" || option == "--native-module" || option == "--directory")
         {
             const char *value = next(); if (!value) return false;
             if (option == "--exe") out.exe = value;
@@ -107,6 +110,7 @@ inline bool Parse(int argc, char **argv, Options &out)
             else if (option == "--state-save") out.state_save = value;
             else if (option == "--state-load") out.state_load = value;
             else if (option == "--native-module") out.native_modules.push_back(value);
+            else if (option == "--directory") out.directory = value;
             else
             {
                 char *end = nullptr; unsigned long number = strtoul(value, &end, 10);
@@ -147,6 +151,7 @@ inline void Help(bool window)
            "  --drive D=FOLDER       Additional drives\n"
            "  --cdrom IMAGE         Mount an ISO, CUE or folder as CD-ROM\n"
            "  --command LINE        Guest command line\n"
+           "  --directory PATH      Guest directory the program starts in\n"
            "  --time-limit SECONDS  Stop after this interval; otherwise wait for guest exit\n"
            "  --offline             Disconnect guest networking\n"
            "  --wifi                Expose host Wi-Fi in Windows\n"
@@ -352,6 +357,8 @@ class Session
         const bool started = app->Start(exe.data(), exe.size(), font.data(), font.size(), options.exe.c_str(),
                                       command.empty() ? nullptr : command.c_str());
         if (!started) fprintf(stderr, "Guest startup failed: %s\n", app->Error());
+        else if (!options.directory.empty() && app->files.SetDirectory(options.directory.c_str()))
+            fprintf(stderr, "Could not open guest working directory: %s\n", options.directory.c_str());
         return started;
     }
     bool Finished() const

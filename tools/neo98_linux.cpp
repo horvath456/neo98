@@ -436,8 +436,11 @@ int main(int argc, char **argv)
     // started on its own, and a machine out of a saved state, has none.
     if (!states.Rebuilt() && !HostState::loaded && options.command.empty() && !strcasecmp(options.exe.c_str(), "C:\\WINDOWS\\EXPLORER.EXE"))
         session.app->PlayStartupSound();
-    std::string launch_directory = preferences.StartDirectory();
-    if (launch_directory.empty() && HostSystemFont::GuestPath(options.exe.c_str()))
+    // --directory names the folder itself (LinuxHost::Session::Start enters
+    // it); otherwise a game machine starts where its game did, and any other
+    // program in its own folder.
+    std::string launch_directory = options.directory.empty() ? preferences.StartDirectory() : std::string();
+    if (options.directory.empty() && launch_directory.empty() && HostSystemFont::GuestPath(options.exe.c_str()))
     {
         const auto slash = options.exe.rfind('\\');
         if (slash != std::string::npos)
