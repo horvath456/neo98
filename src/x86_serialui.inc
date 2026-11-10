@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "win98_serialui_dialog.h"
 #include "win98_serialui_pages.h"
+#include "win98_localized_bytes.h"
 #ifdef NEO98_RUNTIME_CONTENT
 #include "windows_runtime_data.h"
 #else
@@ -25,7 +26,7 @@ unsigned Application::SerialUiDialog(unsigned name,unsigned owner,unsigned confi
  const bool kept=gate&&PushHostFrame(HostSerialDialog,memory);
  struct Release{Application&app;unsigned key;bool kept;~Release(){app.FinishSerialUiDialog(key,0,false);if(kept)app.PopHostFrame();}}release{*this,memory,kept};
  using namespace OriginalSerialUiAssets;
- Store(memory+256,Template119,sizeof Template119);
+ Store(memory+256,ResourceBytes(Template119),ResourceSize(Template119));
  // PSH_PROPTITLE | PSH_PROPSHEETPAGE; PSP_DLGINDIRECT. Native frame owns the
  // state formerly released by SERIALUI's PSP_USECALLBACK callback.
  unsigned header[]={40,9,owner,image.Base(),0,name,1,0,memory+64,0};
@@ -52,7 +53,7 @@ unsigned Application::SerialUiEnum(unsigned name,unsigned instance,unsigned conf
  unsigned memory=Allocate(4096);if(!memory)return 0;
  unsigned copy=String(ReadString(name));if(!copy){Free(memory);return 0;}
  auto*frame=new SerialUiFrame(this,memory,copy,instance);frame->persistent=true;Read(config+8,frame->dcb,28);
- Store(memory+256,OriginalSerialUiAssets::Template119,sizeof OriginalSerialUiAssets::Template119);
+ Store(memory+256,ResourceBytes(OriginalSerialUiAssets::Template119),ResourceSize(OriginalSerialUiAssets::Template119));
  unsigned char cc[52];Read(config,cc,52);Store(memory+128,cc,52);
  unsigned gate=0;
  for(unsigned i=0;i<import_count;++i)if(!strcmp(imports[i].name,"__NEO98_SerialUiPageCallback")){gate=GateBase+i*16;break;}
@@ -133,7 +134,7 @@ unsigned Application::SerialUiAdvanced(unsigned owner,unsigned name,unsigned ins
  const unsigned frame_at=threads[current_thread].host_frame_count?threads[current_thread].host_frame_count-1:0;
  struct Release{Application&app;unsigned key;bool kept;~Release(){app.FinishSerialUiDialog(key,0,true);if(kept)app.PopHostFrame();}}release{*this,memory,kept};
  while(owner&&(User::Style(owner)&0x40000000u))owner=User::Parent(owner);
- unsigned hwnd=CreateDialogTemplate(OriginalSerialUiAssets::Template101,sizeof OriginalSerialUiAssets::Template101,owner,0x71000014,memory,true);
+ unsigned hwnd=CreateDialogTemplate(ResourceBytes(OriginalSerialUiAssets::Template101),ResourceSize(OriginalSerialUiAssets::Template101),owner,0x71000014,memory,true);
  if(kept){auto&record=threads[current_thread].host_frames[frame_at];record.b=hwnd;record.d=1;GiveTail(TailRecord);}
  return hwnd?RunModal(hwnd,kept):~0u;
 }

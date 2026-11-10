@@ -61,22 +61,26 @@ struct Reader {
     Bytes peData(unsigned address, unsigned size) { return slice(rva(address, size), size); }
     Bytes peResource(unsigned type, unsigned id, unsigned &language) {
         unsigned pe = get(60, 4), base = rva(get(pe + 24 + 112, 4), 16);
-        unsigned dir = base;
+        unsigned dir = base, found = language;
         const unsigned keys[] = {type, id};
         for (unsigned depth = 0; depth < 3 && ok; ++depth) {
             unsigned count = get(dir + 12, 2) + get(dir + 14, 2), next = 0;
             if (count > 4096) { ok = false; break; }
+            // Of the languages of a resource: the one asked for, else
+            // English, else the first, as the resource search of Windows.
+            unsigned rank = 0;
             for (unsigned i = 0; i < count; ++i) {
                 unsigned key = get(dir + 16 + i * 8, 4), value = get(dir + 20 + i * 8, 4);
-                if (depth < 2 ? key == keys[depth] : key == 0x409) {
-                    if (depth == 2) language = key;
-                    if ((depth < 2) != bool(value & 0x80000000)) { ok = false; break; }
-                    next = base + (value & 0x7fffffff); break;
-                }
+                unsigned fits = depth < 2 ? key == keys[depth] : key == language ? 3 : key == 0x409 ? 2 : 1;
+                if (fits <= rank) continue;
+                if ((depth < 2) != bool(value & 0x80000000)) { ok = false; break; }
+                rank = fits; next = base + (value & 0x7fffffff);
+                if (depth == 2) found = key;
             }
             if (!next) { ok = false; break; }
             dir = next;
         }
+        language = found;
         return ok ? peData(get(dir, 4), get(dir + 4, 4)) : Bytes{};
     }
 };
@@ -111,6 +115,10 @@ inline bool copy(void *target, size_t size, const Bytes &data) {
     std::memcpy(target, data.data(), size); return true;
 }
 template<class T> bool copy(T &target, const Bytes &data) { return copy(&target, sizeof target, data); }
+template<unsigned Capacity> bool copy(Win98LocalizedBytes<Capacity> &target, const Bytes &data) {
+    if (data.empty() || data.size() > Capacity) return false;
+    target = {}; std::memcpy(target.bytes, data.data(), data.size()); target.size = unsigned(data.size()); return true;
+}
 inline void word(Bytes &out, unsigned v) { out.push_back(v); out.push_back(v >> 8); }
 inline void dword(Bytes &out, unsigned v) { word(out, v); word(out, v >> 16); }
 // CP1252 is read from the installed NLS file, including punctuation above ASCII.
@@ -201,7 +209,12 @@ template<class Read> bool Load(Read read, std::string &error) {
 #undef NEO98_NLS
     if (!file("KERNEL32.DLL", data)) return false;
     Reader kernel{data}; unsigned language = 0;
-    if (!copy(Win98MessageTable::Data, kernel.peResource(11, 1, language)) || language != Win98MessageTable::Language ||
+    Bytes messages = kernel.peResource(11, 1, language);
+    if (messages.empty() || messages.size() > sizeof Win98MessageTable::Data) return invalid("KERNEL32.DLL");
+    std::memset(Win98MessageTable::Data, 0, sizeof Win98MessageTable::Data);
+    std::memcpy(Win98MessageTable::Data, messages.data(), messages.size());
+    Win98MessageTable::Bytes = unsigned(messages.size()); Win98MessageTable::Language = language;
+    if (
         !copy(OriginalComputerAnsiHigh, kernel.peData(0x5a480, 128)) ||
         !copy(OriginalComputerOemBytes, kernel.peData(0x5a500, 160)) || !kernel.ok) return invalid("KERNEL32.DLL");
     if (!file("KRNL386.EXE", data)) return false;
@@ -220,8 +233,13 @@ template<class Read> bool Load(Read read, std::string &error) {
     if (!file("USER.EXE", data)) return false;
     std::vector<Resource> user;
     if (!resources(data, user)) return invalid("USER.EXE");
-    for (const auto &r : OriginalImageResources)
-        if (!copy(const_cast<unsigned char *>(r.data), r.size, find(user, r.type, r.id, r.name))) return invalid("USER.EXE resources");
+    for (const auto &r : OriginalImageResources) {
+        const Bytes &found = find(user, r.type, r.id, r.name);
+        if (!r.length) { if (!copy(const_cast<unsigned char *>(r.data), r.size, found)) return invalid("USER.EXE resources"); continue; }
+        if (found.empty() || found.size() > r.size) return invalid("USER.EXE resources");
+        std::memset(const_cast<unsigned char *>(r.data), 0, r.size);
+        std::memcpy(const_cast<unsigned char *>(r.data), found.data(), found.size()); *r.length = unsigned(found.size());
+    }
     if (!copy(OriginalSystemMenu1, menu(find(user, 4, 1))) || !copy(OriginalSystemMenu2, menu(find(user, 4, 2)))) return invalid("USER.EXE menus");
     Reader usr{data};
     if (!copy(Win98UserResources::StripCalls, usr.segment(21, 0xb87, 364)) || !usr.ok) return invalid("USER.EXE OEM strip");
@@ -293,46 +311,46 @@ template<class Read> bool Load(Read read, std::string &error) {
         }
         if (!strings.ok) return invalid("SERIALUI.DLL strings");
     }
-    if (!OriginalSerialUiAssets::String462[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String342[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String208[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String209[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String210[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String211[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String213[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String214[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String215[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String216[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String217[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String218[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String219[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String220[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String221[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String222[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String200[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String201[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String202[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String203[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String204[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String205[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String206[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String207[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String240[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String241[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String242[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String243[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String244[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String250[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String251[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String252[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String253[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String254[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String255[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String256[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String257[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String260[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String261[0]) return invalid("SERIALUI.DLL strings");
-    if (!OriginalSerialUiAssets::String262[0]) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String462.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String342.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String208.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String209.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String210.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String211.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String213.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String214.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String215.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String216.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String217.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String218.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String219.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String220.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String221.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String222.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String200.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String201.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String202.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String203.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String204.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String205.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String206.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String207.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String240.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String241.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String242.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String243.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String244.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String250.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String251.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String252.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String253.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String254.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String255.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String256.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String257.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String260.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String261.size) return invalid("SERIALUI.DLL strings");
+    if (!OriginalSerialUiAssets::String262.size) return invalid("SERIALUI.DLL strings");
     if (!file("MMSYSTEM.DLL", data)) return false;
     std::vector<Resource> multimedia;
     if (!resources(data, multimedia)) return invalid("MMSYSTEM.DLL");

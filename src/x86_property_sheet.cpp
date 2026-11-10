@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "x86_app.h"
 #include "dialog_template.h"
+#include "win98_localized_bytes.h"
 #include "win98_property_pages.h"
 #include "win98_property_sheet_modal.h"
 #ifdef NEO98_RUNTIME_CONTENT
@@ -129,7 +130,7 @@ struct Application::PropertySheetEnvironment {
   if(caption<65536){wide=f->scratch+512;LoadString(Read(s+16),caption,wide,128,0x409);}
   unsigned narrow=Narrow(wide);if(wide>=65536&&!narrow)return false;
   unsigned text=narrow;
-  if(Read(s+8)&1){unsigned format=f->scratch+1024;app.Store(format,OriginalPropertySheetAssets::CaptionFormat,sizeof OriginalPropertySheetAssets::CaptionFormat);
+  if(Read(s+8)&1){unsigned format=f->scratch+1024;app.Store(format,ResourceBytes(OriginalPropertySheetAssets::CaptionFormat),ResourceSize(OriginalPropertySheetAssets::CaptionFormat));
    if(WideLength(format)+WideLength(wide)+2<178){unsigned aformat=Narrow(format);Write(f->scratch+2044,narrow);app.Printf(f->scratch+2048,aformat,f->scratch+2044);Free(aformat);text=f->scratch+2048;}}
   if(text)app.Send(f->hwnd,0xc,0,text);if(narrow>=65536)Free(narrow);return true;}
  // PSM_SETTITLEA/W: the new title replaces the header's caption (a
@@ -531,8 +532,8 @@ unsigned Application::ContinuePropertySheet(PropertyWork*w,bool resumed){
  Write32(frame.scratch,8);Write32(frame.scratch+4,8);unsigned common_args[]={frame.scratch};CommonInitApi("InitCommonControlsEx",common_args);if(this->state==Failed)return ~0u;
  // /: resource 1006 for a sheet, 1020 for a wizard; with
  // PSH_WIZARDCONTEXTHELP the wizard frame gets DS_CONTEXTHELP.
- using namespace OriginalPropertySheetAssets;unsigned bytes=wizard?sizeof Template1020:sizeof Template1006;
- unsigned resource=e.Allocate(bytes*2);if(!resource)return ~0u;w->value[1]=resource;w->size=bytes*2;Store(resource,wizard?Template1020:Template1006,bytes);
+ using namespace OriginalPropertySheetAssets;unsigned bytes=wizard?ResourceSize(Template1020):ResourceSize(Template1006);
+ unsigned resource=e.Allocate(bytes*2);if(!resource)return ~0u;w->value[1]=resource;w->size=bytes*2;Store(resource,wizard?ResourceBytes(Template1020):ResourceBytes(Template1006),bytes);
  if(wizard&&(flags&0x1000))Write32(resource,Read32(resource)|0x2000);
  frame.previous_focus=User::GetFocus();unsigned disabled=owner;
  for(unsigned depth=0;disabled&&(User::Style(disabled)&0x40000000)&&depth<192;++depth)disabled=User::Parent(disabled);

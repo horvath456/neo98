@@ -4,6 +4,7 @@
 #else
 #include "../build/generated/user_menus.h"
 #endif
+#include "win98_localized_bytes.h"
 #include "x86_app.h"
 #include "win98_broadcast.h"
 #include <string.h>
@@ -87,8 +88,8 @@ unsigned Application::WindowApi(ApiName name, const unsigned *a)
         {
             unsigned position = 4;
             const bool child = style & 0x40000000;
-            root = ParseMenu(child ? OriginalSystemMenu2 : OriginalSystemMenu1,
-                             child ? sizeof OriginalSystemMenu2 : sizeof OriginalSystemMenu1, position, 0);
+            root = ParseMenu(child ? ResourceBytes(OriginalSystemMenu2) : ResourceBytes(OriginalSystemMenu1),
+                             child ? ResourceSize(OriginalSystemMenu2) : ResourceSize(OriginalSystemMenu1), position, 0);
             if (!root || !User::SetSystemMenuRoot(hwnd, root))
                 return 0;
             const unsigned menu = User::GetSubMenu(root, 0);

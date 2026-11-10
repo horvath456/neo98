@@ -110,7 +110,7 @@ struct Application::ImageResources final:IR::Environment {
   Pe32::Image::ResourceKey key;unsigned short wide[260];if(!app.ResourceName(name.value,key,wide))return 0;
   if(module==SystemImageInstance){
    const char*text=name.text?app.ReadString(name.value):nullptr;
-   for(const auto&v:OriginalImageResources)if(v.type==type&&((key.name&&EqualImageName(v.name,text))||(!key.name&&!v.name[0]&&v.id==key.id))){*r={true,0,v.size,type,v.data,nullptr};return slot+1;}
+   for(const auto&v:OriginalImageResources)if(v.type==type&&((key.name&&EqualImageName(v.name,text))||(!key.name&&!v.name[0]&&v.id==key.id))){*r={true,0,v.Size(),type,v.data,nullptr};return slot+1;}
    app.last_error=1814;return 0;
   }
   const unsigned index=app.ModuleIndex(module);if(index>=Application::ModuleCapacity){app.last_error=6;return 0;}

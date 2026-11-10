@@ -198,7 +198,7 @@ unsigned Application::EndTaskDialog(unsigned owner)
         if (resource.type == ResourceDialog && resource.id == TaskDialogResource && !resource.name[0])
         {
             bytes = resource.data;
-            size = resource.size;
+            size = resource.Size();
             break;
         }
     if (!bytes)

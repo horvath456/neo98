@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (C) 2026 Andreas Horvath
 #pragma once
+#include "win98_localized_bytes.h"
 // Storage populated from the mounted Windows installation before guest startup.
 
 
@@ -11,9 +12,10 @@
 
 namespace Win98MessageTable
 {
-constexpr unsigned Language = 1033;
-constexpr unsigned Bytes = 54264;
-inline unsigned char Data[54264] = {};
+// The language and the length are those of the installation's table.
+inline unsigned Language = 0;
+inline unsigned Bytes = 0;
+inline unsigned char Data[262144] = {};
 }
 
 
@@ -39,8 +41,8 @@ inline unsigned short OriginalGdiAnsiCharset[256] = {};
 inline unsigned OriginalGdiCharsetInfo[3][14] = {};
 
 
-inline unsigned char OriginalSystemMenu1[150] = {};
-inline unsigned char OriginalSystemMenu2[190] = {};
+inline Win98LocalizedBytes<1024> OriginalSystemMenu1;
+inline Win98LocalizedBytes<1024> OriginalSystemMenu2;
 
 
 
@@ -74,7 +76,10 @@ inline int StripIndex(unsigned type, unsigned state) {
 
 
 
-struct OriginalImageResource {unsigned type,id;const char*name;const unsigned char*data;unsigned size;};
+// `size` is the length of an image and the room of a dialog; a dialog's
+// length differs by language and stands behind `length`.
+struct OriginalImageResource {unsigned type,id;const char*name;const unsigned char*data;unsigned size;unsigned*length=nullptr;
+    unsigned Size()const{return length?*length:size;}};
 inline unsigned char OriginalImageBytes0[32] = {};
 inline unsigned char OriginalImageBytes1[32] = {};
 inline unsigned char OriginalImageBytes2[32] = {};
@@ -113,14 +118,14 @@ inline unsigned char OriginalImageBytes34[192] = {};
 inline unsigned char OriginalImageBytes35[352] = {};
 inline unsigned char OriginalImageBytes36[384] = {};
 inline unsigned char OriginalImageBytes37[416] = {};
-inline unsigned char OriginalImageBytes38[160] = {};
-inline unsigned char OriginalImageBytes39[160] = {};
-inline unsigned char OriginalImageBytes40[128] = {};
-inline unsigned char OriginalImageBytes41[160] = {};
-inline unsigned char OriginalImageBytes42[352] = {};
-inline unsigned char OriginalImageBytes43[640] = {};
-inline unsigned char OriginalImageBytes44[160] = {};
-inline unsigned char OriginalImageBytes45[224] = {};
+inline Win98LocalizedBytes<4096> OriginalImageBytes38;
+inline Win98LocalizedBytes<4096> OriginalImageBytes39;
+inline Win98LocalizedBytes<4096> OriginalImageBytes40;
+inline Win98LocalizedBytes<4096> OriginalImageBytes41;
+inline Win98LocalizedBytes<4096> OriginalImageBytes42;
+inline Win98LocalizedBytes<4096> OriginalImageBytes43;
+inline Win98LocalizedBytes<4096> OriginalImageBytes44;
+inline Win98LocalizedBytes<4096> OriginalImageBytes45;
 inline unsigned char OriginalImageBytes46[768] = {};
 inline unsigned char OriginalImageBytes47[224] = {};
 inline unsigned char OriginalImageBytes48[288] = {};
@@ -206,14 +211,14 @@ inline const OriginalImageResource OriginalImageResources[]={
 {2,32559,"",OriginalImageBytes35,sizeof OriginalImageBytes35},
 {2,32660,"",OriginalImageBytes36,sizeof OriginalImageBytes36},
 {2,32661,"",OriginalImageBytes37,sizeof OriginalImageBytes37},
-{5,7,"",OriginalImageBytes38,sizeof OriginalImageBytes38},
-{5,8,"",OriginalImageBytes39,sizeof OriginalImageBytes39},
-{5,9,"",OriginalImageBytes40,sizeof OriginalImageBytes40},
-{5,10,"",OriginalImageBytes41,sizeof OriginalImageBytes41},
-{5,200,"",OriginalImageBytes42,sizeof OriginalImageBytes42},
-{5,11,"",OriginalImageBytes43,sizeof OriginalImageBytes43},
-{5,12,"",OriginalImageBytes44,sizeof OriginalImageBytes44},
-{5,13,"",OriginalImageBytes45,sizeof OriginalImageBytes45},
+{5,7,"",OriginalImageBytes38.bytes,sizeof OriginalImageBytes38.bytes,&OriginalImageBytes38.size},
+{5,8,"",OriginalImageBytes39.bytes,sizeof OriginalImageBytes39.bytes,&OriginalImageBytes39.size},
+{5,9,"",OriginalImageBytes40.bytes,sizeof OriginalImageBytes40.bytes,&OriginalImageBytes40.size},
+{5,10,"",OriginalImageBytes41.bytes,sizeof OriginalImageBytes41.bytes,&OriginalImageBytes41.size},
+{5,200,"",OriginalImageBytes42.bytes,sizeof OriginalImageBytes42.bytes,&OriginalImageBytes42.size},
+{5,11,"",OriginalImageBytes43.bytes,sizeof OriginalImageBytes43.bytes,&OriginalImageBytes43.size},
+{5,12,"",OriginalImageBytes44.bytes,sizeof OriginalImageBytes44.bytes,&OriginalImageBytes44.size},
+{5,13,"",OriginalImageBytes45.bytes,sizeof OriginalImageBytes45.bytes,&OriginalImageBytes45.size},
 {3,1,"",OriginalImageBytes46,sizeof OriginalImageBytes46},
 {3,2,"",OriginalImageBytes47,sizeof OriginalImageBytes47},
 {3,3,"",OriginalImageBytes48,sizeof OriginalImageBytes48},
@@ -265,89 +270,89 @@ inline const OriginalImageResource OriginalImageResources[]={
 
 
 namespace OriginalSerialUiAssets {
-inline unsigned char Template119[616] = {};
-inline unsigned char Template101[1056] = {};
-inline unsigned char String462[111] = {};
-inline unsigned char String342[14] = {};
-inline unsigned char String208[6] = {};
-inline unsigned char String209[7] = {};
-inline unsigned char String210[7] = {};
-inline unsigned char String211[6] = {};
-inline unsigned char String213[3] = {};
-inline unsigned char String214[6] = {};
-inline unsigned char String215[4] = {};
-inline unsigned char String216[4] = {};
-inline unsigned char String217[4] = {};
-inline unsigned char String218[5] = {};
-inline unsigned char String219[5] = {};
-inline unsigned char String220[7] = {};
-inline unsigned char String221[7] = {};
-inline unsigned char String222[7] = {};
-inline unsigned char String200[4] = {};
-inline unsigned char String201[5] = {};
-inline unsigned char String202[5] = {};
-inline unsigned char String203[5] = {};
-inline unsigned char String204[5] = {};
-inline unsigned char String205[6] = {};
-inline unsigned char String206[6] = {};
-inline unsigned char String207[6] = {};
-inline unsigned char String240[2] = {};
-inline unsigned char String241[2] = {};
-inline unsigned char String242[2] = {};
-inline unsigned char String243[2] = {};
-inline unsigned char String244[2] = {};
-inline unsigned char String250[5] = {};
-inline unsigned char String251[4] = {};
-inline unsigned char String252[5] = {};
-inline unsigned char String253[5] = {};
-inline unsigned char String254[6] = {};
-inline unsigned char String255[2] = {};
-inline unsigned char String256[4] = {};
-inline unsigned char String257[2] = {};
-inline unsigned char String260[11] = {};
-inline unsigned char String261[9] = {};
-inline unsigned char String262[5] = {};
+inline Win98LocalizedBytes<4096> Template119;
+inline Win98LocalizedBytes<8192> Template101;
+inline Win98LocalizedBytes<256> String462;
+inline Win98LocalizedBytes<256> String342;
+inline Win98LocalizedBytes<256> String208;
+inline Win98LocalizedBytes<256> String209;
+inline Win98LocalizedBytes<256> String210;
+inline Win98LocalizedBytes<256> String211;
+inline Win98LocalizedBytes<256> String213;
+inline Win98LocalizedBytes<256> String214;
+inline Win98LocalizedBytes<256> String215;
+inline Win98LocalizedBytes<256> String216;
+inline Win98LocalizedBytes<256> String217;
+inline Win98LocalizedBytes<256> String218;
+inline Win98LocalizedBytes<256> String219;
+inline Win98LocalizedBytes<256> String220;
+inline Win98LocalizedBytes<256> String221;
+inline Win98LocalizedBytes<256> String222;
+inline Win98LocalizedBytes<256> String200;
+inline Win98LocalizedBytes<256> String201;
+inline Win98LocalizedBytes<256> String202;
+inline Win98LocalizedBytes<256> String203;
+inline Win98LocalizedBytes<256> String204;
+inline Win98LocalizedBytes<256> String205;
+inline Win98LocalizedBytes<256> String206;
+inline Win98LocalizedBytes<256> String207;
+inline Win98LocalizedBytes<256> String240;
+inline Win98LocalizedBytes<256> String241;
+inline Win98LocalizedBytes<256> String242;
+inline Win98LocalizedBytes<256> String243;
+inline Win98LocalizedBytes<256> String244;
+inline Win98LocalizedBytes<256> String250;
+inline Win98LocalizedBytes<256> String251;
+inline Win98LocalizedBytes<256> String252;
+inline Win98LocalizedBytes<256> String253;
+inline Win98LocalizedBytes<256> String254;
+inline Win98LocalizedBytes<256> String255;
+inline Win98LocalizedBytes<256> String256;
+inline Win98LocalizedBytes<256> String257;
+inline Win98LocalizedBytes<256> String260;
+inline Win98LocalizedBytes<256> String261;
+inline Win98LocalizedBytes<256> String262;
 inline const char *String(unsigned id){switch(id){
-case 462:return reinterpret_cast<const char *>(String462);
-case 342:return reinterpret_cast<const char *>(String342);
-case 208:return reinterpret_cast<const char *>(String208);
-case 209:return reinterpret_cast<const char *>(String209);
-case 210:return reinterpret_cast<const char *>(String210);
-case 211:return reinterpret_cast<const char *>(String211);
-case 213:return reinterpret_cast<const char *>(String213);
-case 214:return reinterpret_cast<const char *>(String214);
-case 215:return reinterpret_cast<const char *>(String215);
-case 216:return reinterpret_cast<const char *>(String216);
-case 217:return reinterpret_cast<const char *>(String217);
-case 218:return reinterpret_cast<const char *>(String218);
-case 219:return reinterpret_cast<const char *>(String219);
-case 220:return reinterpret_cast<const char *>(String220);
-case 221:return reinterpret_cast<const char *>(String221);
-case 222:return reinterpret_cast<const char *>(String222);
-case 200:return reinterpret_cast<const char *>(String200);
-case 201:return reinterpret_cast<const char *>(String201);
-case 202:return reinterpret_cast<const char *>(String202);
-case 203:return reinterpret_cast<const char *>(String203);
-case 204:return reinterpret_cast<const char *>(String204);
-case 205:return reinterpret_cast<const char *>(String205);
-case 206:return reinterpret_cast<const char *>(String206);
-case 207:return reinterpret_cast<const char *>(String207);
-case 240:return reinterpret_cast<const char *>(String240);
-case 241:return reinterpret_cast<const char *>(String241);
-case 242:return reinterpret_cast<const char *>(String242);
-case 243:return reinterpret_cast<const char *>(String243);
-case 244:return reinterpret_cast<const char *>(String244);
-case 250:return reinterpret_cast<const char *>(String250);
-case 251:return reinterpret_cast<const char *>(String251);
-case 252:return reinterpret_cast<const char *>(String252);
-case 253:return reinterpret_cast<const char *>(String253);
-case 254:return reinterpret_cast<const char *>(String254);
-case 255:return reinterpret_cast<const char *>(String255);
-case 256:return reinterpret_cast<const char *>(String256);
-case 257:return reinterpret_cast<const char *>(String257);
-case 260:return reinterpret_cast<const char *>(String260);
-case 261:return reinterpret_cast<const char *>(String261);
-case 262:return reinterpret_cast<const char *>(String262);
+case 462:return reinterpret_cast<const char *>(String462.bytes);
+case 342:return reinterpret_cast<const char *>(String342.bytes);
+case 208:return reinterpret_cast<const char *>(String208.bytes);
+case 209:return reinterpret_cast<const char *>(String209.bytes);
+case 210:return reinterpret_cast<const char *>(String210.bytes);
+case 211:return reinterpret_cast<const char *>(String211.bytes);
+case 213:return reinterpret_cast<const char *>(String213.bytes);
+case 214:return reinterpret_cast<const char *>(String214.bytes);
+case 215:return reinterpret_cast<const char *>(String215.bytes);
+case 216:return reinterpret_cast<const char *>(String216.bytes);
+case 217:return reinterpret_cast<const char *>(String217.bytes);
+case 218:return reinterpret_cast<const char *>(String218.bytes);
+case 219:return reinterpret_cast<const char *>(String219.bytes);
+case 220:return reinterpret_cast<const char *>(String220.bytes);
+case 221:return reinterpret_cast<const char *>(String221.bytes);
+case 222:return reinterpret_cast<const char *>(String222.bytes);
+case 200:return reinterpret_cast<const char *>(String200.bytes);
+case 201:return reinterpret_cast<const char *>(String201.bytes);
+case 202:return reinterpret_cast<const char *>(String202.bytes);
+case 203:return reinterpret_cast<const char *>(String203.bytes);
+case 204:return reinterpret_cast<const char *>(String204.bytes);
+case 205:return reinterpret_cast<const char *>(String205.bytes);
+case 206:return reinterpret_cast<const char *>(String206.bytes);
+case 207:return reinterpret_cast<const char *>(String207.bytes);
+case 240:return reinterpret_cast<const char *>(String240.bytes);
+case 241:return reinterpret_cast<const char *>(String241.bytes);
+case 242:return reinterpret_cast<const char *>(String242.bytes);
+case 243:return reinterpret_cast<const char *>(String243.bytes);
+case 244:return reinterpret_cast<const char *>(String244.bytes);
+case 250:return reinterpret_cast<const char *>(String250.bytes);
+case 251:return reinterpret_cast<const char *>(String251.bytes);
+case 252:return reinterpret_cast<const char *>(String252.bytes);
+case 253:return reinterpret_cast<const char *>(String253.bytes);
+case 254:return reinterpret_cast<const char *>(String254.bytes);
+case 255:return reinterpret_cast<const char *>(String255.bytes);
+case 256:return reinterpret_cast<const char *>(String256.bytes);
+case 257:return reinterpret_cast<const char *>(String257.bytes);
+case 260:return reinterpret_cast<const char *>(String260.bytes);
+case 261:return reinterpret_cast<const char *>(String261.bytes);
+case 262:return reinterpret_cast<const char *>(String262.bytes);
 default:return "";}}
 }
 
@@ -364,15 +369,15 @@ inline unsigned char OriginalGdiObjectTypes[13] = {};
 inline unsigned char OriginalGdiCurrentOffsets[8] = {};
 
 namespace OriginalPropertySheetAssets {
-inline unsigned char Template1006[254] = {};
-inline unsigned char Template1020[358] = {};
-inline unsigned char CaptionFormat[28] = {};
+inline Win98LocalizedBytes<2048> Template1006;
+inline Win98LocalizedBytes<2048> Template1020;
+inline Win98LocalizedBytes<256> CaptionFormat;
 }
 
 // Enumerate imported storage so states retain the loading installation.
 template<class Visit> void VisitWindowsRuntimeData(Visit visit)
 {
-    visit("Win98MessageTable::Data", &Win98MessageTable::Data, sizeof Win98MessageTable::Data);
+    visit("Win98MessageTable::Data", Win98MessageTable::Data, Win98MessageTable::Bytes);
     visit("OriginalCodePage1252", &OriginalCodePage1252, sizeof OriginalCodePage1252);
     visit("OriginalCodePage437", &OriginalCodePage437, sizeof OriginalCodePage437);
     visit("OriginalCodePage850", &OriginalCodePage850, sizeof OriginalCodePage850);
@@ -383,8 +388,8 @@ template<class Visit> void VisitWindowsRuntimeData(Visit visit)
     visit("OriginalComputerOemBytes", &OriginalComputerOemBytes, sizeof OriginalComputerOemBytes);
     visit("OriginalGdiAnsiCharset", &OriginalGdiAnsiCharset, sizeof OriginalGdiAnsiCharset);
     visit("OriginalGdiCharsetInfo", &OriginalGdiCharsetInfo, sizeof OriginalGdiCharsetInfo);
-    visit("OriginalSystemMenu1", &OriginalSystemMenu1, sizeof OriginalSystemMenu1);
-    visit("OriginalSystemMenu2", &OriginalSystemMenu2, sizeof OriginalSystemMenu2);
+    visit("OriginalSystemMenu1", OriginalSystemMenu1.bytes, OriginalSystemMenu1.size);
+    visit("OriginalSystemMenu2", OriginalSystemMenu2.bytes, OriginalSystemMenu2.size);
     visit("Win98UserResources::DefaultIcon10", &Win98UserResources::DefaultIcon10, sizeof Win98UserResources::DefaultIcon10);
     visit("Win98UserResources::DefaultIcon12", &Win98UserResources::DefaultIcon12, sizeof Win98UserResources::DefaultIcon12);
     visit("Win98UserResources::DefaultIcon14", &Win98UserResources::DefaultIcon14, sizeof Win98UserResources::DefaultIcon14);
@@ -430,14 +435,14 @@ template<class Visit> void VisitWindowsRuntimeData(Visit visit)
     visit("OriginalImageBytes35", &OriginalImageBytes35, sizeof OriginalImageBytes35);
     visit("OriginalImageBytes36", &OriginalImageBytes36, sizeof OriginalImageBytes36);
     visit("OriginalImageBytes37", &OriginalImageBytes37, sizeof OriginalImageBytes37);
-    visit("OriginalImageBytes38", &OriginalImageBytes38, sizeof OriginalImageBytes38);
-    visit("OriginalImageBytes39", &OriginalImageBytes39, sizeof OriginalImageBytes39);
-    visit("OriginalImageBytes40", &OriginalImageBytes40, sizeof OriginalImageBytes40);
-    visit("OriginalImageBytes41", &OriginalImageBytes41, sizeof OriginalImageBytes41);
-    visit("OriginalImageBytes42", &OriginalImageBytes42, sizeof OriginalImageBytes42);
-    visit("OriginalImageBytes43", &OriginalImageBytes43, sizeof OriginalImageBytes43);
-    visit("OriginalImageBytes44", &OriginalImageBytes44, sizeof OriginalImageBytes44);
-    visit("OriginalImageBytes45", &OriginalImageBytes45, sizeof OriginalImageBytes45);
+    visit("OriginalImageBytes38", OriginalImageBytes38.bytes, OriginalImageBytes38.size);
+    visit("OriginalImageBytes39", OriginalImageBytes39.bytes, OriginalImageBytes39.size);
+    visit("OriginalImageBytes40", OriginalImageBytes40.bytes, OriginalImageBytes40.size);
+    visit("OriginalImageBytes41", OriginalImageBytes41.bytes, OriginalImageBytes41.size);
+    visit("OriginalImageBytes42", OriginalImageBytes42.bytes, OriginalImageBytes42.size);
+    visit("OriginalImageBytes43", OriginalImageBytes43.bytes, OriginalImageBytes43.size);
+    visit("OriginalImageBytes44", OriginalImageBytes44.bytes, OriginalImageBytes44.size);
+    visit("OriginalImageBytes45", OriginalImageBytes45.bytes, OriginalImageBytes45.size);
     visit("OriginalImageBytes46", &OriginalImageBytes46, sizeof OriginalImageBytes46);
     visit("OriginalImageBytes47", &OriginalImageBytes47, sizeof OriginalImageBytes47);
     visit("OriginalImageBytes48", &OriginalImageBytes48, sizeof OriginalImageBytes48);
@@ -484,53 +489,53 @@ template<class Visit> void VisitWindowsRuntimeData(Visit visit)
     visit("OriginalImageBytes89", &OriginalImageBytes89, sizeof OriginalImageBytes89);
     visit("OriginalImageBytes90", &OriginalImageBytes90, sizeof OriginalImageBytes90);
     visit("OriginalImageBytes91", &OriginalImageBytes91, sizeof OriginalImageBytes91);
-    visit("OriginalSerialUiAssets::Template119", &OriginalSerialUiAssets::Template119, sizeof OriginalSerialUiAssets::Template119);
-    visit("OriginalSerialUiAssets::Template101", &OriginalSerialUiAssets::Template101, sizeof OriginalSerialUiAssets::Template101);
-    visit("OriginalSerialUiAssets::String462", &OriginalSerialUiAssets::String462, sizeof OriginalSerialUiAssets::String462);
-    visit("OriginalSerialUiAssets::String342", &OriginalSerialUiAssets::String342, sizeof OriginalSerialUiAssets::String342);
-    visit("OriginalSerialUiAssets::String208", &OriginalSerialUiAssets::String208, sizeof OriginalSerialUiAssets::String208);
-    visit("OriginalSerialUiAssets::String209", &OriginalSerialUiAssets::String209, sizeof OriginalSerialUiAssets::String209);
-    visit("OriginalSerialUiAssets::String210", &OriginalSerialUiAssets::String210, sizeof OriginalSerialUiAssets::String210);
-    visit("OriginalSerialUiAssets::String211", &OriginalSerialUiAssets::String211, sizeof OriginalSerialUiAssets::String211);
-    visit("OriginalSerialUiAssets::String213", &OriginalSerialUiAssets::String213, sizeof OriginalSerialUiAssets::String213);
-    visit("OriginalSerialUiAssets::String214", &OriginalSerialUiAssets::String214, sizeof OriginalSerialUiAssets::String214);
-    visit("OriginalSerialUiAssets::String215", &OriginalSerialUiAssets::String215, sizeof OriginalSerialUiAssets::String215);
-    visit("OriginalSerialUiAssets::String216", &OriginalSerialUiAssets::String216, sizeof OriginalSerialUiAssets::String216);
-    visit("OriginalSerialUiAssets::String217", &OriginalSerialUiAssets::String217, sizeof OriginalSerialUiAssets::String217);
-    visit("OriginalSerialUiAssets::String218", &OriginalSerialUiAssets::String218, sizeof OriginalSerialUiAssets::String218);
-    visit("OriginalSerialUiAssets::String219", &OriginalSerialUiAssets::String219, sizeof OriginalSerialUiAssets::String219);
-    visit("OriginalSerialUiAssets::String220", &OriginalSerialUiAssets::String220, sizeof OriginalSerialUiAssets::String220);
-    visit("OriginalSerialUiAssets::String221", &OriginalSerialUiAssets::String221, sizeof OriginalSerialUiAssets::String221);
-    visit("OriginalSerialUiAssets::String222", &OriginalSerialUiAssets::String222, sizeof OriginalSerialUiAssets::String222);
-    visit("OriginalSerialUiAssets::String200", &OriginalSerialUiAssets::String200, sizeof OriginalSerialUiAssets::String200);
-    visit("OriginalSerialUiAssets::String201", &OriginalSerialUiAssets::String201, sizeof OriginalSerialUiAssets::String201);
-    visit("OriginalSerialUiAssets::String202", &OriginalSerialUiAssets::String202, sizeof OriginalSerialUiAssets::String202);
-    visit("OriginalSerialUiAssets::String203", &OriginalSerialUiAssets::String203, sizeof OriginalSerialUiAssets::String203);
-    visit("OriginalSerialUiAssets::String204", &OriginalSerialUiAssets::String204, sizeof OriginalSerialUiAssets::String204);
-    visit("OriginalSerialUiAssets::String205", &OriginalSerialUiAssets::String205, sizeof OriginalSerialUiAssets::String205);
-    visit("OriginalSerialUiAssets::String206", &OriginalSerialUiAssets::String206, sizeof OriginalSerialUiAssets::String206);
-    visit("OriginalSerialUiAssets::String207", &OriginalSerialUiAssets::String207, sizeof OriginalSerialUiAssets::String207);
-    visit("OriginalSerialUiAssets::String240", &OriginalSerialUiAssets::String240, sizeof OriginalSerialUiAssets::String240);
-    visit("OriginalSerialUiAssets::String241", &OriginalSerialUiAssets::String241, sizeof OriginalSerialUiAssets::String241);
-    visit("OriginalSerialUiAssets::String242", &OriginalSerialUiAssets::String242, sizeof OriginalSerialUiAssets::String242);
-    visit("OriginalSerialUiAssets::String243", &OriginalSerialUiAssets::String243, sizeof OriginalSerialUiAssets::String243);
-    visit("OriginalSerialUiAssets::String244", &OriginalSerialUiAssets::String244, sizeof OriginalSerialUiAssets::String244);
-    visit("OriginalSerialUiAssets::String250", &OriginalSerialUiAssets::String250, sizeof OriginalSerialUiAssets::String250);
-    visit("OriginalSerialUiAssets::String251", &OriginalSerialUiAssets::String251, sizeof OriginalSerialUiAssets::String251);
-    visit("OriginalSerialUiAssets::String252", &OriginalSerialUiAssets::String252, sizeof OriginalSerialUiAssets::String252);
-    visit("OriginalSerialUiAssets::String253", &OriginalSerialUiAssets::String253, sizeof OriginalSerialUiAssets::String253);
-    visit("OriginalSerialUiAssets::String254", &OriginalSerialUiAssets::String254, sizeof OriginalSerialUiAssets::String254);
-    visit("OriginalSerialUiAssets::String255", &OriginalSerialUiAssets::String255, sizeof OriginalSerialUiAssets::String255);
-    visit("OriginalSerialUiAssets::String256", &OriginalSerialUiAssets::String256, sizeof OriginalSerialUiAssets::String256);
-    visit("OriginalSerialUiAssets::String257", &OriginalSerialUiAssets::String257, sizeof OriginalSerialUiAssets::String257);
-    visit("OriginalSerialUiAssets::String260", &OriginalSerialUiAssets::String260, sizeof OriginalSerialUiAssets::String260);
-    visit("OriginalSerialUiAssets::String261", &OriginalSerialUiAssets::String261, sizeof OriginalSerialUiAssets::String261);
-    visit("OriginalSerialUiAssets::String262", &OriginalSerialUiAssets::String262, sizeof OriginalSerialUiAssets::String262);
+    visit("OriginalSerialUiAssets::Template119", OriginalSerialUiAssets::Template119.bytes, OriginalSerialUiAssets::Template119.size);
+    visit("OriginalSerialUiAssets::Template101", OriginalSerialUiAssets::Template101.bytes, OriginalSerialUiAssets::Template101.size);
+    visit("OriginalSerialUiAssets::String462", OriginalSerialUiAssets::String462.bytes, OriginalSerialUiAssets::String462.size);
+    visit("OriginalSerialUiAssets::String342", OriginalSerialUiAssets::String342.bytes, OriginalSerialUiAssets::String342.size);
+    visit("OriginalSerialUiAssets::String208", OriginalSerialUiAssets::String208.bytes, OriginalSerialUiAssets::String208.size);
+    visit("OriginalSerialUiAssets::String209", OriginalSerialUiAssets::String209.bytes, OriginalSerialUiAssets::String209.size);
+    visit("OriginalSerialUiAssets::String210", OriginalSerialUiAssets::String210.bytes, OriginalSerialUiAssets::String210.size);
+    visit("OriginalSerialUiAssets::String211", OriginalSerialUiAssets::String211.bytes, OriginalSerialUiAssets::String211.size);
+    visit("OriginalSerialUiAssets::String213", OriginalSerialUiAssets::String213.bytes, OriginalSerialUiAssets::String213.size);
+    visit("OriginalSerialUiAssets::String214", OriginalSerialUiAssets::String214.bytes, OriginalSerialUiAssets::String214.size);
+    visit("OriginalSerialUiAssets::String215", OriginalSerialUiAssets::String215.bytes, OriginalSerialUiAssets::String215.size);
+    visit("OriginalSerialUiAssets::String216", OriginalSerialUiAssets::String216.bytes, OriginalSerialUiAssets::String216.size);
+    visit("OriginalSerialUiAssets::String217", OriginalSerialUiAssets::String217.bytes, OriginalSerialUiAssets::String217.size);
+    visit("OriginalSerialUiAssets::String218", OriginalSerialUiAssets::String218.bytes, OriginalSerialUiAssets::String218.size);
+    visit("OriginalSerialUiAssets::String219", OriginalSerialUiAssets::String219.bytes, OriginalSerialUiAssets::String219.size);
+    visit("OriginalSerialUiAssets::String220", OriginalSerialUiAssets::String220.bytes, OriginalSerialUiAssets::String220.size);
+    visit("OriginalSerialUiAssets::String221", OriginalSerialUiAssets::String221.bytes, OriginalSerialUiAssets::String221.size);
+    visit("OriginalSerialUiAssets::String222", OriginalSerialUiAssets::String222.bytes, OriginalSerialUiAssets::String222.size);
+    visit("OriginalSerialUiAssets::String200", OriginalSerialUiAssets::String200.bytes, OriginalSerialUiAssets::String200.size);
+    visit("OriginalSerialUiAssets::String201", OriginalSerialUiAssets::String201.bytes, OriginalSerialUiAssets::String201.size);
+    visit("OriginalSerialUiAssets::String202", OriginalSerialUiAssets::String202.bytes, OriginalSerialUiAssets::String202.size);
+    visit("OriginalSerialUiAssets::String203", OriginalSerialUiAssets::String203.bytes, OriginalSerialUiAssets::String203.size);
+    visit("OriginalSerialUiAssets::String204", OriginalSerialUiAssets::String204.bytes, OriginalSerialUiAssets::String204.size);
+    visit("OriginalSerialUiAssets::String205", OriginalSerialUiAssets::String205.bytes, OriginalSerialUiAssets::String205.size);
+    visit("OriginalSerialUiAssets::String206", OriginalSerialUiAssets::String206.bytes, OriginalSerialUiAssets::String206.size);
+    visit("OriginalSerialUiAssets::String207", OriginalSerialUiAssets::String207.bytes, OriginalSerialUiAssets::String207.size);
+    visit("OriginalSerialUiAssets::String240", OriginalSerialUiAssets::String240.bytes, OriginalSerialUiAssets::String240.size);
+    visit("OriginalSerialUiAssets::String241", OriginalSerialUiAssets::String241.bytes, OriginalSerialUiAssets::String241.size);
+    visit("OriginalSerialUiAssets::String242", OriginalSerialUiAssets::String242.bytes, OriginalSerialUiAssets::String242.size);
+    visit("OriginalSerialUiAssets::String243", OriginalSerialUiAssets::String243.bytes, OriginalSerialUiAssets::String243.size);
+    visit("OriginalSerialUiAssets::String244", OriginalSerialUiAssets::String244.bytes, OriginalSerialUiAssets::String244.size);
+    visit("OriginalSerialUiAssets::String250", OriginalSerialUiAssets::String250.bytes, OriginalSerialUiAssets::String250.size);
+    visit("OriginalSerialUiAssets::String251", OriginalSerialUiAssets::String251.bytes, OriginalSerialUiAssets::String251.size);
+    visit("OriginalSerialUiAssets::String252", OriginalSerialUiAssets::String252.bytes, OriginalSerialUiAssets::String252.size);
+    visit("OriginalSerialUiAssets::String253", OriginalSerialUiAssets::String253.bytes, OriginalSerialUiAssets::String253.size);
+    visit("OriginalSerialUiAssets::String254", OriginalSerialUiAssets::String254.bytes, OriginalSerialUiAssets::String254.size);
+    visit("OriginalSerialUiAssets::String255", OriginalSerialUiAssets::String255.bytes, OriginalSerialUiAssets::String255.size);
+    visit("OriginalSerialUiAssets::String256", OriginalSerialUiAssets::String256.bytes, OriginalSerialUiAssets::String256.size);
+    visit("OriginalSerialUiAssets::String257", OriginalSerialUiAssets::String257.bytes, OriginalSerialUiAssets::String257.size);
+    visit("OriginalSerialUiAssets::String260", OriginalSerialUiAssets::String260.bytes, OriginalSerialUiAssets::String260.size);
+    visit("OriginalSerialUiAssets::String261", OriginalSerialUiAssets::String261.bytes, OriginalSerialUiAssets::String261.size);
+    visit("OriginalSerialUiAssets::String262", OriginalSerialUiAssets::String262.bytes, OriginalSerialUiAssets::String262.size);
     visit("Win98GdiPalette::DefaultColors", &Win98GdiPalette::DefaultColors, sizeof Win98GdiPalette::DefaultColors);
     visit("Win98GdiPalette::HalftoneColors", &Win98GdiPalette::HalftoneColors, sizeof Win98GdiPalette::HalftoneColors);
     visit("OriginalGdiObjectTypes", &OriginalGdiObjectTypes, sizeof OriginalGdiObjectTypes);
     visit("OriginalGdiCurrentOffsets", &OriginalGdiCurrentOffsets, sizeof OriginalGdiCurrentOffsets);
-    visit("OriginalPropertySheetAssets::Template1006", &OriginalPropertySheetAssets::Template1006, sizeof OriginalPropertySheetAssets::Template1006);
-    visit("OriginalPropertySheetAssets::Template1020", &OriginalPropertySheetAssets::Template1020, sizeof OriginalPropertySheetAssets::Template1020);
-    visit("OriginalPropertySheetAssets::CaptionFormat", &OriginalPropertySheetAssets::CaptionFormat, sizeof OriginalPropertySheetAssets::CaptionFormat);
+    visit("OriginalPropertySheetAssets::Template1006", OriginalPropertySheetAssets::Template1006.bytes, OriginalPropertySheetAssets::Template1006.size);
+    visit("OriginalPropertySheetAssets::Template1020", OriginalPropertySheetAssets::Template1020.bytes, OriginalPropertySheetAssets::Template1020.size);
+    visit("OriginalPropertySheetAssets::CaptionFormat", OriginalPropertySheetAssets::CaptionFormat.bytes, OriginalPropertySheetAssets::CaptionFormat.size);
 }

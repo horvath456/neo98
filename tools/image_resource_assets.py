@@ -19,7 +19,7 @@ def generate():
    if name&0x8000:key=name&0x7fff;text=''
    else:n=p[table+name];text=p[table+name+1:table+name+1+n].decode('latin1');key=0
    entries.append((typ&0x7fff,key,text,p[off:off+length],off))
- OUT.mkdir(exist_ok=True);h=['// Generated read-only USER.EXE resources; source SHA256 '+HASH,'#pragma once','struct OriginalImageResource {unsigned type,id;const char*name;const unsigned char*data;unsigned size;};']
+ OUT.mkdir(exist_ok=True);h=['// Generated read-only USER.EXE resources; source SHA256 '+HASH,'#pragma once','struct OriginalImageResource {unsigned type,id;const char*name;const unsigned char*data;unsigned size;unsigned*length=nullptr;\n    constexpr unsigned Size()const{return length?*length:size;}};']
  for i,(typ,key,name,data,off)in enumerate(entries):h.append(f'inline constexpr unsigned char OriginalImageBytes{i}[]={{'+','.join(str(x)for x in data)+'};')
  h.append('inline constexpr OriginalImageResource OriginalImageResources[]={')
  for i,(typ,key,name,data,off)in enumerate(entries):h.append('{'+f'{typ},{key},'+json.dumps(name)+f',OriginalImageBytes{i},sizeof OriginalImageBytes{i}'+'},')
