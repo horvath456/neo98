@@ -874,6 +874,10 @@ void Application::CollectModules()
             const unsigned args[] = {m.handle, 0, 0};
             Call(m.pe->Entry(), args, 3);
         }
+        // KERNEL32 tells USER about each module it frees, after the detach
+        // call: the classes the process registered for it go with it.
+        if (user_initialized && state != Failed && state != Exited)
+            User::DestroyLibraryClasses(m.handle);
         DeleteModule(chosen);
     }
     collecting_modules = false;

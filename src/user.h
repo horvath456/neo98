@@ -33,6 +33,7 @@ unsigned GetNativeClassInfo(unsigned instance,const char *name,unsigned fields[1
 unsigned UnregisterNativeClass(unsigned instance,const char *name);
 // The classes of a 16-bit module that is freed.
 void DestroyModuleClasses(unsigned instance);
+void DestroyLibraryClasses(unsigned instance);
 // A stock brush of a process, which a class that goes must not delete.
 void ProtectStockBrush(unsigned handle,bool on);
 unsigned NativeClassError();

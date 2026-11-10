@@ -1916,6 +1916,12 @@ unsigned GetNativeClassInfo(unsigned instance,const char *name,unsigned *fields)
 unsigned UnregisterNativeClass(unsigned instance,const char *name) {return Win98Classes::Unregister(class_store,class_store.NameToken(name),class_store.Module(instance,false));}
 void ProtectStockBrush(unsigned handle,bool on){Gdi::ProtectStockBrush(handle,on);}
 void DestroyModuleClasses(unsigned instance){const unsigned module=class_store.Module(instance,false);if(module&&module!=0xffff)Win98Classes::DestroyModule(class_store,class_store.Read16(Win98Classes::Local(class_store,0xe28)),module);}
+// USER, for SignalProc32 with code 5, which KERNEL32 sends after the
+// DLL_PROCESS_DETACH of every 32-bit module it frees from a process: the owner
+// of that process loses the classes of the module, so the DLL registers them
+// again when the process loads it a second time. A process on the shared
+// owner at local E28h keeps them.
+void DestroyLibraryClasses(unsigned instance){const unsigned owner=class_store.CurrentOwner(),module=class_store.Module(instance,false);if(module&&module!=0xffff&&owner!=class_store.Read16(Win98Classes::Local(class_store,0xe28)))Win98Classes::DestroyModule(class_store,owner,module);}
 void OwnClassMenu(HWND h,HMENU menu){if(auto*w=Find(h))w->class_menu_owned=menu;}
 unsigned NativeClassError(){return class_store.error;}
 unsigned ClassAtomName(unsigned atom,char*out,unsigned capacity){return Win98Atoms::Name(class_store.atoms,atom,(unsigned char*)out,capacity);}
