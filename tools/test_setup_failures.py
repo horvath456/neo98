@@ -105,6 +105,23 @@ class SetupFailuresTest(unittest.TestCase):
              patch.object(setup, 'send_keys'), contextlib.redirect_stdout(io.StringIO()):
             setup.handle_setup_dialog(None, None, {})
 
+    def test_german_pages_are_recognised(self):
+        # The texts as the German Windows 98 SE shows them on these pages.
+        pages = {'Benutzerangaben': 'user information confirmed',
+                 'Lizenzvertrag': 'license accepted',
+                 'Windows Product ID': 'product key confirmed',
+                 'Alle Informationen wurden gespeichert.': 'start wizard finished',
+                 'Uhr automatisch auf Sommer-/Winterzeit umstellen': 'date and time confirmed'}
+        with patch.object(setup, 'language', 'DE'):
+            for text, label in pages.items():
+                with self.subTest(text=text):
+                    output = io.StringIO()
+                    with patch.object(setup, 'screen_text', return_value=text.lower()), \
+                         patch.object(setup, 'send_keys') as keys, contextlib.redirect_stdout(output):
+                        setup.handle_setup_dialog(None, None, {})
+                    keys.assert_called_once()
+                    self.assertEqual(output.getvalue().strip(), 'setup: ' + label)
+
 
 if __name__ == '__main__':
     unittest.main()

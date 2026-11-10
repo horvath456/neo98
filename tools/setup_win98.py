@@ -189,7 +189,7 @@ LANGUAGES = {
                        ("lizenzvertrag", ("tab", "space", "ret"), "license accepted"),
                        ("windows product id", ("ret",), "product key confirmed"),
                        ("informationen wurden gespeichert", ("ret",), "start wizard finished"),
-                       ("sommerzeit", ("ret",), "date and time confirmed"))},
+                       ("uhr automatisch auf sommer", ("ret",), "date and time confirmed"))},
 }
 # The language of the CD being installed; _setup_iso sets it from the ISO.
 language = "EN"
