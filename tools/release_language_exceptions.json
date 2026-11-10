@@ -269,5 +269,8 @@
     "7bc3a8c928a48399a06b9bf4f8ffbc5c8ff170ec2b3f0f953535c3488a572a06": "Legacy print folder compatibility.",
     "40ad3ae483144cccff270349df3a8fe505a5c0a00387c88e0303f647d67c3fb1": "Legacy print folder compatibility.",
     "2ae6087f73dae9b3e8992005348374557b2929414148ad4b4156ca9527c4eb01": "Legacy print folder compatibility."
+  },
+  "tools/setup_win98.py": {
+    "5cf3a097f33adb9dc26a3e16a914273104c3f35aa46aa9eb1de84bedb27540ab": "Text of the German Windows Setup pages, matched against the screen to drive the installation."
   }
 }

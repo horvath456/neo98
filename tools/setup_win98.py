@@ -171,6 +171,38 @@ def prepare_disk(path):
     run("mformat", "-i", f"{path}@@{PARTITION_OFFSET}", "-F", "-v", "NEO98", "::")
 
 
+# What depends on the language of the CD: the locale and keyboard of the
+# answer file, and the words Setup's pages are recognized by on the screen.
+# The words are lower case and plain ASCII, as the English OCR model reads them.
+LANGUAGES = {
+    "EN": {"locale": "L0409", "keyboard": "KEYBOARD_00000409",
+           "key_rejected": r"product key you entered is invalid|you entered is invalid|"
+                           r"without a valid product key|piracy hotline|ru-legit",
+           "dialogs": (("user information", ("ret",), "user information confirmed"),
+                       ("license agreement", ("tab", "space", "ret"), "license accepted"),
+                       ("windows product key", ("ret",), "product key confirmed"),
+                       ("windows 98 saved all information", ("ret",), "start wizard finished"),
+                       ("automatically adjust clock", ("ret",), "date and time confirmed"))},
+    "DE": {"locale": "L0407", "keyboard": "KEYBOARD_00000407",
+           "key_rejected": r"product key ist ung|eingegebene product key|ohne g.ltigen product key|ru-legit",
+           "dialogs": (("benutzerangaben", ("ret",), "user information confirmed"),
+                       ("lizenzvertrag", ("tab", "space", "ret"), "license accepted"),
+                       ("windows product id", ("ret",), "product key confirmed"),
+                       ("informationen wurden gespeichert", ("ret",), "start wizard finished"),
+                       ("sommerzeit", ("ret",), "date and time confirmed"))},
+}
+# The language of the CD being installed; _setup_iso sets it from the ISO.
+language = "EN"
+
+
+def iso_language(record):
+    """The language of a checked ISO record (check_iso)."""
+    if record.get("language"):
+        return record["language"]
+    profiles = json.loads(win98_c.SUPPORTED_ISOS.read_text())["content_profiles"]
+    return next((p["language"] for p in profiles if p["id"] == record.get("profile")), "EN")
+
+
 def answer_file(product_key):
     # The layout and keys are Windows 98's Batch 98 format, not NT's unattend.xml.
     return dos_text(f'''
@@ -203,8 +235,8 @@ Uninstall=0
 NoPrompt2Boot=1
 
 [System]
-Locale=L0409
-SelectedKeyboard=KEYBOARD_00000409
+Locale={LANGUAGES[language]["locale"]}
+SelectedKeyboard={LANGUAGES[language]["keyboard"]}
 
 [NameAndOrg]
 Name="NEO98"
@@ -502,22 +534,12 @@ class KeyRejected(RuntimeError):
 
 # Windows Setup's message box for a key it refuses. OCR reads it with the odd
 # slip, so any of these pieces is enough.
-KEY_REJECTED = re.compile(r"product key you entered is invalid|you entered is invalid|"
-                          r"without a valid product key|piracy hotline|ru-legit")
-
-
 def handle_setup_dialog(monitor, screen, handled):
     visible = screen_text(monitor, screen)
-    if KEY_REJECTED.search(" ".join(visible.split())):
+    if re.search(LANGUAGES[language]["key_rejected"], " ".join(visible.split())):
         raise KeyRejected("Windows Setup did not accept the product key. "
                           "Check it and click Install again.")
-    dialogs = (
-        ("user information", ("ret",), "user information confirmed"),
-        ("license agreement", ("tab", "space", "ret"), "license accepted"),
-        ("windows product key", ("ret",), "product key confirmed"),
-        ("windows 98 saved all information", ("ret",), "start wizard finished"),
-        ("automatically adjust clock", ("ret",), "date and time confirmed"),
-    )
+    dialogs = LANGUAGES[language]["dialogs"]
     for title, keys, label in dialogs:
         if title not in visible:
             continue
@@ -897,6 +919,8 @@ def _setup_iso(iso=None, timeout=7200, reset=False, folder=None, work_root=None,
         raise RuntimeError(f"{folder} is not empty; choose another install location")
     print("setup: checking the ISO", flush=True)
     pinned = check_iso(iso)
+    global language
+    language = iso_language(pinned)
     iso_hash = pinned["sha256"]
     work = work_root / iso_hash[:16]
     disk = work / "disk.raw"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""Bounded ISO9660 inspection and English Windows 98 SE content validation.
+"""Bounded ISO9660 inspection and Windows 98 SE content validation.
 
 Only cabextract is required beyond Python's standard library. Profiles pin the
 original files used by the native runtime; matching setup metadata alone does
@@ -363,19 +363,20 @@ def _metadata(data):
 
 
 def content_record(iso: Path, *, digest=None) -> dict:
-    """Validate unknown media against pinned English SE files and return provenance."""
+    """Validate unknown media against the pinned SE files of its language and return provenance."""
     iso = Path(iso)
     profiles = json.loads(MANIFEST.read_text())['content_profiles']
     files = setup_files(iso)
     metadata = _content_files(iso, files, ['SETUPPP.INF'])
     version, language, product_type = _metadata(metadata['SETUPPP.INF'])
-    if language != 'EN':
-        _fail(f'Unsupported SETUPPP.INF language {language!r}; expected EN')
+    languages = sorted({p['language'] for p in profiles})
+    if language not in languages:
+        _fail(f'Unsupported SETUPPP.INF language {language!r}; expected ' + ' or '.join(languages))
     candidates = [p for p in profiles if p['os_version'] == version and p['language'] == language]
     if not candidates:
         _fail(f'Unsupported SETUPPP.INF OS_VERSION {version!r}; expected Windows 98 SE 4,10,0,2222')
     if any(product_type in p.get('upgrade_product_types', []) for p in candidates):
-        _fail('Windows 98 SE Upgrade media is unsupported; use validated English Full install media')
+        _fail('Windows 98 SE Upgrade media is unsupported; use validated Full install media')
     candidates = [p for p in candidates if product_type in p.get('full_product_types', [])]
     if not candidates:
         _fail(f'Unsupported SETUPPP.INF ProductType {product_type!r}; expected validated Full install media')
