@@ -93,8 +93,6 @@ inline std::string Reason(const MachineState::Verdict &verdict)
     case V::NoTable: return "This Neo98 build cannot save Windows game states: the runtime field layout is missing.";
     case V::DosProgram: return "Cannot save a state while DOS and Windows programs are running together.";
     case V::Arm64Program: return "Saving ARM64 program states is not yet supported.";
-    case V::Glide: return "Saving states for games using Glide is not yet supported.";
-    case V::OpenGL: return "Saving states for games using OpenGL is not yet supported.";
     case V::Engine: return "The selected CPU backend cannot save this program's state.";
     case V::Ended: return "The program has exited or crashed.";
     case V::Dialog: return "Close the open game dialog before saving a state.";

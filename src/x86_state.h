@@ -63,7 +63,7 @@ struct Verdict
     // What kind of reason, for a host that tells a person in its own words.
     enum Why
     {
-        Nothing, NoTable, DosProgram, Arm64Program, Glide, OpenGL, Engine, Ended,
+        Nothing, NoTable, DosProgram, Arm64Program, Engine, Ended,
         // A thread in the middle of something that passes by itself.
         Busy,
         // A thread inside a modal dialog or a menu: it passes when the person closes it.
