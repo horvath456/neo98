@@ -506,7 +506,17 @@ class NativeCpu : public Cpu
     // operation in the last byte, in 32-bit code with 32-bit addresses.
     // CPUID keeps answering what the processor has, so a program that asks
     // does not choose this slow path.
-    bool ThreeDNowInstruction()
+    bool ThreeDNowInstruction(unsigned until, bool single)
+    {
+        // These instructions come in runs; each one after the first saves a
+        // break and the way back into the guest. Not past the end of the
+        // run, and not while the run or the guest counts instructions.
+        if (!ThreeDNowStep()) return false;
+        for (unsigned more = 0; more < 64 && !single && InstructionAddress() != until &&
+                                !(state.regs[Reg::Eflags] & 0x100) && ThreeDNowStep(); ++more) {}
+        return true;
+    }
+    bool ThreeDNowStep()
     {
         if (!Bits32(state.regs[Reg::Cs])) return false;
         const unsigned ip = InstructionAddress();
@@ -1336,7 +1346,7 @@ class NativeCpu : public Cpu
             }
             if (signal == SIGILL)
             {
-                if (ThreeDNowInstruction()) continue;
+                if (ThreeDNowInstruction(until, step)) continue;
                 ReportInstruction("invalid instruction"); return CpuError::InvalidInstruction;
             }
             if (signal == SIGFPE)

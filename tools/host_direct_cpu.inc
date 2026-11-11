@@ -1000,7 +1000,7 @@ class DirectCpu final : public NativeCpu
             }
             if (signal == SIGILL)
             {
-                if (ThreeDNowInstruction())
+                if (ThreeDNowInstruction(until, step))
                     continue;
                 return CpuError::InvalidInstruction;
             }
