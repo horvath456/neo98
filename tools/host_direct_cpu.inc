@@ -999,7 +999,11 @@ class DirectCpu final : public NativeCpu
                 continue;
             }
             if (signal == SIGILL)
+            {
+                if (ThreeDNowInstruction())
+                    continue;
                 return CpuError::InvalidInstruction;
+            }
             if (signal == SIGFPE)
             {
                 if (!interrupt)

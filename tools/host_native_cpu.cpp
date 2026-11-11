@@ -498,6 +498,137 @@ class NativeCpu : public Cpu
         state.regs[Reg::Eip] += rdtscp ? 3 : 2;
         return true;
     }
+    // 3DNow! on a processor without it. AMD dropped these instructions in
+    // 2011, but a program of 1999 that reads "AuthenticAMD" may run them
+    // without asking CPUID for the feature: Expendable begins with FEMMS on
+    // every AMD processor. The invalid-opcode break carries each one out on
+    // the MMX registers of the guest: 0F 0E (FEMMS) and 0F 0F /r ib with the
+    // operation in the last byte, in 32-bit code with 32-bit addresses.
+    // CPUID keeps answering what the processor has, so a program that asks
+    // does not choose this slow path.
+    bool ThreeDNowInstruction()
+    {
+        if (!Bits32(state.regs[Reg::Cs])) return false;
+        const unsigned ip = InstructionAddress();
+        unsigned char code[15] = {};
+        unsigned length = 0, at = 0;
+        while (length < sizeof code && !Read(ip + length, code + length, 1)) ++length;
+        int segment = -1;
+        for (;; ++at)
+        {
+            if (at >= length) return false;
+            const unsigned char b = code[at];
+            if (b == 0x26 || b == 0x2e || b == 0x36 || b == 0x3e) segment = Reg::Es + ((b >> 3) & 3);
+            else if (b == 0x64 || b == 0x65) segment = Reg::Fs + (b & 1);
+            else break;
+        }
+        if (at + 2 > length || code[at] != 0x0f) return false;
+        if (code[at + 1] == 0x0e)
+        {
+            // FEMMS: every register empty; their contents are undefined.
+            state.fp.ftw = 0;
+            state.regs[Reg::Eip] += at + 2;
+            return true;
+        }
+        if (code[at + 1] != 0x0f) return false;
+        at += 2;
+        auto take = [&](unsigned bytes, unsigned &value) {
+            if (at + bytes > length) return false;
+            value = 0;
+            for (unsigned n = 0; n < bytes; ++n) value |= unsigned(code[at++]) << (8 * n);
+            return true;
+        };
+        unsigned modrm = 0;
+        if (!take(1, modrm)) return false;
+        const unsigned mode = modrm >> 6, rm = modrm & 7, target = (modrm >> 3) & 7;
+        // An MMX register is the significand of a physical x87 register. The
+        // saved image lists the registers from the top of the stack, and an
+        // MMX instruction leaves the top at 0: turn the image that way first.
+        auto *image = reinterpret_cast<unsigned char *>(state.fp.st_space);
+        if (const unsigned top = (state.fp.swd >> 11) & 7)
+        {
+            unsigned char turned[8 * 16];
+            for (unsigned physical = 0; physical < 8; ++physical)
+                memcpy(turned + physical * 16, image + ((physical - top) & 7) * 16, 16);
+            memcpy(image, turned, sizeof turned);
+            state.fp.swd &= ~0x3800;
+        }
+        union Value { unsigned long long q; unsigned d[2]; int i[2]; float f[2]; unsigned short w[4]; short s[4]; unsigned char b[8]; };
+        Value a, b;
+        memcpy(&a, image + target * 16, 8);
+        if (mode == 3) memcpy(&b, image + rm * 16, 8);
+        else
+        {
+            unsigned offset = 0, displacement = 0, bytes = mode == 1 ? 1 : mode == 2 ? 4 : 0, base = rm;
+            int base_segment = Reg::Ds;
+            if (rm == 4)
+            {
+                unsigned sib = 0;
+                if (!take(1, sib)) return false;
+                base = sib & 7;
+                const unsigned index = (sib >> 3) & 7;
+                if (index != 4) offset += unsigned(state.regs[index]) << (sib >> 6);
+            }
+            if (mode == 0 && base == 5) bytes = 4;
+            else
+            {
+                offset += state.regs[base];
+                if (base == Reg::Esp || base == Reg::Ebp) base_segment = Reg::Ss;
+            }
+            if (bytes && !take(bytes, displacement)) return false;
+            if (bytes == 1) displacement = unsigned(int(static_cast<signed char>(displacement)));
+            if (Read(Base(state.regs[segment < 0 ? base_segment : segment]) + offset + displacement, &b, 8)) return false;
+        }
+        unsigned operation = 0;
+        if (!take(1, operation)) return false;
+        auto integer = [](float value, long long low, long long high) -> int {
+            // Truncation with saturation; a NaN gives the lowest number.
+            if (!(value == value)) return int(low);
+            const double wide = value;
+            return wide <= double(low) ? int(low) : wide >= double(high) ? int(high) : int(wide);
+        };
+        Value r = a;
+        switch (operation)
+        {
+        case 0x0c: for (int n = 0; n < 2; ++n) r.f[n] = float(b.s[n * 2]); break;                       // PI2FW
+        case 0x0d: for (int n = 0; n < 2; ++n) r.f[n] = float(b.i[n]); break;                           // PI2FD
+        case 0x1c: for (int n = 0; n < 2; ++n) r.i[n] = integer(b.f[n], -32768, 32767); break;          // PF2IW
+        case 0x1d: for (int n = 0; n < 2; ++n) r.i[n] = integer(b.f[n], -2147483648ll, 2147483647ll); break; // PF2ID
+        case 0x8a: r.f[0] = a.f[0] - a.f[1]; r.f[1] = b.f[0] - b.f[1]; break;                           // PFNACC
+        case 0x8e: r.f[0] = a.f[0] - a.f[1]; r.f[1] = b.f[0] + b.f[1]; break;                           // PFPNACC
+        case 0x90: for (int n = 0; n < 2; ++n) r.d[n] = a.f[n] >= b.f[n] ? ~0u : 0; break;              // PFCMPGE
+        case 0x94: for (int n = 0; n < 2; ++n) r.f[n] = b.f[n] < a.f[n] ? b.f[n] : a.f[n]; break;       // PFMIN
+        case 0x96: r.f[0] = r.f[1] = 1.0f / b.f[0]; break;                                              // PFRCP
+        case 0x97:                                                                                      // PFRSQRT
+            r.f[0] = 1.0f / __builtin_sqrtf(__builtin_fabsf(b.f[0]));
+            r.d[0] |= b.d[0] & 0x80000000u;
+            r.d[1] = r.d[0];
+            break;
+        case 0x9a: for (int n = 0; n < 2; ++n) r.f[n] = a.f[n] - b.f[n]; break;                         // PFSUB
+        case 0x9e: for (int n = 0; n < 2; ++n) r.f[n] = a.f[n] + b.f[n]; break;                         // PFADD
+        case 0xa0: for (int n = 0; n < 2; ++n) r.d[n] = a.f[n] > b.f[n] ? ~0u : 0; break;               // PFCMPGT
+        case 0xa4: for (int n = 0; n < 2; ++n) r.f[n] = b.f[n] > a.f[n] ? b.f[n] : a.f[n]; break;       // PFMAX
+        // PFRCP and PFRSQRT above give the full precision at once, so the
+        // steps that refine their estimate hand the operand on: PFRCPIT1,
+        // PFRSQIT1 and PFRCPIT2 then end with the estimate, which is exact.
+        case 0xa6: case 0xa7: case 0xb6: r = b; break;
+        case 0xaa: for (int n = 0; n < 2; ++n) r.f[n] = b.f[n] - a.f[n]; break;                         // PFSUBR
+        case 0xae: r.f[0] = a.f[0] + a.f[1]; r.f[1] = b.f[0] + b.f[1]; break;                           // PFACC
+        case 0xb0: for (int n = 0; n < 2; ++n) r.d[n] = a.f[n] == b.f[n] ? ~0u : 0; break;              // PFCMPEQ
+        case 0xb4: for (int n = 0; n < 2; ++n) r.f[n] = a.f[n] * b.f[n]; break;                         // PFMUL
+        case 0xb7: for (int n = 0; n < 4; ++n) r.w[n] = (unsigned short)((int(a.s[n]) * int(b.s[n]) + 0x8000) >> 16); break; // PMULHRW
+        case 0xbb: r.d[0] = b.d[1]; r.d[1] = b.d[0]; break;                                             // PSWAPD
+        case 0xbf: for (int n = 0; n < 8; ++n) r.b[n] = (unsigned char)((a.b[n] + b.b[n] + 1) >> 1); break; // PAVGUSB
+        default: return false;
+        }
+        // As after every MMX instruction: all registers in use, and the
+        // exponent of the one written all ones.
+        memcpy(image + target * 16, &r, 8);
+        memset(image + target * 16 + 8, 0xff, 2);
+        state.fp.ftw = 0xff;
+        state.regs[Reg::Eip] += at;
+        return true;
+    }
     int Protection(unsigned address, unsigned prot, bool allow_gate = false) const
     {
         int result = prot & 7;
@@ -1203,7 +1334,11 @@ class NativeCpu : public Cpu
                 interrupt(*this, 3, interrupt_context);
                 continue;
             }
-            if (signal == SIGILL) { ReportInstruction("invalid instruction"); return CpuError::InvalidInstruction; }
+            if (signal == SIGILL)
+            {
+                if (ThreeDNowInstruction()) continue;
+                ReportInstruction("invalid instruction"); return CpuError::InvalidInstruction;
+            }
             if (signal == SIGFPE)
             {
                 if (!interrupt) return CpuError::Exception;

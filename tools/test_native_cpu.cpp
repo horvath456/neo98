@@ -149,6 +149,62 @@ static void GateMappings()
     okay(cpus[0]->Write(last, code, sizeof code)); expected[0].address = Gates;
     run(0); run(1); run(0);
 }
+// 3DNow! runs on every processor: where the processor has lost it, the
+// invalid-opcode break carries the instruction out (ThreeDNowInstruction in
+// tools/host_native_cpu.cpp). Register and memory operands, the conversions,
+// the reciprocals and an x87 stack that does not stand at 0 beforehand.
+static void ThreeDNow()
+{
+    Cpu *made = nullptr; okay(CreateCpu(CpuBackend::Native, made)); std::unique_ptr<Cpu> cpu(made);
+    okay(cpu->Map(Code, 4096, Prot::All));
+    okay(cpu->Map(Data, 4096, Prot::Read | Prot::Write));
+    okay(cpu->Map(Stack, 4096, Prot::Read | Prot::Write));
+    okay(cpu->Set(Reg::Esp, Stack + 4000));
+    const float a[] = {1.5f, -2.25f}, b[] = {4.0f, 0.5f};
+    const int whole[] = {7, -3};
+    okay(cpu->Write(Data, a, 8)); okay(cpu->Write(Data + 8, b, 8)); okay(cpu->Write(Data + 16, whole, 8));
+    std::vector<unsigned char> code;
+    auto bytes = [&](std::initializer_list<unsigned> list) { for (unsigned byte : list) code.push_back((unsigned char)byte); };
+    auto address = [&](unsigned value) { for (unsigned n = 0; n < 4; ++n) code.push_back((unsigned char)(value >> (8 * n))); };
+    auto load = [&](unsigned mm, unsigned from) { bytes({0x0f, 0x6f, 5 | mm << 3}); address(from); };
+    auto store = [&](unsigned mm, unsigned to) { bytes({0x0f, 0x7f, 5 | mm << 3}); address(to); };
+    bytes({0xd9, 0xe8});                                              // fld1: the stack top leaves 0
+    bytes({0x0f, 0x0f, 0x05}); address(Data + 16); bytes({0x0d});     // pi2fd mm0,[whole]
+    store(0, Data + 0x80);
+    bytes({0x0f, 0x0e});                                              // femms
+    load(0, Data); load(1, Data + 8);
+    bytes({0x0f, 0x0f, 0xc1, 0x9e}); store(0, Data + 0x40);           // pfadd mm0,mm1
+    load(0, Data);
+    bytes({0x0f, 0x0f, 0x05}); address(Data + 8); bytes({0xb4});      // pfmul mm0,[b]
+    store(0, Data + 0x48);
+    bytes({0x0f, 0x0f, 0x15}); address(Data + 16); bytes({0x0d});     // pi2fd mm2,[whole]
+    bytes({0x0f, 0x0f, 0xda, 0x1d}); store(3, Data + 0x58);           // pf2id mm3,mm2
+    bytes({0x0f, 0x0f, 0xe1, 0x96}); store(4, Data + 0x60);           // pfrcp mm4,mm1
+    bytes({0x0f, 0x0f, 0xe9, 0x97}); store(5, Data + 0x68);           // pfrsqrt mm5,mm1
+    load(6, Data);
+    bytes({0x0f, 0x0f, 0xf1, 0xae}); store(6, Data + 0x70);           // pfacc mm6,mm1
+    bytes({0xbe}); address(Data);                                     // mov esi,Data
+    bytes({0x0f, 0x6f, 0x3e});                                        // movq mm7,[esi]
+    bytes({0x0f, 0x0f, 0x7e, 0x08, 0xa4}); store(7, Data + 0x78);     // pfmax mm7,[esi+8]
+    bytes({0x0f, 0x0e});                                              // femms
+    okay(cpu->Write(Code, code.data(), code.size()));
+    okay(cpu->Run(Code, Code + code.size(), 1000));
+    auto floats = [&](unsigned at, float first, float second, float slack = 0) {
+        float got[2]; okay(cpu->Read(at, got, 8));
+        const bool same = __builtin_fabsf(got[0] - first) <= slack && __builtin_fabsf(got[1] - second) <= slack;
+        if (!same) printf("3DNow! at %x: %g %g, expected %g %g\n", at - Data, got[0], got[1], first, second);
+        assert(same);
+    };
+    floats(Data + 0x80, 7.0f, -3.0f);
+    floats(Data + 0x40, 5.5f, -1.75f);
+    floats(Data + 0x48, 6.0f, -1.125f);
+    int converted[2]; okay(cpu->Read(Data + 0x58, converted, 8)); assert(converted[0] == 7 && converted[1] == -3);
+    // The processors that had these two gave fourteen and fifteen bits.
+    floats(Data + 0x60, 0.25f, 0.25f, 0.001f);
+    floats(Data + 0x68, 0.5f, 0.5f, 0.001f);
+    floats(Data + 0x70, -0.75f, 4.5f);
+    floats(Data + 0x78, 4.0f, 0.5f);
+}
 int main(int argc, char **argv)
 {
     if (argc == 2 && !strcmp(argv[1], "--host-clock"))
@@ -508,5 +564,6 @@ int main(int argc, char **argv)
     okay(fast->Get(Reg::Ecx, got)); assert(got == 0); delete fast;
     ProcessMappings();
     GateMappings();
-    puts("NATIVE CPU PASS: hardware execution, TEB, page faults, gates, contexts, interrupts, stop, shared pages");
+    ThreeDNow();
+    puts("NATIVE CPU PASS: hardware execution, TEB, page faults, gates, contexts, interrupts, stop, shared pages, 3DNow!");
 }
