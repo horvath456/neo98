@@ -7,6 +7,7 @@
 #include "crash_report_files.h"
 #include "host_volume.h"
 #include "registry_file.h"
+#include "host_registry.h"
 #include "system_tree_host.h"
 #include "host_gpu.h"
 #include "printer_port_host.h"
@@ -1205,6 +1206,16 @@ int main(int argc, char **argv)
             hex_text(static_cast<RegistryFile::File *>(Registry::Attached())->Path());
             putchar('\n');
         }
+        // --registry-hives: start from C:\WINDOWS\SYSTEM.DAT and USER.DAT of
+        // the mounted drive, as the host does (tools/host_registry.h), instead
+        // of the image of the installation this probe was built with. The
+        // check matrix runs this way, so a German installation answers with
+        // its own registry.
+        for (int i = 3; i < argc; ++i)
+            if (!strcmp(argv[i], "--registry-hives") && !HostRegistry::Start(stdout)) {
+                fprintf(stderr, "cannot start the registry from the hives of drive C:\n");
+                return 14;
+            }
         // --wininit: start the machine the way neo98-host does, with Win98's
         // WININIT.EXE step before the first process. Tests opt in,
         // so a pending WININIT.INI of the tree does not change other runs.
@@ -1230,6 +1241,7 @@ int main(int argc, char **argv)
             continue;
         }
         if (!strcmp(argv[i], "--no-registry-file")) continue;
+        if (!strcmp(argv[i], "--registry-hives")) continue;
         if (!strcmp(argv[i], "--no-idle-stop")) { no_idle_stop = true; continue; }
         if (!strcmp(argv[i], "--wininit")) continue;
         if (!strcmp(argv[i], "--native-module")) {

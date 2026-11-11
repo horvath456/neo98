@@ -332,6 +332,9 @@ def build_command(program, scratch, reports, shot, limit, runner=RUNNER):
                '--exe', ansi(program['guest']),
                '--drive-c', str(drive_c),
                '--registry', str(scratch / 'registry.bin'),
+               # The registry of the installation the run mounts, not of the one the
+               # probe was built from: a German C: has its own paths and texts.
+               '--registry-hives',
                '--current-directory', ansi(program['guest_directory']),
                '--time-limit', str(limit),
                '--crash-report-dir', str(reports),
