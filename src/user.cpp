@@ -1709,6 +1709,26 @@ void PaintWindow(HWND h, Window &w)
                 Gdi::RestoreDC(screen, frame_save);
             }
             PaintNativeClient(h, w, p, client, area);
+            // USER paints the next siblings after this one, and those that
+            // overlap it without WS_CLIPSIBLINGS end up on top. A label or
+            // button paints on its own thread and may have done so before
+            // this composition; it owes that paint again. TIMEDATE lays the
+            // two ':' STATICs of its time field over the disabled frame EDIT.
+            if (shared && !ControlContent(w))
+            {
+                const auto r = WindowScreenRect(w);
+                for (HWND s = w.next; s;)
+                {
+                    auto *o = Find(s); if (!o) break;
+                    if (ControlContent(*o) && Shows(*o) && !GroupBox(*o))
+                    {
+                        const auto q = WindowScreenRect(*o);
+                        if (q.left < r.right && r.left < q.right && q.top < r.bottom && r.top < q.bottom)
+                        { o->native_invalid = true; dirty = true; }
+                    }
+                    s = o->next;
+                }
+            }
         }
         Gdi::RestoreDC(screen, window_save);
     }
