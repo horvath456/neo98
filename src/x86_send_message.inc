@@ -8,8 +8,11 @@ struct Application::SendState {
  static unsigned long long tickets;
  static constexpr unsigned RecordCount=64;
  enum Operation { WindowMessage, ForegroundActivation };
- struct Record:Win98SendMessage::Record{unsigned phase=0,sender_index=0,receiver_index=0,receiver_id=0,hwnd=0,message=0,wp=0,lp=0;Operation operation=WindowMessage;unsigned long long order=0,deadline=0,ticket=0;bool timed=false,block_sender=false,sender_done=false,wait_observed=false,sender_alive=true;Application*sender_app=nullptr,*receiver_app=nullptr;};
+ struct Record:Win98SendMessage::Record{unsigned phase=0,sender_index=0,receiver_index=0,receiver_id=0,hwnd=0,message=0,wp=0,lp=0,copy=0;Operation operation=WindowMessage;unsigned long long order=0,deadline=0,ticket=0;bool timed=false,block_sender=false,sender_done=false,wait_observed=false,sender_alive=true;Application*sender_app=nullptr,*receiver_app=nullptr;};
  Record records[RecordCount],*active[ThreadCapacity]={},*waiting[ThreadCapacity]={};unsigned long long order=0;
+ // copy: the block in the receiver's memory that holds the copied lParam data
+ // of this send (WM_COPYDATA, the strings), once the sender has gone on
+ // while the window procedure still runs; the delivery frees it at its end.
  // Cross-process send records live in the receiver's block. Before that block
  // disappears, transfer an already computed reply to a per-thread slot in the
  // sender's block.
@@ -102,6 +105,12 @@ unsigned Application::FinishSendCopy(unsigned process,unsigned block,unsigned re
     if(!receiver->Read(block+at,buffer,part)||!Store(output+at,buffer,part))break;
    }
   }
+  // After ReplyMessage or a timeout the sender goes on while the window
+  // procedure still runs with the copy. USER keeps it until that procedure
+  // returns: TAPISRV answers a request with ReplyMessage and reads dwData
+  // of its COPYDATASTRUCT afterwards. The delivery frees the block then.
+  if(auto*s=SendState::Find(*receiver,false))
+   for(auto&r:s->records)if(r.phase==2&&r.lp==block&&!r.copy){r.copy=block;return result;}
   receiver->Free(block);
  }
  return result;
@@ -136,7 +145,10 @@ unsigned Application::FinishSentDelivery(SendDelivery*delivery,unsigned result){
  auto*record=SendState::Resolve(delivery->record);
  // ExitThread/ExitProcess may have detached or removed this exact record.
  // A newly reused slot never receives the old callback's result.
- if(record&&record->phase==2){record->phase=3;SendState::Completion completion{*record};Win98SendMessage::Finish(completion,*record,result);}
+ // The copy of a sender that has gone on (FinishSendCopy).
+ unsigned copy=0;
+ if(record&&record->phase==2){copy=record->copy;record->copy=0;record->phase=3;SendState::Completion completion{*record};Win98SendMessage::Finish(completion,*record,result);}
+ if(copy)Free(copy);
  t.host_waiting=delivery->previous_waiting;
  t.sent_delivery=delivery->previous;
  if(delivery->recorded)PopHostFrame();
