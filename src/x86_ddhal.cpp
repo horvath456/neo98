@@ -3165,8 +3165,9 @@ bool Application::HalBeginBatch(HalContext &c)
     if (!begun && log && getenv("NEO98_TRACE_DDHAL_TARGET"))
     {
         char text[256];
-        snprintf(text, sizeof text, "DDHAL backend rejected context=%u lcl=%08x size=%dx%d pitch=%d bpp=%u bits=%p z=%d",
-                 c.handle, c.target, target.width, target.height, target.pitch, target.bit_count, (void*)target.bits, has_z);
+        snprintf(text, sizeof text, "DDHAL backend rejected context=%u lcl=%08x size=%dx%d pitch=%d bpp=%u bits=%p z=%d %dx%d",
+                 c.handle, c.target, target.width, target.height, target.pitch, target.bit_count, (void*)target.bits, has_z,
+                 has_z ? z.width : 0, has_z ? z.height : 0);
         log(text);
     }
     return begun;

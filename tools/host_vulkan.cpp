@@ -1360,7 +1360,11 @@ class Vulkan final : public Gpu::Backend
             surface.pitch < surface.width * int((surface.bit_count + 7) / 8) || !surface.r_mask ||
             !surface.g_mask || !surface.b_mask)
             return false;
-        if (z && (!z->bits || z->width != surface.width || z->height != surface.height || !z->bit_count ||
+        // The depth buffer may be larger than the target: Direct3D asks only
+        // that it covers it, and a program that renders into a texture keeps
+        // the depth buffer of the screen attached (Giants). The target then
+        // uses its upper left part, row by row through the pitch.
+        if (z && (!z->bits || z->width < surface.width || z->height < surface.height || !z->bit_count ||
                   z->bit_count > 32 || z->pitch < z->width * int((z->bit_count + 7) / 8) ||
                   (z->z_bits && (z->z_bits > z->bit_count || z->z_bits + z->stencil_bits > z->bit_count)) ||
                   z->stencil_bits > 8 || (z->stencil_bits && !z->z_bits)))

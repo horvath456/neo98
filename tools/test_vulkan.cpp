@@ -126,6 +126,45 @@ static void TestBatches(Gpu::Backend &gpu)
     gpu.Release(next.bits, other.size() * sizeof(unsigned));
     gpu.Release(depth.bits, depths.size() * sizeof(unsigned short));
 }
+// A depth buffer larger than the target: Direct3D asks only that it covers
+// the target. Giants renders into a 256x256 texture with the depth buffer of
+// the screen attached. The target uses the upper left part of the buffer and
+// leaves the rest alone.
+static void TestLargerDepth(Gpu::Backend &gpu)
+{
+    std::vector<unsigned> pixels(64, 0);
+    std::vector<unsigned short> depths(16 * 16, 0xffff);
+    Gpu::Surface color;
+    color.bits = reinterpret_cast<unsigned char *>(pixels.data());
+    color.width = color.height = 8;
+    color.pitch = 32;
+    color.bit_count = 32;
+    color.r_mask = 0xff0000;
+    color.g_mask = 0xff00;
+    color.b_mask = 0xff;
+    Gpu::Surface depth = color;
+    depth.bits = reinterpret_cast<unsigned char *>(depths.data());
+    depth.width = depth.height = 16;
+    depth.pitch = 32;
+    depth.bit_count = depth.z_bits = 16;
+    depth.depth = true;
+    Gpu::State state;
+    state.viewport_width = state.viewport_height = 8;
+    assert(gpu.Begin(color, &depth));
+    gpu.Clear(3, 0xff0000ff, .5f, 0, nullptr, 0, state);
+    gpu.End();
+    gpu.Sync(color, false);
+    gpu.Sync(depth, false);
+    assert(pixels[0] == 0xff && pixels[63] == 0xff);
+    for (unsigned y = 0; y < 16; ++y)
+        for (unsigned x = 0; x < 16; ++x)
+            assert(depths[y * 16 + x] == (x < 8 && y < 8 ? 0x8000 : 0xffff));
+    // One that does not cover the target is still refused.
+    depth.width = depth.height = 4;
+    assert(!gpu.Begin(color, &depth));
+    gpu.Release(color.bits, pixels.size() * sizeof(unsigned));
+    gpu.Release(depth.bits, depths.size() * sizeof(unsigned short));
+}
 static void TestResidentReads(Gpu::Backend &gpu)
 {
     std::vector<unsigned> memory[3];
@@ -339,6 +378,7 @@ int main()
     }
     TestClippedSky(*gpu);
     TestBatches(*gpu);
+    TestLargerDepth(*gpu);
     TestPackedClip(*gpu);
     TestResidentReads(*gpu);
     TestPrimitiveRanges(*gpu);
