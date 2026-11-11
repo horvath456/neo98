@@ -124,9 +124,15 @@ void mainCRTStartup(void){
   char command[]="D:\\SENDSTATE.EXE child ?";U startup[17]={68},process[4]={0};command[sizeof(command)-2]=mode;
   if(!CreateProcessA("D:\\SENDSTATE.EXE",command,0,0,0,0,0,0,startup,process))ExitProcess(29808);
   child_process=process[0];if(mode!='Z'&&mode!='C'&&mode!='G'&&mode!='S')CloseHandle(process[0]);CloseHandle(process[1]);
-  for(U i=0;i<2000&&GetFileAttributesA("D:\\TARGET.DAT")==~0u;++i)Sleep(10);
-  U n,h=CreateFileA("D:\\TARGET.DAT",0x80000000,3,0,3,0,0);
-  if(h==~0u||!ReadFile(h,(void*)&target,4,&n,0)||n!=4||!CloseHandle(h))ExitProcess(29809);
+  // The file exists before the child has written it: read until the four
+  // bytes are there.
+  U n=0;
+  for(U i=0;i<2000&&n!=4;++i){
+   U h=CreateFileA("D:\\TARGET.DAT",0x80000000,3,0,3,0,0);
+   if(h!=~0u){if(!ReadFile(h,(void*)&target,4,&n,0))n=0;CloseHandle(h);}
+   if(n!=4){target=0;Sleep(10);}
+  }
+  if(n!=4)ExitProcess(29809);
  }else{
   U id;if(!CreateThread(0,0,receiver,0,0,&id))ExitProcess(29810);
   while(!target)Sleep(10);
