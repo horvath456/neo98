@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""Build a relocatable Linux AppDir and tar archive without original Windows files."""
+"""Build a relocatable Linux AppDir, its tar archive and its AppImage without original Windows files."""
 import argparse
 import json
 import os
@@ -109,7 +109,48 @@ def bundle_libraries(binaries, libraries):
         subprocess.run(['patchelf', '--set-rpath', rpath, str(binary)], check=True)
 
 
-def package(no_build=False, *, release=False):
+# The program at the head of an AppImage: it mounts the package that follows
+# it in the file and starts AppRun (https://github.com/AppImage/type2-runtime,
+# MIT). It is linked statically and brings its own FUSE and squashfs code, so
+# the file starts on a system that has only fusermount.
+APPIMAGE_RUNTIME = {
+    'url': 'https://github.com/AppImage/type2-runtime/releases/download/20251108/runtime-x86_64',
+    'sha256': '2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d',
+    'revision': 'dd6cebedcbddde9c82f89b011e8e1d40b6e43868',
+}
+
+
+def appimage(appdir):
+    """The AppDir as one file to download and start: the runtime, then the
+    folder as a squashfs image. The same input gives the same bytes."""
+    import hashlib, urllib.request
+    if not shutil.which('mksquashfs'): raise RuntimeError('The AppImage needs mksquashfs (squashfs-tools).')
+    cache = ROOT / 'build/release-downloads' / (APPIMAGE_RUNTIME['sha256'] + '.appimage-runtime')
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    if not cache.exists():
+        with urllib.request.urlopen(APPIMAGE_RUNTIME['url'], timeout=120) as response: data = response.read()
+        if hashlib.sha256(data).hexdigest() != APPIMAGE_RUNTIME['sha256']:
+            raise RuntimeError('AppImage runtime checksum mismatch')
+        temporary = cache.with_name(cache.name + f'.{os.getpid()}')
+        temporary.write_bytes(data); temporary.replace(cache)
+    runtime = cache.read_bytes()
+    if hashlib.sha256(runtime).hexdigest() != APPIMAGE_RUNTIME['sha256']:
+        raise RuntimeError('Cached AppImage runtime checksum mismatch')
+    image = ROOT / f'build/.Neo98-{os.getpid()}.squashfs'
+    out = ROOT / 'build/Neo98-x86_64.AppImage'
+    try:
+        subprocess.run(['mksquashfs', str(appdir), str(image), '-root-owned', '-noappend', '-no-xattrs',
+                        '-comp', 'zstd', '-Xcompression-level', '19', '-b', '1M',
+                        '-mkfs-time', '0', '-all-time', '0', '-quiet', '-no-progress'], check=True)
+        temporary = out.with_name(out.name + f'.{os.getpid()}')
+        temporary.write_bytes(runtime + image.read_bytes()); temporary.chmod(0o755); temporary.replace(out)
+    finally:
+        image.unlink(missing_ok=True)
+    print(f'AppImage: {out}')
+    return out
+
+
+def package(no_build=False, *, release=False, image=False):
     if release:
         os.environ['NEO98_WITH_HOST_MEDIA'] = '0'
     if not native_x64(): raise RuntimeError('The Linux package requires Linux x86_64.')
@@ -173,10 +214,13 @@ def package(no_build=False, *, release=False):
     shutil.copy2(ROOT / 'tools/linux_desktop_install.py', staging / 'usr/share/neo98/linux_desktop_install.py')
     launcher = staging / 'AppRun'; launcher.write_text(LAUNCHER); launcher.chmod(0o755)
     (staging / 'neo98.svg').write_text(ICON)
+    # The icon a file manager shows for the AppImage.
+    (staging / '.DirIcon').symlink_to('neo98.svg')
     (staging / 'neo98.desktop').write_text('[Desktop Entry]\nType=Application\nName=NEO98\n'
         'Comment=Windows 98 applications on Linux\nExec=AppRun\nIcon=neo98\nTerminal=false\nCategories=Game;Emulator;\n')
     (staging / 'README.txt').write_text('Neo98 for Linux x86_64\n\n'
         'Run ./AppRun and select your Windows 98 folder, ZIP archive or ISO.\n'
+        'Started as Neo98-x86_64.AppImage, give the options below to that file instead of ./AppRun.\n'
         'Use ./AppRun --setup-linux to reopen setup, or ./AppRun --cli for the terminal host.\n'
         'Without a desktop, run ./AppRun --kms from a text console (Ctrl+Alt+F3): Windows then\n'
         'fills the screen through DRM/KMS, with keyboard and mouse through libinput;\n'
@@ -209,6 +253,7 @@ def package(no_build=False, *, release=False):
     archive = ROOT / 'build/Neo98-linux-x64.tar.gz'
     with tarfile.open(archive, 'w:gz') as stream: stream.add(out, arcname='NEO98.AppDir')
     print(f'Linux app: {out}\nPackage: {archive}')
+    if release or image: appimage(out)
     return out
 
 
@@ -217,8 +262,10 @@ def main():
     parser.add_argument('--no-build', action='store_true')
     parser.add_argument('--release', action='store_true',
                         help='exclude Media Center regardless of NEO98_WITH_HOST_MEDIA and check the package')
+    parser.add_argument('--appimage', action='store_true',
+                        help='also write build/Neo98-x86_64.AppImage (a release always does)')
     args = parser.parse_args()
-    package(args.no_build, release=args.release)
+    package(args.no_build, release=args.release, image=args.appimage)
     return 0
 
 if __name__ == '__main__': raise SystemExit(main())

@@ -63,13 +63,15 @@ When Setup is done, the Windows 98 desktop appears. From now on, Neo98 starts ri
 
 ### On Linux
 
-Download `Neo98-linux-x64.tar.gz` from the [latest release](https://github.com/horvath456/neo98/releases/latest), unpack it and start it:
+Download `Neo98-x86_64.AppImage` from the [latest release](https://github.com/horvath456/neo98/releases/latest), make it executable and start it:
 
 ```sh
-tar xzf Neo98-linux-x64.tar.gz
-NEO98.AppDir/AppRun                    # opens the setup the first time
-NEO98.AppDir/AppRun --install-launcher # optional: adds Neo98 to your app menu
+chmod +x Neo98-x86_64.AppImage
+./Neo98-x86_64.AppImage                    # opens the setup the first time
+./Neo98-x86_64.AppImage --install-launcher # optional: adds Neo98 to your app menu
 ```
+
+The same package is there as `Neo98-linux-x64.tar.gz`, for a system without FUSE: unpack it and start `NEO98.AppDir/AppRun`.
 
 Setup works the same way as on the Mac: choose your CD image, type in your product key, and Windows installs itself. The package needs a glibc at least as new as Ubuntu 24.04's.
 

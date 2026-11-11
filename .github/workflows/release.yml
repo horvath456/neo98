@@ -104,7 +104,8 @@ jobs:
           sudo apt-get install -y --no-install-recommends clang-18 llvm-18 lld-18 \
             libsdl2-dev libgtk-3-dev cmake ninja-build python3-venv pkg-config zlib1g-dev \
             libvulkan-dev libshaderc-dev glslang-tools libdrm-dev libinput-dev libudev-dev \
-            libglib2.0-dev libpixman-1-dev tesseract-ocr tesseract-ocr-eng patchelf desktop-file-utils
+            libglib2.0-dev libpixman-1-dev tesseract-ocr tesseract-ocr-eng patchelf desktop-file-utils \
+            squashfs-tools
       - uses: actions/cache@v4
         with:
           path: |
@@ -117,7 +118,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: neo98-release-linux
-          path: build/release-assets/Neo98-linux-x64.tar.gz
+          path: |
+            build/release-assets/Neo98-linux-x64.tar.gz
+            build/release-assets/Neo98-x86_64.AppImage
           if-no-files-found: error
           retention-days: 7
 

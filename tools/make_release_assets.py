@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""Build local release assets (macOS: Neo98.dmg, Linux: Neo98-linux-x64.tar.gz)
+"""Build local release assets (macOS: Neo98.dmg, Linux: Neo98-linux-x64.tar.gz and
+Neo98-x86_64.AppImage)
 and complete pinned source archives of the GPL components they contain.
 
 The component sources go into the folder third-party-sources beside the
@@ -163,6 +164,7 @@ def main():
             raise RuntimeError('The release host has no state layout and would save no Windows programs; '
                                'see build/native-app/neo98-host.layout-problems')
         shutil.copy2(ROOT / 'build/Neo98-linux-x64.tar.gz', args.output / 'Neo98-linux-x64.tar.gz')
+        shutil.copy2(ROOT / 'build/Neo98-x86_64.AppImage', args.output / 'Neo98-x86_64.AppImage')
     elif not args.sources_only:
         if sys.platform != 'darwin': parser.error('Binary packaging requires macOS arm64 or Linux x64')
         from mac_app import build_app, build_dmg, signing_identity

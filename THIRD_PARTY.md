@@ -55,6 +55,20 @@ linked into Neo98 and keep their own licenses (copies in `toolkit/licenses`).
 The libraries these programs need (GLib, pixman, and on Linux the libraries
 of Tesseract) are copied from the build machine with their licenses.
 
+## AppImage
+
+`Neo98-x86_64.AppImage` begins with the unchanged runtime of the
+[AppImage project](https://github.com/AppImage/type2-runtime) (MIT), the
+small program that mounts the package and starts it. It is linked statically
+with [squashfuse](https://github.com/vasi/squashfuse) (BSD-2-Clause),
+[libfuse](https://github.com/libfuse/libfuse) (LGPL-2.1),
+[zstd](https://github.com/facebook/zstd) (BSD-3-Clause),
+[zlib](https://zlib.net) (zlib), [mimalloc](https://github.com/microsoft/mimalloc)
+(MIT) and [musl](https://musl.libc.org) (MIT).
+`tools/linux_app.py` pins its release, checksum and source revision; the
+source code and the build recipe are in that repository at that revision.
+`Neo98-linux-x64.tar.gz` is the same package without the runtime.
+
 ## Source code for the GPL parts
 
 Unicorn, DOSBox Pure and the FreeDOS boot sector are licensed under the GPL,
