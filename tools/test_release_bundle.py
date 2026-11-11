@@ -176,11 +176,14 @@ class ReleaseBundleTest(unittest.TestCase):
                  patch.object(linux_app, 'build_host', side_effect=build) as host_build, \
                  patch.object(linux_app, 'build_fast'), \
                  patch.object(linux_app, 'build_kms_host'), \
+                 patch.object(linux_app, 'appimage') as image, \
                  patch.object(linux_app.subprocess, 'run'), \
                  patch('check_release_embedded.check_dependencies', return_value=[]):
                 with patch.dict(os.environ, NEO98_WITH_HOST_MEDIA='1'):
                     out = linux_app.package(release=True)
                 host_build.assert_called_once()
+                # A release also comes as an AppImage of the same folder.
+                image.assert_called_once_with(out)
                 self.assertEqual(bundle.check_host_media(out), [])
                 archive = root / 'build/Neo98-linux-x64.tar.gz'
                 archive.unlink()
