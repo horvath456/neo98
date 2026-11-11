@@ -429,6 +429,14 @@ int main(int argc, char **argv)
         };
         unsigned top, ignored, signature, features;
         query(0, top, ignored); assert(top >= 1 && top <= 2);
+        // The AMD features of leaf 0x80000001: empty on a processor without
+        // 3DNow!, where a program of 1999 would read today's bits as it.
+        {
+            unsigned extended[4], top_extended, amd;
+            __cpuid(0x80000001u, extended[0], extended[1], extended[2], extended[3]);
+            query(0x80000001u, top_extended, amd);
+            assert(extended[3] & (1u << 31) ? amd == extended[3] : amd == 0);
+        }
         query(1, signature, features);
         unsigned a, b, c, d; __cpuid(1, a, b, c, d);
         assert(signature == a && features == d && (features & 0x800000));

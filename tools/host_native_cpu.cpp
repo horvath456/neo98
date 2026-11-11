@@ -479,6 +479,14 @@ class NativeCpu : public Cpu
             __cpuid_count(leaf, sub, a, b, c, d);
         if (leaf == 0) a = top;
         else if (leaf == 0x80000000u) a = extended;
+        // The AMD features of leaf 0x80000001 are empty on a processor
+        // without 3DNow!, which is every one since 2011. Today's processors
+        // of both makers report features there that came after Win98, and a
+        // program of its time takes that register as being about 3DNow!:
+        // Expendable tests it against 0xFFFFFFFF where bit 31 was meant and
+        // runs FEMMS on anything that is not zero. Empty is what the first
+        // Pentium 4 answered.
+        if (leaf == 0x80000001u && !(d & (1u << 31))) c = d = 0;
         state.regs[Reg::Eax] = a; state.regs[Reg::Ebx] = b; state.regs[Reg::Ecx] = c; state.regs[Reg::Edx] = d;
         state.regs[Reg::Eip] += 2;
         return true;
@@ -499,13 +507,14 @@ class NativeCpu : public Cpu
         return true;
     }
     // 3DNow! on a processor without it. AMD dropped these instructions in
-    // 2011, but a program of 1999 that reads "AuthenticAMD" may run them
-    // without asking CPUID for the feature: Expendable begins with FEMMS on
-    // every AMD processor. The invalid-opcode break carries each one out on
+    // 2011, but a program of 1999 may run them without asking CPUID for the
+    // feature in the right way: Expendable begins with FEMMS on every
+    // processor of today. The invalid-opcode break carries each one out on
     // the MMX registers of the guest: 0F 0E (FEMMS) and 0F 0F /r ib with the
     // operation in the last byte, in 32-bit code with 32-bit addresses.
-    // CPUID keeps answering what the processor has, so a program that asks
-    // does not choose this slow path.
+    // This way is slow. Where CPUID can be answered, the program is not
+    // led here (CpuidInstruction); this is for the processors and kernels
+    // that cannot trap CPUID, and for a program that does not ask at all.
     bool ThreeDNowInstruction(unsigned until, bool single)
     {
         // These instructions come in runs; each one after the first saves a
@@ -533,6 +542,11 @@ class NativeCpu : public Cpu
             else break;
         }
         if (at + 2 > length || code[at] != 0x0f) return false;
+        if (code[at + 1] != 0x0e && code[at + 1] != 0x0f) return false;
+        // Said once: this way is slow, and a program should not need it
+        // where CPUID can be answered (CpuidInstruction).
+        static bool said = false;
+        if (!said) { said = true; fprintf(stderr, "CPU native carries out 3DNow! at %08x\n", ip); }
         if (code[at + 1] == 0x0e)
         {
             // FEMMS: every register empty; their contents are undefined.
