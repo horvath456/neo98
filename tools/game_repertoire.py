@@ -538,7 +538,12 @@ def play(home, game, label, seconds, work):
                    'game', work, session)
     finally:
         process = session.get('process')
-        if process is None or process.poll() is not None:
+        # NEO98_REPERTOIRE_KEEP=1 leaves the private drives of the run, so a
+        # failed start can be repeated by hand with the command of
+        # command.json. Remove the run folder afterwards.
+        if os.environ.get('NEO98_REPERTOIRE_KEEP') == '1':
+            pass
+        elif process is None or process.poll() is not None:
             for key in ('writable', 'drive'):
                 scratch = session.get(key)
                 if scratch is not None and scratch.exists():
