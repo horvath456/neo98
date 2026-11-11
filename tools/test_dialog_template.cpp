@@ -40,6 +40,25 @@ int main(int argc, char **argv)
         }
         assert(t->Parse(data, size));
     }
+    // A control text longer than 255 characters, as in the German SQL
+    // Server client configuration (CLICONFG.DLL dialog 103): the template
+    // stays valid and the text comes out whole.
+    {
+        std::vector<unsigned char> d;
+        auto word = [&](unsigned w) { d.push_back(w & 255); d.push_back(w >> 8); };
+        auto dword = [&](unsigned v) { word(v & 65535); word(v >> 16); };
+        dword(0x50000000); dword(0); word(1); word(0); word(0); word(100); word(50);
+        word(0); word(0); word(0); // menu, class, title
+        while (d.size() & 3) d.push_back(0);
+        dword(0x50020000); dword(0); word(1); word(2); word(90); word(40); word(65535);
+        word(65535); word(0x82);
+        const unsigned length = 600;
+        for (unsigned i = 0; i < length; ++i) word(i % 26 == 25 ? 0xe4 : 'a' + i % 26);
+        word(0); word(0);
+        assert(t->Parse(d.data(), d.size()));
+        assert(t->count == 1 && strlen(t->items[0].title) == length);
+        assert((unsigned char)t->items[0].title[25] == 0xe4 && t->items[0].title[26] == 'a');
+    }
     unsigned seed = 0x989898;
     unsigned char junk[512];
     for (unsigned test = 0; test < 5000; ++test)
@@ -52,5 +71,5 @@ int main(int argc, char **argv)
         t->Parse(junk, test % sizeof junk);
     }
     delete t;
-    printf("DIALOG TEMPLATE PASS originals=4 truncated=%u malformed=5000\n", truncated);
+    printf("DIALOG TEMPLATE PASS originals=4 truncated=%u long-text=1 malformed=5000\n", truncated);
 }

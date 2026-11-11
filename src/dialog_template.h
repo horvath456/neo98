@@ -8,7 +8,10 @@ struct Item
 {
     unsigned style, extended, id, class_id, title_id;
     int x, y, width, height;
-    char klass[64], title[256];
+    // Windows sets no limit on the text of a control; the German SQL Server
+    // client configuration (CLICONFG.DLL dialog 103) has 257 characters in a
+    // STATIC, and a template the decoder refuses creates no dialog at all.
+    char klass[64], title[1024];
 };
 struct Template
 {
