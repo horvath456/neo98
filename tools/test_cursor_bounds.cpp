@@ -1,4 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+// The session sets the working directory through the runtime's file session.
+#define private public
+#include "../src/x86_app.h"
+#undef private
 #include "linux_session.h"
 #include <cassert>
 #include <climits>
