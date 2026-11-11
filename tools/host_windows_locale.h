@@ -5,6 +5,9 @@
 namespace HostWindowsData {
 inline std::deque<std::string> localeStrings;
 inline const char *keep(std::string text) { localeStrings.push_back(std::move(text)); return localeStrings.back().c_str(); }
+// The texts of the format lists stand apart, so the retained strings above
+// keep their order and with it their names in a saved state.
+inline std::deque<std::string> formatStrings;
 inline unsigned narrow(unsigned c) {
     auto half = [](unsigned at) { return at + 1 < sizeof OriginalCodePage1252 ? unsigned(OriginalCodePage1252[at]) | unsigned(OriginalCodePage1252[at + 1]) << 8 : 0u; };
     unsigned base = (half(20) | half(22) << 16) * 2;
@@ -143,6 +146,22 @@ inline bool loadLocale(const Bytes &data, const Bytes &crt) {
         for (unsigned j = 0; j < sizeof OriginalLocaleTypes / sizeof *OriginalLocaleTypes; ++j)
             entry.values[j] = keep(localeText(r, field(r, base, OriginalLocaleTypes[j])));
         OriginalLocaleData.push_back(entry);
+        // Each list runs from its own offset to the next one of the record:
+        // sTimeFormat, sShortDate, sYearMonth and sLongDate head theirs.
+        LocaleFormats formats{lcid, {}, {}};
+        const unsigned heads[4] = {0x2c, 0x34, 0x38, 0x3a};
+        for (unsigned list = 0; list < 4 && r.ok; ++list) {
+            unsigned at = base + r.get(base + heads[list], 2) * 2;
+            const unsigned end = base + r.get(base + heads[list] + 2, 2) * 2;
+            while (at < end && r.ok && r.get(at, 2)) {
+                if (formats.counts[list] == 12) return false;
+                std::string text = localeText(r, at);
+                at += (unsigned(text.size()) + 1) * 2;
+                formatStrings.push_back(std::move(text));
+                formats.values[list][formats.counts[list]++] = formatStrings.back().c_str();
+            }
+        }
+        OriginalLocaleFormats.push_back(formats);
     }
     for (unsigned i = 0; i < calendars && r.ok; ++i) {
         unsigned number = r.get(directory + i * 4, 2), base = directory + 2 * r.get(directory + i * 4 + 2, 2);

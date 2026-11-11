@@ -23,8 +23,12 @@ inline void RegisterStateData() {
     vector("calendars", OriginalCalendars);
     vector("eras", OriginalCalendarEras);
     vector("locale-calendars", OriginalLocaleCalendars);
+    vector("locale-formats", OriginalLocaleFormats);
     size_t index = 0;
     for (const auto &text : localeStrings)
         visit(("text/" + std::to_string(index++)).c_str(), text.c_str(), text.size() + 1);
+    index = 0;
+    for (const auto &text : formatStrings)
+        visit(("format-text/" + std::to_string(index++)).c_str(), text.c_str(), text.size() + 1);
 }
 }

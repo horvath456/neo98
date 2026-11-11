@@ -316,6 +316,9 @@ struct SystemData
 // country or code-page requests fail; no fallback claims success for them.
 bool QualifySystem(Parts &parts, Id &id);
 const char *SystemInfo(unsigned locale, unsigned type);
+// A format list of the locale record and its length: 0 times, 1 short dates,
+// 2 year-months, 3 long dates. Null for a locale without a record.
+const char *const *Formats(unsigned locale, unsigned list, unsigned &count);
 // Calendar metadata does not require an installed ANSI conversion table.
 unsigned LocaleCalendar(unsigned locale, bool alternate);
 const char *CalendarYearMaximum(unsigned calendar);

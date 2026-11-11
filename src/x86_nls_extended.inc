@@ -107,20 +107,23 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
     }
     const bool date=API_IS(name,"EnumDateFormatsExA"),calendar_enum=API_IS(name,"EnumCalendarInfoA")||API_IS(name,"EnumCalendarInfoExA");
     if(date||calendar_enum){
-        if(!a[0]||locale(a[1])!=0x409)return bad(87);
+        // Names and format lists come from the record of the locale.
+        const unsigned lcid=locale(a[1]);unsigned listed=0;
+        if(!a[0]||!Win98Locale::Formats(lcid,0,listed))return bad(87);
         const bool extended=!API_IS(name,"EnumCalendarInfoA");
         unsigned type=calendar_enum?a[3]:a[2];const char *single=nullptr;const char *const *values=nullptr;unsigned count=0;
-        if(date){unsigned error=Win98DateTime::EnumFlags(true,type);if(error)return bad(error);switch(type&11){case 1:values=Win98DateTime::ShortDates;count=7;break;case 2:values=Win98DateTime::LongDates;count=4;break;case 8:values=Win98DateTime::YearMonths;count=1;break;}}
+        const auto formats=[&](unsigned list){values=Win98Locale::Formats(lcid,list,count);};
+        if(date){unsigned error=Win98DateTime::EnumFlags(true,type);if(error)return bad(error);switch(type&11){case 1:formats(1);break;case 2:formats(3);break;case 8:formats(2);break;}}
         else{
             if(a[2]!=1&&a[2]!=~0u)return bad(87);
             type&=~0x40000000u;if(!type||type>=48)return bad(1004);
             if(type==1)single="1";else if(type==2)single="Gregorian Calendar";
-            else if(type==5){values=Win98DateTime::ShortDates;count=7;}else if(type==6){values=Win98DateTime::LongDates;count=4;}
-            else if(type>=7&&type<=13)single=LocaleValue(0x409,0x2a+type-7);
-            else if(type>=14&&type<=20)single=LocaleValue(0x409,0x31+type-14);
-            else if(type>=21&&type<=32)single=LocaleValue(0x409,0x38+type-21);
-            else if(type>=34&&type<=45)single=LocaleValue(0x409,0x44+type-34);
-            else if(type==47){values=Win98DateTime::YearMonths;count=1;}
+            else if(type==5)formats(1);else if(type==6)formats(3);
+            else if(type>=7&&type<=13)single=LocaleValue(lcid,0x2a+type-7);
+            else if(type>=14&&type<=20)single=LocaleValue(lcid,0x31+type-14);
+            else if(type>=21&&type<=32)single=LocaleValue(lcid,0x38+type-21);
+            else if(type>=34&&type<=45)single=LocaleValue(lcid,0x44+type-34);
+            else if(type==47)formats(2);
         }
         if(single){values=&single;count=1;}
         unsigned buffer=Allocate(256);if(!buffer)return bad(8);

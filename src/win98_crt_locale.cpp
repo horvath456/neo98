@@ -42,6 +42,15 @@ const char *SystemInfo(unsigned locale, unsigned type)
                 if (OriginalLocaleTypes[i] == type) return entry.values[i];
     return nullptr;
 }
+const char *const *Formats(unsigned locale, unsigned list, unsigned &count)
+{
+    if (!locale || locale == 9 || locale == 0x400 || locale == 0x800) locale = 0x409;
+    count = 0;
+    if (list < 4)
+        for (const auto &entry : OriginalLocaleFormats)
+            if (entry.locale == locale) { count = entry.counts[list]; return entry.values[list]; }
+    return nullptr;
+}
 unsigned LocaleCalendar(unsigned locale, bool alternate)
 {
     for (const auto &entry : OriginalLocaleCalendars)

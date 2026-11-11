@@ -12,6 +12,10 @@ struct CalendarEra { unsigned calendar, year, month, day; const char *name; };
 inline std::vector<CalendarEra> OriginalCalendarEras;
 struct LocaleCalendar { unsigned locale, standard, alternate; };
 inline std::vector<LocaleCalendar> OriginalLocaleCalendars;
+// The lists EnumTimeFormats, EnumDateFormats and EnumCalendarInfo walk, in
+// the order of the locale record: times, short dates, year-months, long dates.
+struct LocaleFormats { unsigned locale; unsigned counts[4]; const char *values[4][12]; };
+inline std::vector<LocaleFormats> OriginalLocaleFormats;
 inline unsigned short OriginalCType[257]{}, OriginalSystemCType[257]{}, OriginalSystemWideType[257]{};
 inline unsigned char OriginalUpper[256]{}, OriginalLower[256]{};
 inline const char *OriginalCTime[43]{};
@@ -25,6 +29,7 @@ template<class Visit> void VisitWindowsRuntimeLocale(Visit visit)
     visit("OriginalCalendars", &OriginalCalendars, sizeof OriginalCalendars);
     visit("OriginalCalendarEras", &OriginalCalendarEras, sizeof OriginalCalendarEras);
     visit("OriginalLocaleCalendars", &OriginalLocaleCalendars, sizeof OriginalLocaleCalendars);
+    visit("OriginalLocaleFormats", &OriginalLocaleFormats, sizeof OriginalLocaleFormats);
     visit("OriginalCType", &OriginalCType, sizeof OriginalCType);
     visit("OriginalSystemCType", &OriginalSystemCType, sizeof OriginalSystemCType);
     visit("OriginalSystemWideType", &OriginalSystemWideType, sizeof OriginalSystemWideType);

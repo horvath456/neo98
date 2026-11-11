@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "win98_datetime_format.h"
-#include "win98_datetime_formats.h"
 namespace X86 {
 unsigned Application::DateTimeFormatApi(ApiName name,const unsigned*a)
 {
@@ -16,7 +15,10 @@ unsigned Application::DateTimeFormatApi(ApiName name,const unsigned*a)
     // record before ANSI conversion. This permits numeric dates
     // even when the locale's code page is absent, as on western Win98.
     const bool numeric_alternate=date&&(flags&4)&&calendar&&a[3];
-    if((enumeration?locale!=0x409:(!convertible&&!numeric_alternate))||
+    // The lists of an enumeration come from the record of the locale.
+    U count=0;const char*const*list=nullptr;
+    if(enumeration)list=Win98Locale::Formats(locale,!date?0:(flags&11)==2?3:(flags&11)==8?2:1,count);
+    if((enumeration?!list:(!convertible&&!numeric_alternate))||
        (enumeration?!a[0]:(a[5]>0x7fffffff||(a[5]&&!a[4])))){last_error=87;return 0;}
     U error=enumeration?EnumFlags(date,flags):FormatFlags(date,flags,a[3]!=0);
     if(error){last_error=error;return 0;}
@@ -28,8 +30,6 @@ unsigned Application::DateTimeFormatApi(ApiName name,const unsigned*a)
         struct E {Application&app;U callback,lease;
             bool Callback(const char*s,U&result){if(!app.Store(lease,s,strlen(s)+1))return false;result=app.Call(callback,&lease,1);return app.state!=Failed&&app.state!=Exited;}
         }e{*this,a[0],lease};
-        const char*const*list=Times;U count=4;
-        if(date){switch(flags&11){case 1:list=ShortDates;count=7;break;case 2:list=LongDates;count=4;break;case 8:list=YearMonths;count=1;break;}}
         U result=Enumerate(e,list,count);Free(lease);return result;
     }
     Time time{};

@@ -133,6 +133,25 @@ def generate():
         strings = ['"' + ''.join('\\%03o' % c for c in value) + '"' for value in values]
         text.append('{' + str(lcid) + ',{' + ','.join(strings) + '}},')
     text.append('};')
+    # The lists EnumTimeFormats, EnumDateFormats and EnumCalendarInfo walk:
+    # times, short dates, year-months, long dates, each from its own offset
+    # of the record to the next one.
+    text.append('static const struct {unsigned locale; unsigned counts[4]; const char *values[4][12];} OriginalLocaleFormats[] = {')
+    for i in range(word(locale, 0)):
+        lcid, base = word(locale, 12 + i * 8), word(locale, 16 + i * 8) * 2
+        if lcid not in locales:
+            continue
+        lists = []
+        for head in (0x2c, 0x34, 0x38, 0x3a):
+            at, end, values = base + half(locale, base + head) * 2, base + half(locale, base + head + 2) * 2, []
+            while at < end and half(locale, at):
+                value = locale_text(locale, at)
+                at += (len(value) + 1) * 2
+                values.append('"' + ''.join('\\%03o' % narrow(ord(c)) for c in value) + '"')
+            assert 0 < len(values) <= 12
+            lists.append(values)
+        text.append('{%d,{%s},{%s}},' % (lcid, ','.join(str(len(v)) for v in lists), ','.join('{' + ','.join(v) + '}' for v in lists)))
+    text.append('};')
     wide=[0]+[system[narrow(c)+1] for c in range(256)]
     calendars = calendar_data(locale)
     text.append('static const struct {unsigned id; const char *maximum;} OriginalCalendars[] = {')

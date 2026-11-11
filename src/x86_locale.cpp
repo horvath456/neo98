@@ -10,7 +10,6 @@
 #endif
 #include "x86_app.h"
 #include "win98_datetime_format.h"
-#include "win98_datetime_formats.h"
 #include "win98_kernel_nls_names.h"
 #include <string.h>
 #include <stdio.h>
