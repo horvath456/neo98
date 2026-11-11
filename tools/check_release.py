@@ -47,9 +47,9 @@ def path_violations(relative, exclusions):
     found = []
     if parts[0] not in TOP_LEVEL:
         found.append(relative + ': not a public top-level entry')
-    if parts[0] == '.github' and not (len(parts) == 3 and parts[1] == 'workflows'
+    if parts[0] == '.github' and not (len(parts) == 3 and parts[1] in {'workflows', 'ISSUE_TEMPLATE'}
                                       and path.suffix in {'.yml', '.yaml'}):
-        found.append(relative + ': only workflow files belong in .github')
+        found.append(relative + ': only workflow files and issue forms belong in .github')
     if any(part in BUILD_PARTS for part in parts) or path.suffix in BUILD_SUFFIXES:
         found.append(relative + ': build product or cache')
     if (relative in exclusions or relative.startswith('tools/state_corpus/')

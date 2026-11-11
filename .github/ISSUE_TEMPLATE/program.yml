@@ -1,0 +1,77 @@
+name: A program or game doesn't work
+description: It doesn't start, crashes, looks wrong or sounds wrong.
+labels: [program]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying Neo98. The details below are what it takes to find the cause.
+        Please don't attach Windows files or your product key.
+  - type: input
+    id: program
+    attributes:
+      label: Program
+      description: Name and version, and where it came from (original CD, demo, download). A link helps if it is freely available.
+      placeholder: "Re-Volt demo 1.0, from archive.org"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Neo98 version
+      description: The version of the release you downloaded, or the commit if you built it yourself.
+      placeholder: "0.2.6"
+    validations:
+      required: true
+  - type: dropdown
+    id: system
+    attributes:
+      label: Your computer
+      options:
+        - Mac (Apple silicon)
+        - Linux
+    validations:
+      required: true
+  - type: input
+    id: system-details
+    attributes:
+      label: System version
+      description: The macOS version and Mac model, or the Linux distribution with its version, desktop and graphics card.
+      placeholder: "macOS 15.1 on a MacBook Air M2 / Ubuntu 24.04, GNOME, Radeon RX 6600"
+    validations:
+      required: true
+  - type: dropdown
+    id: windows
+    attributes:
+      label: Windows 98 you installed
+      options:
+        - English Second Edition
+        - German Second Edition
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: Step by step, from starting Neo98. Did you install the program inside Neo98, and did its setup finish?
+      placeholder: |
+        1. Ran SETUP.EXE from the CD image, setup finished.
+        2. Started the game from the Start menu.
+        3. Chose "Single Race".
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: What happened, and what you expected
+      description: The exact text of an error message helps. Does it happen every time?
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Crash report and pictures
+      description: |
+        If Neo98 wrote a crash report, zip its folder and drop it here. They are in `~/Library/Logs/Neo98/crash-reports` on the Mac and in `~/.local/state/neo98/crash-reports` on Linux.
+        If the program hangs or looks wrong without a crash, choose Machine > Write crash report in Neo98's menu (Cmd+Shift+B on the Mac) to write a report of that moment. A screenshot helps too.

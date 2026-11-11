@@ -111,7 +111,7 @@ Neo98 is tested with a collection of game demos and shareware releases from the 
 
 ## When something doesn't work
 
-Not every program runs yet, and some run with glitches. If you find one, please [open an issue](https://github.com/horvath456/neo98/issues). Say which program it is, where it came from and what happened. If Neo98 wrote a crash report, attach it; on the Mac you'll find them in `~/Library/Logs/Neo98/crash-reports`. Please don't attach Windows files or your product key.
+Not every program runs yet, and some run with glitches. If you find one, please [open an issue](https://github.com/horvath456/neo98/issues). Say which program it is, where it came from and what happened. If Neo98 wrote a crash report, attach it; you'll find them in `~/Library/Logs/Neo98/crash-reports` on the Mac and in `~/.local/state/neo98/crash-reports` on Linux. Please don't attach Windows files or your product key.
 
 Some limits you should know about:
 
