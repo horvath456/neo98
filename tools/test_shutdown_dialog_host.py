@@ -146,9 +146,12 @@ def main():
                '--drive-c', str(drive_c), '--registry', str(registry),
                '--crash-report-dir', str(out / 'reports')]
     log_path = out / 'host.log'
+    # The first start of a fresh C: takes one to two minutes before the
+    # desktop is quiet for a second: the whole run measured 60 to 225 s, and
+    # 300 s were sometimes too few.
     with log_path.open('w') as log:
         result = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
-                                stdin=subprocess.DEVNULL, timeout=300)
+                                stdin=subprocess.DEVNULL, timeout=600)
     shots = all((out / name).exists() for name in ('menu.ppm', 'dialog.ppm', 'cancel.ppm'))
     check('screenshots written', shots)
     if shots:

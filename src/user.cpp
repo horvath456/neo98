@@ -1688,7 +1688,17 @@ void PaintWindow(HWND h, Window &w)
     // Composition may redraw a frame without invalidating the control's
     // already painted client pixels, including after a same-size move.
     if (ControlContent(w) && (w.native_invalid || signature != w.native_signature || !w.drawn))
-    { w.frame_owed = true; w.needs_paint = true; }
+    {
+        w.frame_owed = true; w.needs_paint = true;
+        // This request is new. The control may have painted in this very
+        // generation, before the change that asks for its frame: a list
+        // scrolls and paints its rows on the first step of a held scroll
+        // bar, and only this composition sees the moved thumb and the
+        // pressed track. A control counts as served for the generation it
+        // painted in (ServeControlPaints), so the frame would wait for the
+        // next change of anything, here the first repeat of the bar.
+        if (w.painted_generation == dirty.generation) w.painted_generation = dirty.generation - 1;
+    }
     w.native_invalid = false;
     w.native_signature = signature;
     auto *visible = new RectList;
