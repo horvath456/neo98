@@ -70,6 +70,14 @@ class Store
     Store &operator=(const Store &) = delete;
     const Node *Get(U node) const;
     U Lookup(const char *absolute, U &node) const;
+    // The files Windows itself has open. KERNEL32 keeps the file of a running
+    // program and of every DLL a process has loaded open, for the pages it
+    // reads from it later: others may read the file, but not write it, delete
+    // it or rename it. The process layer answers which files those are
+    // (Application::ImageFileHeld in src/x86_modules.cpp); a tool that runs
+    // no process leaves the question unset.
+    static bool (*image_held)(const Store &, U node);
+    bool ImageHeld(U node) const { return image_held && image_held(*this, node); }
     // Absolute path of one node, as the volume spells it.
     bool Path(U node, char (&out)[260]) const;
     // Bytes of a node that is still only known through the system tree or that

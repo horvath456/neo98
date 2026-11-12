@@ -684,6 +684,9 @@ private:
     bool NativeModule(const char *) const;
     // Win98 module search over the mounted tree; src/x86_modules.cpp.
     bool KnownModule(const char *leaf);
+    // Whether a process that still runs has this file as its program or as a
+    // loaded DLL (Files::Store::image_held).
+    static bool ImageFileHeld(const Files::Store &store, unsigned node);
     unsigned SearchModuleFile(const char *name, char (&path)[260], char *searched, unsigned searched_size);
     struct Module
     {

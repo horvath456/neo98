@@ -45,7 +45,8 @@ void mainCRTStartup(void){char*line=GetCommandLineA();char text[260];U si[17]={6
   check(WaitForSingleObject(pi[0],0)==258&&WaitForSingleObject(pi[1],0)==258,16312);
   check(!GetExitCodeProcess(pi[1],&v)&&GetLastError()==6&&!GetExitCodeThread(pi[0],&v)&&GetLastError()==6,16313);
   command[0]='X';env[0]='X';title[0]='X';si[12]=2;check(SetCurrentDirectoryA("C:\\WINDOWS"),16314);
-  write("C:\\CHILD DIR\\CHILD.EXE",0); // launch owns its complete PE snapshot
+  // KERNEL32 keeps the program of a running process open: nobody writes it.
+  {U h=CreateFileA("C:\\CHILD DIR\\CHILD.EXE",0x40000000,3,0,2,0,0);check(h==~0u&&GetLastError()==32,16349);}
   check(WaitForSingleObject(pi[1],~0u)==0,16315);
   check(GetExitCodeThread(pi[1],&v)&&v==41&&GetExitCodeProcess(pi[0],&v)&&v==259,16316);
   check(*secret==0x11112222,16317);write("C:\\WINDOWS\\TEMP\\RELEASE.DAT",1);

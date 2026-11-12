@@ -961,6 +961,7 @@ U Store::Resize(U id, U size)
     n.size = size;
     return 0;
 }
+bool (*Store::image_held)(const Store &, U) = nullptr;
 bool Store::Opened(U node) const
 {
     for (const auto &h : handles)
@@ -994,6 +995,9 @@ U Store::Remove(const char *path, bool directory)
     if (Sealed(id))
         return 19;
     if (!directory && (n.attributes & 1))
+        return 5;
+    // The file of a running program: "Access is denied".
+    if (!directory && ImageHeld(id))
         return 5;
     if (Opened(id))
         return 32;
@@ -1092,6 +1096,8 @@ U Store::Rename(const char *source, const char *destination, bool replace)
     if (existing != Invalid && existing != id && !replace)
         return 183;
     if (existing != Invalid && existing != id && ((nodes[existing].attributes & 17) || (nodes[id].attributes & 16))) return 5;
+    if (existing != Invalid && existing != id && ImageHeld(existing)) return 5;
+    if (ImageHeld(id)) return 5;
     if (existing != Invalid && existing != id && Opened(existing)) return 32;
     if (Opened(id))
         return 32;
@@ -1528,6 +1534,12 @@ U Session::Open(const char *path, U access, U share, U disposition, U attrs, U &
         return 19;
     if (disposition == 5 && !(access & 2))
         return 5;
+    // The image of a running program is open in KERNEL32 for reading and
+    // denies writing. The deleter of InstallShield (_ISDEL.EXE) asks this way
+    // whether Setup still runs: it opens Setup's program for writing every
+    // three seconds and removes Setup's temporary files once that succeeds.
+    if (exists && ((access & 2) || disposition == 2) && store.ImageHeld(id))
+        return 32;
     U slot = Invalid;
     for (U i = 0; i < 256; ++i)
     {

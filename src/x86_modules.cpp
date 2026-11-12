@@ -813,6 +813,30 @@ bool Application::InitializeModule(unsigned index)
     m.order = ++module_order;
     return true;
 }
+// The images KERNEL32 has open: the program of every process that still runs
+// (a Win32 or a Win16 one; DOS reads a program into memory and closes it) and
+// the DLLs it has loaded from a file. FreeLibrary and the end of the process
+// let go of them, because this reads the module tables as they are.
+bool Application::ImageFileHeld(const Files::Store &store, unsigned node)
+{
+    const Files::Node *file = store.Get(node);
+    if (!file) return false;
+    for (auto *process : session_processes)
+    {
+        if (!process || &process->files.store != &store || process->state == Exited || process->state == Failed) continue;
+        for (unsigned i = 0; i < process->module_watermark; ++i)
+        {
+            const auto &m = process->modules[i];
+            if ((m.kind != 1 && m.kind != 3 && m.kind != 4) || !m.path[0]) continue;
+            // The path may spell the long name or the 8.3 alias.
+            const char *leaf = Leaf(m.path);
+            if (!Same(leaf, file->name) && !(file->alias[0] && Same(leaf, file->alias))) continue;
+            unsigned found = Files::Invalid;
+            if (!store.Lookup(m.path, found) && found == node) return true;
+        }
+    }
+    return false;
+}
 void Application::DeleteModule(unsigned index)
 {
     auto &m = modules[index];

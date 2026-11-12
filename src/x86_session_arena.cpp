@@ -247,6 +247,8 @@ unsigned Application::session_retire_clock = 0;
 Application *Application::session_processes[Win98SessionArena::HolderCapacity];
 void Application::JoinSession()
 {
+    // The file store asks the processes which images Windows holds open.
+    Files::Store::image_held = ImageFileHeld;
     for (auto *&entry : session_processes)
         if (entry == this) return;
         else if (!entry)
