@@ -15,7 +15,7 @@ the app carries a copy of them in `Neo98.app/Contents/Resources`.
 | [FEX](https://github.com/FEX-Emu/FEX) | Translating x86 code to ARM64 | MIT |
 | [Unicorn](https://github.com/unicorn-engine/unicorn), based on [QEMU](https://www.qemu.org) | Running 16-bit code, and as a second CPU backend | GPL-2.0, with parts under LGPL-2.1, BSD and MIT |
 | [DOSBox Pure](https://github.com/schellingb/dosbox-pure) | DOS programs | GPL-2.0-or-later |
-| [SDL](https://www.libsdl.org) (SDL 3 with sdl2-compat) | Window, input, sound and game controllers | zlib |
+| [SDL](https://www.libsdl.org) (SDL 3 with sdl2-compat on the Mac, SDL 2.30 in the Linux package) | Window, input, sound and game controllers | zlib |
 | [stb](https://github.com/nothings/stb) | TrueType text in DOS windows and Linux media pictures | MIT |
 | [FreeDOS](https://github.com/FDOS/kernel) boot sector | Starting Windows Setup from CDs that can't boot on their own | GPL-2.0-or-later |
 
