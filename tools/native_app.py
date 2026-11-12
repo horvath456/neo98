@@ -32,12 +32,30 @@ def export_contract_assets():
             raise RuntimeError('Missing public API contract: ' + name)
 
 
+_assets_locked = False
+
+
 def comparison_assets():
     """Load optional fixtures for internal comparison runners."""
     import importlib
     if not (ROOT / 'tools/unicorn_assets.py').is_file():
         raise RuntimeError('Comparison fixtures are unavailable in the public release; use a runtime-content host')
-    importlib.import_module('unicorn_assets').generate()
+    # The tests of a host suite run side by side, and the fixtures are files
+    # of one folder: one writer at a time, or a tool reads a definition file
+    # another test is just writing.
+    global _assets_locked
+    if _assets_locked:  # a generator that asks again from inside
+        importlib.import_module('unicorn_assets').generate()
+        return
+    import fcntl
+    (ROOT / 'build').mkdir(exist_ok=True)
+    with open(ROOT / 'build/comparison-assets.lock', 'w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        _assets_locked = True
+        try:
+            importlib.import_module('unicorn_assets').generate()
+        finally:
+            _assets_locked = False
 
 
 def unicorn_library():
