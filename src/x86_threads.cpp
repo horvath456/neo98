@@ -393,7 +393,13 @@ bool Application::Runnable(unsigned i)
     if (t.block == 8) return SentMessageReady(i);
     if (t.block == 1 && (HasSentMessages(i) || HasWinEvents(i) || User::HasQueueActivation(t.id))) return true;
     if (t.block == 16 && HasSentMessages(i)) return true; // WaitForInputIdle is a USER wait
-    if (t.block == 7) return HasSentMessages(i) || MultiwaitReady(i) || User::HasQueueActivation(t.id);
+    // A message wait also ends for a native control that owes a paint, as
+    // the GetMessage wait below does: the wait serves it where it stands
+    // and goes on waiting (Suspend). Explorer's browser thread waits in
+    // MsgWaitForMultipleObjects; the list of its address bar kept waiting
+    // for its frame there.
+    if (t.block == 7) return HasSentMessages(i) || MultiwaitReady(i) || User::HasQueueActivation(t.id) ||
+                             (t.multiwait.message && User::PendingControlPaint());
     if (t.block == 6) return true; // Thread-control safe point after a suspend/preemption.
     if (t.block == 4)
         return !loader_owner || loader_owner == t.id;

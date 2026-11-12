@@ -1690,14 +1690,22 @@ void PaintWindow(HWND h, Window &w)
     if (ControlContent(w) && (w.native_invalid || signature != w.native_signature || !w.drawn))
     {
         w.frame_owed = true; w.needs_paint = true;
-        // This request is new. The control may have painted in this very
-        // generation, before the change that asks for its frame: a list
-        // scrolls and paints its rows on the first step of a held scroll
-        // bar, and only this composition sees the moved thumb and the
-        // pressed track. A control counts as served for the generation it
-        // painted in (ServeControlPaints), so the frame would wait for the
-        // next change of anything, here the first repeat of the bar.
-        if (w.painted_generation == dirty.generation) w.painted_generation = dirty.generation - 1;
+        // What the frame shows has changed, and the control may have painted
+        // in this very generation before that: a list scrolls and paints
+        // its rows on the first step of a held scroll bar, and only this
+        // composition sees the moved thumb and the pressed track. A control
+        // counts as served for the generation it painted in
+        // (ServeControlPaints), so the frame would wait for the next change
+        // of anything, here the first repeat of the bar. A move or an
+        // invalidation alone changes nothing the frame shows and asks for
+        // no paint of its own.
+        // The same holds for a frame that was never painted
+        // (native_signature 0): a program may draw into a control before
+        // its first paint, which then leaves the frame out as already there
+        // (PaintControlSurface). The list of Explorer's address bar came up
+        // without its border and scroll bar that way.
+        if (signature != w.native_signature && w.drawn && w.painted_generation == dirty.generation)
+            w.painted_generation = dirty.generation - 1;
     }
     w.native_invalid = false;
     w.native_signature = signature;
@@ -5946,6 +5954,11 @@ void PaintControlSurface(HWND h)
     {
         w->frame_owed = false;
         PaintVisibleFrame(h, *w);
+        // The state this frame shows. The composition compares with it
+        // (PaintWindow): a control that paints before its first composition
+        // and whose frame changes after that, as the list of a combo box
+        // that gets its scroll bar while it fills, owes the frame again.
+        if (auto *again = Find(h)) again->native_signature = NativeSignature(h, *again);
     }
     // A STATIC whose window procedure a program replaced gets its paint as
     // WM_PAINT through that procedure, as DispatchMessage delivers it under
