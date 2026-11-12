@@ -503,7 +503,7 @@ static void FillCaps(DDCAPS_DX7 *caps, const NEO98DX_INFO *info, BOOL driver)
     if (driver)
     {
         caps->dwCaps |= DDCAPS_CANBLTSYSMEM | DDCAPS_READSCANLINE | ((info->caps & NEO98DX_CAP_3D) ? DDCAPS_3D : 0);
-        caps->dwCaps2 = DDCAPS2_WIDESURFACES | DDCAPS2_FLIPNOVSYNC | DDCAPS2_PRIMARYGAMMA | DDCAPS2_NOPAGELOCKREQUIRED |
+        caps->dwCaps2 = DDCAPS2_WIDESURFACES | DDCAPS2_PRIMARYGAMMA | DDCAPS2_NOPAGELOCKREQUIRED |
                         ((info->caps & NEO98DX_CAP_3D) ? DDCAPS2_CANRENDERWINDOWED : 0);
         caps->dwVidMemTotal = info->videoMemoryTotal;
         caps->dwVidMemFree = info->videoMemoryFree;

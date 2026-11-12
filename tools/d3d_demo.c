@@ -13,8 +13,8 @@
 
    Command line, all optional: 16 or 32 for the colour depth, WIDTHxHEIGHT for
    the mode, frames=N to stop after N frames (for a measurement run), detail=N
-   for the torus (0 low, 1 medium, 2 high), novsync to flip without waiting
-   for the vertical blank, hal to take the rasterizing HAL device even when
+   for the torus (0 low, 1 medium, 2 high), novsync to flip with DDFLIP_NOVSYNC
+   (the display paces it all the same, unless NEO98_UNCAPPED is set), hal to take the rasterizing HAL device even when
    the driver offers transform and lighting, still to draw one fixed picture
    (for comparing the two devices), wbuffer to start with the W buffer,
    plain to start without cube map and bump map, nodxt to keep the floor texture

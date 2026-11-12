@@ -3,7 +3,7 @@
 # Copyright (C) 2026 Andreas Horvath
 """The Direct3D demo (tools/d3d_demo.c) as a test of what it shows.
 
-Seven runs of DEMO3D.EXE in the optimised probe runner, each checked at the
+Eight runs of DEMO3D.EXE in the optimised probe runner, each checked at the
 host image:
 
 - the fixed picture ("still") on the transform-and-lighting device and on the
@@ -15,7 +15,9 @@ host image:
 - the same picture with a gamma ramp of 150 percent through
   IDirectDrawGammaControl: the scene comes out brighter;
 - the demo in a window on the desktop, blitted through a clipper: the client
-  area shows the scene, the desktop around the window keeps its colour.
+  area shows the scene, the desktop around the window keeps its colour;
+- the moving scene flipped with DDFLIP_NOVSYNC: the display keeps its 60
+  pictures a second.
 
 
 """
@@ -113,4 +115,13 @@ def pixel(pixels, x, y):
 assert pixel(window, 700, 550) == DESKTOP, f'the desktop around the window changed: {pixel(window, 700, 550)}'
 inside = sum(pixel(window, x, y) != DESKTOP for x in range(80, 500, 20) for y in range(200, 400, 20))
 assert inside > 150, f'only {inside} sampled client pixels show the scene'
+# DDFLIP_NOVSYNC does not take the display's clock away. A program of the
+# time passes it without asking the caps and counts frames for its timing
+# (Expendable's menu), so the flip waits for the retrace all the same, and the
+# caps do not offer the flag.
+import re  # noqa: E402
+_, log = run('plain', 'nodxt', 'novsync')
+rates = [float(rate) for rate in re.findall(r'D3DDEMO fps=([0-9.]+)', log)][1:]
+assert len(rates) >= 6, f'the demo with novsync reported {len(rates)} frame rates'
+assert all(45 <= rate <= 62 for rate in rates), f'flips with DDFLIP_NOVSYNC ran at {rates} pictures a second'
 print(f'D3DDEMO PASS devices agree (worst {worst}), cube and bump map change {changed} pixels, W buffer {different}, gamma brightens, the window shows the scene')

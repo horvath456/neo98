@@ -836,9 +836,9 @@ bool Application::HalRefreshInfo()
         }
     }
     // Direct3D into a window (a back buffer blitted into the clipped primary)
-    // and a flip that does not wait for the retrace are both real here.
-    Write32(c + H::Caps::Caps2, H::DDCAPS2_WIDESURFACES | H::DDCAPS2_CANRENDERWINDOWED | H::DDCAPS2_FLIPNOVSYNC |
-                                              H::DDCAPS2_PRIMARYGAMMA);
+    // is real here. DDCAPS2_FLIPNOVSYNC is not reported: every flip waits
+    // for the retrace (HalFlip).
+    Write32(c + H::Caps::Caps2, H::DDCAPS2_WIDESURFACES | H::DDCAPS2_CANRENDERWINDOWED | H::DDCAPS2_PRIMARYGAMMA);
     Write32(c + H::Caps::ZBufferBitDepths, H::DDBD_16 | H::DDBD_32);
     Write32(c + H::Caps::VidMemTotal, h.heap.bytes);
     Write32(c + H::Caps::VidMemFree, h.heap.bytes);
@@ -2242,8 +2242,12 @@ unsigned Application::HalFlip(unsigned data)
     // One flip per refresh period: a program that flips as fast as it can
     // waits for the retrace, the way a card holds the flip until the vertical
     // blank. The clock is the one of the display (PaceFrame).
-    // DDFLIP_NOVSYNC (8) asks for the flip at once, tearing and all.
-    if (!(Read32(data + H::Data::FlipFlags) & 0x8)) PaceFrame();
+    // DDFLIP_NOVSYNC (8) asks for the flip at once, and a program may pass it
+    // without looking at the caps: Expendable does, and its menu counts a
+    // thousand frames until its demo begins, which were one second here and
+    // about ten on a machine of its time. The flag is not honoured, like on
+    // a card whose driver does not report DDCAPS2_FLIPNOVSYNC.
+    PaceFrame();
     Write32(data + H::Data::FlipResult, H::DD_OK);
     return H::DriverHandled;
 }

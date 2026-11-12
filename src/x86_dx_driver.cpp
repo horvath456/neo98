@@ -755,8 +755,8 @@ unsigned Application::DxFlip(unsigned list, unsigned count, unsigned flags)
     else User::SetScanout(shown.host, shown.pitch);
     User::ScreenChanged();
     ++hal_presents;
-    // DDFLIP_NOVSYNC (8) asks for the flip at once.
-    if (!(flags & (0x8 | NEO98DX_FLIP_TOGDI))) PaceFrame();
+    // DDFLIP_NOVSYNC (8) is not honoured (HalFlip in src/x86_ddhal.cpp).
+    if (!(flags & NEO98DX_FLIP_TOGDI)) PaceFrame();
     return DdOk;
 }
 

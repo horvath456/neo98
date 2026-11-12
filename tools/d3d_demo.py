@@ -9,8 +9,10 @@
 
 Arguments after -- go to the demo: 16 or 32 for the colour depth, WIDTHxHEIGHT
 for the mode, detail=0..2 for the torus, frames=N to stop after N frames,
-novsync to flip without waiting for the vertical blank, hal to take the
-rasterizing device instead of the transform-and-lighting one.
+novsync to flip with DDFLIP_NOVSYNC, hal to take the rasterizing device
+instead of the transform-and-lighting one. The display keeps its 60 pictures
+a second for every flip; NEO98_UNCAPPED=1 in the environment takes that clock
+away for a measurement.
 
 The measurement runs the optimised probe runner (no sanitizers), so its
 numbers are the ones a person sees; it writes the last frame to
