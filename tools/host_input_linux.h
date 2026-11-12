@@ -211,6 +211,18 @@ class Script
             else if (step.action == "shot")
             {
                 if (session.Screenshot(step.value)) Say("NEO98 HOST screenshot %s\n", step.value.c_str());
+                // NEO98_HOST_PROFILE: how often the first process has called
+                // each export up to this picture, as the Mac host prints it.
+                if (getenv("NEO98_HOST_PROFILE"))
+                {
+                    auto &profiled = *session.app;
+                    Say("EXPLORER PROFILE checkpoint=%s calls=%u callbacks=%u\n", step.value.c_str(),
+                        profiled.ApiCalls(), profiled.Callbacks());
+                    for (unsigned i = 0; i < profiled.import_count; ++i)
+                        if (const auto &entry = profiled.imports[i]; entry.calls)
+                            Say("EXPLORER API checkpoint=%s calls=%u api=%s!%s\n", step.value.c_str(), entry.calls,
+                                entry.dll, entry.name);
+                }
             }
             else if (step.action == "mask" && mask_shot) mask_shot(step.value);
             else if (step.action == "hostshot" && host_shot) host_shot(step.value);
