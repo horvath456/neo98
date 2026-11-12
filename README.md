@@ -73,7 +73,7 @@ chmod +x Neo98-x86_64.AppImage
 
 The same package is there as `Neo98-linux-x64.tar.gz`, for a system without FUSE: unpack it and start `NEO98.AppDir/AppRun`.
 
-Setup works the same way as on the Mac: choose your CD image, type in your product key, and Windows installs itself. The package needs a glibc at least as new as Ubuntu 24.04's.
+Setup works the same way as on the Mac: choose your CD image, type in your product key, and Windows installs itself. The package runs on Ubuntu 22.04 and anything newer (glibc 2.35 or later).
 
 <p align="center"><img src="docs/images/linux-desktop.png" width="560" alt="Windows 98 Notepad and Paint inside the Neo98 window on Linux, with its GTK menu bar"></p>
 

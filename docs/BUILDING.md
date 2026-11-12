@@ -133,6 +133,14 @@ or run `AppRun --install-launcher` once to add Neo98 to your desktop's app
 list. The package needs the same or a newer glibc than the machine that
 built it.
 
+The release is built on Ubuntu 22.04, so that it starts there and on
+everything newer. That Ubuntu has no shaderc package and an SDL older than
+the hosts need: `python3 tools/build_shaderc.py` and
+`python3 tools/build_sdl2.py` build both from their pinned sources into
+`build/toolchain/usr`, and the build uses that SDL when
+`build/toolchain/usr/bin` is first on `PATH`
+(`.github/workflows/release.yml` has the packages to install).
+
 shaderc is licensed under Apache 2.0, which works with the GPL version 3 but
 not with version 2. The Linux version contains no Unicorn, the only part of
 Neo98 that is limited to the GPL version 2, so a Linux package with shaderc

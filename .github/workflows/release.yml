@@ -90,7 +90,10 @@ jobs:
           rm -f "$RUNNER_TEMP/signing.p12" "$RUNNER_TEMP/notary.p8"
 
   linux:
-    runs-on: ubuntu-24.04
+    # The oldest Ubuntu with support: the package starts on every system whose
+    # glibc is at least this one's (2.35), and the libraries it carries along
+    # come from here.
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
     env:
       NEO98_LLVM_BIN: /usr/lib/llvm-18/bin
@@ -100,19 +103,37 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install build dependencies
         run: |
+          # Ubuntu 22.04 has no LLVM 18 of its own.
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc >/dev/null
+          echo "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main" | sudo tee /etc/apt/sources.list.d/llvm-18.list
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends clang-18 llvm-18 lld-18 \
-            libsdl2-dev libgtk-3-dev cmake ninja-build python3-venv pkg-config zlib1g-dev \
-            libvulkan-dev libshaderc-dev glslang-tools libdrm-dev libinput-dev libudev-dev \
+            libgtk-3-dev cmake ninja-build python3-venv pkg-config zlib1g-dev \
+            libvulkan-dev glslang-tools libdrm-dev libinput-dev libudev-dev \
             libglib2.0-dev libpixman-1-dev tesseract-ocr tesseract-ocr-eng patchelf desktop-file-utils \
             squashfs-tools
+          # What SDL is built against (tools/build_sdl2.py); it loads them by name when it starts.
+          sudo apt-get install -y --no-install-recommends libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxi-dev libxfixes-dev libxss-dev libxkbcommon-dev libwayland-dev wayland-protocols libdecor-0-dev \
+            libegl1-mesa-dev libgl1-mesa-dev libgles2-mesa-dev libgbm-dev libpulse-dev libasound2-dev \
+            libpipewire-0.3-dev libdbus-1-dev libibus-1.0-dev libsamplerate0-dev
       - uses: actions/cache@v4
         with:
           path: |
             third_party
             build/dosbox-pure-host
             build/toolkit-downloads
-          key: linux-x64-release-deps-${{ hashFiles('sdk/dependencies.json', 'tools/build_dosbox_pure.py', 'tools/dosbox_pure_*.h', 'tools/setup_toolkit.json') }}
+            build/toolchain
+            build/release-downloads
+          key: linux-x64-jammy-release-deps-${{ hashFiles('sdk/dependencies.json', 'tools/build_dosbox_pure.py', 'tools/dosbox_pure_*.h', 'tools/setup_toolkit.json', 'tools/build_shaderc.py', 'tools/build_sdl2.py') }}
+      - name: Build shaderc and SDL
+        # Ubuntu 22.04 has no package of shaderc, which the renderer loads
+        # while a game runs, and its SDL is older than the hosts need.
+        run: |
+          python3 tools/build_shaderc.py
+          python3 tools/build_sdl2.py
+          echo "$GITHUB_WORKSPACE/build/toolchain/usr/bin" >> "$GITHUB_PATH"
+          echo "LD_LIBRARY_PATH=$GITHUB_WORKSPACE/build/toolchain/usr/lib" >> "$GITHUB_ENV"
       - name: Build the Linux package
         run: python3 tools/make_release_assets.py --no-sources
       - uses: actions/upload-artifact@v4

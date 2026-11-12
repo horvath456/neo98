@@ -203,6 +203,8 @@ def package(no_build=False, *, release=False, image=False):
         candidates.insert(0, Path(os.environ['NEO98_SYSROOT']) / 'usr/lib/x86_64-linux-gnu/libshaderc.so.1')
     shaderc = next((p for p in candidates if p.is_file()), None)
     if shaderc: shutil.copy2(shaderc, libraries / 'libshaderc.so.1')
+    elif release:
+        raise RuntimeError('libshaderc.so.1 is missing: install libshaderc-dev or run python3 tools/build_shaderc.py')
 
     for name in SETUP_FILES: shutil.copy2(ROOT / 'tools' / name, scripts / name)
     shutil.copytree(ROOT / 'tools/freedos_boot', scripts / 'freedos_boot')
@@ -237,7 +239,8 @@ def package(no_build=False, *, release=False, image=False):
         'The legacy native Wayland output requires SDL_VIDEODRIVER=wayland.\n'
         'Everything else is in this package: SDL 2, and for installing Windows from your ISO\n'
         'QEMU, mtools, cabextract, tesseract and Python (usr/lib/neo98/toolkit).\n'
-        'Binaries require the glibc version used by the build machine.\n')
+        'Binaries require the glibc version used by the build machine; the release is\n'
+        'built on Ubuntu 22.04 (glibc 2.35).\n')
     shutil.copy2(ROOT / 'COPYING', staging / 'COPYING')
     shutil.copy2(ROOT / 'THIRD_PARTY.md', staging / 'THIRD_PARTY.md')
     shutil.copytree(ROOT / 'LICENSES', staging / 'LICENSES')

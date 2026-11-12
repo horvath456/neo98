@@ -158,6 +158,10 @@ class ReleaseBundleTest(unittest.TestCase):
                 path = root / 'build/host-devices' / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(b'device')
+            # A release has to carry shaderc; the package looks here first.
+            shaderc = root / 'build/toolchain/usr/lib/x86_64-linux-gnu/libshaderc.so.1'
+            shaderc.parent.mkdir(parents=True)
+            shaderc.write_bytes(b'shaderc')
             toolkit = root / 'build/setup-toolkit'
             (toolkit / 'bin').mkdir(parents=True)
             (toolkit / 'manifest.json').write_text('{}')

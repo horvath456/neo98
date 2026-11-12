@@ -258,9 +258,13 @@ def build(out=OUT):
         macos_bundle(staging)
     else:
         linux_bundle(staging)
-    # The assistant's Python, unpacked as distributed.
+    # The assistant's Python, unpacked as distributed. The archive is pinned
+    # by its checksum (fetch). The filter 'tar' keeps every member inside the
+    # folder; 'data' would also judge the links, and Python 3.10 does that
+    # against the destination instead of the folder of the link, so it
+    # refuses the relative links of terminfo.
     with tarfile.open(fetch(python_pin())) as stream:
-        stream.extractall(staging, filter='data')
+        stream.extractall(staging, filter='tar')
     trim_python(staging / 'python')
     manifest = {name: {k: v for k, v in pin.items() if k in ('version', 'url', 'sha256', 'license')}
                 for name, pin in PINS.items() if name in ('qemu', 'mtools', 'cabextract', python_pin())}
