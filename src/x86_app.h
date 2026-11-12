@@ -3600,6 +3600,16 @@ private:
     void WithdrawFastGate(Import &item, unsigned gate, const char *why);
     unsigned import_count = 0, pending = 0, api_calls = 0, callbacks = 0, depth = 0, native_turns = 0;
     unsigned hal_presents = 0;   // HalPresents
+    // A turn of a thread and the directed turn of the receiver of a
+    // SendMessage (src/x86_app.cpp, HandSendOver).
+    bool RunTurn(unsigned index, unsigned &remaining);
+    void HandSendOver(unsigned index);
+    Application *SendReceiver(unsigned index, unsigned &receiver);
+    static constexpr unsigned long long HandOffMicroseconds = 10000;
+    static unsigned turns_running;
+    static unsigned long long handoff_round;
+    static Application *handoff_sender;   // whose turn HandSendOver hands over
+    static unsigned handoff_sender_thread;
     unsigned FindImport(const char *dll, const char *name);
     bool waiting = false;
     // Diagnostic export-stub mode. Off by default; nothing here implements a

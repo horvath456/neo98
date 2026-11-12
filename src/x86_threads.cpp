@@ -376,14 +376,17 @@ bool Application::AnyRunnableExcept(const Application *app, unsigned thread)
 bool Application::Runnable(unsigned i)
 {
     if(debug_stopped)return false;
-    extern bool CloseProgramThreadRunnable(unsigned);
-    if (!CloseProgramThreadRunnable(threads[i].id)) return false;
-    TickWaitableTimers();
-    TickNetwork();
-    struct Binding{unsigned p=User::CurrentProcess(),t=User::CurrentThread();~Binding(){User::BindTask(p,t);}} binding;User::BindTask(process_id,threads[i].id);
+    // An empty or finished slot first: the scheduler and the quiet check ask
+    // about all ThreadCapacity slots of every process, and the timers, the
+    // network and the task binding below are for threads that exist.
     auto &t = threads[i];
     if (!t.fiber || t.done || t.suspended)
         return false;
+    extern bool CloseProgramThreadRunnable(unsigned);
+    if (!CloseProgramThreadRunnable(t.id)) return false;
+    TickWaitableTimers();
+    TickNetwork();
+    struct Binding{unsigned p=User::CurrentProcess(),t=User::CurrentThread();~Binding(){User::BindTask(p,t);}} binding;User::BindTask(process_id,t.id);
     if (t.alertable && t.apc_count) return true;
     if (t.pulse_handle) return true;
     if (t.block == 10 || t.block == 11) return PipeReady(t.wait_handle,t.block==11);

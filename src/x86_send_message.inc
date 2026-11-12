@@ -124,6 +124,14 @@ unsigned Application::SentQueueStatus(unsigned index,bool observe){
  }
  return status;
 }
+// The thread of another process this thread waits for in SendMessage, while
+// the receiver has not taken the message yet (HandSendOver).
+Application*Application::SendReceiver(unsigned index,unsigned&receiver){
+ auto*s=SendState::Find(*this,false);if(!s)return nullptr;
+ auto*r=s->waiting[index];
+ if(!r||r->phase!=1||(r->flags&1)||!r->receiver_app||r->receiver_app==this||r->receiver_index>=ThreadCapacity)return nullptr;
+ receiver=r->receiver_index;return r->receiver_app;
+}
 bool Application::SentMessageReady(unsigned index){
  auto*s=SendState::Find(*this,false);if(!s)return false;
  auto*r=s->waiting[index];

@@ -65,16 +65,23 @@ struct Application::LegacyProcessEnvironment {
   for(;;){ChildProcess*child=nullptr;for(auto&c:children)if(c.used&&c.tid==tid){child=&c;break;}
    if(!child||child->done||!child->app){app.last_error=6;return ~0u;}
    auto*target=child->app;
-   if(target->state==Idle&&target->threads[0].block==1&&target->threads[0].waiting)return 0;
+   // The child is idle once it has asked for its messages, with GetMessage
+   // or PeekMessage, as WaitForInputIdle sees it (input_idle). The setup
+   // engine of InstallShield 5 polls with PeekMessage and never waits in
+   // GetMessage during its start, and its 16-bit starter waited out the
+   // whole ten seconds.
+   if(target->input_idle||(target->state==Idle&&target->threads[0].block==1&&target->threads[0].waiting))return 0;
    if(Application::Now()>=deadline)return 258;
    // The wait is USER's: the waiting task keeps its queue and answers sent
-   // messages (USER). A plain scheduler yield did not, so a child
+   // messages (USER), which Suspend does for block 16 as for
+   // WaitForInputIdle. A plain scheduler yield did not, so a child
    // that sent to its parent during its start (the screen saver activating
    // itself against the window WinExec started it from) waited out the whole
-   // ten seconds.
+   // ten seconds. It is a wait and not a loop of yields: the loop ran a
+   // hundred thousand times a second.
    app.ProcessSentMessages();
    if(app.state==Failed||app.state==Exited)return ~0u;
-   auto&t=app.threads[app.current_thread];t.block=0;app.Suspend(Running);
+   auto&t=app.threads[app.current_thread];t.block=16;t.deadline=Application::Now()+10000;app.Suspend(Application::Idle);
    if(app.state==Failed||app.state==Exited)return ~0u;
   }
  }

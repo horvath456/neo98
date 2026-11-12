@@ -4606,6 +4606,9 @@ bool Application::Service()
 }
 Application::State Application::Pump(unsigned slices)
 {
+    // The round of the host starts with the outermost Pump (HandSendOver).
+    static unsigned pumping = 0;
+    struct Round { Round() { if (!pumping++) handoff_round = Now(); } ~Round() { --pumping; } } round;
     Files::ServiceCachePages();
     if (!parent_process && state != Failed && state != Exited) StartCloseProgramRequest();
     PumpChildren(slices ? slices : 1);
@@ -4653,33 +4656,11 @@ Application::State Application::Pump(unsigned slices)
             state = Idle;
             return state;
         }
-        auto &t = threads[index];
-        current_thread = index;User::BindTask(process_id,t.id);
-        scheduler_cursor = (index + 1) % ThreadCapacity;
-        Check(cpu->Restore(t.context));
-        if (state == Failed)
+        if (!RunTurn(index, remaining))
             return state;
-        pending = t.pending;
-        waiting = t.waiting;
-        depth = t.depth;
-        last_error = t.last_error;
-        t.block = 0;
-        t.deadline = 0;
-        budget = remaining > 8 ? 8 : remaining;
-        turn_start = Now(); slice_stop = false;
-        unsigned allowance = budget;
-        state = Running;
-        const auto quantum_began = Now();
-        t.fiber->Resume();
-        AccountThreadQuantum(index, quantum_began);
-        remaining -= allowance - budget;
+        HandSendOver(index);
         if (state == Failed || state == Exited)
             return state;
-        if (t.fiber->Finished() && !t.done)
-        {
-            t.done = true;
-            t.result = Register(Reg::Eax);
-        }
         if (!budget && remaining == 0)
         {
             state = Running;
@@ -4688,6 +4669,81 @@ Application::State Application::Pump(unsigned slices)
     }
     state = Running;
     return state;
+}
+// One turn of one thread of this process. False when the process ended or
+// failed meanwhile.
+bool Application::RunTurn(unsigned index, unsigned &remaining)
+{
+    auto &t = threads[index];
+    current_thread = index;User::BindTask(process_id,t.id);
+    scheduler_cursor = (index + 1) % ThreadCapacity;
+    Check(cpu->Restore(t.context));
+    if (state == Failed)
+        return false;
+    pending = t.pending;
+    waiting = t.waiting;
+    depth = t.depth;
+    last_error = t.last_error;
+    t.block = 0;
+    t.deadline = 0;
+    budget = remaining > 8 ? 8 : remaining;
+    turn_start = Now(); slice_stop = false;
+    unsigned allowance = budget;
+    state = Running;
+    const auto quantum_began = Now();
+    ++turns_running;
+    t.fiber->Resume();
+    --turns_running;
+    AccountThreadQuantum(index, quantum_began);
+    remaining -= allowance - budget;
+    if (state == Failed || state == Exited)
+        return false;
+    if (t.fiber->Finished() && !t.done)
+    {
+        t.done = true;
+        t.result = Register(Reg::Eax);
+    }
+    return true;
+}
+unsigned Application::turns_running = 0;
+unsigned long long Application::handoff_round = 0;
+Application *Application::handoff_sender = nullptr;
+unsigned Application::handoff_sender_thread = 0;
+// SendMessage to a thread of another process. Win98 wakes the receiving thread
+// with a boost while the sender waits, so the receiver runs next. Here it
+// waited for the turn of its process in the next round of the host, a
+// millisecond or more, and InstallShield 5 reports its progress with a
+// SendMessage to HWND_BROADCAST: about sixteen top-level windows of other
+// processes one after the other, a round each, and the Re-Volt installer
+// took twenty seconds to its first page. The receiver now takes its turn at
+// once, as long as no guest code of any process is on the host stack (a
+// turn is never run inside another one) and the round of the host is not
+// older than HandOffMicroseconds: the other processes and the host's own
+// work (input, sound, the display) wait no longer than that.
+void Application::HandSendOver(unsigned index)
+{
+    static unsigned nesting = 0;
+    unsigned receiver = 0;
+    Application *other = SendReceiver(index, receiver);
+    if (!other || turns_running || nesting >= 4 || Now() - handoff_round >= HandOffMicroseconds)
+        return;
+    if (other->state == Failed || other->state == Exited || other->debug_stopped)
+        return;
+    struct Binding{unsigned p=User::CurrentProcess(),t=User::CurrentThread();~Binding(){User::BindTask(p,t);}} binding;
+    User::BindTask(other->process_id, other->threads[receiver].id);
+    if (!other->Runnable(receiver))
+        return;
+    ++nesting;
+    Application *const sender = handoff_sender;
+    const unsigned sender_thread = handoff_sender_thread;
+    handoff_sender = this;
+    handoff_sender_thread = index;
+    unsigned slices = 8;
+    if (other->RunTurn(receiver, slices))
+        other->HandSendOver(receiver);
+    handoff_sender = sender;
+    handoff_sender_thread = sender_thread;
+    --nesting;
 }
 // Windows draw directly into the shared screen. Render publishes these bytes
 // and paints USER's own decorations; guest paint callbacks run separately on
@@ -4703,14 +4759,34 @@ bool Application::ComposeQuiet()
 {
     const bool saved = compose_probe;
     compose_probe = true;
-    Application *root = this;
-    while (root->parent_process) root = root->parent_process;
-    bool quiet = !root->AnyRunnableExcept(this, current_thread);
-    for (unsigned slot = 0; quiet && slot < ChildCapacity; ++slot)
+    // The partner of a SendMessage between two processes first, the one
+    // thread that is most likely to go on: the sender the running turn
+    // answers (HandSendOver), or the receiver this thread waits for. The
+    // answer is the same, and the walk over every thread of every process
+    // below is skipped.
+    auto partner = [&](Application *process, unsigned index) {
+        return process && process->state != Exited && process->state != Failed &&
+               (process != this || index != current_thread) && process->Runnable(index);
+    };
+    unsigned receiver = 0;
+    Application *other = SendReceiver(current_thread, receiver);
+    if (partner(handoff_sender, handoff_sender_thread) || partner(other, receiver))
     {
-        bool done = false;
-        if (auto *child = root->ChildApplication(slot, done); child && !done && child->AnyRunnableExcept(this, current_thread)) quiet = false;
+        compose_probe = saved;
+        return false;
     }
+    // Every process of the session, not only the first program and its
+    // children: a child's child that is about to go on (the setup engine of
+    // InstallShield waits in SendMessage while a window of Explorer answers)
+    // is work too, and the screen was composed after every one of its
+    // thousands of messages a second.
+    bool quiet = true;
+    for (auto *process : session_processes)
+        if (process && process->state != Exited && process->state != Failed && process->AnyRunnableExcept(this, current_thread))
+        {
+            quiet = false;
+            break;
+        }
     compose_probe = saved;
     return quiet;
 }
@@ -4751,7 +4827,13 @@ void Application::ComposeIfQuiet()
     // surface lock. Scanout must publish those pixels even without USER
     // painting.
     if (!painted) painted = User::ScanoutScreen();
-    if (painted || quiet) root->last_compose = now;
+    // A pass that found nothing to show counts as the frame of this
+    // interval too. Otherwise every later suspend of a busy session tried
+    // again: during the start of InstallShield 5 three thousand empty passes
+    // a second, each with its quiet check over all processes. A pass that
+    // could not paint what is dirty (the screen is locked, a render is
+    // already running) still tries at the next suspend.
+    if (painted || quiet || !User::Dirty()) root->last_compose = now;
 }
 void Application::Run()
 {
