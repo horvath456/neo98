@@ -1177,12 +1177,13 @@
       },
       "launch": {
         "exe": "E:\\SETUP.EXE",
-        "phase": "installer"
+        "phase": "installer",
+        "input": "6:keydown=0d;6.3:keyup=0d;10:keydown=0d;10.3:keyup=0d;14:keydown=0d;14.3:keyup=0d;18:keydown=0d;18.3:keyup=0d"
       },
       "expected_state": "Expendable Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
       "size_bytes": 51392996,
       "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
-      "recipe_review": "Candidate based on original package and first-run evidence; scene verification pending."
+      "recipe_review": "12 November 2026: four Enter presses take Arcade Game, New Game and the briefing; the level runs with the player on the street. Without a key the menu starts the rolling demo after a thousand frames, which the game itself holds at 22 frames a second."
     },
     {
       "id": "nfs3",
@@ -1239,13 +1240,13 @@
         "method": "archive",
         "exe": "E:\\SETUP.EXE",
         "description": "Extract original package as data, then run its installer in an ephemeral private C: if needed. Do not infer gameplay from installation.",
-        "input": "20:button=Next >;30:button=Yes;40:button=Next >;50:button=Next >;60:button=Next >;70:button=Next >;85:button=Finish;95:button=No;105:button=Finish",
+        "input": "28:button=Next >;38:button=Yes;48:button=Next >;58:button=Next >;68:button=Next >;78:button=Next >;93:button=Finish;103:button=No;113:button=Finish",
         "via_explorer": true,
         "discover_exe": [
           "revolt.exe"
         ],
         "required": true,
-        "seconds": 120
+        "seconds": 128
       },
       "launch": {
         "exe": "E:\\SETUP.EXE",
@@ -1256,7 +1257,7 @@
       "expected_state": "Re-Volt Demo title/menu after installation, then a visible game or benchmark scene. Setup and error dialogs do not satisfy this expectation.",
       "size_bytes": 28760678,
       "renderer_status": "Candidate API coverage; actual selected device and rendered gameplay require separate validation.",
-      "recipe_review": "Sweep 2026-10-31: heap and legacy blend-state fixes verified. Six held Enter presses reach a rendered race with track, vehicle and HUD; FEX 150-second run. Historical validation retained in the working repository."
+      "recipe_review": "Sweep 2026-10-31: heap and legacy blend-state fixes verified. Six held Enter presses reach a rendered race with track, vehicle and HUD; FEX 150-second run. Historical validation retained in the working repository. 12 November 2026: the Welcome page comes between 18 and 27 seconds under Linux, so the first button waits until 28."
     },
     {
       "id": "rollcage",
