@@ -49,12 +49,21 @@ static Seen Look(int x0, int y0, int x1, int y1)
     return s;
 }
 
+// The reason goes to the log: the nightly suite of 13 November failed here
+// once, under load, and thirteen runs afterwards did not.
+static void NotFailed(X86::Application *app, const char *where)
+{
+    if (app->Status() == X86::Application::Failed)
+        fprintf(stderr, "MODEPTR failed %s: %s\n", where, app->Error());
+    assert(app->Status() != X86::Application::Failed);
+}
+
 static void Wait(X86::Application *app, int stage)
 {
     int record[4] = {};
     for (unsigned n = 0; n < 40000 && record[1] != stage; ++n) {
         app->Pump(8);
-        assert(app->Status() != X86::Application::Failed);
+        NotFailed(app, stage == 1 ? "before the pointer" : "before the hidden pointer");
         app->Read(Records, record, sizeof record);
     }
     assert(record[1] == stage);
@@ -104,7 +113,7 @@ int main(int argc, char **argv)
     assert(app->Store(Records + 12, &go, 4));
     for (unsigned n = 0; n < 20000 && app->Status() != X86::Application::Exited; ++n) {
         app->Pump(8);
-        assert(app->Status() != X86::Application::Failed);
+        NotFailed(app, "before the end");
     }
     assert(app->Status() == X86::Application::Exited && app->ExitCode() == 0);
     delete app;
