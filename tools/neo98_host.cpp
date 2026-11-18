@@ -2223,7 +2223,10 @@ int main(int real_argc, char **real_argv)
     SDL_Window *window = SDL_CreateWindow(window_name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                                           800 * scale, 600 * scale,
                                           SDL_WINDOW_HIDDEN | (fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0));
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    // NEO98_UNCAPPED (benchmarks): the guest runs on this thread, so a present
+    // that waits for the display would hold the program back as well.
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED |
+                                                (getenv("NEO98_UNCAPPED") ? 0 : SDL_RENDERER_PRESENTVSYNC));
     // Without a display (SDL_VIDEODRIVER=dummy, used by the tests that
     // drive the real host loop) only the software renderer exists.
     if (!renderer) renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
