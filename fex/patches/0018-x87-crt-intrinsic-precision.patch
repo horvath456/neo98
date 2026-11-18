@@ -1,0 +1,35 @@
+--- a/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87F64.cpp
++++ b/FEXCore/Source/Interface/Core/OpcodeDispatcher/X87F64.cpp
+@@ -7,6 +7,9 @@
+ */
+ 
+ #include "Interface/Core/OpcodeDispatcher.h"
++
++#include <cstdlib>
++#include <cstring>
+ #include "Interface/Core/X86Tables/X86Tables.h"
+ #include "Interface/IR/IR.h"
+ 
+@@ -53,12 +56,21 @@
+ // (Context::NEO98SetX87Reduced), drops translated code and runs the
+ // instruction again.
+ void OpDispatchBuilder::NEO98X87PrecisionGuard(OpcodeArgs, Ref NewFCW) {
+-  if (Is64BitMode || !ReducedPrecisionMode) {
++  // NEO98_FEX_X87=64 keeps doubles whatever precision the guest asks for.
++  static const bool AlwaysDoubles = [] {
++    const char* Mode = getenv("NEO98_FEX_X87");
++    return Mode && !strcmp(Mode, "64");
++  }();
++  if (Is64BitMode || !ReducedPrecisionMode || AlwaysDoubles) {
+     return;
+   }
+   CalculateDeferredFlags();
+   Ref Precision = _Bfe(OpSize::i32Bit, 2, 8, NewFCW);
+   Ref NotFull = _Sub(OpSize::i32Bit, Precision, Constant(3));
++  // 133Fh with any rounding control is what the CRT's math functions load
++  // (sin and pow, floor and ceil): held for one call, whose result is a double.
++  Ref NotIntrinsic = _Sub(OpSize::i32Bit, _And(OpSize::i32Bit, _Bfe(OpSize::i32Bit, 16, 0, NewFCW), Constant(0xf3ff)), Constant(0x133f));
++  NotFull = _Select(OpSize::i32Bit, OpSize::i32Bit, CondClass::EQ, NotIntrinsic, Constant(0), Constant(1), NotFull);
+   // Both successors start clean: nothing cached may cross the branch.
+   FlushRegisterCache();
+   auto CondJump_ = CondJump(NotFull, CondClass::EQ);
