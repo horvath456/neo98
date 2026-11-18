@@ -122,6 +122,8 @@ Format FormatOf(const unsigned char *pf)
     Format f = {get(H::PixelFormat::Flags), get(H::PixelFormat::BitCount), get(H::PixelFormat::RMask),
                 get(H::PixelFormat::GMask), get(H::PixelFormat::BMask), get(H::PixelFormat::AMask)};
     if (f.flags & H::PixelFormat::FourCCFlag) f.fourcc = get(H::PixelFormat::FourCC);
+    if ((f.flags & H::PixelFormat::FourCCFlag) && f.fourcc == Direct3DState::SignedBytesFourCC)
+        return Direct3DState::signed_bytes_format;
     return f;
 }
 bool SameFormat(const Format &a, const Format &b)
@@ -141,11 +143,8 @@ bool DriverFormat(const Format &f, int display_depth, bool compressed)
     Format display;
     DisplayFormat(display_depth, display);
     if (SameFormat(f, display)) return true;
-    // D3DFMT_Q8W8V8U8 of the DirectX 8 and 9 runtime; the DirectX 7 list has
-    // no such format.
-    if ((f.flags & H::PixelFormat::BumpDuDv) && !(f.flags & H::PixelFormat::BumpLuminance) && f.bits == 32 &&
-        f.r == 0xff && f.g == 0xff00 && f.b == 0xff0000)
-        return true;
+    // D3DFMT_Q8W8V8U8; the DirectX 7 list has no such format.
+    if (SameFormat(f, Direct3DState::signed_bytes_format)) return true;
     for (const auto &t : texture_formats)
         if (!t.fourcc && SameFormat(f, t)) return true;
     for (const auto &z : z_formats)
@@ -1990,6 +1989,14 @@ bool Application::HalSurfaceView(unsigned lcl, Gpu::Surface &view)
     view.b_mask = get(H::PixelFormat::BMask);
     view.a_mask = get(H::PixelFormat::AMask);
     view.indexed = (pflags & H::PixelFormat::Indexed8) != 0;
+    if (view.fourcc == Direct3DState::SignedBytesFourCC)
+    {
+        const Format &f = Direct3DState::signed_bytes_format;
+        view.fourcc = 0;
+        view.bump = true;
+        view.bit_count = f.bits;
+        view.r_mask = f.r; view.g_mask = f.g; view.b_mask = f.b; view.a_mask = f.a;
+    }
     if ((caps & H::DDSCAPS_ZBUFFER) || (pflags & H::PixelFormat::ZBuffer))
     {
         view.depth = true;
@@ -2174,6 +2181,7 @@ unsigned Application::HalCreateSurface(unsigned data)
             bits = Read32(gbl + H::SurfaceGlobal::PixelFormat + H::PixelFormat::BitCount);
             if (Read32(gbl + H::SurfaceGlobal::PixelFormat + H::PixelFormat::Flags) & H::PixelFormat::FourCCFlag)
                 fourcc = Read32(gbl + H::SurfaceGlobal::PixelFormat + H::PixelFormat::FourCC);
+            if (fourcc == Direct3DState::SignedBytesFourCC) { fourcc = 0; bits = 32; }
         }
         const unsigned size = Read32(gbl + H::SurfaceGlobal::Height);
         const unsigned w = size >> 16, h = size & 0xffff;
