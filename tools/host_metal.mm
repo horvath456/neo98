@@ -131,7 +131,7 @@ struct FragmentUniforms
     float4 bump_matrix[8];     // D3DTSS_BUMPENVMAT00, 01, 10, 11 per stage
     float4 bump_luminance[8];  // D3DTSS_BUMPENVLSCALE, LOFFSET per stage
     float4 w_range;            // near and far W of a W buffer
-    uint signed_texels[8];     // the stage samples a bump map: du and dv are signed
+    uint signed_texels[8];     // the stage samples a bump map: 1 du and dv are signed, 2 all four channels
 };
 
 static float4 unpack(uint c)
@@ -531,7 +531,8 @@ static float4 shader_sample(constant FragmentUniforms &u, uint stage, float4 c, 
         v = sample_stage(stage, uv, TEXTURE_NAMES);
     }
     // A bump map keeps du and dv with 128 for zero.
-    if (u.signed_texels[stage] != 0u) v.xy = (v.xy * 255.0 - 128.0) / 127.0;
+    if (u.signed_texels[stage] == 2u) v = (v * 255.0 - 128.0) / 127.0;
+    else if (u.signed_texels[stage] != 0u) v.xy = (v.xy * 255.0 - 128.0) / 127.0;
     return v;
 }
 // texbem and texbeml: the coordinates of the stage moved by its bump matrix
@@ -573,7 +574,8 @@ static float4 shader_sample2(constant FragmentUniforms &u, uint stage, float4 c,
         default: v = mode == 1u ? t7.sample(s7, c.xy, bias(c.w)) : t7.sample(s7, c.xy, level(c.w)); break;
         }
     }
-    if (u.signed_texels[stage] != 0u) v.xy = (v.xy * 255.0 - 128.0) / 127.0;
+    if (u.signed_texels[stage] == 2u) v = (v * 255.0 - 128.0) / 127.0;
+    else if (u.signed_texels[stage] != 0u) v.xy = (v.xy * 255.0 - 128.0) / 127.0;
     return v;
 }
 // nrm: the vector over the length of its xyz.
@@ -952,6 +954,16 @@ void ToBgra(const Surface &s, std::vector<unsigned> &out)
                     const int scaled = value * 127 / half;
                     return unsigned(scaled + 128 < 0 ? 0 : scaled + 128 > 255 ? 255 : scaled + 128);
                 };
+                if (s.SignedBytes())
+                {
+                    // Q8W8V8U8 keeps all four bytes, each with 128 for zero.
+                    auto biased = [](unsigned byte) -> unsigned {
+                        const int value = static_cast<signed char>(byte);
+                        return unsigned(value == -128 ? 1 : value + 128);
+                    };
+                    dst[x] = biased(pixel >> 16) | (biased(pixel >> 8) << 8) | (biased(pixel) << 16) | (biased(pixel >> 24) << 24);
+                    continue;
+                }
                 const unsigned lum = s.bump_luminance ? b.To8(pixel) : 255;
                 dst[x] = lum | (signed8(g, pixel) << 8) | (signed8(r, pixel) << 16) | 0xff000000u;
                 continue;
@@ -1066,6 +1078,7 @@ class MetalBackend final : public Gpu::Backend
     }
     const char *Name() const override { return name_text.c_str(); }
     bool CompressedTextures() const override { return compressed; }
+    bool SignedByteTextures() const override { return true; }
     // NEO98_D3D_NO_TNL=1 hides the transform-and-lighting device, so a
     // program can be compared on both devices.
     bool TransformAndLight() const override { return !getenv("NEO98_D3D_NO_TNL"); }
@@ -1233,7 +1246,7 @@ class MetalBackend final : public Gpu::Backend
         keyed[stage] = texture->color_key;
         cube[stage] = texture->faces != nullptr;
         volume[stage] = texture->slices > 0;
-        bumped[stage] = texture->bump;
+        bumped[stage] = texture->SignedBytes() ? 2 : texture->bump ? 1 : 0;
         // A texture that is a render target the GPU drew into is sampled
         // where it is, unless the CPU wrote it since.
         auto found = residents.find(texture->bits);
@@ -1469,7 +1482,7 @@ class MetalBackend final : public Gpu::Backend
             fu.alpha_arg1[s] = ts[TSS::AlphaArg1];
             fu.alpha_arg2[s] = ts[TSS::AlphaArg2];
             fu.textured[s] = bound_texture[s] ? (cube[s] ? 2 : volume[s] ? 3 : 1) : 0;
-            fu.signed_texels[s] = bound_texture[s] && bumped[s] ? 1 : 0;
+            fu.signed_texels[s] = bound_texture[s] ? bumped[s] : 0;
             float m[4];
             for (unsigned k = 0; k < 4; ++k) memcpy(&m[k], &ts[TSS::BumpEnvMat00 + k], 4);
             fu.bump_matrix[s] = simd_make_float4(m[0], m[1], m[2], m[3]);
@@ -2677,7 +2690,7 @@ class MetalBackend final : public Gpu::Backend
     bool keyed[Stages] = {};
     bool cube[Stages] = {};   // the texture of the stage is a cube map
     bool volume[Stages] = {}; // the texture of the stage is a volume
-    bool bumped[Stages] = {}; // the texture of the stage is a bump map
+    unsigned char bumped[Stages] = {}; // the texture of the stage is a bump map: FragmentUniforms::signed_texels
     bool batch_active = false;
     bool discard_color = false, discard_depth = false;
     bool has_depth = false;

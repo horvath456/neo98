@@ -98,6 +98,8 @@ const D3DFormat d3d_formats[] = {
     {80, Op::ZStencil | Op::ZStencilAnyColor},   // D16
     {71, Op::ZStencil | Op::ZStencilAnyColor},   // D32
     {75, Op::ZStencil | Op::ZStencilAnyColor},   // D24S8
+    // Last: only for a backend with Backend::SignedByteTextures.
+    {63, Op::Texture | Op::BumpMap},                                        // Q8W8V8U8
 };
 constexpr unsigned D3DFormatCount = sizeof d3d_formats / sizeof d3d_formats[0];
 
@@ -139,6 +141,11 @@ bool DriverFormat(const Format &f, int display_depth, bool compressed)
     Format display;
     DisplayFormat(display_depth, display);
     if (SameFormat(f, display)) return true;
+    // D3DFMT_Q8W8V8U8 of the DirectX 8 and 9 runtime; the DirectX 7 list has
+    // no such format.
+    if ((f.flags & H::PixelFormat::BumpDuDv) && !(f.flags & H::PixelFormat::BumpLuminance) && f.bits == 32 &&
+        f.r == 0xff && f.g == 0xff00 && f.b == 0xff0000)
+        return true;
     for (const auto &t : texture_formats)
         if (!t.fourcc && SameFormat(f, t)) return true;
     for (const auto &z : z_formats)
@@ -2443,14 +2450,14 @@ unsigned Application::HalDriverInfo2(unsigned out, unsigned expected)
     }
     if (type == I::GetFormatCount)
     {
-        Write32(out + I::Payload, D3DFormatCount);
+        Write32(out + I::Payload, D3DFormatCount - (gpu_backend->SignedByteTextures() ? 0 : 1));
         return expected;
     }
     if (type == I::GetFormat)
     {
         // DD_GETFORMATDATA: the index, then the DDPIXELFORMAT to fill.
         const unsigned index = Read32(out + I::Payload);
-        if (index >= D3DFormatCount) return 0;
+        if (index >= D3DFormatCount - (gpu_backend->SignedByteTextures() ? 0 : 1)) return 0;
         unsigned pf[8] = {H::PixelFormat::Size, H::D3DFormatFlag, d3d_formats[index].format, 0, d3d_formats[index].operations, 0, 0, 0};
         Store(out + I::Payload + 4, pf, sizeof pf);
         return expected;

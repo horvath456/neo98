@@ -43,6 +43,9 @@ struct Surface
     // A bump map (DDPF_BUMPDUDV): du and dv in the red and green masks,
     // signed, and a luminance in the blue one with DDPF_BUMPLUMINANCE.
     bool bump = false, bump_luminance = false;
+    // D3DFMT_Q8W8V8U8: a bump map of 32 bits without luminance, four signed
+    // bytes (u, v, w, q).
+    bool SignedBytes() const { return bump && !bump_luminance && bit_count == 32; }
     // A cube map: the six faces +X, -X, +Y, -Y, +Z, -Z, each with its mip
     // levels; this surface is the first of them.
     const Surface *faces = nullptr;
@@ -302,6 +305,9 @@ class Backend
     // Whether the GPU samples DXT1 to DXT5 textures as they are; only then
     // does the driver offer them.
     virtual bool CompressedTextures() const = 0;
+    // Whether the GPU samples textures of four signed bytes; only then does
+    // the driver offer D3DFMT_Q8W8V8U8.
+    virtual bool SignedByteTextures() const { return false; }
     // Whether the backend runs the fixed function vertex pipeline; only then
     // does the driver offer the transform-and-lighting device.
     virtual bool TransformAndLight() const = 0;
