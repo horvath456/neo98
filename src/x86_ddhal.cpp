@@ -4712,7 +4712,9 @@ unsigned Application::DisplayDriverApi(ApiName name, const unsigned *a)
         }
         HalForgetSurface(copy ? copy->lcl : lcl);
         Write32(data + D::SurfaceResult, H::DD_OK);
-        return H::DriverHandled;
+        // DDRAW cut the block out of the heap (HalCreateSurface), and it puts
+        // the block back only when the driver leaves the call to it.
+        return H::DriverNotHandled;
     }
     API_CASE("Flip") return HalFlip(data);
     API_CASE("Lock") return HalLock(data);
