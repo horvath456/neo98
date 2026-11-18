@@ -3595,9 +3595,10 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
         const unsigned set = c.streams[0].stride;
         return set ? set : Gpu::VertexLayout::Of(c.vertex_shader).stride;
     };
-    auto stream_draw = [&](unsigned type, unsigned primitives, unsigned offset, unsigned vertex_total, unsigned min_index,
-                           bool indexed, unsigned index_offset) {
+    auto stream_draw = [&](unsigned type, unsigned primitives, unsigned declared_offset, unsigned vertex_total,
+                           unsigned declared_min, bool indexed, unsigned index_offset) {
         if (!primitives) return true;
+        unsigned offset = declared_offset, min_index = declared_min;
         // The vertex layout: a DirectX 8 shader's declaration, or a DirectX 9
         // declaration read through the dcl of the function or, without one,
         // through the registers of the fixed function pipeline; none for an
@@ -3637,14 +3638,63 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
         default: DriverTrace("DDHAL draw8 primitive type", type); return false;
         }
         const unsigned stride = stream_stride();
-        const unsigned vertices = indexed ? vertex_total : elements;
+        unsigned vertices = indexed ? vertex_total : elements;
+        // The indices first. A GPU fetches the vertex an index names, whatever
+        // MinIndex and NumVertices of the call say, and programs do pass
+        // ranges that are too small: a range that misses an index grows to
+        // the vertices the indices really use.
+        unsigned char *raw = nullptr;
+        bool widened = false;
+        if (indexed)
+        {
+            auto *buffer = HalSurfaceByHandle(c.index_handle, true);
+            unsigned index_at = 0, index_size = 0;
+            if (!buffer || !HalBufferBytes(buffer->lcl, index_at, index_size)) { DriverTrace("DDHAL draw8 no index buffer", c.index_handle); return false; }
+            const unsigned index_bytes = elements * c.index_stride;
+            if (index_offset > index_size || index_bytes > index_size - index_offset) { DriverTrace("DDHAL draw8 past the indices", index_offset); return false; }
+            if (!GrowIndices(h.indices, h.index_capacity, elements * (c.index_stride == 4 ? 3 : 2))) return false;
+            raw = reinterpret_cast<unsigned char *>(h.indices + elements);
+            if (!Read(index_at + index_offset, raw, index_bytes)) return false;
+            unsigned lowest = ~0u, highest = 0;
+            for (unsigned i = 0; i < elements; ++i)
+            {
+                const unsigned value = c.index_stride == 4 ? unsigned(raw[i * 4]) | unsigned(raw[i * 4 + 1]) << 8 |
+                                                                 unsigned(raw[i * 4 + 2]) << 16 | unsigned(raw[i * 4 + 3]) << 24
+                                                           : unsigned(raw[i * 2]) | unsigned(raw[i * 2 + 1]) << 8;
+                if (value < lowest) lowest = value;
+                if (value > highest) highest = value;
+            }
+            const long long moved = (long long)declared_offset + ((long long)lowest - declared_min) * stride;
+            if (stride && (lowest < declared_min || highest - declared_min >= vertex_total) &&
+                highest - lowest < 0x10000 && moved >= 0 && moved <= ~0u)
+            {
+                offset = unsigned(moved);
+                min_index = lowest;
+                vertices = highest - lowest + 1;
+                widened = true;
+            }
+        }
         if ((!stride && !program) || !vertices || vertices > 0x10000) { DriverTrace("DDHAL draw8 vertex count", vertices); return false; }
+        // The grown range may run past the stream: then the call's own range
+        // is all there is to draw from.
+        auto declared_range = [&]() {
+            widened = false;
+            offset = declared_offset;
+            min_index = declared_min;
+            vertices = vertex_total;
+        };
         if (program)
         {
             // The streams of the declaration into input registers, from the
             // vertex the offset names in stream 0 on.
             unsigned slots = 0;
-            if (!HalGatherInputs(c, layout, layout_count, stride ? offset / stride : 0, vertices, vertex_base, slots)) return false;
+            bool gathered = HalGatherInputs(c, layout, layout_count, stride ? offset / stride : 0, vertices, vertex_base, slots);
+            if (!gathered && widened)
+            {
+                declared_range();
+                gathered = HalGatherInputs(c, layout, layout_count, stride ? offset / stride : 0, vertices, vertex_base, slots);
+            }
+            if (!gathered) return false;
             d.shader_inputs = function;
             d.stride = slots * 16;
             // A declaration without a function feeds the fixed function
@@ -3665,6 +3715,7 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
                 address += c.streams[0].offset;
                 size = c.streams[0].offset < size ? size - c.streams[0].offset : 0;
             }
+            if (widened && size != ~0u && (offset > size || vertices * stride > size - offset)) declared_range();
             const unsigned bytes = vertices * stride;
             if (size != ~0u && (offset > size || bytes > size - offset)) { DriverTrace("DDHAL draw8 past the stream", offset); return false; }
             if (!Grow(h.stream_vertices, h.stream_capacity, bytes + 64) || !Read(address + offset, h.stream_vertices, bytes)) return false;
@@ -3676,19 +3727,6 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
         d.primitive_count = primitives;
         if (indexed)
         {
-            auto *buffer = HalSurfaceByHandle(c.index_handle, true);
-            unsigned index_at = 0, index_size = 0;
-            if (!buffer || !HalBufferBytes(buffer->lcl, index_at, index_size)) { DriverTrace("DDHAL draw8 no index buffer", c.index_handle); return false; }
-            const unsigned index_bytes = elements * c.index_stride;
-            if (index_offset > index_size || index_bytes > index_size - index_offset) { DriverTrace("DDHAL draw8 past the indices", index_offset); return false; }
-            if (!GrowIndices(h.indices, h.index_capacity, elements * 2)) return false;
-            unsigned char *raw = reinterpret_cast<unsigned char *>(h.indices + elements);
-            if (c.index_stride == 4)
-            {
-                if (!GrowIndices(h.indices, h.index_capacity, elements * 3)) return false;
-                raw = reinterpret_cast<unsigned char *>(h.indices + elements);
-            }
-            if (!Read(index_at + index_offset, raw, index_bytes)) return false;
             for (unsigned i = 0; i < elements; ++i)
             {
                 const unsigned value = c.index_stride == 4 ? unsigned(raw[i * 4]) | unsigned(raw[i * 4 + 1]) << 8 |
