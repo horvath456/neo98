@@ -339,6 +339,13 @@ int main()
         if (!HostMetal::CompilePixelShader(ps.data(), unsigned(ps.size()), error, sizeof error)) { printf("FAIL ps_2_0: %s\n", error); ++failed; }
         else printf("ok   ps_2_0 texld forms, dp2add, cmp, texkill\n");
     }
+    // Pixel shader 1.0 translates like 1.1: mov r0, v0.
+    {
+        const unsigned tokens[] = {0xffff0100u, 0x00000001u, 0x800f0000u, 0x90e40000u, 0x0000ffffu};
+        char error[256] = {};
+        if (!HostMetal::CompilePixelShader(tokens, 5, error, sizeof error)) { printf("FAIL ps_1_0: %s\n", error); ++failed; }
+        else printf("ok   ps_1_0 mov\n");
+    }
     // A version the translation does not take is refused, not guessed at.
     {
         const unsigned tokens[] = {0xffff0300u, 0x0000ffffu};
