@@ -426,6 +426,7 @@ bool Paint(Context &dc, const RECT &r, unsigned rop, const DibEng::Brush &brush)
     const RECT bounds = {0, 0, bitmap.width, bitmap.height};
     RECT bounded;
     if (!Intersect(bounded, r, bounds)) return true;
+    access.Rows(bounded.top, bounded.bottom);
     for (unsigned i = 0; i < dc.current.clips; ++i) {
         RECT clip;
         if (!Intersect(clip, bounded, ClipAt(dc.current,i))) continue;
@@ -2177,6 +2178,7 @@ bool BitBlt(HDC target, int x, int y, int w, int h, HDC source, int sx, int sy, 
     if (d->current.bounds_flags & 0x0a) AccumulateBounds(target, area.left, area.top, area.right, area.bottom);
     BitmapAccess destination_access(Find(d->current.bitmap, BitmapObject), true);
     BitmapAccess source_access(s ? Find(s->current.bitmap, BitmapObject) : nullptr, false);
+    destination_access.Rows(area.top, area.bottom);
     auto &dest = Find(d->current.bitmap, BitmapObject)->bitmap;
     const bool needs_source = DibEng::UsesSource(rop);
     if (!needs_source) sx = sy = 0;

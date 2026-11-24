@@ -8,6 +8,7 @@ unsigned PixelAccess(unsigned op,HDC h,int x,int y,unsigned color,BitmapIO*io){
  if(op!=0){unsigned resolved;if(!ResolveLogicalColor(c->current,color,resolved)){if(io)io->Error(50);return op==2?0:~0u;}}
  if(object->bitmap.depth&&object->bitmap.depth<=8&&object->bitmap.depth!=1&&!object->dib){if(io)io->Error(50);return op==2?0:~0u;}
  BitmapAccess access(object,op==1||op==2);
+ if(op==1||op==2){auto device=DevicePoint(c->current,x,y);access.Rows(device.y,device.y+1);}
  struct Provider{
   Context&c;Object&o;
   void Update(){}unsigned Record(unsigned){return ~0u;}void Dirty(Win98GdiPixel::Point){}

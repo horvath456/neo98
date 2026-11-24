@@ -109,6 +109,40 @@ template<class E> U Bits(E &e, U handle, U count, U bits, U mode)
     return count;
 }
 template<class E> U SetBits(E &e, U handle, U count, U bits) { return Bits(e, handle, count, bits, 1); }
+// SetBits for the bytes [offset, offset + count) of the bitmap only,
+// with the same segment gaps. The native drawing calls write back only the
+// rows they changed; a whole 1560x720 bitmap after every 4x4 FillRect cost
+// 100 us a call. Bitmaps of a device driver or with planes take the whole
+// copy as before.
+template<class E> U SetBitsRange(E &e, U handle, U offset, U count, U bits)
+{
+    const U object = e.Object(handle);
+    if (e.Read16(object + 0x1e) & 6) return SetBits(e, handle, offset + count, bits - offset) ? count : 0;
+    const U block = Lock(e, handle);
+    if (!block) return 0;
+    U total = e.Read32(block + 0x0e);
+    const U planes = e.Read8(block + 8);
+    if (planes != 1 || offset >= total) { Unlock(e, handle); return planes != 1 ? SetBits(e, handle, offset + count, bits - offset) : 0; }
+    if (count > total - offset) count = total - offset;
+    if (count >> 16) e.ProbeBits(bits, count);
+    const U gap = e.Read16(block + 0x16) ? e.Read16(block + 0x1a) : 0;
+    const U group = e.Read16(block + 0x16) ? 0x10000u - gap : total;
+    U destination = e.ReadPointer(block + 0x0a), source = bits;
+    // Skip the whole segments before the range, then the rest of the first.
+    destination += offset / group * (group + gap) + offset % group;
+    U remaining = count, room = group - offset % group;
+    while (remaining)
+    {
+        const U part = remaining < room ? remaining : room;
+        Copy(e, destination, source, part);
+        remaining -= part;
+        if (!remaining) break;
+        destination += gap;
+        room = group;
+    }
+    Unlock(e, handle);
+    return count;
+}
 template<class E> U GetBits(E &e, U handle, U count, U bits) { return Bits(e, handle, count, bits, 2); }
 
 // GDI. Input is the already narrowed BITMAP16 record.

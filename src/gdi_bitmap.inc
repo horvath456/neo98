@@ -507,7 +507,9 @@ struct BitmapStore
     // uses a linear host copy, synchronized here. Retain it while only the
     // host writes; guest SetBitmapBits calls Refresh. This avoids copying an
     // entire bitmap for every small blit.
-    void Sync(Gdi::Object &o, bool write)
+    // write: the host copy goes back to the original bitmap, all of it or only
+    // the rows [first_row, end_row) a drawing call changed.
+    void Sync(Gdi::Object &o, bool write, int first_row = 0, int end_row = -1)
     {
         if (!o.original_bitmap || !o.allocation)
             return;
@@ -520,7 +522,17 @@ struct BitmapStore
             Fault("GDI bitmap linear view mapping exhausted");
             return;
         }
-        if (write)
+        if (write && end_row >= 0 && o.host_copy_current)
+        {
+            if (first_row < 0) first_row = 0;
+            if (end_row > o.bitmap.height) end_row = o.bitmap.height;
+            if (end_row > first_row)
+            {
+                const U offset = U(o.bitmap.stride) * U(first_row), count = U(o.bitmap.stride) * U(end_row - first_row);
+                Win98Bitmap::SetBitsRange(*this, o.original_bitmap, offset, count, ranges[range - 1].base + offset);
+            }
+        }
+        else if (write)
             Win98Bitmap::SetBits(*this, o.original_bitmap, bytes, ranges[range - 1].base);
         else
             Win98Bitmap::GetBits(*this, o.original_bitmap, bytes, ranges[range - 1].base);
@@ -585,15 +597,25 @@ struct BitmapAccess
 {
     Object *object;
     bool write;
+    // The rows a call changed, when it says so (Rows); otherwise all of them
+    // go back to the original bitmap.
+    int first_row = 0, end_row = -1;
     BitmapAccess(Object *o, bool writable) : object(o), write(writable)
     {
         GuardScreen(object, writable);
         if (object)
             bitmap_store.Sync(*object, false);
     }
+    void Rows(int top, int bottom)
+    {
+        if (bottom <= top) return;
+        if (end_row < 0) { first_row = top; end_row = bottom; return; }
+        if (top < first_row) first_row = top;
+        if (bottom > end_row) end_row = bottom;
+    }
     ~BitmapAccess()
     {
         if (object && write)
-            bitmap_store.Sync(*object, true);
+            bitmap_store.Sync(*object, true, first_row, end_row);
     }
 };
