@@ -3561,9 +3561,11 @@ unsigned Application::Win16Send(unsigned hwnd, unsigned message, unsigned wparam
 {
     if (User::IsEdit(hwnd) && (message == Win16U::EmGetHandle || message == Win16U::EmSetHandle))
         return Win16EditHandle(hwnd, message, wparam);
-    // The tree view of the 16-bit COMMCTRL (src/win16_common_controls.cpp).
+    // The tree view and the list view of the 16-bit COMMCTRL
+    // (src/win16_common_controls.cpp) and its toolbar (src/win16_shell.cpp).
     if (unsigned answer = 0; Win16TreeSend(hwnd, message, wparam, lparam, answer) ||
-                             Win16ListSend(hwnd, message, wparam, lparam, answer))
+                             Win16ListSend(hwnd, message, wparam, lparam, answer) ||
+                             Win16ToolbarSend(hwnd, message, wparam, lparam, answer))
         return answer;
     const unsigned message16 = message;
     Win16ControlTransfer transfer;

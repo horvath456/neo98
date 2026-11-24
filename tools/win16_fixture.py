@@ -384,10 +384,12 @@ def sound_segment():
 
 
 def build(segment=None, data=None, name='FIXTURE', modules=('KERNEL', 'USER'), library=False,
-          exports=(), entry=0):
+          exports=(), entry=0, resources=()):
     """A program, or with `library` a DLL. `exports` are (name, offset) pairs
     of the code segment, exported by ordinal 1, 2,... through the resident
-    name table; `entry` is the offset of the entry point (LibMain)."""
+    name table; `entry` is the offset of the entry point (LibMain).
+    `resources` are (type, identifier, bytes) triples with integer type and
+    identifier; their data follows the data segment."""
     code, relocations = (segment or code_segment)()
     data = data if data is not None else bytes(64)
     align = 4
@@ -417,6 +419,15 @@ def build(segment=None, data=None, name='FIXTURE', modules=('KERNEL', 'USER'), l
     tables += b''.join(struct.pack('<H', names[module]) for module in modules)
     segment_offset = 64 + len(tables)
     tables += bytes(16)
+    # The resource table: the alignment shift, one TYPEINFO per type with its
+    # NAMEINFO records, a zero type and an empty list of names. It is filled
+    # in when the place of the data is known.
+    kinds = {}
+    for kind, identifier, blob in resources:
+        kinds.setdefault(kind, []).append((identifier, bytes(blob)))
+    resource_offset = 64 + len(tables) if resources else resident_offset
+    if resources:
+        tables += bytes(2 + sum(8 + 12 * len(items) for items in kinds.values()) + 3)
     head = bytearray(64)
     head[0:2] = b'MZ'
     head[0x3c:0x40] = struct.pack('<I', 64)
@@ -441,7 +452,7 @@ def build(segment=None, data=None, name='FIXTURE', modules=('KERNEL', 'USER'), l
     header[0x1c:0x1e] = struct.pack('<H', 2)
     header[0x1e:0x20] = struct.pack('<H', len(modules))
     header[0x22:0x24] = struct.pack('<H', segment_offset)
-    header[0x24:0x26] = struct.pack('<H', resident_offset)
+    header[0x24:0x26] = struct.pack('<H', resource_offset)
     header[0x26:0x28] = struct.pack('<H', resident_offset)
     header[0x28:0x2a] = struct.pack('<H', module_offset)
     header[0x2a:0x2c] = struct.pack('<H', imported_offset)
@@ -453,14 +464,26 @@ def build(segment=None, data=None, name='FIXTURE', modules=('KERNEL', 'USER'), l
     image += code + relocations
     image += bytes(data_sector * (1 << align) - len(image))
     image += data
+    if resources:
+        table = bytearray(struct.pack('<H', align))
+        for kind, items in kinds.items():
+            table += struct.pack('<HHI', 0x8000 | kind, len(items), 0)
+            for identifier, blob in items:
+                image += bytes(-len(image) % (1 << align))
+                units = (len(blob) + (1 << align) - 1) >> align
+                table += struct.pack('<6H', len(image) >> align, units, 0x0030, 0x8000 | identifier, 0, 0)
+                image += blob
+        table += bytes(3)
+        image[64 + resource_offset:64 + resource_offset + len(table)] = table
     return bytes(image)
 
 
-def assemble(source, program, name, environment=None, modules=('KERNEL', 'USER')):
+def assemble(source, program, name, environment=None, modules=('KERNEL', 'USER'), resources=()):
     """The New Executable of a nasm source that writes three flat parts behind
     a header of their sizes: code, data and the relocation records of the far
     calls (offset of the pointer, module, ordinal); tools/layer_win16_fixture.asm.
-    `modules` names the modules the records count from one."""
+    `modules` names the modules the records count from one; `resources` go
+    to build."""
     import subprocess
     from pathlib import Path
     program = Path(program)
@@ -475,7 +498,8 @@ def assemble(source, program, name, environment=None, modules=('KERNEL', 'USER')
     while len(code) % 16:
         code.append(0x90)
     records = b''.join(struct.pack('<BBHHH', 3, 1, *struct.unpack_from('<HHH', fixes, i * 6)) for i in range(count))
-    program.write_bytes(build(lambda: (bytes(code), struct.pack('<H', count) + records), data, name, tuple(modules)))
+    program.write_bytes(build(lambda: (bytes(code), struct.pack('<H', count) + records), data, name, tuple(modules),
+                              resources=resources))
     return program
 
 

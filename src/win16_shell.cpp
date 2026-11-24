@@ -762,50 +762,149 @@ bool Application::Win16CreateToolbarEx(const Win16Frame &frame, unsigned &result
         Win16Send(hwnd, 0x0420 /* TB_SETBITMAPSIZE */, 0, bitmap_width | bitmap_height << 16);
     if (button_width && button_height)
         Win16Send(hwnd, 0x041f /* TB_SETBUTTONSIZE */, 0, button_width | button_height << 16);
-    if (bitmaps && bitmap_id)
-    {
-        // The strip is a bitmap resource of a 16-bit module, so it is read out
-        // of the NE resource table first. TB_ADDBITMAP with a module of zero
-        // takes the bitmap handle itself, which is the path the native
-        // toolbar keeps for a caller's own bitmap.
-        const unsigned bitmap = Win16LoadBitmap(bitmap_module, bitmap_id, nullptr);
-        const unsigned add = bitmap ? Allocate(8) : 0;
-        if (add)
-        {
-            Write32(add, 0);
-            Write32(add + 4, bitmap);
-            Win16Send(hwnd, 0x0413 /* TB_ADDBITMAP */, bitmaps, add);
-            Free(add);
-        }
-    }
+    // The strip and the buttons take the way of the program's own
+    // TB_ADDBITMAP and TB_ADDBUTTONS (Win16ToolbarSend): the bitmap by its
+    // module and resource, the buttons in their 16-bit form.
+    if (bitmaps && (bitmap_module || bitmap_id))
+        Win16Send(hwnd, 0x0413 /* TB_ADDBITMAP */, bitmaps, bitmap_module | bitmap_id << 16);
     if (buttons && button_count)
-    {
-        const unsigned wide = Allocate(button_count * 20);
-        if (!wide)
-        {
-            last_error = 8;
-            result = hwnd;
-            return true;
-        }
-        for (unsigned i = 0; i < button_count; ++i)
-        {
-            const unsigned source = buttons + i * 12, target = wide + i * 20;
-            unsigned char state = 0, kind = 0;
-            Read(source + 4, &state, 1);
-            Read(source + 5, &kind, 1);
-            Write32(target + 0, (int)(short)Win16Word(source + 0));  // iBitmap
-            Write32(target + 4, (int)(short)Win16Word(source + 2));  // idCommand
-            const unsigned char pair[4] = {state, kind, 0, 0};
-            Store(target + 8, pair, sizeof pair);
-            Write32(target + 12, Win16Word(source + 6) | Win16Word(source + 8) << 16); // dwData
-            Write32(target + 16, (int)(short)Win16Word(source + 10));                  // iString
-        }
-        Win16Send(hwnd, 0x0414 /* TB_ADDBUTTONS */, button_count, wide);
-        Free(wide);
-    }
+        Win16Send(hwnd, 0x0414 /* TB_ADDBUTTONS */, button_count, frame.Long(6));
     Win16Send(hwnd, 0x0421 /* TB_AUTOSIZE */, 0, 0);
     result = hwnd;
     return true;
+}
+// The TBBUTTON of the 16-bit COMMCTRL has twelve bytes: iBitmap and
+// idCommand words, the fsState and fsStyle bytes, dwData as a dword at +6 and
+// iString as a word at +0Ah. The native toolbar takes the twenty bytes of the
+// 32-bit TBBUTTON, which has dwords where this one has words.
+void Application::Win16ToolbarButtonIn(unsigned source, unsigned target)
+{
+    unsigned char pair[4] = {};
+    Read(source + 4, pair, 2);
+    Write32(target + 0, (int)(short)Win16Word(source + 0)); // iBitmap
+    Write32(target + 4, (int)(short)Win16Word(source + 2)); // idCommand
+    Store(target + 8, pair, sizeof pair);                   // fsState, fsStyle
+    Write32(target + 12, Read32(source + 6));               // dwData
+    Write32(target + 16, (int)(short)Win16Word(source + 10)); // iString
+}
+void Application::Win16ToolbarButtonOut(unsigned source, unsigned target)
+{
+    unsigned char pair[2] = {};
+    Read(source + 8, pair, 2);
+    Win16Word(target + 0, Read32(source + 0) & 0xffff);
+    Win16Word(target + 2, Read32(source + 4) & 0xffff);
+    Store(target + 4, pair, sizeof pair);
+    Write32(target + 6, Read32(source + 12));
+    Win16Word(target + 10, Read32(source + 16) & 0xffff);
+}
+// A message of 16-bit code to a native toolbar (User::CommonControl 5), for
+// the messages whose arguments have another shape on the 16-bit side. Answers
+// true when the message was one of them and has been sent; every other toolbar
+// message has the same arguments on both sides. File Manager makes its
+// toolbar empty with CreateToolbarEx and then adds the strip and the buttons
+// with these messages; before they were translated, the native toolbar found
+// no bitmap and read the 16-bit buttons at a flat address, and the buttons
+// stayed blank.
+bool Application::Win16ToolbarSend(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam,
+                                   unsigned &result)
+{
+    if (User::CommonControl(hwnd) != 5 || message < 0x413 || message > 0x42d)
+        return false;
+    const unsigned flat = lparam >> 16 ? Win16Linear(lparam >> 16, lparam & 0xffff) : 0;
+    auto send = [&](unsigned wp, unsigned lp) {
+        const unsigned a[] = {hwnd, message, wp, lp};
+        return Api("SendMessageA", a);
+    };
+    result = 0;
+    switch (message)
+    {
+    case 0x413: // TB_ADDBITMAP(count, MAKELONG(hInst, idBitmap))
+    {
+        // The pair travels packed into lParam where the 32-bit side points to
+        // a TBADDBITMAP. Without an instance the high word is the bitmap
+        // itself, a GDI word that is the same on both sides; HINST_COMMCTRL
+        // is FFFFh. The native toolbar loads the resource of a 16-bit
+        // instance out of its NE module.
+        const unsigned block = Allocate(8);
+        if (!block)
+        {
+            last_error = 8;
+            result = ~0u;
+            return true;
+        }
+        const unsigned instance = lparam & 0xffff;
+        Write32(block, instance == 0xffff ? ~0u : instance);
+        Write32(block + 4, lparam >> 16);
+        result = send(wparam & 0xffff, block);
+        Free(block);
+        return true;
+    }
+    case 0x414: // TB_ADDBUTTONS(count, buttons)
+    case 0x415: // TB_INSERTBUTTON(index, button)
+    {
+        const unsigned count = message == 0x414 ? wparam & 0xffff : 1;
+        if (!flat || !count)
+        {
+            result = send(message == 0x415 ? (int)(short)wparam : count, 0);
+            return true;
+        }
+        const unsigned block = Allocate(count * 20);
+        if (!block)
+        {
+            last_error = 8;
+            return true;
+        }
+        for (unsigned i = 0; i < count; ++i)
+            Win16ToolbarButtonIn(flat + i * 12, block + i * 20);
+        result = send(message == 0x415 ? (int)(short)wparam : count, block);
+        Free(block);
+        return true;
+    }
+    case 0x417: // TB_GETBUTTON(index, button)
+    {
+        const unsigned block = flat ? Allocate(20) : 0;
+        if (!block)
+            return true;
+        result = send(wparam & 0xffff, block);
+        if (result)
+            Win16ToolbarButtonOut(block, flat);
+        Free(block);
+        return true;
+    }
+    case 0x41d: // TB_GETITEMRECT(index, rect)
+    {
+        const unsigned block = flat ? Allocate(16) : 0;
+        if (!block)
+            return true;
+        result = send(wparam & 0xffff, block);
+        if (result)
+            for (unsigned i = 0; i < 4; ++i)
+                Win16Word(flat + i * 2, Read32(block + i * 4) & 0xffff);
+        Free(block);
+        return true;
+    }
+    case 0x41e: // TB_BUTTONSTRUCTSIZE: the buttons arrive widened
+        result = send(20, 0);
+        return true;
+    case 0x41a: // TB_SAVERESTORE(save, names)
+        // The 16-bit form names a section and an INI file (File Manager:
+        // "Settings" of WINFILE.INI) where the native toolbar takes a
+        // TBSAVEPARAMS with a registry key. The INI form is not ported: the
+        // toolbar neither saves nor restores, and answers so. File Manager
+        // then adds its standard buttons.
+        result = 0;
+        return true;
+    case 0x427: // TB_SETROWS(rows, rect)
+    case 0x42d: // TB_GETBUTTONTEXT(command, text)
+    {
+        char text[120];
+        snprintf(text, sizeof text, "Win16 COMMCTRL toolbar message %04x is not ported yet", message);
+        Fail(text);
+        return true;
+    }
+    default:
+        return false;
+    }
 }
 // The classes of the common controls belong to COMCTL32, and they come into
 // being when COMCTL32 is attached to the process. A 16-bit program never

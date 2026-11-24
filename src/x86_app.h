@@ -2118,6 +2118,9 @@ private:
     bool Win16MultimediaCall(unsigned ordinal, const Win16Frame &frame, unsigned &result, unsigned &words);
     unsigned Win16SystemOrdinal(const char *module, const char *name);
     bool Win16CreateToolbarEx(const Win16Frame &frame, unsigned &result);
+    void Win16ToolbarButtonIn(unsigned source, unsigned target);
+    void Win16ToolbarButtonOut(unsigned source, unsigned target);
+    bool Win16ToolbarSend(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam, unsigned &result);
     bool Win16CommonControlCall(unsigned ordinal, const Win16Frame &frame, unsigned &result, unsigned &words);
     // The property sheet of the 16-bit COMMCTRL, src/win16_property_sheet.cpp.
     struct Win16SheetPage;

@@ -72,16 +72,21 @@ struct Application::ToolbarMemory {
  // its own image list; module resources are temporary, caller HBITMAPs survive.
  unsigned LoadStrip(unsigned t,unsigned group){
   unsigned module=Read32(group+4),resource=Read32(group+8),bitmap=resource;
-  if(module){unsigned args[]={module,resource};bitmap=app.ImageApi("LoadBitmapA",args);}
+  // A 16-bit program names its own module by a word, and the strip is a
+  // resource of the NE file with an integer identifier, which the NE table
+  // marks with bit 15 (TB_ADDBITMAP of the 16-bit COMMCTRL).
+  if(module&&app.Win16OwnsInstance(module))bitmap=app.Win16LoadBitmap(module,0x8000|(resource&0x7fff),nullptr);
+  else if(module){unsigned args[]={module,resource};bitmap=app.ImageApi("LoadBitmapA",args);}
   if(!bitmap)return 0;
   unsigned bm[6]{},w=Read32(t+0x68),h=Read32(t+0x6c),width=0,height=0;
   bool valid=Gdi::BitmapInfo(bitmap,bm);if(valid){width=bm[1];height=bm[2];}
-  // A native provider must not publish phantom images after a failed load or
-  // silently pad an incomplete strip. The pure original dimension decision is
-  // retained for the differential oracle and checked against real dimensions.
+  // A native provider must not publish phantom images after a failed load.
+  // A strip shorter than its count is enlarged to it, as Windows does, and
+  // the new area has the face colour, which the mask makes transparent: File
+  // Manager adds its thirteen images with a count of fourteen.
   unsigned targetw=width,targeth=height;
   if(valid&&w&&h)Win98ToolbarBitmap::Dimensions(w,h,Read32(group),targetw,targeth);
-  if(!valid||!w||!h||w>256||h>256||targetw>width||targeth>height||targetw/w>128){if(module)DeleteBitmap(bitmap);app.last_error=87;return 0;}
+  if(!valid||!w||!h||w>256||h>256||targetw/w>128){if(module)DeleteBitmap(bitmap);app.last_error=87;return 0;}
   unsigned list=ImageList(t,0,0),made=0;
   if(!list){unsigned args[]={w,h,1,4,4};list=app.ImageApi("ImageList_Create",args);made=list;}
   auto*images=app.FindImageList(list);unsigned n=targetw/w;
@@ -92,7 +97,7 @@ struct Application::ToolbarMemory {
    auto*image=new WinImage::Image;pending[i]=image;if(!image){ok=false;break;}
    image->color=static_cast<unsigned*>(malloc(w*h*4));image->mask=static_cast<unsigned*>(malloc(w*h*4));image->width=w;image->height=h;
    if(!image->color||!image->mask){ok=false;break;}
-   for(unsigned y=0;ok&&y<h;++y)for(unsigned x=0;x<w;++x){unsigned color=Gdi::GetPixel(dc,i*w+x,y);if(color==~0u){ok=false;break;}
+   for(unsigned y=0;ok&&y<h;++y)for(unsigned x=0;x<w;++x){unsigned color=i*w+x<width&&y<height?Gdi::GetPixel(dc,i*w+x,y):face;if(color==~0u){ok=false;break;}
     // CreateMappedBitmap default six palette substitutions. GetPixel
     // returns COLORREF; WinImage stores native 0xRRGGBB pixels.
     unsigned index=Win98ToolbarBitmap::ColorIndex(color);
