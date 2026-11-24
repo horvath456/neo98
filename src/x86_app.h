@@ -2055,6 +2055,11 @@ private:
     struct Win16ControlTransfer
     {
         unsigned target = 0, buffer = 0, count = 0, kind = 0;
+        // A structure a delivery staged for the 16-bit procedure, handed on
+        // to a native default procedure: its answer goes back into the
+        // 16-bit copy afterwards (Win16ControlAnswer).
+        unsigned structure = 0, staged = 0, original = 0;
+        bool Pending() const { return buffer || kind || structure; }
     };
     unsigned Win16ControlAnswer(Win16ControlTransfer &, unsigned result);
     unsigned Win16Mark(unsigned far_pointer);
@@ -2082,6 +2087,7 @@ private:
     static unsigned Win16StructureBytes(unsigned structure);
     bool Win16StructureIn(unsigned structure, unsigned out, unsigned source);
     void Win16StructureOut(unsigned structure, unsigned staged, unsigned target);
+    void Win16StructureAnswer(unsigned structure, unsigned staged, unsigned source);
     bool Win16ToThirtyTwo(unsigned hwnd, unsigned &message, unsigned &wparam, unsigned &lparam,
                          Win16ControlTransfer *transfer = nullptr);
     unsigned Win16Send(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam);

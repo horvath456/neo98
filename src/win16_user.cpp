@@ -1142,6 +1142,34 @@ void Application::Win16StructureOut(unsigned structure, unsigned staged, unsigne
         return;
     }
 }
+// The other direction of Win16StructureOut: the fields a native procedure may
+// answer in go from the 32-bit structure back into the staged 16-bit one.
+// WM_NCCALCSIZE answers in its rectangles only; the WINDOWPOS behind them and
+// its pointer stay as the delivery staged them.
+void Application::Win16StructureAnswer(unsigned structure, unsigned staged, unsigned source)
+{
+    if (!staged || !source)
+        return;
+    switch (structure)
+    {
+    case Win16U::StructureMinMax:
+    case Win16U::StructureWindowPos:
+    case Win16U::StructureRect:
+        Win16StructureIn(structure, staged, source);
+        return;
+    case Win16U::StructureCalcSize:
+        for (unsigned i = 0; i < 3; ++i)
+            for (unsigned k = 0; k < 4; ++k)
+                Win16Word(staged + i * 8 + k * 2, Read32(source + i * 16 + k * 4));
+        return;
+    case Win16U::StructureMeasureItem:
+        Win16Word(staged + Win16U::MeasureWidth, Read32(source + 12));
+        Win16Word(staged + Win16U::MeasureHeight, Read32(source + 16));
+        return;
+    default:
+        return;
+    }
+}
 // One slot of the staging ring, for a structure a 16-bit caller owns on its way
 // to a native reader. Eight slots of 64 bytes; the ring turns because one
 // message can reach a window procedure that sends the next one.
@@ -1725,7 +1753,7 @@ bool Application::Win16UserCall(unsigned ordinal, const Win16Frame &frame, unsig
         if (!Win16ToThirtyTwo(arg(0), message, wparam, lparam, &transfer))
             return false;
         const bool gate = TakeFresh();
-        if (gate && !transfer.buffer && !transfer.kind) GiveTail(TailFresh);
+        if (gate && !transfer.Pending()) GiveTail(TailFresh);
         result = Win16ControlAnswer(transfer, DefaultWindowMessage(arg(0), message, wparam, lparam));
         return true;
     }
@@ -1791,7 +1819,7 @@ bool Application::Win16UserCall(unsigned ordinal, const Win16Frame &frame, unsig
         const unsigned a[] = {scratch};
         // With an answer to carry back the call has work left after the
         // procedure, and a saved state cannot take it up there.
-        if (transfer.kind || transfer.buffer) TakeTail();
+        if (transfer.Pending()) TakeTail();
         result = Win16ControlAnswer(transfer, Api("DispatchMessageA", a));
         return true;
     }
@@ -2498,17 +2526,19 @@ bool Application::Win16UserCall(unsigned ordinal, const Win16Frame &frame, unsig
     case 445: // DefFrameProc(frame, client, message, wparam, lparam)
     {
         unsigned message = arg(2), wparam = arg(3), lparam = frame.Long(0);
-        if (!Win16ToThirtyTwo(arg(0), message, wparam, lparam))
+        Win16ControlTransfer transfer;
+        if (!Win16ToThirtyTwo(arg(0), message, wparam, lparam, &transfer))
             return false;
-        result = DefFrameMessage(arg(0), arg(1), message, wparam, lparam);
+        result = Win16ControlAnswer(transfer, DefFrameMessage(arg(0), arg(1), message, wparam, lparam));
         return true;
     }
     case 447: // DefMDIChildProc(child, message, wparam, lparam)
     {
         unsigned message = arg(1), wparam = arg(2), lparam = frame.Long(0);
-        if (!Win16ToThirtyTwo(arg(0), message, wparam, lparam))
+        Win16ControlTransfer transfer;
+        if (!Win16ToThirtyTwo(arg(0), message, wparam, lparam, &transfer))
             return false;
-        result = DefMdiChildMessage(arg(0), message, wparam, lparam);
+        result = Win16ControlAnswer(transfer, DefMdiChildMessage(arg(0), message, wparam, lparam));
         return true;
     }
     case 451: // TranslateMDISysAccel(client, message)
@@ -3546,11 +3576,16 @@ unsigned Application::Win16Send(unsigned hwnd, unsigned message, unsigned wparam
     // recipient walk of USER there as well.
     const unsigned a[] = {hwnd, message, wparam, lparam};
     // An answer to carry back is work after the procedure (GiveTail).
-    if (transfer.kind || transfer.buffer || message16 == Win16U::WmMdiGetActive) TakeTail();
+    if (transfer.Pending() || message16 == Win16U::WmMdiGetActive) TakeTail();
     return Win16ControlAnswer(transfer, Win16Answer(message16, Api("SendMessageA", a)));
 }
 unsigned Application::Win16ControlAnswer(Win16ControlTransfer &transfer, unsigned result)
 {
+    if (transfer.structure)
+    {
+        Win16StructureAnswer(transfer.structure, transfer.staged, transfer.original);
+        transfer.structure = 0;
+    }
     // The previous icon of a STATIC is a native handle; the 16-bit caller
     // gets the word the LoadIcon gate gave out for it.
     if (transfer.kind == Win16C::ImageAnswer) return Win16ImageWord(result);
@@ -3740,7 +3775,14 @@ bool Application::Win16ToThirtyTwo(unsigned hwnd, unsigned &message, unsigned &w
         // A window procedure that hands the message on to DefWindowProc gives
         // back the far pointer it was given. The 32-bit structure behind it is
         // the one the delivery staged, so the changed fields go back into it
-        // and the native reader sees its own shape again.
+        // and the native reader sees its own shape again. The answer of the
+        // native procedure then goes into the 16-bit copy, which is the one
+        // the procedure reads afterwards and the delivery widens again when
+        // the procedure returns: DefWindowProc of USER fills the program's
+        // own structure. Without it the client rectangle WM_NCCALCSIZE
+        // answered was the window rectangle the 16-bit copy still held, and
+        // Minesweeper, restored from the minimized window it creates, lost
+        // its caption and its menu bar.
         auto &machine = *win16.state;
         for (unsigned i = machine.delivery_count; i--;)
         {
@@ -3749,6 +3791,12 @@ bool Application::Win16ToThirtyTwo(unsigned hwnd, unsigned &message, unsigned &w
                 continue;
             Win16StructureOut(record.structure, record.staged, record.original);
             lparam = record.original;
+            if (transfer)
+            {
+                transfer->structure = record.structure;
+                transfer->staged = record.staged;
+                transfer->original = record.original;
+            }
             return true;
         }
         // VB can copy NCCALCSIZE to its own stack before forwarding it.
