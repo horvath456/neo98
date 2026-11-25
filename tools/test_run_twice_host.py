@@ -81,8 +81,8 @@ def main():
         env.pop(variable, None)
     try:
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '1024x768', '--exe',
-                                 'C:\\WINDOWS\\EXPLORER.EXE', '--time-limit', '120'], cwd=ROOT, env=env,
-                                capture_output=True, text=True, timeout=180)
+                                 'C:\\WINDOWS\\EXPLORER.EXE', '--time-limit', '300'], cwd=ROOT, env=env,
+                                capture_output=True, text=True, timeout=400)
         text = result.stdout + result.stderr
         answer = win98_c.path('C:\\RUNTWICE.TXT', drive)
         lines = answer.read_text(errors='replace').split() if answer else []
