@@ -758,6 +758,10 @@ void Application::SetHostDisplay(int width, int height, bool apply)
     else host_display_width = host_display_height = 0;
     host_display_pending = apply;
 }
+void Application::OfferHostScreen(int width, int height)
+{
+    if (!host_display_width) User::SetScreenPanel(width, height);
+}
 void Application::HostDisplay(int &width, int &height)
 {
     width = host_display_width;
@@ -952,11 +956,11 @@ bool Application::WriteRegistryDisplayMode(int width, int height, int depth)
     char resolution[32], bits[16];
     const unsigned r = unsigned(snprintf(resolution, sizeof resolution, "%d,%d", width, height)) + 1;
     const unsigned b = unsigned(snprintf(bits, sizeof bits, "%d", depth)) + 1;
-    // The size of the host's screen is the host's and is not stored; another
-    // size is the guest's own choice, and the host's screen gives way to it.
-    int panel_width = 0, panel_height = 0;
-    User::ScreenPanel(panel_width, panel_height);
-    if (panel_width && width == panel_width && height == panel_height)
+    // The size of the host's screen while the host sets the desktop's size
+    // (the seamless view) is the host's and is not stored; another size is
+    // the guest's own choice, and the host's screen gives way to it. The
+    // size the host only offers (OfferHostScreen) is stored like any other.
+    if (host_display_width && width == host_display_width && height == host_display_height)
         return !registry.Set(key, "BitsPerPixel", 1, bits, b);
     host_display_width = host_display_height = 0;
     return !registry.Set(key, "Resolution", 1, resolution, r) && !registry.Set(key, "BitsPerPixel", 1, bits, b);
