@@ -1345,13 +1345,62 @@ unsigned Application::DragListNotify(unsigned list, unsigned code)
     Free(info);
     return answer;
 }
+// The pointer is the answer's, as COMCTL32 shows it: DL_STOPCURSOR the "no"
+// of the system, DL_COPYCURSOR and DL_MOVECURSOR the cursors 104 and 105 of
+// COMCTL32 itself (the copy cursor an arrow with a plus), and any other
+// answer leaves the pointer as it is.
 void Application::DragListDragging(unsigned list)
 {
     const unsigned answer = DragListNotify(list, DragListDrag);
-    // DL_STOPCURSOR shows "no", the others the arrow.
-    const unsigned load[] = {0, answer == 1 ? 32648u : 32512u};
-    if (const unsigned cursor = Api("LoadCursorA", load))
+    unsigned cursor = 0;
+    if (answer == 1)
+    {
+        const unsigned load[] = {0, 32648u};
+        cursor = Api("LoadCursorA", load);
+    }
+    else if (answer == 2 || answer == 3)
+    {
+        unsigned &loaded = drag_list_cursors[answer - 2];
+        if (!loaded)
+            loaded = DragListImage(answer == 2 ? 104 : 105, false);
+        cursor = loaded;
+    }
+    if (cursor)
         Api("SetCursor", &cursor);
+}
+// An icon or a cursor of 32x32 of COMCTL32.DLL of the system folder: the
+// arrow of DrawInsert and the cursors of a drag. The DLL is read for its
+// resources only (LOAD_LIBRARY_AS_DATAFILE, nothing of it runs), and the
+// image is made the way LoadImage makes it: the group, the member of the
+// group that fits, CreateIconFromResourceEx of that member. LoadImageA
+// itself takes no such view.
+unsigned Application::DragListImage(unsigned id, bool icon)
+{
+    if (!drag_list_module)
+    {
+        const unsigned name = String("COMCTL32.DLL");
+        const unsigned load[] = {name, 0, 2}; // LOAD_LIBRARY_AS_DATAFILE
+        drag_list_module = name ? Api("LoadLibraryExA", load) : 0;
+        if (name)
+            Free(name);
+    }
+    const unsigned module = drag_list_module;
+    // The data of a resource of the view and its size, or zero.
+    auto data = [&](unsigned name, unsigned type, unsigned &size) -> unsigned {
+        const unsigned find[] = {module, name, type};
+        const unsigned found = module && name ? Api("FindResourceA", find) : 0;
+        const unsigned handle[] = {module, found};
+        size = found ? Api("SizeofResource", handle) : 0;
+        const unsigned loaded = found ? Api("LoadResource", handle) : 0;
+        return loaded ? Api("LockResource", &loaded) : 0;
+    };
+    unsigned size = 0;
+    const unsigned group = data(id, icon ? 14 : 12, size); // RT_GROUP_ICON, RT_GROUP_CURSOR
+    const unsigned lookup[] = {group, icon, 32, 32, 0};
+    const unsigned member = group ? ImageApi("LookupIconIdFromDirectoryEx", lookup) : 0;
+    const unsigned bits = data(member, icon ? 3 : 1, size); // RT_ICON, RT_CURSOR
+    const unsigned create[] = {bits, size, icon, 0x30000, 32, 32, 0};
+    return bits && size ? ImageApi("CreateIconFromResourceEx", create) : 0;
 }
 void Application::DragListEnd(unsigned list, unsigned code)
 {
@@ -1359,6 +1408,10 @@ void Application::DragListEnd(unsigned list, unsigned code)
         b->dragging = false;
     const unsigned timer[] = {list, DragListTimer};
     Api("KillTimer", timer);
+    // The arrow again, as COMCTL32 sets it when a drag ends.
+    const unsigned load[] = {0, 32512u};
+    if (const unsigned arrow = Api("LoadCursorA", load))
+        Api("SetCursor", &arrow);
     DragListNotify(list, code);
 }
 // LBItemFromPt: the item of the list under a point of the screen, or -1.
@@ -1426,16 +1479,7 @@ void Application::DragListInsert(unsigned parent, unsigned list, int item)
     drag_list_insert = item;
     drag_list_at = {p.x - 16, p.y - 8};
     if (!drag_list_icon)
-    {
-        // COMCTL32.DLL of the system folder, read for its resources only.
-        const unsigned name = String("COMCTL32.DLL");
-        const unsigned load[] = {name, 0, 2}; // LOAD_LIBRARY_AS_DATAFILE
-        const unsigned module = name ? Api("LoadLibraryExA", load) : 0;
-        if (name)
-            Free(name);
-        const unsigned image[] = {module, 150, 1, 32, 32, 0};
-        drag_list_icon = module ? ImageApi("LoadImageA", image) : 0;
-    }
+        drag_list_icon = DragListImage(150, true);
     const unsigned dc = Api("GetDC", &parent);
     if (!dc)
         return;

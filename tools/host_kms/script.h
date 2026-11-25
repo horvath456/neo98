@@ -17,7 +17,9 @@ namespace HostKms
 // wait=CLASS, wait=CLASS|TITLE (an empty class is any), wait=X,Y,RRGGBB
 // (until the pixel of the screen has about that colour; the time since the
 // step before goes to stderr), click=X,Y,
-// dblclick=X,Y, move=X,Y, drag=X1,Y1,X2,Y2 (guest coordinates), key=VK,
+// dblclick=X,Y, move=X,Y, down=X,Y and up=X,Y (the left button pressed and
+// let go in steps of their own, a move between them drags with it held),
+// drag=X1,Y1,X2,Y2 (guest coordinates), key=VK,
 // ctrl=VK and alt=VK (hexadecimal), keydown=VK and keyup=VK (a key held over
 // the steps between them), type=TEXT, shot=PATH (the screen as PNG), quit=1
 // (also menu=quit), and idle=MS: until no thread of the machine has been
@@ -32,6 +34,8 @@ class Script
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now(), stepped = start, busy_at = start,
                                           waiting_since{};
     bool waiting = false;
+    // The buttons a down= holds until its up=.
+    unsigned held = 0;
     // Within 48 of each channel, as the other hosts compare.
     static bool Pixel(int x, int y, unsigned want)
     {
@@ -166,6 +170,20 @@ class Script
             default: break;
             }
             app.RawKey(key, 0, step.action == "keydown", scan, extended || key == 0xa3 || key == 0xa5);
+        }
+        else if (step.action == "down" || step.action == "up")
+        {
+            int x = 0, y = 0;
+            if (sscanf(step.value.c_str(), "%d,%d", &x, &y) == 2)
+            {
+                held = step.action == "down" ? 1 : 0;
+                app.MouseButtons(x, y, held);
+            }
+        }
+        else if (step.action == "move" && held)
+        {
+            int x = 0, y = 0;
+            if (sscanf(step.value.c_str(), "%d,%d", &x, &y) == 2) app.MouseButtons(x, y, held);
         }
         else if (step.action == "click" || step.action == "dblclick" || step.action == "move")
         {

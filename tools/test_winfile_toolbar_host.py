@@ -27,7 +27,12 @@ memory:
   drag       File > Move dragged from the available buttons onto the first
              button of the toolbar's list goes on the toolbar; dragged back
              onto the available buttons it goes away again (the lists were
-             no drag lists before)
+             no drag lists before). While it is held over the toolbar's list
+             the pointer is the copy cursor of COMCTL32 (its cursor 104, the
+             answer DL_COPYCURSOR of the dialog), as COMCTL32's own drag list
+             shows it, and the arrow of DrawInsert (COMCTL32's icon 150)
+             stands left of the list; the pointer was the arrow, and the
+             icon never came from COMCTL32 read as a data file
 
 Before, the dialog stopped the run (toolbar message 041Bh not ported), and
 the toolbar answered that it neither saved nor restored.
@@ -44,6 +49,7 @@ if _sys.platform != 'linux':
 import argparse
 import os
 import shutil
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -69,6 +75,8 @@ FACE = (192, 192, 192)
 CUSTOMIZE = ['click=160,31', 'wait=#32768', 'click=200,86', 'wait=#32770|Customize Toolbar', 'idle=300']
 MOVE, ADD, SORT_BY_TYPE, REMOVE = (85, 164), (250, 176), (370, 139), (250, 210)
 SORT_BY_SIZE, MOVE_UP, CLOSE, RESET = (370, 164), (516, 228), (516, 118), (516, 145)
+# The place left of the toolbar's list where DrawInsert's arrow stands.
+INSERT_ARROW = (280, 118, 296, 145)
 # The first item the toolbar's list shows, and a free place of the available
 # buttons.
 SORT_BY_NAME, AVAILABLE = (370, 139), (110, 200)
@@ -111,6 +119,72 @@ def click(x_y):
 
 def drag(start, end):
     return f'drag={start[0]},{start[1]},{end[0]},{end[1]}'
+
+
+def pe_resource(data, kind, ident):
+    """The data of a resource of a PE file by its type and id, the first
+    language."""
+    pe = struct.unpack_from('<I', data, 60)[0]
+    sections = [struct.unpack_from('<IIII', data, at + 8)
+                for at in range(pe + 24 + struct.unpack_from('<H', data, pe + 20)[0],
+                                pe + 24 + struct.unpack_from('<H', data, pe + 20)[0] +
+                                40 * struct.unpack_from('<H', data, pe + 6)[0], 40)]
+    def offset(rva):
+        for size, virtual, raw_size, raw in sections:
+            if virtual <= rva < virtual + max(size, raw_size):
+                return rva - virtual + raw
+        raise ValueError(hex(rva))
+    root = offset(struct.unpack_from('<I', data, pe + 24 + 96 + 2 * 8)[0])
+    def entry(directory, wanted):
+        named, numbered = struct.unpack_from('<HH', data, directory + 12)
+        for i in range(named + numbered):
+            name, target = struct.unpack_from('<II', data, directory + 16 + 8 * i)
+            if wanted is None or (not name & 0x80000000 and name == wanted):
+                return target
+        raise KeyError(wanted)
+    language = root + (entry(root + (entry(root, kind) & 0x7fffffff), ident) & 0x7fffffff)
+    leaf = root + entry(language, None)
+    rva, size = struct.unpack_from('<II', data, leaf)
+    return data[offset(rva):offset(rva) + size]
+
+
+def cursor_pixels(dll, ident):
+    """The pixels of a cursor of a DLL as Windows draws it on a screen: (x, y)
+    from its hot spot -> 0 black, 1 white; transparent pixels are left out."""
+    group = pe_resource(dll, 12, ident)
+    member = struct.unpack_from('<H', group, 6 + 12)[0]
+    blob = pe_resource(dll, 1, member)
+    hot_x, hot_y = struct.unpack_from('<HH', blob, 0)
+    header = blob[4:]
+    size, width, height = struct.unpack_from('<Iii', header, 0)
+    height //= 2
+    stride = (width + 31) // 32 * 4
+    xor = header[size + 8:size + 8 + stride * height]
+    mask = header[size + 8 + stride * height:]
+    pixels = {}
+    for row in range(height):
+        y = height - 1 - row
+        for x in range(width):
+            bit = lambda plane: plane[row * stride + x // 8] >> (7 - x % 8) & 1
+            if not bit(mask):
+                pixels[(x - hot_x, y - hot_y)] = bit(xor)
+    return pixels
+
+
+def shows_cursor(picture, at, cursor):
+    """The share of the opaque pixels of a cursor that the picture shows at
+    the point."""
+    if not picture or not cursor:
+        return 0.0
+    hits = sum(pixel(picture, at[0] + dx, at[1] + dy) == ((255, 255, 255) if white else (0, 0, 0))
+               for (dx, dy), white in cursor.items())
+    return hits / len(cursor)
+
+
+def black(picture, box):
+    """The black pixels of a box of a picture."""
+    left, top, right, bottom = box
+    return sum(pixel(picture, x, y) == (0, 0, 0) for y in range(top, bottom) for x in range(left, right))
 
 
 def shot(name):
@@ -159,9 +233,16 @@ def main():
         log += session(args.kms, drive, script(*start, *shot('restored'), *CUSTOMIZE, click(RESET), *shot('reset'),
                                                click(CLOSE), *shot('reset-closed'), 'quit=1'), 120)
         log += session(args.kms, drive, script(*start, *shot('standard'), 'quit=1'), 90)
-        log += session(args.kms, drive, script(*start, *CUSTOMIZE, drag(MOVE, SORT_BY_NAME), *shot('dragged'),
+        # The drag into the toolbar's list is held for a picture of the
+        # pointer before it goes down there.
+        held = [f'down={MOVE[0]},{MOVE[1]}', *[f'move={MOVE[0] + (SORT_BY_NAME[0] - MOVE[0]) * i // 4},'
+                                               f'{MOVE[1] + (SORT_BY_NAME[1] - MOVE[1]) * i // 4}' for i in (1, 2, 3, 4)],
+                *shot('dragging'), f'up={SORT_BY_NAME[0]},{SORT_BY_NAME[1]}']
+        log += session(args.kms, drive, script(*start, *CUSTOMIZE, *held, *shot('dragged'),
                                                drag(SORT_BY_NAME, AVAILABLE), *shot('dragged-back'), click(CLOSE),
                                                'idle=300', 'quit=1'), 120)
+        comctl32 = win98_c.path('C:\\WINDOWS\\SYSTEM\\COMCTL32.DLL', drive)
+        copy_cursor = cursor_pixels(comctl32.read_bytes(), 104) if comctl32 else {}
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
@@ -170,7 +251,7 @@ def main():
     stops = [line for line in log.splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
     names = ('start', 'dialog', 'added', 'removed', 'moved', 'closed', 'restored', 'reset', 'reset-closed',
-             'standard', 'dragged', 'dragged-back')
+             'standard', 'dragging', 'dragged', 'dragged-back')
     pictures = {name: read_png(WORK / f'{name}.png') if (WORK / f'{name}.png').is_file() else None for name in names}
     present = all(pictures.values())
     bar = {name: area(picture, TOOLBAR) for name, picture in pictures.items() if picture}
@@ -207,6 +288,13 @@ def main():
             present and end['dragged'] > end['standard'] + 16,
         'drag: dragged back onto the available buttons it goes away':
             present and bar['dragged-back'] == bar['standard'],
+        f'drag: held over the toolbar\'s list the pointer is the copy cursor of COMCTL32 '
+        f'({shows_cursor(pictures["dragging"], SORT_BY_NAME, copy_cursor):.0%} of its pixels)':
+            present and shows_cursor(pictures['dragging'], SORT_BY_NAME, copy_cursor) >= 0.98,
+        f'drag: the arrow of DrawInsert stands left of the list while it is held, and goes after the drop '
+        f'({black(pictures["dragging"], INSERT_ARROW)}, {black(pictures["dragged"], INSERT_ARROW)} black pixels)':
+            present and black(pictures['dragging'], INSERT_ARROW) > 10 and
+            black(pictures['dragged'], INSERT_ARROW) == 0 and black(pictures['dialog'], INSERT_ARROW) == 0,
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():

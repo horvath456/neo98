@@ -1132,9 +1132,12 @@ private:
     static constexpr unsigned DragListBegin = 0x485, DragListDrag = 0x486, DragListDropped = 0x487,
                               DragListCancel = 0x488, DragListTimer = 0x7d4c;
     unsigned drag_list_message = 0, drag_list_scrolled = 0, drag_list_parent = 0, drag_list_icon = 0;
+    // COMCTL32.DLL read for its resources, and its copy and move cursors.
+    unsigned drag_list_module = 0, drag_list_cursors[2] = {};
     int drag_list_insert = -1;
     Gdi::POINT drag_list_at{};
     unsigned DragListMessage();
+    unsigned DragListImage(unsigned id, bool icon);
     bool MakeDragList(unsigned list);
     unsigned DragListNotify(unsigned list, unsigned code);
     void DragListDragging(unsigned list);
