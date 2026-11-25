@@ -49,25 +49,42 @@ unsigned long long Application::HostNow()
 // sum of the pauses that are over. Both are read on every Now.
 namespace
 {
-unsigned long long pause_began = 0, pause_total = 0;
+unsigned long long pause_began = 0, pause_total = 0, machine_start = 0;
+// The host's time at the start of the machine: the first reading of its
+// clock. The clocks of Windows count from the start of Windows, not from the
+// boot of the computer; a program that shows GetTickCount as the time
+// Windows has run showed the uptime of the host.
+unsigned long long MachineStart(unsigned long long (*host)())
+{
+    unsigned long long start = __atomic_load_n(&machine_start, __ATOMIC_ACQUIRE);
+    if (start) return start;
+    start = host();
+    if (!start) start = 1;
+    unsigned long long expected = 0;
+    return __atomic_compare_exchange_n(&machine_start, &expected, start, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)
+               ? start
+               : expected;
 }
-// The clock of the machine in microseconds: the host's clock less every
-// pause. It stands while the machine is paused. GetTickCount, timeGetTime,
+}
+// The clock of the machine in microseconds: the host's clock since the
+// start of the machine less every pause. It stands while the machine is
+// paused. GetTickCount, timeGetTime, the time of a message,
 // QueryPerformanceCounter, the timers, the timeouts of the waits, the
 // vertical blank and the clock of the mixer without a device all read it.
 unsigned long long Application::Now()
 {
     // A host thread beside the main loop may read the clock as well.
+    const unsigned long long start = MachineStart(HostNow);
     const unsigned long long began = __atomic_load_n(&pause_began, __ATOMIC_RELAXED);
-    return (began ? began : HostNow()) - __atomic_load_n(&pause_total, __ATOMIC_RELAXED);
+    return (began ? began : HostNow()) - start - __atomic_load_n(&pause_total, __ATOMIC_RELAXED);
 }
 void Application::SetNow(unsigned long long machine_microseconds)
 {
-    // Now is the moment the pause began less the sum of the pauses; the
-    // sum may wrap, the difference does not.
-    const unsigned long long now = HostNow();
+    // Now is the moment the pause began less the start and the sum of the
+    // pauses; the sum may wrap, the difference does not.
+    const unsigned long long start = MachineStart(HostNow), now = HostNow();
     __atomic_store_n(&pause_began, now ? now : 1, __ATOMIC_RELAXED);
-    __atomic_store_n(&pause_total, (now ? now : 1) - machine_microseconds, __ATOMIC_RELAXED);
+    __atomic_store_n(&pause_total, (now ? now : 1) - start - machine_microseconds, __ATOMIC_RELAXED);
 }
 bool Application::MachinePaused() { return __atomic_load_n(&pause_began, __ATOMIC_RELAXED) != 0; }
 unsigned long long Application::PausedMicroseconds()
