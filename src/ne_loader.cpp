@@ -1052,6 +1052,8 @@ bool Application::Win16SetupxRealModeCall()
     static const unsigned char keyb[] = {0x06, 0x1e, 0x60, 0x8c, 0xc8, 0x8e, 0xd8, 0xb8, 0x80, 0xad, 0xcd, 0x2f};
     static const unsigned char netware[] = {0x06, 0x1e, 0x60, 0x8c, 0xc8, 0x8e, 0xc0, 0xbf,
                                             0x62, 0x00, 0xb8, 0x01, 0xea, 0x33, 0xdb, 0xcd};
+    static const unsigned char space[] = {0x56, 0x1e, 0x06, 0x57, 0x8c, 0xc8, 0x8e, 0xd8,
+                                          0x8e, 0xc0, 0xb8, 0x06, 0x33, 0x33, 0xdb, 0xcd};
     unsigned char routine[16] = {};
     if (!Read(code, routine, sizeof routine))
         return false;
@@ -1066,6 +1068,30 @@ bool Application::Win16SetupxRealModeCall()
         Store(code + 0x61, &none, 1);
         Register(Reg::Edx, Register(Reg::Edx) & 0xffff0000u);
         answer = 0;
+    }
+    else if (!memcmp(routine, space, sizeof space))
+    {
+        // SETUPX of Windows 95, the free space of the drive whose root
+        // stands at +7Eh (Windows Setup and Startup Disk): INT 21h 7303h
+        // from DOS 7.10 on, 3600h below; the answer is in sectors, DX:AX
+        // (free clusters times sectors per cluster), zero on an error.
+        unsigned char letter = 0;
+        Read(code + 0x7e, &letter, 1);
+        const char root[4] = {char(letter), ':', '\\', 0};
+        unsigned sectors = 0;
+        if (const unsigned block = Allocate(32))
+        {
+            Store(block, root, sizeof root);
+            const unsigned a[] = {block, block + 8, block + 12, block + 16, block + 20};
+            if (Api("GetDiskFreeSpaceA", a))
+            {
+                const unsigned long long free = (unsigned long long)Read32(block + 16) * Read32(block + 8);
+                sectors = free > 0xffffffffull ? 0xffffffffu : unsigned(free);
+            }
+            Free(block);
+        }
+        Register(Reg::Edx, (Register(Reg::Edx) & 0xffff0000u) | (sectors >> 16));
+        answer = sectors & 0xffff;
     }
     else
     {
