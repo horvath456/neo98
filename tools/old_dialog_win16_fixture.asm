@@ -19,6 +19,10 @@
 ; g a window of that class made now has procedure B, which hands each
 ;   message on to A through CallWindowProc: WM_USER+5, which A answers
 ;   with 41h and B adds one to, answers 42h
+; h _lopen of a file that is not there answers HFILE_ERROR, and INT 21h
+;   AH=59h then answers error 2, file not found
+; i _lcreat in a folder that is not there answers HFILE_ERROR, and INT
+;   21h AH=59h then answers error 3, path not found
 ;
 ; Each step puts its letter into C:\OLDDLG16.TXT as soon as it is done,
 ; "-" when it failed, so a step that stops the program leaves the letters
@@ -255,6 +259,40 @@ code_start:
         sete al
         MARK 'g'
 
+        ; h: the extended error of a failed _lopen
+        push ds
+        push word missing_file
+        push word 0                     ; OF_READ
+        API 1, 85                       ; _lopen
+        mov si, ax
+        xor bx, bx
+        mov ah, 59h
+        DOS
+        cmp si, -1
+        jne .h_bad
+        cmp ax, 2                       ; ERROR_FILE_NOT_FOUND
+        sete al
+        jmp .h_end
+.h_bad: xor al, al
+.h_end: MARK 'h'
+
+        ; i: the extended error of a failed _lcreat
+        push ds
+        push word missing_folder
+        push word 0
+        API 1, 83                       ; _lcreat
+        mov si, ax
+        xor bx, bx
+        mov ah, 59h
+        DOS
+        cmp si, -1
+        jne .i_bad
+        cmp ax, 3                       ; ERROR_PATH_NOT_FOUND
+        sete al
+        jmp .i_end
+.i_bad: xor al, al
+.i_end: MARK 'i'
+
         push word [output]
         API 1, 81                       ; _lclose
         mov ax, 4c00h
@@ -366,6 +404,8 @@ wc_class dw class, 0
 class    db 'OldDialog16', 0
 listbox_class db 'LISTBOX', 0
 item_text db 'Item', 0
+missing_file db 'C:\NOSUCH16.TXT', 0
+missing_folder db 'C:\NOSUCH16\NEW.TXT', 0
 fout     db 'C:\OLDDLG16.TXT', 0
 data_end:
 

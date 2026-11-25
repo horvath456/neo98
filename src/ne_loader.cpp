@@ -5231,7 +5231,15 @@ bool Application::Win16FileCall(unsigned ordinal, const Win16Frame &frame, unsig
         const unsigned a[] = {pointer_at(0), frame.Word(0)};
         const unsigned handle = Api(ordinal == 83 ? "_lcreat" : "_lopen", a);
         if (handle == 0xffffffffu)
+        {
+            // KRNL386 opens through INT 21h, so its failure is the extended
+            // error AH=59h answers next: COMMDLG.DLL of Windows 95 asks it
+            // after _lopen to tell a missing file (OFN_FILEMUSTEXIST) from
+            // one that is only locked.
+            if (last_error && last_error < 0x100)
+                win16.state->RememberDosError(last_error);
             return true;
+        }
         result = Win16FileWord(handle);
         if (result == 0xffff)
         {

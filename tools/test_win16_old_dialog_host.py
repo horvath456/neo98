@@ -38,6 +38,8 @@ CHECKS = [
     'e GetClassLong(GCL_WNDPROC) of a list box: CallWindowProc of it adds a string',
     'f SetClassLong(GCL_WNDPROC) answers the far pointer registered, GetClassLong the new one',
     'g a window made after SetClassLong runs the new procedure, which hands on to the old',
+    'h INT 21h AH=59h after _lopen of a missing file: file not found',
+    'i INT 21h AH=59h after _lcreat in a missing folder: path not found',
 ]
 
 
