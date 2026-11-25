@@ -5594,7 +5594,13 @@ void Application::RawKey(unsigned key, unsigned character, bool down, unsigned s
     if (User::InputBlocked() && !injected_input)
         return;
     auto packet=User::CaptureKey(key, character, down, scan, extended);
-    AccessibilityKey(packet.key, down, (packet.parameter & 0x40000000) != 0); // ToggleKeys
+    const bool repeat = (packet.parameter & 0x40000000) != 0 && down;
+    AccessibilityKey(packet.key, down, repeat); // ToggleKeys
+    // StickyKeys holds a modifier for the next key, or lets it go after it.
+    bool sticky_release = false;
+    if (StickyKey(packet, down, repeat, sticky_release)) return;
+    struct StickyAfter { Application &app; bool &release; ~StickyAfter() { if (release) app.StickyRelease(false); } }
+        sticky_after{*this, sticky_release};
     // Win98 keybd_event keeps explicitly supplied left/right modifier VKs.
     // Host keyboard events still use the generic VK for window messages.
     if(injected_input && key>=0xa0 && key<=0xa5)packet.key=key;

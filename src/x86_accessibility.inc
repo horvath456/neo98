@@ -214,7 +214,161 @@ void AccessSave(unsigned index)
             AccessWriteNumber(key, field.name, s.values[index][field.offset / 4]);
     }
 }
+// StickyKeys of the keyboard: the modifiers it holds for the next key,
+// Shift, Ctrl and Alt by bit (1, 2, 4), the left key and scan code each was
+// pressed with, the modifier pressed alone so far, and the presses of Shift
+// in a row for the hot key.
+struct StickyState
+{
+    unsigned latched = 0, locked = 0, alone = 0, shifts = 0;
+    unsigned vk[3] = {0xa0, 0xa2, 0xa4}, scan[3] = {0x2a, 0x1d, 0x38};
+} sticky_state;
+constexpr unsigned StickyIndex = 3, StickyOn = 1, StickyHotKey = 4, StickyHotKeySound = 0x10,
+                   StickyAudible = 0x40, StickyTriState = 0x80, StickyTwoKeysOff = 0x100;
+unsigned StickyBit(unsigned key)
+{
+    return key == 0x10 ? 1 : key == 0x11 ? 2 : key == 0x12 ? 4 : 0;
+}
+void StickyTone(unsigned frequency)
+{
+    if (access_state.values[StickyIndex][1] & StickyAudible)
+        Sound::Speaker::Tone(frequency, 60);
+}
 } // namespace
+
+// StickyKeys (SKF_STICKYKEYSON): Shift, Ctrl or Alt pressed and released
+// alone stays down for the next key and goes up after it (latched); with
+// SKF_TRISTATE a second press keeps it down until a third one (locked), else
+// the second press lets it go. The modifier is up for the keyboard, so the
+// host's modifiers agree, and down in the key state each key carries, which
+// makes Ctrl and Alt the keys the program sees (Alt makes a system key). A
+// key pressed while a modifier is held turns StickyKeys off with
+// SKF_TWOKEYSOFF, and Shift pressed five times in a row turns it on or off
+// with SKF_HOTKEYACTIVE (the confirmation of SKF_CONFIRMHOTKEY is not
+// shown), a rising or a falling tone with SKF_HOTKEYSOUND. SKF_AUDIBLEFEEDBACK
+// sounds a tone when a modifier latches, locks or goes. Answers whether the
+// key goes no further; `release` asks for the latched modifiers to go up
+// after it (StickyRelease).
+bool Application::StickyKey(User::InputPacket &packet, bool down, bool repeat, bool &release)
+{
+    auto &s = AccessLoaded();
+    auto &k = sticky_state;
+    unsigned &flags = s.values[StickyIndex][1];
+    const unsigned bit = packet.kind == 1 ? StickyBit(packet.key) : 0;
+    if (packet.kind == 1 && down && !repeat)
+    {
+        k.shifts = packet.key == 0x10 ? k.shifts + 1 : 0;
+        if (k.shifts == 5)
+        {
+            k.shifts = 0;
+            if (flags & StickyHotKey)
+            {
+                flags ^= StickyOn;
+                if (flags & StickyHotKeySound)
+                    Sound::Speaker::Tone((flags & StickyOn) ? 1600 : 400, 150);
+                if (!(flags & StickyOn))
+                    StickyRelease(true);
+                k.alone = 0;
+                return false;
+            }
+        }
+    }
+    if (!(flags & StickyOn))
+    {
+        if (k.latched | k.locked)
+            StickyRelease(true);
+        return false;
+    }
+    if (bit)
+    {
+        if (down)
+        {
+            if (!repeat)
+                k.alone = bit;
+            return false;
+        }
+        if (k.alone != bit)
+        {
+            k.alone = 0;
+            return false;
+        }
+        k.alone = 0;
+        if (k.locked & bit)
+        {
+            k.locked &= ~bit;
+            StickyTone(500);
+            return false;
+        }
+        if (k.latched & bit)
+        {
+            k.latched &= ~bit;
+            if (flags & StickyTriState)
+            {
+                k.locked |= bit;
+                StickyTone(1400);
+                return true;
+            }
+            StickyTone(500);
+            return false;
+        }
+        k.latched |= bit;
+        const unsigned index = bit == 1 ? 0 : bit == 2 ? 1 : 2;
+        k.vk[index] = 0xa0 + 2 * index;
+        k.scan[index] = (packet.parameter >> 16) & 255;
+        StickyTone(1000);
+        return true;
+    }
+    if (packet.kind == 1 && down && !repeat)
+    {
+        k.alone = 0;
+        if ((flags & StickyTwoKeysOff) &&
+            (User::PhysicalKeyDown(0x10) || User::PhysicalKeyDown(0x11) || User::PhysicalKeyDown(0x12)))
+        {
+            flags &= ~StickyOn;
+            if (flags & StickyHotKeySound)
+                Sound::Speaker::Tone(400, 150);
+            StickyRelease(true);
+            return false;
+        }
+    }
+    const unsigned held = k.latched | k.locked;
+    if (!held || packet.kind != 1)
+        return false;
+    for (unsigned i = 0; i < 3; ++i)
+        if (held & (1u << i))
+        {
+            packet.state[0x10 + i] |= 0x80;
+            packet.state[0xa0 + 2 * i] |= 0x80;
+        }
+    if (held & 4)
+    {
+        packet.parameter |= 0x20000000;
+        if (!(held & 2) && !User::PhysicalKeyDown(0x11))
+            packet.message = 0x104 + (down ? 0 : 1);
+    }
+    if (!down && k.latched)
+        release = true;
+    return false;
+}
+// The latched modifiers go up after the key they were held for, and with
+// `all` the locked ones too. Alt goes up as a plain WM_KEYUP: a key went by
+// under it.
+void Application::StickyRelease(bool all)
+{
+    auto &k = sticky_state;
+    const unsigned held = k.latched | (all ? k.locked : 0);
+    k.latched = 0;
+    if (all)
+        k.locked = 0;
+    for (unsigned i = 0; i < 3; ++i)
+        if (held & (1u << i))
+        {
+            auto up = User::CaptureKey(k.vk[i], 0, false, k.scan[i], false);
+            if (i == 2)
+                up.message = 0x101;
+            EnqueueInput(up);
+        }
+}
 
 // ToggleKeys: a high tone when a lock key turns its light on, a low one when
 // it turns it off.

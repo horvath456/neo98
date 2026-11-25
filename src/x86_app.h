@@ -1224,6 +1224,8 @@ private:
     // The accessibility settings, SPI 32h to 47h (src/x86_accessibility.inc).
     unsigned AccessibilityParameters(const unsigned *);
     void AccessibilityKey(unsigned key, bool down, bool repeat);
+    bool StickyKey(User::InputPacket &packet, bool down, bool repeat, bool &release);
+    void StickyRelease(bool all);
     bool ApplyAppearanceScheme(const char *name);
     bool WriteSystemProfile(const char *section, const char *key, const char *value);
     // USER HWND_BROADCAST. Mode is the original delivery selector.
