@@ -28,6 +28,7 @@
 #include "x86_app.h"
 #include "x86_comm_state.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 namespace X86
 {
@@ -4740,11 +4741,180 @@ unsigned Application::Win16DestroyImage(unsigned word)
     if (!FindIcon(native))
     {
         auto &alias = win16.state->image_aliases[word & 255];
+        if (alias.shape)
+            Win16GlobalFree(alias.shape);
         const unsigned generation = alias.generation % 63 + 1;
         alias = {};
         alias.generation = generation;
     }
     return result;
+}
+// The hash of a picture block, to see whether a program wrote into it.
+static unsigned Win16ShapeHash(const unsigned char *bytes, unsigned size)
+{
+    unsigned hash = 2166136261u;
+    for (unsigned i = 0; i < size; ++i)
+        hash = (hash ^ bytes[i]) * 16777619u;
+    return hash | 1;
+}
+// An icon or cursor as LockResource finds it under Windows 9x: a global block
+// in the format of Windows 3.x, the twelve bytes of CURSORICONINFO (hot spot,
+// width, height, the bytes of a row of the mask, planes and bits per pixel),
+// then the AND mask and the XOR bits, both in rows of whole words. The XOR
+// bits are those of the colour bitmap in its own format, or the lower half of
+// the mask of a monochrome image. DumpIcon (USER.459) measures the block, and
+// Program Manager writes the three parts into its group files and makes the
+// icon again with CreateIcon. The block is made from the native image the
+// first time and lives as long as the alias. A program may also write a
+// picture of its own into it, as Program Manager of Windows 3.x and 9x does
+// with the one icon it draws every item of a group with: GlobalReAlloc to
+// the size, LockResource, the three parts, GlobalUnlock, DrawIcon. The
+// global gates of KERNEL find the block under the icon's handle
+// (Win16ImageBlock), and GlobalUnlock lets the native image follow the bytes
+// (Win16ImageSync).
+unsigned Application::Win16ImageShape(unsigned word)
+{
+    const unsigned native = Win16ImageNative(word);
+    if (!native)
+        return 0;
+    auto &alias = win16.state->image_aliases[word & 255];
+    if (alias.shape)
+        if (auto *block = Win16GlobalBlock(alias.shape); block && block->memory)
+            return block->selector << 16;
+    // ICONINFO (20 bytes), then a BITMAP (24 bytes).
+    const unsigned info = Allocate(44);
+    if (!info)
+        return 0;
+    const unsigned bitmap = info + 20, a[] = {native, info};
+    if (!Api("GetIconInfo", a))
+    {
+        Free(info);
+        return 0;
+    }
+    const unsigned hot_x = Read32(info + 4), hot_y = Read32(info + 8), mask = Read32(info + 12),
+                   color = Read32(info + 16);
+    unsigned width = 0, height = 0, planes = 1, depth = 1;
+    const unsigned mask_object[] = {mask, 24, bitmap};
+    if (mask && Api("GetObjectA", mask_object))
+    {
+        width = Read32(bitmap + 4);
+        height = Read32(bitmap + 8);
+        if (!color)
+            height /= 2;
+    }
+    const unsigned color_object[] = {color, 24, bitmap};
+    if (color && Api("GetObjectA", color_object))
+    {
+        planes = Win16Word(bitmap + 16);
+        depth = Win16Word(bitmap + 18);
+    }
+    const unsigned and_bytes = (width + 15) / 16 * 2 * height,
+                   xor_bytes = (width * depth + 15) / 16 * 2 * height * planes;
+    unsigned handle = width && height && planes && depth
+                          ? Win16GlobalAlloc(Win98NeTask::Moveable, 12 + and_bytes + xor_bytes)
+                          : 0;
+    auto *block = handle ? Win16GlobalBlock(handle) : nullptr;
+    if (block && block->memory)
+    {
+        const unsigned at = block->memory;
+        Win16Word(at, hot_x);
+        Win16Word(at + 2, hot_y);
+        Win16Word(at + 4, width);
+        Win16Word(at + 6, height);
+        Win16Word(at + 8, (width + 15) / 16 * 2);
+        const unsigned char format[] = {(unsigned char)planes, (unsigned char)depth};
+        Store(at + 10, format, 2);
+        // A monochrome mask holds the XOR bits in its lower half already.
+        const unsigned mask_bits[] = {mask, color ? and_bytes : 2 * and_bytes, at + 12};
+        Api("GetBitmapBits", mask_bits);
+        const unsigned color_bits[] = {color, xor_bytes, at + 12 + and_bytes};
+        if (color)
+            Api("GetBitmapBits", color_bits);
+        alias.shape = handle;
+        if (auto *bytes = static_cast<unsigned char *>(malloc(12 + and_bytes + xor_bytes)))
+        {
+            if (Read(at, bytes, 12 + and_bytes + xor_bytes))
+                alias.shape_hash = Win16ShapeHash(bytes, 12 + and_bytes + xor_bytes);
+            free(bytes);
+        }
+    }
+    else if (handle)
+    {
+        Win16GlobalFree(handle);
+        handle = 0;
+    }
+    const unsigned bitmaps[] = {mask, color};
+    for (const unsigned object : bitmaps)
+        if (object)
+        {
+            const unsigned d[] = {object};
+            Api("DeleteObject", d);
+        }
+    Free(info);
+    return handle ? block->selector << 16 : 0;
+}
+Application::Win16Block *Application::Win16ImageBlock(unsigned word)
+{
+    if (!Win16ImageNative(word) || !Win16ImageShape(word))
+        return nullptr;
+    return Win16GlobalBlock(win16.state->image_aliases[word & 255].shape);
+}
+// The native image made again from the picture block when its bytes changed
+// since it was made or last matched. The native handle stays: a class or a
+// window that holds the icon shows the new picture, as it would under 9x.
+void Application::Win16ImageSync(unsigned word)
+{
+    const unsigned native = Win16ImageNative(word);
+    if (!native)
+        return;
+    auto &alias = win16.state->image_aliases[word & 255];
+    auto *block = alias.shape ? Win16GlobalBlock(alias.shape) : nullptr;
+    if (!block || !block->memory || block->size < 12)
+        return;
+    auto *bytes = static_cast<unsigned char *>(malloc(block->size));
+    if (!bytes)
+        return;
+    if (!Read(block->memory, bytes, block->size))
+    {
+        free(bytes);
+        return;
+    }
+    const unsigned width = bytes[4] | bytes[5] << 8, height = bytes[6] | bytes[7] << 8, planes = bytes[10],
+                   depth = bytes[11];
+    const unsigned and_bytes = (width + 15) / 16 * 2 * height,
+                   xor_bytes = (width * depth + 15) / 16 * 2 * height * planes,
+                   used = 12 + and_bytes + xor_bytes;
+    const unsigned hash = used <= block->size ? Win16ShapeHash(bytes, used) : alias.shape_hash;
+    free(bytes);
+    if (hash == alias.shape_hash || !width || !height || width > 256 || height > 256)
+        return;
+    alias.shape_hash = hash;
+    const unsigned at = block->memory;
+    unsigned made = 0;
+    if (alias.cursor)
+    {
+        const unsigned a[] = {0, Win16Word(at), Win16Word(at + 2), width, height, at + 12, at + 12 + and_bytes};
+        made = Api("CreateCursor", a);
+    }
+    else
+    {
+        const unsigned a[] = {0, width, height, planes, depth, at + 12, at + 12 + and_bytes};
+        made = Api("CreateIcon", a);
+    }
+    auto *target = FindIcon(native), *source = made ? FindIcon(made) : nullptr;
+    if (target && source)
+    {
+        auto *image = target->data;
+        target->data = source->data;
+        source->data = image;
+        target->hotspot_x = source->hotspot_x;
+        target->hotspot_y = source->hotspot_y;
+    }
+    if (made)
+    {
+        const unsigned d[] = {made};
+        Api(alias.cursor ? "DestroyCursor" : "DestroyIcon", d);
+    }
 }
 unsigned Application::Win16LoadImage(unsigned instance, bool cursor, unsigned id, const char *label,
                                      unsigned cx, unsigned cy)

@@ -545,7 +545,7 @@ inline const Ordinal *UserOrdinals(U &count)
         {418, 5, "SetMenuItemBitmaps"}, {428, 7, "TileWindows"}, {429, 7, "CascadeWindows"},
         {435, 1, "IsCharUpper"}, {436, 1, "IsCharLower"}, {441, 5, "InsertMenuItem"},
         {443, 5, "GetMenuItemInfo"}, {446, 5, "SetMenuItemInfo"}, {449, 12, "DrawState"},
-        {450, 10, "CreateIconFromResourceEx"}, {458, 1, "DestroyCursor"}, {464, 6, "DragObject"},
+        {450, 10, "CreateIconFromResourceEx"}, {458, 1, "DestroyCursor"}, {459, 8, "DumpIcon"}, {464, 6, "DragObject"},
         {465, 3, "DragDetect"}, {475, 5, "SetScrollInfo"}, {476, 4, "GetScrollInfo"},
         {477, 2, "GetKeyboardLayoutName"}, {478, 3, "LoadKeyboardLayout"},
         {479, 4, "MenuItemFromPoint"}, {480, 1, "GetUserLocalObjType"}, {501, 7, "WNetOpenJob"},

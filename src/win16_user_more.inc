@@ -524,6 +524,32 @@ bool Application::Win16UserMore(unsigned ordinal, const Win16Frame &frame, unsig
     case 458: // DestroyCursor(cursor)
         result = Win16DestroyImage(arg(0));
         return true;
+    case 459: // DumpIcon(icon, header bytes, AND bits, XOR bits)
+    {
+        // The parts of the picture LockResource gave for an icon
+        // (Win16ImageShape): twelve bytes of CURSORICONINFO, then the AND
+        // mask and the XOR bits in rows of whole words. USER of Windows 9x
+        // answers the bytes of the mask in AX and of the XOR bits in DX;
+        // Program Manager keeps the three parts in its group file with these
+        // counts.
+        const unsigned icon = pointer(0), raw = dword(0);
+        if (!icon)
+            return true;
+        const unsigned width = Win16Word(icon + 4), height = Win16Word(icon + 6);
+        unsigned char format[2] = {};
+        Read(icon + 10, format, 2);
+        const unsigned and_bytes = (width + 15) / 16 * 2 * height,
+                       xor_bytes = (width * format[1] + 15) / 16 * 2 * height * format[0];
+        const auto at = [&](unsigned offset) { return (raw & 0xffff0000u) | ((raw + offset) & 0xffff); };
+        if (const unsigned header = pointer(2))
+            Win16Word(header, 12);
+        if (const unsigned mask = pointer(4))
+            Write32(mask, at(12));
+        if (const unsigned bits = pointer(6))
+            Write32(bits, at(12 + and_bytes));
+        result = (and_bytes & 0xffff) | (xor_bytes << 16);
+        return true;
+    }
     case 394: // DrawIconEx(hdc, x, y, icon, cx, cy, step, brush, flags)
     {
         const unsigned a[] = {arg(0), signed_word(1), signed_word(2), Win16ImageNative(arg(3)), signed_word(4),

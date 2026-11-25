@@ -2310,6 +2310,11 @@ bool Application::Win16LocalInit(unsigned selector, unsigned start, unsigned end
 unsigned Application::Win16GlobalReAlloc(unsigned handle, unsigned size, unsigned flags)
 {
     auto *block = Win16GlobalBlock(handle);
+    // The picture of an icon or cursor (Win16ImageBlock) grows or shrinks,
+    // and the icon keeps its handle.
+    if (!block && Win16ImageBlock(handle))
+        return Win16GlobalReAlloc(win16.state->image_aliases[handle & 255].shape, size, flags) ? handle & 65535
+                                                                                               : 0;
     if (!block)
         return 0;
     if (flags & Win98NeTask::Modify) // KRNL386; size is ignored.
@@ -2584,6 +2589,14 @@ bool Application::Win16ResourceCall(unsigned ordinal, const Win16Frame &frame, u
                 index = i;
                 break;
             }
+    // An icon or cursor is a global block of USER under Windows 9x, and
+    // LockResource hands out its picture in the format of Windows 3.x
+    // (Win16ImageShape): Program Manager keeps icons in its groups so.
+    if (ordinal == 62 && index >= machine.resource_count && Win16ImageNative(given))
+    {
+        result = Win16ImageShape(given);
+        return true;
+    }
     // A resource of a library FreeLibrary gave back names no module.
     if (index >= machine.resource_count || machine.resources[index].module >= machine.module_count)
         return true;
@@ -2852,6 +2865,8 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
         const unsigned given = frame.Word(0);
         const unsigned handle = given == 0xffff ? Register(Reg::Ds) : given;
         auto *block = Win16GlobalBlock(handle);
+        if (!block)
+            block = Win16ImageBlock(handle);
         if (block)
         {
             // Check descriptor presence before incrementing the lock count.
@@ -2910,15 +2925,21 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
     {
         words = 1;
         auto *block = Win16GlobalBlock(frame.Word(0));
+        // The picture of an icon: what the program wrote is the icon now.
+        const bool image = !block && (block = Win16ImageBlock(frame.Word(0))) != nullptr;
         if (block && block->locks)
             --block->locks;
         result = block ? block->locks : 0;
+        if (image)
+            Win16ImageSync(frame.Word(0));
         return true;
     }
     case 20: // GlobalSize(handle)
     {
         words = 1;
         auto *block = Win16GlobalBlock(frame.Word(0));
+        if (!block)
+            block = Win16ImageBlock(frame.Word(0));
         result = block ? block->size : 0;
         return true;
     }
@@ -2937,6 +2958,8 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
     {
         words = 1;
         auto *block = Win16GlobalBlock(frame.Word(0));
+        if (!block)
+            block = Win16ImageBlock(frame.Word(0));
         result = block ? (block->locks |
                           (block->flags & (Win98NeTask::Discardable | Win98NeTask::Discarded)))
                        : 0;

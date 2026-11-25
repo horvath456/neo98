@@ -130,6 +130,10 @@ struct Application::Win16Machine
     struct ImageAlias
     {
         unsigned native = 0, instance = 0, id = 0, generation = 1;
+        // The global block LockResource hands out (Win16ImageShape), made
+        // the first time a program asks, and a hash of its bytes as the
+        // native image last matched them.
+        unsigned shape = 0, shape_hash = 0;
         bool cursor = false;
         char label[64] = {};
     } image_aliases[256];

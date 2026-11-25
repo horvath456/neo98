@@ -2231,6 +2231,9 @@ private:
     unsigned Win16ImageNative(unsigned word) const;
     unsigned Win16ImageWord(unsigned native) const;
     unsigned Win16DestroyImage(unsigned word);
+    unsigned Win16ImageShape(unsigned word);
+    Win16Block *Win16ImageBlock(unsigned word);
+    void Win16ImageSync(unsigned word);
     unsigned Win16LoadAccelerators(unsigned instance, unsigned id, const char *label);
     unsigned Win16Resource(Win16Module &, unsigned type, unsigned name, const char *label,
                            unsigned &bytes);
