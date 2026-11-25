@@ -2713,7 +2713,16 @@ bool Application::Win16ResourceCall(unsigned ordinal, const Win16Frame &frame, u
     }
     if (ordinal == 63)
     {
-        result = 0; // the block stays; a resource of this port is not discarded
+        // KRNL386 counts the loads of a resource, and the last FreeResource
+        // discards its block: the next LoadResource reads the bytes from the
+        // file again. A program may have changed them in between. COMMDLG.DLL
+        // of Windows 95 recolours the bitmap of its file dialogs in place
+        // (LoadAlterBitmap) and, on the next load, looks for the original
+        // colour without a bound. Here the block and its handle stay, and the
+        // next load fills them again.
+        if (entry.loads)
+            --entry.loads;
+        result = 0;
         return true;
     }
     if (!entry.handle)
@@ -2733,6 +2742,10 @@ bool Application::Win16ResourceCall(unsigned ordinal, const Win16Frame &frame, u
         entry.selector = block->selector;
         Store(entry.memory, machine.modules[entry.module].image.Data() + entry.offset, entry.bytes);
     }
+    else if (ordinal == 61 && !entry.loads && entry.memory)
+        Store(entry.memory, machine.modules[entry.module].image.Data() + entry.offset, entry.bytes);
+    if (ordinal == 61)
+        ++entry.loads;
     // LoadResource answers the global handle, LockResource the far pointer.
     result = ordinal == 61 ? entry.handle : entry.selector << 16;
     return true;

@@ -216,6 +216,9 @@ struct Application::Win16Machine
         // Global-heap handle returned by LoadResource and accepted by
         // LockResource/GlobalLock.
         unsigned handle = 0;
+        // LoadResource calls FreeResource has not given back yet; at zero
+        // the bytes count as discarded and the next load reads them again.
+        unsigned loads = 0;
         char label[32] = {};
     };
     Resource resources[64];
