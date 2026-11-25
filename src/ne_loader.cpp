@@ -5529,6 +5529,58 @@ void Application::Win16Interrupt(Cpu &cpu, unsigned number, void *context)
             app.Register(Reg::Eax, (app.Register(Reg::Eax) & 0xffff0000u) | alias);
             return answer(0);
         }
+        if (function == 0x000b || function == 0x000c)
+        {
+            // Get (000Bh) and set (000Ch) the eight bytes of the descriptor in
+            // BX at ES:DI; 8022h for a selector that is not allocated. The
+            // base is the one 0006h and 0007h speak of. DESKCP16.DLL of
+            // Windows 95's display properties reads one in its LibMain.
+            const unsigned selector = app.Register(Reg::Ebx) & 0xffff;
+            auto *entry = app.selectors.Find(selector << 16);
+            if (!selector || !entry || !(selector & 4))
+                return answer(0x8022);
+            const unsigned buffer = app.Win16Linear(app.Register(Reg::Es) & 0xffff, app.Register(Reg::Edi) & 0xffff);
+            if (!buffer)
+                return answer(0x8021);
+            const unsigned image = app.Win16RealModeImage();
+            unsigned char bytes[8] = {};
+            if (function == 0x000b)
+            {
+                if (!app.selectors.Descriptor(selector, bytes))
+                    return answer(0x8022);
+                unsigned base = entry->base;
+                if (image && base >= image && base - image < 0x110000)
+                    base -= image;
+                bytes[2] = base & 255;
+                bytes[3] = (base >> 8) & 255;
+                bytes[4] = (base >> 16) & 255;
+                bytes[7] = base >> 24;
+                return answer(app.Store(buffer, bytes, 8) ? 0 : 0x8021);
+            }
+            if (!app.Read(buffer, bytes, 8))
+                return answer(0x8021);
+            // Only present ring-three code and data segments; a system
+            // descriptor or another ring is refused as DPMI does (8021h).
+            if (!(bytes[5] & 0x80) || (bytes[5] & 0x60) != 0x60 || !(bytes[5] & 0x10))
+                return answer(0x8021);
+            unsigned base = bytes[2] | bytes[3] << 8 | bytes[4] << 16 | unsigned(bytes[7]) << 24;
+            unsigned limit = bytes[0] | bytes[1] << 8 | (bytes[6] & 15) << 16;
+            if (bytes[6] & 0x80)
+                limit = limit << 12 | 0xfff;
+            if (image && base < 0x110000)
+                base += image;
+            const auto previous = *entry;
+            entry->base = base;
+            entry->limit = limit;
+            entry->code = (bytes[5] & 8) != 0;
+            entry->big = (bytes[6] & 0x40) != 0;
+            if (!app.Win16Descriptor(selector))
+            {
+                *entry = previous;
+                return answer(0x8022);
+            }
+            return answer(0);
+        }
         if (function == 0x0000)
         {
             // Allocate LDT descriptors: CX of them, data, base 0, limit 0,
