@@ -2208,7 +2208,14 @@ bool BitBlt(HDC target, int x, int y, int w, int h, HDC source, int sx, int sy, 
     if(src&&source_section&&dest.depth<=8&&PaletteDisplay()&&
        destination_object->dib&&destination_object->dib->colours_only)
         return BlitDib(*d,source_object->dib->format,*src,area,sx,sy,rop,nullptr,nullptr,true);
-    if(src&&src->depth!=dest.depth&&(source_object->dib||
+    // 16 bits come in two layouts: 5-5-5, the display's and its bitmaps', and
+    // 5-6-5, a DIB section with the masks of BI_BITFIELDS or a DirectDraw
+    // surface. A copy from one into the other converts like one between two
+    // depths; copied as they are, the words of teal showed bright green.
+    const bool other_layout=src&&src->depth==16&&dest.depth==16&&
+        bool(source_object->dib&&source_object->dib->format.rgb565)!=
+        bool(destination_object->dib&&destination_object->dib->format.rgb565);
+    if(src&&(src->depth!=dest.depth||other_layout)&&(source_object->dib||
        (Find(d->current.bitmap,BitmapObject)->dib&&
         (src->depth>8||(src->depth==1&&dest.depth<=8))))){
         // A DIB source of another depth, or a direct-colour or monochrome DDB

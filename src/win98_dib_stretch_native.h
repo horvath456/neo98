@@ -204,7 +204,10 @@ unsigned StretchBitmap(DibIO &io,const unsigned *a){
  const bool same_depth=src_object->bitmap.depth==dst_object->bitmap.depth;
  const bool device_target=dst_object->bitmap.depth<=8&&dst_object->dib&&dst_object->dib->colours_only&&PaletteDisplay();
  const int depth=src_object->bitmap.depth;
- const bool direct=a[10]==SRCCOPY&&same_depth&&!(source_section&&device_target)&&(depth==16||depth==32||depth<=8);
+ // The two layouts of 16 bits, 5-5-5 and 5-6-5, are two formats (BitBlt).
+ const bool same_layout=depth!=16||bool(src_object->dib&&src_object->dib->format.rgb565)==
+                                   bool(dst_object->dib&&dst_object->dib->format.rgb565);
+ const bool direct=a[10]==SRCCOPY&&same_depth&&same_layout&&!(source_section&&device_target)&&(depth==16||depth==32||depth<=8);
  // Every other pair takes the converting path: a palettized side, a 24-bit
  // bitmap (the picture a Delphi program decodes from a JPEG and draws with
  // StretchDraw), two direct-colour depths or another operation. Only
