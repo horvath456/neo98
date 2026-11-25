@@ -4838,6 +4838,12 @@ void Application::ComposeIfQuiet()
 }
 void Application::Run()
 {
+    // The routine of a thread: when it ends, every callback it stood in has
+    // returned and cleared its mark, but the thread keeps the depth of its
+    // last Suspend. A thread that ended inside callbacks (ExitThread from a
+    // window procedure) and whose handle is still open would keep a depth
+    // without marks.
+    struct Ended { Application &app; ~Ended() { app.threads[app.current_thread].depth = app.depth; } } ended{*this};
     // A thread out of a saved state has started long ago: it goes on in its
     // routine (a native one begins its loop again, which keeps nothing on
     // the stack between two turns) or in the loop below, with the call it

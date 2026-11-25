@@ -863,7 +863,9 @@ struct Machine
                 // The registers Call kept for every
                 // callback a thread stands in: of one in the form of the
                 // first states, of more with their number.
-                const bool open = t.fiber && t.context && t.depth >= 1 && t.depth < 33;
+                // A thread that has ended stands in no callback, whatever
+                // depth it kept (Application::Run).
+                const bool open = t.fiber && !t.fiber->Finished() && t.context && t.depth >= 1 && t.depth < 33;
                 const bool nested = open && t.depth == 1 && t.call_marks[1].context, deep = open && t.depth > 1;
                 const unsigned long long bits = (t.fiber ? HasFiber : 0) | (t.fiber && (t.fiber->Started() || t.state_resumed) ? Started : 0) |
                                                 (t.fiber && t.fiber->Finished() ? Finished : 0) | (t.context ? HasContext : 0) |

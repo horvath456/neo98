@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""A machine is saved after a process of it has ended.
+"""A machine is saved after a process or a thread of it has ended.
 
 Each case runs on a private copy of setup's drive C:, saves the machine in
 neo98-host (wstate=save) and loads the state in a new host process
@@ -12,6 +12,11 @@ neo98-host (wstate=save) and loads the state in a new host process
             hands their contexts to a process that stays
             (User::DetachProcess), or the next state refuses the pointer to
             its freed Application
+  thread    a thread of the fixture ends with ExitThread from its window
+            procedure, after a wait two callbacks deep, and its handle stays
+            open. The finished thread keeps no depth of callbacks
+            (Application::Run), or the writer looks for the registers of
+            marks that are gone
   explorer  the shell of Windows 98 with My Computer open, saved after
             Notepad was started from Start > Run and closed again; after the
             load the Start menu opens
@@ -43,7 +48,7 @@ import win98_c  # noqa: E402
 
 BINARY = ROOT / 'build/native-app/neo98-host'
 WORK = ROOT / 'build/state-ended'
-CASES = ('child', 'explorer')
+CASES = ('child', 'thread', 'explorer')
 
 
 def fresh(source, drive):
@@ -154,14 +159,15 @@ def main():
             print(f'    {name}: {why}', flush=True)
         return before, after
 
-    for name, code in (('child', 3),):
+    for name, code in (('child', 3), ('thread', 7)):
         if name not in cases:
             continue
         ready = f'Ended ready {code}'
         before, after = case(name, ['--exe', 'C:\\ENDED.EXE', '--command', f'ENDED.EXE {name}'],
                              [f'0:wait=Ended|{ready}', '1:tops=1', '1.5:pause=1', '1.6:wstate=save', '3:menu=quit'],
                              ['1:tops=1', '1.5:pause=0', '2.5:tops=1', '3:menu=quit'])
-        what = 'the process that started last has ended'
+        what = ('the process that started last has ended' if name == 'child' else
+                'a thread ended inside a callback and its handle is open')
         check(f'{name}: the machine is saved after {what}',
               f'NEO98 HOST input wait=Ended|{ready} reached' in before and saved(before) and not failures(before))
         check(f'{name}: the state loads in a new host and its window stands',
