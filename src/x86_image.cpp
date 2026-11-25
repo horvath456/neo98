@@ -139,8 +139,10 @@ struct Application::ImageResources final:IR::Environment {
   // table of a DIB of eight bits or fewer before the bitmap is made: the
   // entry of the first pixel of the bits becomes COLOR_WINDOW, and the grey
   // shades 808080h, C0C0C0h and DFDFDFh become COLOR_3DSHADOW, COLOR_3DFACE
-  // and COLOR_3DLIGHT. COMCTL32's ImageList_LoadImage asks for the first
-  // (the check boxes of APPWIZ.CPL's MS-DOS options).
+  // and COLOR_3DLIGHT. With both, the first pixel's entry becomes
+  // COLOR_3DFACE instead: System Properties loads OEMLOGO.BMP so, and its
+  // background is the face of the dialog. COMCTL32's ImageList_LoadImage asks
+  // for the first (the check boxes of APPWIZ.CPL's MS-DOS options).
   struct Patched{unsigned char*bytes=nullptr;~Patched(){free(bytes);}}patched;
   if((flags&0x1020)&&data.size>=40&&Win98ImageProbe::Read32(data.bytes)==40){
    const unsigned bpp=Win98ImageDirectory::Read(data.bytes+14);
@@ -154,7 +156,7 @@ struct Application::ImageResources final:IR::Environment {
     const unsigned first_colour=first<colors?rgb(first):~0u;
     if(flags&0x1000)for(unsigned i=0;i<colors;++i){const unsigned c=rgb(i);
      if(c==0x808080)put(i,16);else if(c==0xc0c0c0)put(i,15);else if(c==0xdfdfdf)put(i,22);}
-    if((flags&0x20)&&first<colors){for(unsigned i=0;i<colors;++i)if(rgb(i)==first_colour||i==first)put(i,5);}
+    if((flags&0x20)&&first<colors){for(unsigned i=0;i<colors;++i)if(rgb(i)==first_colour||i==first)put(i,flags&0x1000?15:5);}
     data.bytes=patched.bytes;
    }
    flags&=IW(~0x1020u);
