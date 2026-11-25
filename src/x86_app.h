@@ -1183,6 +1183,7 @@ private:
     unsigned SystemParameters(const unsigned *);
     unsigned FontSmoothingParameters(const unsigned *);
     void LoadUserStartSettings();
+    void LoadWindowMetrics();
     unsigned MouseButtonSwapParameter(const unsigned *);
     unsigned ScreenSaveParameters(const unsigned *);
     void NoteHardwareInput();

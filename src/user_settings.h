@@ -45,7 +45,11 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
         metrics[71] = metrics[72] = 13;
         metrics[75] = 1; // Native input delivers mouse-wheel messages.
         DefaultFonts();
-        Win98Metrics::ApplyNonClientMetrics(*this, {1, 17, 17, 18, 18, 16, 16, 19, 19});
+        // The sizes of Windows 98 at 96 dots per inch, as its Setup writes
+        // them under WindowMetrics (Application::LoadWindowMetrics): border
+        // 1, scroll bars 16, caption buttons 18, small caption buttons 13 by
+        // 15, menu bar 18.
+        Win98Metrics::ApplyNonClientMetrics(*this, {1, 16, 16, 18, 18, 13, 15, 18, 18});
     }
     void SetWord(unsigned offset, unsigned short value) override
     {

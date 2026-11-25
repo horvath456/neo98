@@ -136,6 +136,7 @@ void Application::LoadUserStartSettings()
             settings.saver[i] = short(number(actives[i], 0) ? timeout : -timeout);
         }
     }
+    LoadWindowMetrics();
     key = Registry::Missing;
     value = nullptr;
     if (registry.Open(registry.roots[2], "Software\\Microsoft\\Plus!\\Setup", false, key, created) ||
@@ -153,6 +154,54 @@ void Application::LoadUserStartSettings()
         settings.SetWord(0x264, 1);
         return;
     }
+}
+// USER sizes the parts of a window at its start by the values of
+// HKCU\Control Panel\Desktop\WindowMetrics that Setup writes (Windows 98:
+// ScrollWidth -240, CaptionWidth -270, SmCaptionWidth -195, SmCaptionHeight
+// -225, MenuHeight -270), in twips when negative, -15 a pixel at 96 dots per
+// inch, and in pixels when positive. SPI_SETNONCLIENTMETRICS with
+// SPIF_UPDATEINIFILE writes them in pixels to [WindowMetrics] of WIN.INI
+// (src/x86_parameters_write.inc), which comes first. A value that is missing
+// or out of range keeps the one of Windows 98 (src/user_settings.h).
+void Application::LoadWindowMetrics()
+{
+    auto &settings = User::SystemSettings();
+    static const char *const names[9] = {"BorderWidth",     "ScrollWidth",    "ScrollHeight",
+                                         "CaptionWidth",    "CaptionHeight",  "SmCaptionWidth",
+                                         "SmCaptionHeight", "MenuWidth",      "MenuHeight"};
+    static const unsigned offsets[9] = {0x1014, 0x2e2, 0x306, 0x31a, 0x31c, 0x346, 0x348, 0x34a, 0x34c};
+    auto &registry = Registry::System();
+    unsigned key = Registry::Missing;
+    bool created = false;
+    const bool hive = !registry.Open(registry.roots[1], "Control Panel\\Desktop\\WindowMetrics", false, key, created);
+    unsigned sizes[9];
+    for (unsigned i = 0; i < 9; ++i)
+    {
+        sizes[i] = settings.Word(offsets[i]);
+        char text[16] = {};
+        ProfileString("WindowMetrics", names[i], "", text, sizeof text);
+        const Registry::Value *value = nullptr;
+        if (!text[0] && hive && !registry.Query(key, names[i], value) && value && value->type == 1 && value->data &&
+            value->size && value->size < sizeof text)
+            memcpy(text, value->data, value->size);
+        int number = 0, sign = 1;
+        unsigned at = 0;
+        if (text[0] == '-')
+        {
+            sign = -1;
+            at = 1;
+        }
+        if (text[at] < '0' || text[at] > '9')
+            continue;
+        for (; text[at] >= '0' && text[at] <= '9' && number < 100000; ++at)
+            number = number * 10 + (text[at] - '0');
+        // MulDiv(twips, 96, 1440), rounded as USER rounds.
+        const int pixels = sign < 0 ? (number * 96 + 720) / 1440 : number;
+        if (pixels >= 1 && pixels <= (i ? 100 : 50))
+            sizes[i] = unsigned(pixels);
+    }
+    Win98Metrics::ApplyNonClientMetrics(settings, {sizes[0], sizes[1], sizes[2], sizes[3], sizes[4], sizes[5],
+                                                   sizes[6], sizes[7], sizes[8]});
 }
 // USER: SPI_GETFONTSMOOTHING (4Ah) and SPI_SETFONTSMOOTHING (4Bh).
 // Without the Plus module at DS:264h, 4Ah writes a zero WORD, both answer
