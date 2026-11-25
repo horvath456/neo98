@@ -4,6 +4,7 @@
 // data, so only the fields its own process manager can answer are served.
 #include "win98_process_dword.h"
 #include "x86_app.h"
+#include "win16_machine.h"
 #include <stdio.h>
 #include <string.h>
 namespace X86
@@ -44,6 +45,28 @@ unsigned Application::ProcessDwordApi(const unsigned *a)
             {
                 auto *other = static_cast<Application *>(User::ProcessContextOf(database));
                 value = (other ? other : &app)->image.Base();
+                return true;
+            }
+            // Field -44 is the Windows version the program was made for, as
+            // KRNL386's GetExeVersion has it in the task database: major in
+            // the high byte, minor in the low one. For a 32-bit process that
+            // is the subsystem version of its image, for the process of a
+            // 16-bit program the expected version of its NE header.
+            // COMDLG32 of Windows 95 asks it in GetFileTitle and leaves
+            // programs older than 4.0 to the 16-bit COMMDLG.DLL.
+            if (field == Win98ProcessDword::TaskSlot1a)
+            {
+                auto *target = database == app.ProcessId() ? &app
+                                                           : static_cast<Application *>(User::ProcessContextOf(database));
+                if (!target)
+                    return false;
+                if (target->Win16Process() && target->win16.state->module_count)
+                    value = target->win16.state->modules[0].image.ExpectedVersion();
+                else
+                {
+                    const unsigned version = target->image.SubsystemVersion();
+                    value = ((version >> 8) & 0xff00) | (version & 255);
+                }
                 return true;
             }
             // Field -4 reads the process flags dword at database + 0x20. The
