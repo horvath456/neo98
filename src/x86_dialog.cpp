@@ -389,6 +389,12 @@ unsigned Application::CreateDialogTemplate(const unsigned char *data, unsigned l
     // never writes it again. A second write after the creation dropped the
     // WS_EX_TOPMOST the window inherits from a topmost owner,
     // so the Shut Down dialog fell behind SHELL32's dimmed full-screen owner
+    // A dialog with the 3D look (DS_3DLOOK, which every dialog of a module
+    // for 4.0 has) gives a control with WS_BORDER the sunken
+    // WS_EX_CLIENTEDGE in its place, as Windows 95 does: the edit fields
+    // and the hot key of the Shortcut page are framed like any other.
+    const unsigned expected_version = InstanceVersion(instance);
+    const bool sunken_borders = (definition->style & 4) || !expected_version || expected_version >= 0x400;
 
     for (unsigned i = 0; i < definition->count && state != Failed; ++i)
     {
@@ -428,7 +434,13 @@ unsigned Application::CreateDialogTemplate(const unsigned char *data, unsigned l
         unsigned class_name=String(type), title=String(text);
         // USER sets WS_EX_NOPARENTNOTIFY before creating each
         // template control, including extended templates.
-        unsigned args[]={item.extended|4u,class_name,title,item.style|0x40000000,
+        unsigned style = item.style | 0x40000000, extended = item.extended | 4u;
+        if (sunken_borders && (style & 0x00800000u))
+        {
+            style &= ~0x00800000u;   // WS_BORDER
+            extended |= 0x200u;      // WS_EX_CLIENTEDGE
+        }
+        unsigned args[]={extended,class_name,title,style,
                          (unsigned)bounds.left,(unsigned)bounds.top,(unsigned)bounds.right,
                          (unsigned)bounds.bottom,hwnd,item.id,instance,0};
         unsigned control=CreateWindow(args);

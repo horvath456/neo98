@@ -11,7 +11,10 @@
    Yellow: a dock with a 4-pixel frame at the top, painted through its window
    DC, and a cyan bar that reaches 4 pixels up into that frame, as CDockBar
    places its toolbars. The bar is cut to the dock's client, so the whole
-   frame of the dock is yellow. */
+   frame of the dock is yellow.
+   A dialog with DS_3DLOOK whose edit asks for WS_BORDER: the dialog manager
+   gives it WS_EX_CLIENTEDGE instead, and the dialog says so in its title,
+   "Edge sunken" or "Edge flat". */
 #include <windows.h>
 
 static LRESULT CALLBACK bordered(HWND h, UINT m, WPARAM w, LPARAM l)
@@ -92,6 +95,36 @@ static LRESULT CALLBACK frame(HWND h, UINT m, WPARAM w, LPARAM l)
     return DefWindowProc(h, m, w, l);
 }
 
+static INT_PTR CALLBACK edge_dialog(HWND h, UINT m, WPARAM w, LPARAM l) { return m == WM_INITDIALOG; }
+
+/* DLGTEMPLATE, no menu, the default class, title "Edge", and one EDIT with
+   WS_BORDER, its id 100. */
+static HWND edge(HINSTANCE instance)
+{
+    static WORD words[64];
+    WORD *p = words;
+    DLGTEMPLATE *dialog = (DLGTEMPLATE *)p;
+    dialog->style = WS_POPUP | WS_CAPTION | DS_3DLOOK;
+    dialog->cdit = 1; dialog->x = 0; dialog->y = 0; dialog->cx = 100; dialog->cy = 40;
+    p = (WORD *)(dialog + 1);
+    *p++ = 0; *p++ = 0;
+    for (const char *t = "Edge"; *t; ++t) *p++ = (WORD)*t;
+    *p++ = 0;
+    if ((ULONG_PTR)p & 2) *p++ = 0;
+    DLGITEMTEMPLATE *item = (DLGITEMTEMPLATE *)p;
+    item->style = WS_CHILD | WS_VISIBLE | WS_BORDER;
+    item->x = 5; item->y = 5; item->cx = 80; item->cy = 12; item->id = 100;
+    p = (WORD *)(item + 1);
+    *p++ = 0xffff; *p++ = 0x0081; *p++ = 0; *p++ = 0;
+    HWND h = CreateDialogIndirectParamA(instance, dialog, 0, edge_dialog, 0);
+    HWND field = GetDlgItem(h, 100);
+    const BOOL sunken = (GetWindowLongA(field, GWL_EXSTYLE) & WS_EX_CLIENTEDGE) &&
+                        !(GetWindowLongA(field, GWL_STYLE) & WS_BORDER);
+    SetWindowTextA(h, sunken ? "Edge sunken" : "Edge flat");
+    SetWindowPos(h, 0, 540, 440, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+    return h;
+}
+
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR line, int show)
 {
     WNDCLASSA k = {0};
@@ -113,6 +146,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR line, int show)
     ShowWindow(child, SW_SHOWNA);
     ShowWindow(top, SW_SHOW);
     UpdateWindow(top);
+    edge(instance);
     MSG message;
     while (GetMessageA(&message, 0, 0, 0)) { TranslateMessage(&message); DispatchMessageA(&message); }
     return 0;
