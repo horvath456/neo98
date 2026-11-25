@@ -198,6 +198,7 @@ transient  X86::Application::UpdateIcmRegKey sites=6  # one callback inside a ca
 transient  X86::Application::WaveInNotify sites=1  # one callback inside a call
 transient  X86::Application::WaveOutNotify sites=1  # one callback inside a call
 transient  X86::Application::Win16CaptureNotify sites=1  # capture's MM_DRVM_DATA callback runs hosted 16-bit code without a recorded continuation
+transient  X86::Application::Win16CollectPages sites=1  # the AddPages function of a hosted 16-bit module (DESKCP16, SETUPX) inside one flat thunk call
 transient  X86::Application::Win16ColorDialog::Hook sites=1  # color hook returns to the enclosing recorded controller phase
 resumable  X86::Application::Win16ColorDialog::Initialize sites=1  # only the final Init hook gets a tail after all controller preparation
 resumable  X86::Application::Win16ColorDialogMessage sites=2  # Init and ordinary Message phases preserve the hook result and remaining controller work

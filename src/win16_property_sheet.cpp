@@ -30,6 +30,7 @@
 // PSP_USEREFPARENT. counts it down, calls the page callback with
 // PSPCB_RELEASE for PSP_USECALLBACK and frees the block.
 #include "win16_machine.h"
+#include "win98_win16_user.h"
 #include "x86_app.h"
 #include <stdio.h>
 #include <string.h>
@@ -534,5 +535,279 @@ unsigned Application::ResumeWin16PropertyPage(unsigned hwnd, unsigned message, u
             if (win16_sheet_pages[i].hwnd == hwnd) win16_sheet_pages[i] = {};
     PopHostFrame();
     return result & 0xffff;
+}
+} // namespace X86
+
+namespace X86
+{
+// 16-bit pages in a 32-bit sheet. A 32-bit program takes the pages of a
+// 16-bit module through SHELL32: DESK.CPL of Windows 95 names its four pages
+// "DESKCP16.DLL,GetDisplayBackgroundPage" and so on, and SHELL32 loads the
+// module with LoadLibrary16, asks for the function with GetProcAddress16 and
+// hands it to SHELL.DLL (flat thunk index 10, CallAddPropSheetPages16), the
+// path the MS-DOS program pages of PIFMGR take too. SHELL.DLL calls the
+// function, AddPages(lpv, lpfnAddPage, lParam), with its own collector as
+// lpfnAddPage: every page handle the module makes with COMMCTRL's
+// CreatePropertySheetPage goes into SHELL32's array (a count and up to ten
+// handles, as doublewords). SHELL32 then wraps each handle in a proxy page of
+// COMCTL32 (CreateProxyPage, flag PSP_IS16), and COMCTL32 asks COMMCTRL
+// through its own flat thunk for the size and title of the page, for its
+// dialog and, at the end, to destroy it (Cctl1632 indices 0, 1 and 2).
+namespace
+{
+constexpr unsigned AddPageOrdinal = 0xf010; // SHELL.DLL's collector, a gate of ours
+constexpr unsigned PageCapacity16 = 10;
+} // namespace
+
+Application::Win16Module *Application::Win16CodeModule(unsigned selector)
+{
+    if (!win16.state || !selector)
+        return nullptr;
+    for (unsigned i = 0; i < win16.state->module_count; ++i)
+    {
+        Win16Module &module = win16.state->modules[i];
+        for (unsigned s = 1; s <= module.segments; ++s)
+            if (module.selector[s] == selector)
+                return &module;
+    }
+    return nullptr;
+}
+
+// SHELL.DLL's CallAddPropSheetPages16 for a function of a hosted module;
+// false when `procedure` is not 16-bit code of this process (PIFMGR's
+// collector is a native identity, src/x86_pif_pages.cpp).
+bool Application::Win16CollectPages(unsigned procedure, unsigned data, unsigned far_array, unsigned &result)
+{
+    Win16Module *owner = Win16CodeModule(procedure >> 16);
+    if (!owner)
+        return false;
+    result = 0;
+    const unsigned array = far_array >> 16 ? Win16Linear(far_array >> 16, far_array & 0xffff) : 0;
+    const unsigned gate = Win16GatePointer(Win16Gate("SHELL", "AddPropSheetPage16", AddPageOrdinal));
+    if (!array || !gate)
+        return true;
+    Write32(array, 0);
+    const unsigned push[] = {data >> 16,      data & 0xffff,      gate >> 16,
+                             gate & 0xffff,   far_array >> 16,    far_array & 0xffff};
+    bool returned = false;
+    const unsigned answer = Win16HostedCall(procedure, push, 6, owner->instance, nullptr, &returned);
+    if (log)
+    {
+        char text[200];
+        snprintf(text, sizeof text, "WIN16 pages of %s function=%08x answer=%04x pages=%u", owner->name, procedure,
+                 answer & 0xffff, Read32(array));
+        log(text);
+    }
+    result = returned ? 1 : 0;
+    return true;
+}
+
+// The collector: lpfnAddPage(hpage, lParam), lParam the far pointer of the array.
+unsigned Application::Win16CollectPage(unsigned far_page, unsigned far_array)
+{
+    const unsigned array = far_array >> 16 ? Win16Linear(far_array >> 16, far_array & 0xffff) : 0;
+    if (!array || !far_page)
+        return 0;
+    const unsigned count = Read32(array);
+    if (count >= PageCapacity16)
+        return 0;
+    Write32(array + 4 + 4 * count, far_page);
+    Write32(array, count + 1);
+    return 1;
+}
+bool Application::Win16CollectorCall(unsigned ordinal, const Win16Frame &frame, unsigned &result, unsigned &words)
+{
+    if (ordinal != AddPageOrdinal)
+        return false;
+    words = 4;
+    result = Win16CollectPage(frame.Long(2), frame.Long(0));
+    return true;
+}
+
+// The record behind the handle of a page CreatePropertySheetPage made.
+unsigned Application::Win16PageRecord(unsigned far_page)
+{
+    if (!win16.state || !(far_page >> 16) || (far_page & 0xffff))
+        return 0;
+    const Win16Block *block = Win16GlobalBlock(far_page >> 16);
+    if (!block || !block->memory || block->size < 0x26)
+        return 0;
+    const unsigned size = Read32(block->memory + PageSize);
+    return size >= 0x26 && size <= block->size ? block->memory : 0;
+}
+
+// The 16-bit template of a page, a copy the caller frees with delete[], and
+// the instance its dialog is made with.
+unsigned char *Application::Win16PageDialogBytes(unsigned page, unsigned &size, unsigned &instance)
+{
+    size = 0;
+    const unsigned flags = Read32(page + PageFlags), handle = Win16Word(page + PageInstance);
+    const unsigned name = Read32(page + PageTemplate);
+    Win16Module *module = nullptr;
+    for (unsigned i = 0; win16.state && i < win16.state->module_count && !module; ++i)
+        if (win16.state->modules[i].instance == handle || win16.state->modules[i].handle == handle)
+            module = &win16.state->modules[i];
+    instance = module ? Win16DialogInstance(*module) : handle;
+    unsigned char *bytes = nullptr;
+    if (flags & PspDlgIndirect)
+    {
+        const unsigned selector = name >> 16, offset = name & 0xffff;
+        const unsigned at = selector ? Win16Linear(selector, offset) : 0;
+        const unsigned limit = selector ? Win16Limit(selector) : 0;
+        size = at && limit >= offset ? limit - offset + 1 : 0;
+        if (size > 65536)
+            size = 65536;
+        bytes = size ? new unsigned char[size] : nullptr;
+        if (bytes && !Read(at, bytes, size))
+        {
+            delete[] bytes;
+            bytes = nullptr;
+        }
+        return bytes;
+    }
+    if (!module)
+        return nullptr;
+    unsigned id = 0;
+    char label[64] = {};
+    if (!(name >> 16))
+        id = 0x8000 | (name & 0x7fff);
+    else if (const char *text = ReadString(Win16Linear(name >> 16, name & 0xffff)))
+    {
+        if (text[0] == '#')
+        {
+            for (const char *p = text + 1; *p >= '0' && *p <= '9'; ++p)
+                id = id * 10 + unsigned(*p - '0');
+            id = 0x8000 | (id & 0x7fff);
+        }
+        else
+            snprintf(label, sizeof label, "%s", text);
+    }
+    unsigned bytes_in = 0;
+    const unsigned offset = Win16Resource(*module, Win98Win16User::ResourceDialog, id, label[0] ? label : nullptr, bytes_in);
+    if (!offset || !bytes_in)
+        return nullptr;
+    bytes = new unsigned char[bytes_in];
+    memcpy(bytes, module->image.Data() + offset, bytes_in);
+    size = bytes_in;
+    return bytes;
+}
+
+// COMMCTRL, GetPageInfo16(hpage, pszCaption, cbCaption, ppt, phIcon): the
+// title of the tab (PSP_USETITLE, else the caption of the template), the size
+// of the template in dialog units and the icon of the tab.
+bool Application::Win16ProxyPageInfo(unsigned far_page, unsigned caption, unsigned capacity, unsigned point,
+                                     unsigned icon)
+{
+    const unsigned page = Win16PageRecord(far_page);
+    if (!page)
+        return false;
+    unsigned size = 0, instance = 0;
+    unsigned char *bytes = Win16PageDialogBytes(page, size, instance);
+    if (!bytes || size < 14)
+    {
+        delete[] bytes;
+        return false;
+    }
+    // DLGTEMPLATE of 16 bits: style (4), count (1), x, y, cx, cy, then the
+    // menu, the class and the caption.
+    const unsigned cx = bytes[9] | bytes[10] << 8, cy = bytes[11] | bytes[12] << 8;
+    char title[256] = {};
+    const unsigned flags = Read32(page + PageFlags), handle = Win16Word(page + PageInstance);
+    if (flags & PspUseTitle)
+        Win16SheetText(page, PageTitle, handle, title);
+    else
+    {
+        unsigned at = 13;
+        auto skip = [&](bool menu) {
+            if (at < size && bytes[at] == 0xff && menu)
+                at += 3;
+            else
+            {
+                while (at < size && bytes[at]) ++at;
+                ++at;
+            }
+        };
+        skip(true);
+        skip(false);
+        unsigned n = 0;
+        while (at + n < size && bytes[at + n] && n + 1 < sizeof title)
+        {
+            title[n] = char(bytes[at + n]);
+            ++n;
+        }
+    }
+    delete[] bytes;
+    if (caption && capacity)
+    {
+        const unsigned n = unsigned(strlen(title)) < capacity - 1 ? unsigned(strlen(title)) : capacity - 1;
+        Store(caption, title, n);
+        const unsigned char zero = 0;
+        Store(caption + n, &zero, 1);
+    }
+    if (point)
+    {
+        const unsigned short extent[2] = {(unsigned short)cx, (unsigned short)cy};
+        Store(point, extent, 4);
+    }
+    if (icon)
+    {
+        unsigned value = 0;
+        if (flags & 2) // PSP_USEHICON
+            value = Win16Word(page + 0x0e);
+        else if (flags & 4) // PSP_USEICONID
+        {
+            const unsigned name = Read32(page + 0x0e);
+            value = name >> 16 ? 0 : Win16LoadImage(handle, false, 0x8000 | (name & 0x7fff), nullptr) & 0xffff;
+        }
+        // COMCTL32 puts the icon into its image list: under Windows 95 the
+        // 16-bit handle is the 32-bit one; here it is the native icon behind
+        // the word alias of the 16-bit side.
+        if (const unsigned native = Win16ImageNative(value); native && native <= 0xffff)
+            value = native;
+        Win16Word(icon, value);
+    }
+    if (log)
+    {
+        char text[400];
+        snprintf(text, sizeof text, "WIN16 proxy page info record=%08x size=%ux%u title=[%s]", far_page, cx, cy,
+                 title);
+        log(text);
+    }
+    return true;
+}
+
+// COMMCTRL, CreatePage16(hpage, hwndParent): the dialog of the page, made
+// the way 16-bit COMMCTRL makes it, with CreateDialogIndirectParam over the
+// template with the style of a page (the one PageStyle of
+// win98_property_sheet.h gives a 32-bit page), the procedure of the page and
+// the page itself as the parameter of WM_INITDIALOG.
+unsigned Application::Win16ProxyPageCreate(unsigned far_page, unsigned parent)
+{
+    const unsigned page = Win16PageRecord(far_page);
+    if (!page)
+        return 0;
+    unsigned size = 0, instance = 0;
+    unsigned char *bytes = Win16PageDialogBytes(page, size, instance);
+    if (!bytes || size < 14)
+    {
+        delete[] bytes;
+        return 0;
+    }
+    unsigned style = bytes[0] | bytes[1] << 8 | bytes[2] << 16 | unsigned(bytes[3]) << 24;
+    style = (style & 0x02000068u) | 0x40010404u;
+    for (unsigned i = 0; i < 4; ++i)
+        bytes[i] = (unsigned char)(style >> (8 * i));
+    const unsigned procedure = Read32(page + PageProcedure);
+    const unsigned hwnd =
+        procedure ? Win16DialogFrom(bytes, size, instance, parent, Win16Procedure(procedure), far_page, false) : 0;
+    delete[] bytes;
+    if (log)
+    {
+        char text[200];
+        snprintf(text, sizeof text, "WIN16 proxy page dialog record=%08x parent=%04x procedure=%08x hwnd=%04x",
+                 far_page, parent, procedure, hwnd);
+        log(text);
+    }
+    return hwnd;
 }
 } // namespace X86

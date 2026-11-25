@@ -320,6 +320,10 @@ bool Application::Win16ShellCall(unsigned ordinal, const Win16Frame &frame, unsi
         return true;
     }
     default:
+        // The page collector SHELL.DLL hands a 16-bit page function
+        // (src/win16_property_sheet.cpp).
+        if (Win16CollectorCall(ordinal, frame, result, words))
+            return true;
         break;
     }
     char text[200];

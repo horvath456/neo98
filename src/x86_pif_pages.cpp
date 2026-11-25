@@ -482,6 +482,10 @@ unsigned Application::PifPagesThunk(unsigned which, const unsigned *words, unsig
     {
         // SHELL.DLL: the procedure, the DROPFILES of the file and
         // the array of the collector (a count, then up to ten handles).
+        // The procedure of a hosted 16-bit module runs as its own code.
+        if (unsigned result = 0; Win16CollectPages(words[0] << 16 | words[1], words[2] << 16 | words[3],
+                                                   words[4] << 16 | words[5], result))
+            return result;
         const unsigned drop = flat(words[2], words[3]), array = flat(words[4], words[5]);
         if (!drop || !array) return 0;
         char path[260] = {};
@@ -504,7 +508,14 @@ unsigned Application::PifPagesThunk(unsigned which, const unsigned *words, unsig
     {
         // COMMCTRL  (hpage, pszCaption, cbCaption, ppt, phIcon).
         const unsigned index = PifPageFind((words[0] << 16) | words[1], 0, 0);
-        if (index == ~0u) return 0;
+        if (index == ~0u)
+        {
+            // A page of COMMCTRL's CreatePropertySheetPage.
+            const unsigned mask = Read32(frame - 0x14), point = (words[5] << 16) | words[6];
+            return Win16ProxyPageInfo((words[0] << 16) | words[1], flat(words[2], words[3]), words[4],
+                                      (mask & 4) ? point : flat(words[5], words[6]), flat(words[7], words[8]))
+                       ? 1 : 0;
+        }
         const auto &p = pif_pages->pages[index];
         char caption[128] = {};
         unsigned length = 0, cx = 0, cy = 0;
@@ -541,14 +552,15 @@ unsigned Application::PifPagesThunk(unsigned which, const unsigned *words, unsig
     {
         // COMMCTRL  (hpage, hwndParent): the dialog, its HWND.
         const unsigned index = PifPageFind((words[0] << 16) | words[1], 0, 0);
-        if (index == ~0u) return 0;
+        if (index == ~0u) return Win16ProxyPageCreate((words[0] << 16) | words[1], words[2]);
         return PifPageDialog(index, words[2]);
     }
     case 3:
     {
         // DestroyPropertySheetPage of COMMCTRL (hpage).
         const unsigned index = PifPageFind((words[0] << 16) | words[1], 0, 0);
-        if (index == ~0u) return 0;
+        if (index == ~0u)
+            return Win16PageRecord((words[0] << 16) | words[1]) && Win16DestroyPropertyPage((words[0] << 16) | words[1]);
         PifPageRelease(index);
         return 1;
     }

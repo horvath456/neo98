@@ -2202,6 +2202,16 @@ private:
     unsigned Win16PropertyPageMessage(unsigned hwnd, unsigned message, unsigned wp, unsigned lp);
     void Win16SheetText(unsigned record, unsigned field, unsigned instance, char (&out)[256]);
     unsigned Win16PageTemplate(unsigned page);
+    // 16-bit pages in a 32-bit sheet: SHELL.DLL's page collector and
+    // COMMCTRL's side of COMCTL32's proxy pages.
+    Win16Module *Win16CodeModule(unsigned selector);
+    bool Win16CollectPages(unsigned procedure, unsigned data, unsigned far_array, unsigned &result);
+    unsigned Win16CollectPage(unsigned far_page, unsigned far_array);
+    bool Win16CollectorCall(unsigned ordinal, const Win16Frame &frame, unsigned &result, unsigned &words);
+    unsigned Win16PageRecord(unsigned far_page);
+    unsigned char *Win16PageDialogBytes(unsigned page, unsigned &size, unsigned &instance);
+    bool Win16ProxyPageInfo(unsigned far_page, unsigned caption, unsigned capacity, unsigned point, unsigned icon);
+    unsigned Win16ProxyPageCreate(unsigned far_page, unsigned parent);
     unsigned Win16FarPointer(unsigned at);
     bool Win16FileDialog(const Win16Frame &frame, bool save, unsigned &result);
     // The Win 3.1 file dialog of the 16-bit COMMDLG (src/win16_file_dialog.inc).
