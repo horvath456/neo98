@@ -32,6 +32,9 @@ memory:
 Before, the dialog stopped the run (toolbar message 041Bh not ported), and
 the toolbar answered that it neither saved nor restored.
 
+The steps wait for the menu, for the dialog and, before every picture, for
+a quiet machine; a loaded machine only makes the sessions longer.
+
     build/analysis-venv/bin/python tools/test_winfile_toolbar_host.py [--no-build] [--keep] [--kms KMS]
 """
 import sys as _sys
@@ -63,7 +66,7 @@ DIALOG_CAPTION = (300, 88)
 DRIVE_BOX = (16, 47, 190, 62)
 FACE = (192, 192, 192)
 # Options > Customize Toolbar, and the controls of the dialog.
-CUSTOMIZE = ['{t}:click=160,31', '{t2}:click=200,86']
+CUSTOMIZE = ['click=160,31', 'wait=#32768', 'click=200,86', 'wait=#32770|Customize Toolbar', 'idle=300']
 MOVE, ADD, SORT_BY_TYPE, REMOVE = (85, 164), (250, 176), (370, 139), (250, 210)
 SORT_BY_SIZE, MOVE_UP, CLOSE, RESET = (370, 164), (516, 228), (516, 118), (516, 145)
 # The first item the toolbar's list shows, and a free place of the available
@@ -102,12 +105,29 @@ def session(kms, drive, steps, limit):
     return result.stdout + result.stderr
 
 
-def click(at, x_y):
-    return f'{at}:click={x_y[0]},{x_y[1]}'
+def click(x_y):
+    return f'click={x_y[0]},{x_y[1]}'
 
 
-def drag(at, start, end):
-    return f'{at}:drag={start[0]},{start[1]},{end[0]},{end[1]}'
+def drag(start, end):
+    return f'drag={start[0]},{start[1]},{end[0]},{end[1]}'
+
+
+def shot(name):
+    """A picture once the machine has been quiet for a moment."""
+    return ['idle=300', f'shot={{out}}/{name}.png']
+
+
+def script(*steps):
+    """The steps with their times: an input or a picture 0.3 s after the
+    one before, a wait at once. A wait holds the clock of the script until
+    it is met, and the later seconds count from there."""
+    timed, at = [], 0.0
+    for step in steps:
+        if not step.startswith(('wait=', 'idle=')):
+            at += 0.3
+        timed.append(f'{at:.1f}:{step}')
+    return timed
 
 
 def main():
@@ -127,25 +147,21 @@ def main():
     subprocess.run(['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
-    customize = [step.format(t=5, t2=7) for step in CUSTOMIZE]
+    start = ['wait=WFS_Frame', 'idle=500']
     try:
-        log = session(args.kms, drive, ['0:wait=WFS_Frame', '4:shot={out}/start.png', *customize,
-                                        '10:shot={out}/dialog.png', click(11, MOVE), click(12, ADD),
-                                        '14:shot={out}/added.png', click(15, SORT_BY_TYPE), click(16, REMOVE),
-                                        '18:shot={out}/removed.png', click(19, SORT_BY_SIZE), click(20, MOVE_UP),
-                                        '22:shot={out}/moved.png', click(23, CLOSE), '25:shot={out}/closed.png',
-                                        '26:quit=1'], 50)
+        log = session(args.kms, drive, script(*start, *shot('start'), *CUSTOMIZE, *shot('dialog'), click(MOVE),
+                                              'idle=300', click(ADD), *shot('added'), click(SORT_BY_TYPE),
+                                              'idle=300', click(REMOVE), *shot('removed'), click(SORT_BY_SIZE),
+                                              'idle=300', click(MOVE_UP), *shot('moved'), click(CLOSE),
+                                              *shot('closed'), 'quit=1'), 150)
         journal = win98_c.journal(drive)
         saved = journal.read_bytes() if journal.is_file() else b''
-        customize = [step.format(t=6, t2=8) for step in CUSTOMIZE]
-        log += session(args.kms, drive, ['0:wait=WFS_Frame', '4:shot={out}/restored.png', *customize,
-                                         click(11, RESET), '13:shot={out}/reset.png', click(14, CLOSE),
-                                         '16:shot={out}/reset-closed.png', '17:quit=1'], 40)
-        log += session(args.kms, drive, ['0:wait=WFS_Frame', '4:shot={out}/standard.png', '5:quit=1'], 30)
-        customize = [step.format(t=5, t2=7) for step in CUSTOMIZE]
-        log += session(args.kms, drive, ['0:wait=WFS_Frame', *customize, drag(10, MOVE, SORT_BY_NAME),
-                                         '12:shot={out}/dragged.png', drag(13, SORT_BY_NAME, AVAILABLE),
-                                         '15:shot={out}/dragged-back.png', click(16, CLOSE), '18:quit=1'], 40)
+        log += session(args.kms, drive, script(*start, *shot('restored'), *CUSTOMIZE, click(RESET), *shot('reset'),
+                                               click(CLOSE), *shot('reset-closed'), 'quit=1'), 120)
+        log += session(args.kms, drive, script(*start, *shot('standard'), 'quit=1'), 90)
+        log += session(args.kms, drive, script(*start, *CUSTOMIZE, drag(MOVE, SORT_BY_NAME), *shot('dragged'),
+                                               drag(SORT_BY_NAME, AVAILABLE), *shot('dragged-back'), click(CLOSE),
+                                               'idle=300', 'quit=1'), 120)
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
@@ -162,8 +178,10 @@ def main():
     caption = pixel(pictures['dialog'], *DIALOG_CAPTION) if pictures['dialog'] else (0, 0, 0)
     drive_box = sum(pixel(pictures['start'], x, y) != (255, 255, 255) for y in range(DRIVE_BOX[1], DRIVE_BOX[3])
                     for x in range(DRIVE_BOX[0], DRIVE_BOX[2])) if pictures['start'] else 0
+    timed_out = [line for line in log.splitlines() if 'timed out after' in line]
     checks = {
         'every session runs without a stop': not stops and present,
+        f'every menu, dialog and quiet moment came: {timed_out}': not timed_out,
         f'start: the drive box shows drive C: ({drive_box} pixels drawn)': drive_box > 30,
         f'customize: Options > Customize Toolbar opens the dialog {caption}':
             present and caption[2] > caption[0] + 60 and area(pictures['dialog'], DIALOG) !=
