@@ -59,16 +59,17 @@ def main():
                     '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32',
                     '-o', str(drive / 'MOUSEKEY.EXE')], check=True)
     keys = ['66', '66', '66', '62', '65', '6b', '6d', '65', '1b']
+    # Esc writes the answer and ends the fixture, and with it the host: no
+    # step quits at a time the fixture may not have reached on a busy machine.
     steps = ['0:wait=MouseKeysTest', '1:move=300,300'] + [f'{2 + i * 0.3:.1f}:key={key}' for i, key in enumerate(keys)]
-    steps.append(f'{2 + len(keys) * 0.2:.1f}:quit=1')
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
         env.pop(variable, None)
     try:
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '1024x768', '--exe',
-                                 'C:\\MOUSEKEY.EXE', '--time-limit', '60'], cwd=ROOT, env=env, capture_output=True,
-                                text=True, timeout=120)
+                                 'C:\\MOUSEKEY.EXE', '--time-limit', '90'], cwd=ROOT, env=env, capture_output=True,
+                                text=True, timeout=150)
         answer = win98_c.path('C:\\MOUSEKEY.TXT', drive)
         values = [int(v) for v in answer.read_text().split()] if answer else []
     finally:
@@ -77,6 +78,7 @@ def main():
     (WORK / 'log.txt').write_text(result.stdout + result.stderr)
     x, y, left, right, doubled = values if len(values) == 5 else (0, 0, 0, 0, 0)
     checks = {
+        f'the fixture ended the run itself, before the time limit: {result.returncode}': result.returncode == 0,
         f'the fixture got the keys: {values}': len(values) == 5,
         f'move: 6 three times and 2 move the pointer right and down to {x},{y}': x >= 303 and y >= 301,
         f'click: 5 and + press the left button three times, one a double click: {left}, {doubled}':

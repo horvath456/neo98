@@ -63,16 +63,17 @@ def main():
                     '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32',
                     '-o', str(drive / 'STICKY.EXE')], check=True)
     keys = [SHIFT] * 5 + [A, SHIFT, A, A, SHIFT, SHIFT, A, A, SHIFT, A, CONTROL, C, C] + [SHIFT] * 6 + [A, ESCAPE]
+    # Esc writes the answer and ends the fixture, and with it the host: no
+    # step quits at a time the fixture may not have reached on a busy machine.
     steps = ['0:wait=StickyTest'] + [f'{1 + i * 0.2:.1f}:key={key}' for i, key in enumerate(keys)]
-    steps.append(f'{2 + len(keys) * 0.2:.1f}:quit=1')
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
         env.pop(variable, None)
     try:
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '1024x768', '--exe',
-                                 'C:\\STICKY.EXE', '--time-limit', '60'], cwd=ROOT, env=env, capture_output=True,
-                                text=True, timeout=120)
+                                 'C:\\STICKY.EXE', '--time-limit', '90'], cwd=ROOT, env=env, capture_output=True,
+                                text=True, timeout=150)
         answer = win98_c.path('C:\\STICKY.TXT', drive)
         lines = answer.read_text().split() if answer else []
     finally:
@@ -82,6 +83,7 @@ def main():
     typed = lines[0] if lines else ''
     flags = int(lines[1], 16) if len(lines) > 1 else None
     checks = {
+        f'the fixture ended the run itself, before the time limit: {result.returncode}': result.returncode == 0,
         f'the fixture got the keys: "{typed}"': len(lines) == 2,
         'hot key: five presses of Shift turn StickyKeys on, "a" stays small': typed[:1] == 'a',
         'latch: Shift alone holds for the next key only, "Aa"': typed[1:3] == 'Aa',
