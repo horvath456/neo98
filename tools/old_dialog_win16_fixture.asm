@@ -7,6 +7,9 @@
 ;   LoadResource answers the same handle and the block still has the 'X'
 ; b FreeResource twice, the last load given back; the next LoadResource
 ;   has the bytes of the file again
+; c INT 21h AH=32h of drive C: (DL 3): AL 0, DS:BX on a drive parameter
+;   block of drive 2 with 512 bytes a sector and at least one FAT
+; d INT 21h AH=32h of drive Y:, which is not there: AL FFh
 ;
 ; Each step puts its letter into C:\OLDDLG16.TXT as soon as it is done,
 ; "-" when it failed, so a step that stops the program leaves the letters
@@ -120,6 +123,35 @@ code_start:
 .b_end:
         mov ax, si
         MARK 'b'
+
+        ; c: the drive parameter block of C:
+        push ds
+        mov dl, 3
+        mov ah, 32h
+        DOS
+        xor si, si
+        or al, al
+        jnz .c_end
+        cmp byte [bx], 2                ; the drive, 0 for A
+        jne .c_end
+        cmp word [bx + 2], 512          ; bytes a sector
+        jne .c_end
+        cmp byte [bx + 8], 0            ; the number of FATs
+        je .c_end
+        inc si
+.c_end: pop ds
+        mov ax, si
+        MARK 'c'
+
+        ; d: a drive that is not there
+        push ds
+        mov dl, 25
+        mov ah, 32h
+        DOS
+        pop ds
+        cmp al, 0ffh
+        sete al
+        MARK 'd'
 
         push word [output]
         API 1, 81                       ; _lclose

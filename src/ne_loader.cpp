@@ -7134,6 +7134,62 @@ bool Application::Win16DosCall(unsigned &result)
         Register(Reg::Eflags, flags & ~1u);
         return true;
     }
+    case 0x32: // The drive parameter block of the drive in DL (0 the default,
+               // 1 A): AL = 0 and DS:BX on the block, or AL = FFh and carry
+               // for a drive that is not there. DOS keeps its blocks in its
+               // data segment; here one block at 0080h:0200h (below the first
+               // memory control block, Win16Interrupt) is filled for the drive
+               // asked about: the figures of GetDiskFreeSpace, two FATs and
+               // the media byte of a fixed disk, F0h for A and B. COMMDLG.DLL
+               // of Windows 95 tells a RAM drive (one FAT) by the byte at +8
+               // when it fills the drive list of its file dialogs.
+    {
+        constexpr unsigned DosDataParagraph = 0x0080, Block = 0x200;
+        const unsigned asked = Register(Reg::Edx) & 0xff;
+        const char letter = asked ? char('A' + asked - 1) : files.current[0];
+        const unsigned selector = Win16RealModeSelector(DosDataParagraph);
+        const unsigned scratch = Win16Scratch();
+        if (!selector || !scratch)
+            return false;
+        const char root[4] = {letter, ':', '\\', 0};
+        Store(scratch, root, sizeof root);
+        const unsigned a[] = {scratch, scratch + 8, scratch + 12, scratch + 16, scratch + 20};
+        if (letter < 'A' || letter > 'Z' || !files.store.Drive(letter) || !Api("GetDiskFreeSpaceA", a))
+        {
+            result = (ax & 0xff00) | 0xff;
+            Register(Reg::Eflags, flags | 1u);
+            return true;
+        }
+        unsigned per_cluster = Read32(scratch + 8), bytes = Read32(scratch + 12);
+        const unsigned free_clusters = Read32(scratch + 16), clusters = Read32(scratch + 20);
+        if (!per_cluster || per_cluster > 128) per_cluster = 64;
+        if (!bytes || bytes > 0xffff) bytes = 512;
+        unsigned shift = 0;
+        while ((1u << shift) < per_cluster) ++shift;
+        unsigned char block[0x21] = {};
+        auto word = [&](unsigned at, unsigned value) { block[at] = value & 0xff; block[at + 1] = (value >> 8) & 0xff; };
+        block[0] = (unsigned char)(letter - 'A');
+        word(0x02, bytes);
+        block[0x04] = (unsigned char)(per_cluster - 1);
+        block[0x05] = (unsigned char)shift;
+        word(0x06, 1);
+        block[0x08] = 2;
+        word(0x09, 512);
+        word(0x0b, 0x40);
+        word(0x0d, clusters + 1 > 0xffff ? 0xffff : clusters + 1);
+        word(0x0f, 0x100);
+        word(0x11, 0x20);
+        block[0x17] = letter <= 'B' ? 0xf0 : 0xf8;
+        word(0x19, 0xffff);
+        word(0x1b, 0xffff);
+        word(0x1f, free_clusters > 0xffff ? 0xffff : free_clusters);
+        Store(Win16RealModeImage() + DosDataParagraph * 16 + Block, block, sizeof block);
+        Register(Reg::Ds, selector);
+        Register(Reg::Ebx, (Register(Reg::Ebx) & 0xffff0000u) | Block);
+        result = ax & 0xff00;
+        Register(Reg::Eflags, flags & ~1u);
+        return true;
+    }
     case 0x36: // Free space of the drive in DL: AX sectors per cluster, BX
                // free clusters, CX bytes per sector, DX clusters in all.
     {

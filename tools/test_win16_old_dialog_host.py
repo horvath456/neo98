@@ -33,6 +33,8 @@ import win98_c  # noqa: E402
 CHECKS = [
     'a LoadResource again while loaded: the same handle, the changed byte',
     'b LoadResource after the last FreeResource: the bytes of the file again',
+    'c INT 21h AH=32h of C: answers its drive parameter block',
+    'd INT 21h AH=32h of a drive that is not there answers AL FFh',
 ]
 
 
