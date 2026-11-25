@@ -297,6 +297,14 @@ unsigned Application::ToolbarMessage(unsigned hwnd,unsigned message,unsigned wp,
   else if(message==0x2a3)Win98ToolbarInput::Leave(e,object);
   --t->active;if(t->destroy_pending&&!t->active)ReleaseToolbar(*t);return 0;
  }
+ // A control on the toolbar talks to the toolbar's parent: the toolbar sends
+ // WM_COMMAND, WM_DRAWITEM, WM_MEASUREITEM, WM_VKEYTOITEM and WM_CHARTOITEM
+ // on, as COMCTL32's does. File Manager draws the drive box on its toolbar,
+ // an owner-drawn combo box, and hears its CBN_SELCHANGE that way.
+ if(message==0x111||message==0x2b||message==0x2c||message==0x2e||message==0x2f){
+  if(unsigned parent=Read32(t->object+4)){++t->active;unsigned answer=CallWindow(parent,message,wp,lp);--t->active;if(t->destroy_pending&&!t->active)ReleaseToolbar(*t);return answer;}
+  return 0;
+ }
  if(message==1||message==2)return 0;
  if(message==5){t->layout_pending=true;return 0;}
  if(message==0x30){

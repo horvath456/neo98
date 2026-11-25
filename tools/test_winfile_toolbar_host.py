@@ -13,6 +13,11 @@ TBN_QUERYDELETE, TBN_TOOLBARCHANGE, TBN_RESET). Three sessions on neo98-kms
 over one private copy of drive C:, with the picture of a 1024x768 desktop in
 memory:
 
+  start      the drive box on the toolbar shows drive C:, which File
+             Manager draws itself (an owner-drawn combo box); the toolbar
+             passed WM_DRAWITEM, WM_MEASUREITEM and WM_COMMAND of the combo
+             box to DefWindowProc instead of its parent, and the box stayed
+             empty
   customize  the dialog opens; Add puts File > Move at the end, Remove takes
              View > Sort by Type away, Move Up puts Sort by Size before Sort
              by Name, each on the toolbar at once; Close
@@ -50,6 +55,8 @@ WORK = ROOT / 'build/winfile-toolbar'
 TOOLBAR = (218, 44, 640, 66)
 DIALOG = (20, 78, 560, 300)
 DIALOG_CAPTION = (300, 88)
+# The inside of the drive box at the left end of the toolbar.
+DRIVE_BOX = (16, 47, 190, 62)
 FACE = (192, 192, 192)
 # Options > Customize Toolbar, and the controls of the dialog.
 CUSTOMIZE = ['{t}:click=160,31', '{t2}:click=200,86']
@@ -138,8 +145,11 @@ def main():
     bar = {name: area(picture, TOOLBAR) for name, picture in pictures.items() if picture}
     end = {name: right_end(picture) for name, picture in pictures.items() if picture}
     caption = pixel(pictures['dialog'], *DIALOG_CAPTION) if pictures['dialog'] else (0, 0, 0)
+    drive_box = sum(pixel(pictures['start'], x, y) != (255, 255, 255) for y in range(DRIVE_BOX[1], DRIVE_BOX[3])
+                    for x in range(DRIVE_BOX[0], DRIVE_BOX[2])) if pictures['start'] else 0
     checks = {
         'every session runs without a stop': not stops and present,
+        f'start: the drive box shows drive C: ({drive_box} pixels drawn)': drive_box > 30,
         f'customize: Options > Customize Toolbar opens the dialog {caption}':
             present and caption[2] > caption[0] + 60 and area(pictures['dialog'], DIALOG) !=
             area(pictures['start'], DIALOG),
