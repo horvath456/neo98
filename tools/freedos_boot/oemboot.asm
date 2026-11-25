@@ -1,19 +1,19 @@
 ;
 ; File:
-; oemboot.asm
-; 2004, Kenneth J. Davis
-; Copyright (c) 200?, <add name here>
+;                          oemboot.asm
+;                      2004, Kenneth J. Davis
+;                Copyright (c) 200?, <add name here>
 ; Description:
 ; OEM boot sector for FreeDOS compatible with IBM's (R) PC-DOS,
-; and Microsoft's (R) MS-DOS. It may work with older OpenDOS/DR-DOS,
+; and Microsoft's (R) MS-DOS.  It may work with older OpenDOS/DR-DOS,
 ; although the standard FreeDOS boot sector is needed with ver 7+
-; releases. May work with other versions of DOS that use
-; IBMBIO.COM/IBMDOS.COM pair. This boot sector loads only up
+; releases.  May work with other versions of DOS that use
+; IBMBIO.COM/IBMDOS.COM pair.  This boot sector loads only up
 ; to 58 sectors (29KB) of the kernel (IBMBIO.COM) to 0x70:0 then
-; jumps to it. As best I can tell, PC-DOS (and MS-DOS up to version
+; jumps to it.  As best I can tell, PC-DOS (and MS-DOS up to version
 ; 6.xx behaves similar) expects on entry for:
 ; ch = media id byte in the boot sector
-; dl = BIOS drive booted from (0x00=A:, 0x80=C:,...)
+; dl = BIOS drive booted from (0x00=A:, 0x80=C:, ...)
 ; ax:bx = the starting (LBA) sector of cluster 2 (ie the 1st
 ; data sector, which is 0x0000:0021 for FAT12)
 ; ?note? IBMBIO.COM/IO.SYS may use ax:bx and cluster # stored
@@ -22,7 +22,7 @@
 ; it also expects the boot sector (in particular the BPB)
 ; to still be at 0x0:7C00, the directory entry for IBMBIO.COM
 ; (generally first entry of first sector of the root directory)
-; at 0x50:0 (DOS Data Area). The original boot sector may update
+; at 0x50:0 (DOS Data Area).  The original boot sector may update
 ; the floppy disk parameter table (int 1Eh), but we don't so
 ; may fail for any systems where the changes (???) are needed.
 ; If the above conditions are not met, then IBMBIO.COM will
@@ -65,14 +65,14 @@
 ;
 ;
 ; Derived From:
-; boot.asm
-; DOS-C boot
+;                            boot.asm
+;                           DOS-C boot
 ;
-; Copyright (c) 1997, 2000-2004
-; Svante Frey, Jim Hall, Jim Tabor, Bart Oldeman,
-; Tom Ehlert, Eric Auer, Luchezar Georgiev, Jon Gentle
-; and Michal H. Tyc (DR-DOS adaptation, boot26dr.asm)
-; All Rights Reserved
+;                   Copyright (c) 1997, 2000-2004
+;               Svante Frey, Jim Hall, Jim Tabor, Bart Oldeman,
+;             Tom Ehlert, Eric Auer, Luchezar Georgiev, Jon Gentle
+;             and Michal H. Tyc (DR-DOS adaptation, boot26dr.asm)
+;                      All Rights Reserved
 ;
 ; This file is part of FreeDOS.
 ;
@@ -83,38 +83,38 @@
 ;
 ; DOS-C is distributed in the hope that it will be useful, but
 ; WITHOUT ANY WARRANTY; without even the implied warranty of
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
 ; the GNU General Public License for more details.
 ;
 ; You should have received a copy of the GNU General Public
-; License along with DOS-C; see the file COPYING. If not,
+; License along with DOS-C; see the file COPYING.  If not,
 ; write to the Free Software Foundation, 675 Mass Ave,
 ; Cambridge, MA 02139, USA.
 ;
 ;
 ;	+--------+
 ;	| CLUSTER|
-;	| LIST |
-;	|--------|
+;	|  LIST  |
+;	|--------| 0000:7F00
 ;	|LBA PKT |
-;	|--------| (0:BP+200)
+;	|--------| 0000:7E00  (0:BP+200)
 ;	|BOOT SEC| contains BPB
-;	|ORIGIN |
-;	|--------| (0:BP)
-;	|VARS | only known is 1st data sector (start of cluster 2)
-;	|--------| (DS:[BP-4])
-;	|STACK | minimal 256 bytes (1/2 sector)
+;	|ORIGIN  | 
+;	|--------| 0000:7C00  (0:BP)
+;	|VARS    | only known is 1st data sector (start of cluster 2)
+;	|--------| 0000:7BFC  (DS:[BP-4])
+;	|STACK   | minimal 256 bytes (1/2 sector)
 ;	|- - - - |
-;	|KERNEL | kernel loaded here (max 58 sectors, 29KB)
-;	|LOADED | also used as FAT buffer
-;	|--------|
+;	|KERNEL  | kernel loaded here (max 58 sectors, 29KB)
+;	|LOADED  | also used as FAT buffer
+;	|--------| 0070:0000 (0:0700)
 ;	|DOS DA/ | DOS Data Area,
 ;	|ROOT DIR| during boot contains directory entries
-;	|--------|
-;	|BDA | BIOS Data Area
-;	+--------+
-;	|IVT | Interrupt Vector Table
-;	+--------+
+;	|--------| 0000:0500
+;	|BDA     | BIOS Data Area
+;	+--------+ 0000:0400
+;	|IVT     | Interrupt Vector Table
+;	+--------+ 0000:0000
 
                 ; NOTE: sys must be updated if magic offsets change
 %assign ISFAT1216DUAL 1
@@ -123,17 +123,17 @@
 
 CPU 8086  ; enable assembler warnings to limit instruction set
 
-;%define ISFAT12 1; only 1 of these should be set,
-;%define ISFAT16 1; defines which FAT is supported
+;%define ISFAT12         1              ; only 1 of these should be set,
+;%define ISFAT16         1              ; defines which FAT is supported
 
 %define TRYLBAREAD       1              ; undefine to use only CHS int 13h
-%define SETROOTDIR       1              ; if defined dir entry copied to
+%define SETROOTDIR       1              ; if defined dir entry copied to 0:500
 %define LOOPONERR        1              ; if defined on error simply loop forever
-;%define RETRYALWAYS 1; if defined retries read forever
-;%define WINBOOT 1; use win9x kernel calling conventions (name & jmp addr)
-;%define MSCOMPAT 1; sets default filename to MSDOS IO.SYS
+;%define RETRYALWAYS     1              ; if defined retries read forever
+;%define WINBOOT         1              ; use win9x kernel calling conventions (name & jmp addr)
+;%define MSCOMPAT        1              ; sets default filename to MSDOS IO.SYS
 
-%ifdef WINBOOT                          ; if set also change from PC-DOS to
+%ifdef WINBOOT                          ; if set also change from PC-DOS to 
 %ifndef MSCOMPAT                        ; kernel name to MS-DOS kernel name
 %define MSCOMPAT
 %endif
@@ -141,19 +141,19 @@ CPU 8086  ; enable assembler warnings to limit instruction set
 
 segment	.text
 
-%define BASE            0x7c00          ; boot sector originally at 0x0:
+%define BASE            0x7c00          ; boot sector originally at 0x0:BASE
 %define LOADSEG         0x0070          ; segment to load kernel at LOADSEG:0
 %define LOADEND         0x07b0          ; limit reads to below this segment
                                         ; LOADSEG+29KB, else data overwritten
 
 %define FATBUF          bp-0x7500       ; offset of temporary buffer for FAT
-                                        ; chain 0:FATBUF = = LOADSEG:0
+                                        ; chain 0:FATBUF = 0:0700 = LOADSEG:0
 %define ROOTDIR         0x7C00-0x7700   ; offset to buffer for root directory
                                         ; entry of kernel 0:ROOTDIR
 %define CLUSTLIST       bp+0x0300       ; zero terminated list of clusters
                                         ; that the kernel occupies
 
-; Some extra variables
+;       Some extra variables
 ; using bp-Entry+variable_name generates smaller code than using just
 ; variable_name, where bp is initialized to Entry, so bp-Entry equals 0
 
@@ -168,9 +168,9 @@ segment	.text
 %define LBA_SECTOR_48   word [LBA_PACKET+14]
 
 %define PARAMS LBA_PACKET+0x10
-;%define RootDirSecs PARAMS+0x0; # of sectors root dir uses
+;%define RootDirSecs      PARAMS+0x0        ; # of sectors root dir uses
 %define fat_start        PARAMS+0x2         ; first FAT sector
-;%define root_dir_start PARAMS+0x6; first root directory sector
+;%define root_dir_start   PARAMS+0x6        ; first root directory sector
 %define first_cluster    PARAMS+0x0a        ; starting cluster of kernel file
 %define data_start       bp-4               ; first data sector (win9x expects here)
 
@@ -182,7 +182,7 @@ segment	.text
 Entry:          jmp     short real_start
                 nop
 
-; bp is initialized to 7c00h
+;       bp is initialized to 7c00h
 %define bsOemName       bp+0x03      ; OEM label
 %define bsBytesPerSec   bp+0x0b      ; bytes/sector
 %define bsSecPerClust   bp+0x0d      ; sectors/allocation unit
@@ -205,10 +205,10 @@ Entry:          jmp     short real_start
 
 ;-----------------------------------------------------------------------
 
-; times 0x3E-$+$$ db 0
+;               times   0x3E-$+$$ db 0
 ;
-; Instead of zero-fill,
-; initialize BPB with values suitable for a 1440 K floppy
+;       Instead of zero-fill,
+;       initialize BPB with values suitable for a 1440 K floppy
 ;
                 db 'IBM  5.0'   ; OEM label
                 dw 512          ; bytes per sector
@@ -230,7 +230,7 @@ Entry:          jmp     short real_start
                 db 'NO NAME    '; volume label
                 times   36h - ($ - $$) db 0
                 ; The filesystem ID is used by lDOS's instsect (by ecm)
-                ; by default to validate that the filesystem matches.
+                ;  by default to validate that the filesystem matches.
 %ifdef ISFAT12
  %define FATFS "FAT12"
  %ifdef ISFAT16
@@ -246,7 +246,7 @@ Entry:          jmp     short real_start
                 times   3Eh - ($ - $$) db 32
 
 ;-----------------------------------------------------------------------
-; ENTRY
+;   ENTRY
 ;-----------------------------------------------------------------------
 
 real_start:
@@ -259,30 +259,30 @@ real_start:
                 mov     bp, BASE
                 lea     sp, [bp-4] ; for DOS <7 this may be [bp]
 
-; For compatibility, diskette parameter vector updated.
-; lea di [bp+0x3E]; use 7c3e([bp+3e]) for PC-DOS,
-;;lea di [bp]; but 7c00([bp]) for DR-DOS 7 bug
-; mov bx, 4 * 1eh; stored at int 1E's vector
-; lds si, [bx]; fetch current int 1eh pointer
-; push ds; store original 1eh pointer at stack top
-; push si; so can restore later if needed
+;       For compatibility, diskette parameter vector updated.
+;               lea     di  [bp+0x3E] ; use 7c3e([bp+3e]) for PC-DOS,
+;               ;lea     di  [bp]     ; but 7c00([bp]) for DR-DOS 7 bug
+;               mov     bx, 4 * 1eh   ; stored at int 1E's vector
+;               lds     si, [bx]      ; fetch current int 1eh pointer
+;               push    ds            ; store original 1eh pointer at stack top
+;               push    si            ; so can restore later if needed
 ;
-; Copy table to new location
-; mov cl, 11; the parameter table is 11 bytes
-; rep movsb; and copy the parameter block
-; mov ds, ax; restore DS
+;       Copy table to new location
+;               mov     cl, 11        ; the parameter table is 11 bytes
+;               rep     movsb         ; and copy the parameter block
+;               mov     ds, ax        ; restore DS
 ;
-; Note: make desired changes to table here
+;       Note: make desired changes to table here
 ;
-; Update int1E to new location
-; mov [bx+2], 0; set to 0:bp or 0:bp+3e as appropriate
-; mov word [bx], 0x7c3e; (use 0x7c00 for DR-DOS)
+;       Update int1E to new location
+;               mov     [bx+2], 0     ; set to 0:bp or 0:bp+3e as appropriate
+;               mov     word [bx], 0x7c3e ; (use 0x7c00 for DR-DOS)
 
                 sti             ; enable interrupts
 
-; If updated floppy parameter table then must notify BIOS
-; Otherwise a reset should not be needed here.
-; int 0x13; reset drive (AX=0)
+;       If updated floppy parameter table then must notify BIOS
+;       Otherwise a reset should not be needed here.
+;               int     0x13    ; reset drive (AX=0)
 
 ;
 ; Note: some BIOS implementations may not correctly pass drive number
@@ -293,7 +293,7 @@ real_start:
                 mov     [drive], dl        ; rely on BIOS drive number in DL
 
 
-; GETDRIVEPARMS: Calculate start of some disk areas.
+;       GETDRIVEPARMS:  Calculate start of some disk areas.
 ;
                 mov     si, word [nHidden]
                 mov     di, word [nHidden+2]
@@ -329,10 +329,10 @@ real_start:
                 mov     [data_start+2], di
 
 
-; FINDFILE: Searches for the file in the root directory.
+;       FINDFILE: Searches for the file in the root directory.
 ;
-; Returns:
-; AX = first cluster of file
+;       Returns:
+;                               AX = first cluster of file
 
                 ; First, read the root directory into buffer.
                 ; into the temporary buffer. (max 29KB or overruns stuff)
@@ -340,11 +340,11 @@ real_start:
                 pop     di              ; mov di, word [RootDirSecs]
                 pop     ax              ; mov ax, word [root_dir_start]
                 pop     dx              ; mov dx, word [root_dir_start+2]
-                mov     bx, ROOTDIR     ; es:bx =
+                mov     bx, ROOTDIR     ; es:bx = 0:0500
                 push    es              ; save pointer to ROOTDIR
                 call    readDisk
                 pop     es              ; restore pointer to ROOTDIR
-                mov     si, ROOTDIR     ; ds:si =
+                mov     si, ROOTDIR     ; ds:si = 0:0500
 
 
 		; Search for kernel file name, and find start cluster.
@@ -369,26 +369,26 @@ ffDone:
 %ifdef SETROOTDIR
                 ; copy over this portion of root dir to 0x0:500 for PC-DOS
                 ; (this may allow IBMBIO.COM to start in any directory entry)
-                mov     di, ROOTDIR     ; es:di =
+                mov     di, ROOTDIR     ; es:di = 0:0500
                 mov     cx, 32          ; limit to this 1 entry (rest don't matter)
                 rep     movsw
 %endif
 
-; GETFATCHAIN:
+;       GETFATCHAIN:
 ;
-; Reads the FAT chain and stores it in a temporary buffer in the first
-; 64 kb. The FAT chain is stored an array of 16-bit cluster numbers,
-; ending with 0.
+;       Reads the FAT chain and stores it in a temporary buffer in the first
+;       64 kb.  The FAT chain is stored an array of 16-bit cluster numbers,
+;       ending with 0.
 ;
-; The file must fit in conventional memory, so it can't be larger than
-; 640 kb. The sector size must be at least 512 bytes, so the FAT chain
-; can't be larger than 2.5 KB (655360 / 512 * 2 = 2560).
+;       The file must fit in conventional memory, so it can't be larger than
+;       640 kb. The sector size must be at least 512 bytes, so the FAT chain
+;       can't be larger than 2.5 KB (655360 / 512 * 2 = 2560).
 ;
-; Call with: AX = first cluster in chain
+;       Call with:      AX = first cluster in chain
 
                 ; Load the complete FAT into memory. The FAT can't be larger
                 ; than 128 kb
-                lea     bx, [FATBUF]            ; es:bx =
+                lea     bx, [FATBUF]            ; es:bx = 0:0700
                 mov     di, [sectPerFat]
                 mov     ax, word [fat_start]
                 mov     dx, word [fat_start+2]
@@ -413,7 +413,7 @@ next_clust:     stosw                           ; store cluster number
 
 fat_12:         add     si, si          ; multiply cluster number by 3...
                 add     si, ax
-                shr     si, 1           ;...and divide by 2
+                shr     si, 1           ; ...and divide by 2
                 lodsw
 
                 ; If the cluster number was even, the cluster value is now in
@@ -424,7 +424,7 @@ fat_12:         add     si, si          ; multiply cluster number by 3...
                 mov     cl, 4           ; always initialise shift counter
                 jc      fat_odd         ; is odd, only shift down -->
                 shl     ax, cl          ; shift up (effectively masks off
-                                        ; the highest 4 bits)
+                                        ;  the highest 4 bits)
 fat_odd:
                 shr     ax, cl
                 cmp     ax, 0x0ff8      ; check for EOF
@@ -438,7 +438,7 @@ fat_odd:
 fat_16:         mov     dx, LOADSEG
                 add     si, si          ; multiply cluster number by two
                 jnc     first_half      ; if overflow...
-                add     dh, 0x10        ;...add 64 kb to segment value
+                add     dh, 0x10        ; ...add 64 kb to segment value
 
 first_half:     mov     ds, dx          ; DS:SI = pointer to next cluster
                 lodsw                   ; AX = next cluster
@@ -457,7 +457,7 @@ finished:       ; Mark end of FAT chain with 0, so we have a single
                 pop     ds
 
 
-; loadFile: Loads the file into memory, one cluster at a time.
+;       loadFile: Loads the file into memory, one cluster at a time.
 
                 pop     es              ; set ES:BX to load address 70:0
                 xor     bx, bx
@@ -475,16 +475,16 @@ cluster_next:   lodsw                   ; AX = next cluster to read
                 mov di, [first_cluster] ; set di (si:di on FAT32) to starting cluster #
 %ifdef WINBOOT
                 jmp     LOADSEG:0x0200  ; yes, pass control to kernel
-%else
+%else                
                 jmp     LOADSEG:0000    ; yes, pass control to kernel
 %endif
 	magicoffset "load jump ofs", 11Ah, 118h, -4
 
 
 ; failed to boot
-boot_error:
+boot_error:     
 call            show
-; db "Error! Hit a key to reboot.",0
+;               db      "Error! Hit a key to reboot.",0
                 db      "):",0
 %ifdef LOOPONERR
 jmp $
@@ -525,15 +525,15 @@ show:           pop     si
                 ret
 
 
-; readDisk: Reads a number of sectors into memory.
+;       readDisk:       Reads a number of sectors into memory.
 ;
-; Call with: DX:AX = 32-bit DOS sector number
-; DI = number of sectors to read
-; ES:BX = destination buffer
+;       Call with:      DX:AX = 32-bit DOS sector number
+;                       DI = number of sectors to read
+;                       ES:BX = destination buffer
 ;
-; Returns: CF set on error
-; ES:BX points one byte after the last byte read.
-; Exits early if LBA_SEG == LOADEND.
+;       Returns:        CF set on error
+;                       ES:BX points one byte after the last byte read.
+;                       Exits early if LBA_SEG == LOADEND.
 
 readDisk:       push    si                      ; preserve cluster #
 
@@ -557,7 +557,7 @@ read_next:
 ;******************** LBA_READ *******************************
 
 						; check for LBA support
-
+										
 %ifdef TRYLBAREAD
                 mov     ah,041h                 ;
                 mov     bx,055aah               ;
@@ -577,15 +577,15 @@ read_next:
                                                 ; setup LBA disk block
                 mov     LBA_SECTOR_32,bx        ; bx is 0 if extended 13h mode supported
                 mov     LBA_SECTOR_48,bx
-
+	
 
                 mov     ah,042h
                 jmp short    do_int13_read
 %endif
 
+							
 
-
-read_normal_BIOS:
+read_normal_BIOS:      
 
 ;******************** END OF LBA_READ ************************
                 mov     cx, LBA_SECTOR_0
@@ -595,9 +595,9 @@ read_normal_BIOS:
                 ; translate sector number to BIOS parameters
                 ;
                 ;
-                ; abs = sector offset in track
-                ; + head * sectPerTrack offset in cylinder
-                ; + track * sectPerTrack * nHeads offset in platter
+                ; abs = sector                          offset in track
+                ;     + head * sectPerTrack             offset in cylinder
+                ;     + track * sectPerTrack * nHeads   offset in platter
                 ;
                 mov     al, [sectPerTrack]
                 mul     byte [nHeads]
@@ -609,15 +609,15 @@ read_normal_BIOS:
                 xchg    ax, dx
                 ; dx = track, ax = sector + head * sectPertrack
                 div     byte [sectPerTrack]
-                ; dx = track, al = head, ah = sector
+                ; dx =  track, al = head, ah = sector
                 mov     cx, dx
-                ; cx = track, al = head, ah = sector
+                ; cx =  track, al = head, ah = sector
 
                 ; the following manipulations are necessary in order to
                 ; properly place parameters into registers.
                 ; ch = cylinder number low 8 bits
                 ; cl = 7-6: cylinder high two bits
-                ; 5-0: sector
+                ;      5-0: sector
                 mov     dh, al                  ; save head into dh for bios
                 xchg    ch, cl                  ; set cyl no low 8 bits
                 ror     cl, 1                   ; move track high bits into
@@ -627,7 +627,7 @@ read_normal_BIOS:
 
                 les     bx,[LBA_OFF]
                 mov     ax, 0x0201
-do_int13_read:
+do_int13_read:                
                 mov     dl, [drive]
                 int     0x13
 
@@ -643,7 +643,7 @@ read_next_chained:
 %endif
 
 read_ok:
-                mov     ax, word [bsBytesPerSec]
+                mov     ax, word [bsBytesPerSec]  
                 mov     cl, 4                   ; adjust segment pointer by increasing
                 shr     ax, cl
                 add     word [LBA_SEG], ax      ; by paragraphs read in (per sector)

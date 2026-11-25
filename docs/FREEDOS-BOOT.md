@@ -29,7 +29,9 @@ General Public License, version 2 or any later version. The unmodified source,
 its macro file `magic.mac` and the license are in `tools/freedos_boot`, next
 to the assembled binary, and they ship with the app and with every release.
 
-To rebuild the binary and check that it matches:
+To rebuild the binary with NASM 2.15.05 or 2.16.01 and check that it
+matches (NASM 2.16.03 encodes `xchg ch, cl` with the other ModRM byte, the
+same instruction, so one byte differs):
 
 ```sh
 nasm -DISFAT12 -DWINBOOT -f bin -Itools/freedos_boot/ \

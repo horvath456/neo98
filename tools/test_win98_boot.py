@@ -43,7 +43,15 @@ class BootTests(unittest.TestCase):
             subprocess.run(['nasm', '-DISFAT12', '-DWINBOOT', '-f', 'bin',
                             '-I' + str(boot.BOOT_DIRECTORY) + '/',
                             str(boot.BOOT_DIRECTORY / 'oemboot.asm'), '-o', str(output)], check=True)
-            self.assertEqual(output.read_bytes(), boot.boot_sector())
+            built, pinned = output.read_bytes(), boot.boot_sector()
+            # NASM 2.15.05 and 2.16.01 build the pinned binary. NASM 2.16.03
+            # encodes "xchg ch, cl" with the other ModRM byte, 86 CD instead
+            # of 86 E9: the same instruction.
+            self.assertEqual(len(built), len(pinned))
+            differences = [i for i in range(len(built)) if built[i] != pinned[i]]
+            self.assertTrue(all(i and pinned[i - 1] == built[i - 1] == 0x86 and (built[i], pinned[i]) == (0xcd, 0xe9)
+                                for i in differences), differences)
+            self.assertLessEqual(len(differences), 1)
 
     def test_command_timeout_is_sanitized_runtime_error(self):
         failure = subprocess.TimeoutExpired(['mcopy', 'PRIVATE ARGUMENT'], 60,
