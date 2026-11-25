@@ -21,6 +21,7 @@
 #endif
 #include "host_kms/input.h"
 #include "host_kms/output.h"
+#include "host_kms/script.h"
 #include "host_wayland/compositor.h"
 #include "host_wayland/video.h"
 #include <algorithm>
@@ -32,108 +33,6 @@ volatile sig_atomic_t interrupted = 0;
 void Signal(int) { interrupted = 1; }
 struct SessionEnd { bool requested = false; };
 void EndSession(void *context, X86::Application &, unsigned, unsigned) { static_cast<SessionEnd *>(context)->requested = true; }
-
-// Timed test input (NEO98_HOST_INPUT), the steps the other hosts know:
-// wait=CLASS, click=X,Y, dblclick=X,Y, move=X,Y, drag=X1,Y1,X2,Y2 (guest
-// coordinates), key=VK, ctrl=VK and alt=VK (hexadecimal), type=TEXT,
-// shot=PATH (the screen as PNG), quit=1 (also menu=quit).
-class Script
-{
-    struct Step { double time; std::string action, value; };
-    std::vector<Step> steps;
-    size_t at = 0;
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-    static bool Window(const std::string &name)
-    {
-        unsigned windows[User::WindowCapacity], count = 0;
-        if (!User::WindowSnapshot(0, windows, User::WindowCapacity, count)) return false;
-        for (unsigned i = 0; i < count; ++i)
-        {
-            char klass[256];
-            User::GetClassName(windows[i], klass, sizeof klass);
-            if (name == klass && User::IsVisible(windows[i])) return true;
-        }
-        return false;
-    }
-
-  public:
-    Script()
-    {
-        const char *environment = getenv("NEO98_HOST_INPUT");
-        if (!environment) return;
-        std::string text = environment;
-        for (size_t from = 0; from < text.size();)
-        {
-            auto end = text.find(';', from);
-            if (end == std::string::npos) end = text.size();
-            auto entry = text.substr(from, end - from);
-            from = end + 1;
-            auto colon = entry.find(':'), equals = entry.find('=');
-            if (colon == std::string::npos || equals == std::string::npos || equals <= colon) continue;
-            steps.push_back({strtod(entry.substr(0, colon).c_str(), nullptr), entry.substr(colon + 1, equals - colon - 1), entry.substr(equals + 1)});
-        }
-    }
-    // Returns false when the script asks to quit.
-    bool Pump(X86::Application &app, const std::function<bool(const std::string &)> &shot)
-    {
-        if (at == steps.size()) return true;
-        const auto now = std::chrono::steady_clock::now();
-        const auto &step = steps[at];
-        if (std::chrono::duration<double>(now - start).count() < step.time) return true;
-        if (step.action == "wait")
-        {
-            if (!Window(step.value)) return true;
-            start = now - std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(step.time));
-        }
-        else if (step.action == "shot") shot(step.value);
-        else if (step.action == "quit" || (step.action == "menu" && step.value == "quit")) { ++at; return false; }
-        else if (step.action == "type")
-            for (unsigned char character : step.value) { app.Key(0, character, false, false); app.KeyUp(0); }
-        else if (step.action == "key" || step.action == "ctrl" || step.action == "alt")
-        {
-            const unsigned key = strtoul(step.value.c_str(), nullptr, 16);
-            unsigned scan = 0; bool extended = false;
-            for (unsigned usage = 1; usage < 128; ++usage)
-            {
-                const auto mapped = UsbKeys::Map(usage, false, true);
-                if (mapped.vk == key) { scan = mapped.scan; extended = mapped.extended; break; }
-            }
-            // Alt is a key of its own for Windows (WM_SYSKEYDOWN), not only a state.
-            const bool alt = step.action == "alt";
-            app.KeyboardModifiers(step.action == "ctrl" ? 1 : alt ? 4 : 0);
-            if (alt) app.RawKey(0x12, 0, true, 0x38, false);
-            app.RawKey(key, key == 0x0d && !alt ? '\r' : 0, true, scan, extended);
-            app.RawKey(key, 0, false, scan, extended);
-            if (alt) app.RawKey(0x12, 0, false, 0x38, false);
-            app.KeyboardModifiers(0);
-        }
-        else if (step.action == "click" || step.action == "dblclick" || step.action == "move")
-        {
-            int x = 0, y = 0;
-            if (sscanf(step.value.c_str(), "%d,%d", &x, &y) == 2)
-            {
-                app.MouseButtons(x, y, 0);
-                const unsigned clicks = step.action == "dblclick" ? 2 : step.action == "click" ? 1 : 0;
-                for (unsigned i = 0; i < clicks; ++i) { app.MouseButtons(x, y, 1); app.MouseButtons(x, y, 0); }
-            }
-        }
-        else if (step.action == "drag")
-        {
-            // drag=X1,Y1,X2,Y2: press, move in steps, release.
-            int x1, y1, x2, y2;
-            if (sscanf(step.value.c_str(), "%d,%d,%d,%d", &x1, &y1, &x2, &y2) == 4)
-            {
-                app.MouseButtons(x1, y1, 0); app.MouseButtons(x1, y1, 1);
-                for (int i = 1; i <= 8; ++i) app.MouseButtons(x1 + (x2 - x1) * i / 8, y1 + (y2 - y1) * i / 8, 1);
-                app.MouseButtons(x2, y2, 0);
-            }
-        }
-        else fprintf(stderr, "Unknown test input: %s\n", step.action.c_str());
-        fprintf(stderr, "NEO98 KMS input %s=%s\n", step.action.c_str(), step.value.c_str());
-        ++at;
-        return true;
-    }
-};
 
 bool WritePng(const std::string &path, const HostKms::Frame &frame)
 {
@@ -260,7 +159,7 @@ int main(int argc, char **argv)
     sink.buttons = [&](unsigned held) { buttons = held; send_pointer(); };
     sink.wheel = [&](int notches) { session.app->MouseWheel(notches); };
 
-    Script script;
+    HostKms::Script script;
     unsigned last_serial = ~0u, last_video = ~0u;
     // Kodi's buffer on the screen without a copy, and the one before it,
     // which goes back to Kodi once the flip away from it is done.
