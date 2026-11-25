@@ -10,6 +10,10 @@ properties (DESKCP16.DLL) and other 16-bit settings pages use:
          DrawMenuBarTemp draws a menu into a rectangle of 16 bits and answers
          the height of the bar; INT 10h AX=4F10h (VBE power management)
          answers 014Fh, function known and failed, as a display without it
+  mode   LoadLibrary of FRAMEBUF.DRV, the driver of a mode the Settings page
+         loads for its ValidateMode, answers the loaded DISPLAY, which is the
+         port's own; its ValidateMode answers 0 for the mode of the screen,
+         2 for a resolution and 3 for a depth the display lacks
 
 The program writes its words again after each part, so a part that stops the
 run leaves the ones before it; the log line of the stop is printed.
@@ -74,6 +78,10 @@ def main():
         f'temp: DrawMenuBarTemp answers the height of the bar: {w[3]}': 10 <= w[3] < 40,
         'temp: the cookie puts the old colours back': w[4] == 1 and w[5] == 0,
         f'temp: INT 10h AX=4F10h answers 014Fh: {w[6]:04x}': w[6] == 0x014f,
+        'mode: LoadLibrary of FRAMEBUF.DRV answers a module': w[7] == 1,
+        'mode: it is the loaded DISPLAY': w[8] == 0,
+        'mode: GetProcAddress finds ValidateMode': w[9] == 1,
+        f'mode: ValidateMode answers 0, 2 and 3: {w[10:13]}': w[10:13] == (0, 2, 3),
         'every call took its word count off the stack': w[31] == 0,
     }
     for name, passed in checks.items():

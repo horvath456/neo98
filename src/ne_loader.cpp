@@ -271,6 +271,7 @@ unsigned Application::Win16SystemOrdinal(const char *module, const char *name)
         {"COMMCTRL", "DPA_InsertPtr", 334},     {"COMMCTRL", "DPA_SetPtr", 335},
         {"COMMCTRL", "DPA_DeletePtr", 336},     {"COMMCTRL", "DPA_DeleteAllPtrs", 337},
         {"COMMCTRL", "DPA_Sort", 338},          {"COMMCTRL", "DPA_Search", 339},
+        {"DISPLAY", "ValidateMode", 700},
     };
     // Named KRNL386 entry points served by these gates. Exclude __AHSHIFT,
     // __AHINCR and __WINFLAGS because they are constants, not callable
@@ -2082,6 +2083,33 @@ bool Application::Win16Call(Import &item, const Win16Frame &frame, unsigned &res
         return Win16VersionCall(ordinal, frame, result, words);
     if (Same(item.dll, "TOOLHELP"))
         return Win16ToolhelpCall(ordinal, frame, result, words);
+    if (Same(item.dll, "DISPLAY") && ordinal == 700)
+    {
+        // ValidateMode(lpValMode) of a Windows 95 display driver, which the
+        // Settings page of DESKCP16 asks before it offers a mode: DISPVALMODE
+        // is the size, the bits per pixel and the resolution, four words. The
+        // driver of this port has the modes of its own list (User::Screen*);
+        // VALMODE_YES is zero, VALMODE_NO_NOMEM (2) is a resolution it lacks
+        // and VALMODE_NO_NODAC (3) a depth.
+        words = 2;
+        const unsigned mode = frame.Pointer(0);
+        result = 4; // VALMODE_NO_UNKNOWN
+        if (mode && Win16Word(mode) >= 8)
+        {
+            const int depth = int(Win16Word(mode + 2)), width = int(short(Win16Word(mode + 4))),
+                      height = int(short(Win16Word(mode + 6)));
+            int w = 0, h = 0, d = 0;
+            User::ScreenMode(w, h, d);
+            bool any_depth = d == depth;
+            for (unsigned i = 0; !any_depth && User::ScreenModeAt(i, w, h, d); ++i)
+                any_depth = d == depth;
+            User::ScreenMode(w, h, d);
+            result = (w == width && h == height && d == depth) || User::ScreenModeSupported(width, height, depth) ? 0
+                     : any_depth                                                                                     ? 2
+                                                                                                                     : 3;
+        }
+        return true;
+    }
     if (Same(item.dll, "DCIMAN"))
     {
         // DCIMAN.DLL is ours (Route::Native16): the routines DCIMAN32's thunks
@@ -2534,6 +2562,29 @@ unsigned Application::Win16LoadNamedLibrary(const char *name)
         error = Win16FindLibrary(file, full, bytes, length);
     if (error)
         return error < 32 ? error : 2u; // KRNL386 answers the error below 32
+    // A driver file whose module is one of ours, such as the display driver
+    // FRAMEBUF.DRV (module DISPLAY) that the Settings page of DESKCP16 on
+    // Windows 95 loads for its ValidateMode: KRNL386 finds the loaded module
+    // by its name, and the loaded DISPLAY of this port is the native one.
+    if (length >= 0x40)
+    {
+        const unsigned header = bytes[0x3c] | bytes[0x3d] << 8 | bytes[0x3e] << 16 | unsigned(bytes[0x3f]) << 24;
+        if (header + 0x40 <= length && bytes[header] == 'N' && bytes[header + 1] == 'E')
+        {
+            const unsigned names = header + (bytes[header + 0x26] | bytes[header + 0x27] << 8);
+            char module_name[16] = {};
+            const unsigned size = names < length ? bytes[names] : 0;
+            if (size && size < sizeof module_name && names + 1 + size <= length)
+            {
+                memcpy(module_name, bytes + names + 1, size);
+                if (DllRoutes::Win16System(module_name))
+                {
+                    delete[] bytes;
+                    return Win16SystemModule(module_name);
+                }
+            }
+        }
+    }
     Win16Module *module = Win16Place(full, bytes, length, true, error);
     if (!module)
         return error < 32 ? error : 11u;

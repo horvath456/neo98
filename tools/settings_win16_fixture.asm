@@ -11,6 +11,12 @@
 ;        cookie with null colours puts the old colours back. INT 10h
 ;        AX=4F10h BL=00h, the power management of VBE, answers AX=014Fh
 ;        (function known, failed): the display has none.
+; mode   KERNEL.95 LoadLibrary of FRAMEBUF.DRV, the display driver of a mode
+;        that the Settings page loads, answers the loaded DISPLAY (KERNEL.47
+;        GetModuleHandle), and its ValidateMode (KERNEL.50 GetProcAddress)
+;        takes DISPVALMODE: the mode of the screen is 0 (VALMODE_YES), a
+;        resolution the display lacks 2 (VALMODE_NO_NOMEM) and a depth it
+;        lacks 3 (VALMODE_NO_NODAC).
 ;
 ; Each part writes the result file again when it is done, so a part that
 ; stops the run leaves the words of the parts before it. The last word is
@@ -134,6 +140,72 @@ code_start:
         KEEP
         call save
 
+        ; mode: FRAMEBUF.DRV is the loaded DISPLAY
+        push ds
+        push word framebuf
+        API 1, 95                       ; LoadLibrary
+        mov [driver], ax
+        cmp ax, 32
+        sbb ax, ax
+        inc ax
+        KEEP
+        push ds
+        push word display
+        API 1, 47                       ; GetModuleHandle
+        sub ax, [driver]
+        KEEP
+        push word [driver]
+        push ds
+        push word validate_name
+        API 1, 50                       ; GetProcAddress
+        mov [validate], ax
+        mov [validate + 2], dx
+        or ax, dx
+        KEEPNZ
+        ; DISPVALMODE of the screen: its size and the bits of a pixel
+        push word 0                     ; SM_CXSCREEN
+        API 2, 179                      ; GetSystemMetrics
+        mov [mode_x], ax
+        push word 1                     ; SM_CYSCREEN
+        API 2, 179
+        mov [mode_y], ax
+        push word 0
+        API 2, 66                       ; GetDC
+        mov [hdc], ax
+        push ax
+        push word 12                    ; BITSPIXEL
+        API 3, 80                       ; GetDeviceCaps
+        mov [mode_bits], ax
+        push word 0
+        push word [hdc]
+        API 2, 68                       ; ReleaseDC
+        mov ax, [validate]
+        or ax, [validate + 2]
+        jz .no_validate
+        push ds
+        push word mode
+        call far [validate]
+        KEEP
+        mov word [mode_x], 123          ; a size the display does not have
+        mov word [mode_y], 77
+        push ds
+        push word mode
+        call far [validate]
+        KEEP
+        push word 0
+        API 2, 179
+        mov [mode_x], ax
+        push word 1
+        API 2, 179
+        mov [mode_y], ax
+        mov word [mode_bits], 5         ; a depth it does not have
+        push ds
+        push word mode
+        call far [validate]
+        KEEP
+.no_validate:
+        call save
+
         ; The stack pointer against the one before the first call.
         mov ax, [sp0]
         sub ax, sp
@@ -176,6 +248,16 @@ colours times 25 dd 00123456h
 brushes times 25 dw 0
 rect    dw 0, 0, 300, 20
 item    db 'File', 0
+driver  dw 0
+validate dd 0
+; DISPVALMODE: its size, the bits of a pixel, the width and the height
+mode    dw 8
+mode_bits dw 0
+mode_x  dw 0
+mode_y  dw 0
+framebuf db 'FRAMEBUF.DRV', 0
+display db 'DISPLAY', 0
+validate_name db 'ValidateMode', 0
 fout    db 'C:\SET16OUT.TXT', 0
 res     times 32 dw -1                ; a part that never ran reads as FFFFh
 out_end:
