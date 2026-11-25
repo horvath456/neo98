@@ -17,6 +17,10 @@
 ;        takes DISPVALMODE: the mode of the screen is 0 (VALMODE_YES), a
 ;        resolution the display lacks 2 (VALMODE_NO_NOMEM) and a depth it
 ;        lacks 3 (VALMODE_NO_NODAC).
+; spi    USER.483 SystemParametersInfo with the structures of 16 bits: the
+;        LOGFONT of the icon titles (50 bytes), NONCLIENTMETRICS with cbSize
+;        10Eh and ICONMETRICS with cbSize 3Ah, each followed by a guard word
+;        that must stay; SPI_GETBORDER writes one word.
 ;
 ; Each part writes the result file again when it is done, so a part that
 ; stops the run leaves the words of the parts before it. The last word is
@@ -50,6 +54,15 @@ __SECT__
         sbb ax, ax
         neg ax
         KEEP
+%endmacro
+; SPI action, parameter, buffer: USER.483 SystemParametersInfo without flags.
+%macro SPI 3
+        push word %1
+        push word %2
+        push ds
+        push word %3
+        push word 0
+        API 2, 483
 %endmacro
 
 section code
@@ -206,6 +219,55 @@ code_start:
 .no_validate:
         call save
 
+        ; spi: SPI_GETICONTITLELOGFONT with a LOGFONT of 16 bits
+        SPI 1fh, 50, spi_buffer
+        KEEP
+        mov ax, [spi_buffer]
+        KEEP
+        mov al, [spi_buffer + 18]
+        xor ah, ah
+        KEEP
+        mov ax, [spi_buffer + 50]
+        KEEP
+        ; SPI_GETNONCLIENTMETRICS, cbSize 10Eh
+        call guard
+        mov word [spi_buffer], 10eh
+        SPI 29h, 10eh, spi_buffer
+        KEEP
+        mov ax, [spi_buffer + 2]        ; iBorderWidth
+        KEEP
+        mov ax, [spi_buffer + 4]        ; iScrollWidth
+        KEEP
+        mov al, [spi_buffer + 12 + 18]  ; the face of lfCaptionFont
+        xor ah, ah
+        KEEP
+        mov al, [spi_buffer + 220 + 18] ; the face of lfMessageFont
+        xor ah, ah
+        KEEP
+        mov ax, [spi_buffer + 10eh]
+        KEEP
+        ; SPI_GETICONMETRICS, cbSize 3Ah
+        call guard
+        mov word [spi_buffer], 3ah
+        SPI 2dh, 3ah, spi_buffer
+        KEEP
+        mov ax, [spi_buffer + 2]        ; iHorzSpacing
+        KEEP
+        mov al, [spi_buffer + 8 + 18]   ; the face of lfFont
+        xor ah, ah
+        KEEP
+        mov ax, [spi_buffer + 3ah]
+        KEEP
+        ; SPI_GETBORDER: one word
+        call guard
+        SPI 5, 0, spi_buffer
+        KEEP
+        mov ax, [spi_buffer]
+        KEEP
+        mov ax, [spi_buffer + 2]
+        KEEP
+        call save
+
         ; The stack pointer against the one before the first call.
         mov ax, [sp0]
         sub ax, sp
@@ -214,6 +276,18 @@ code_start:
         mov ax, 4c00h
         API 1, 102                      ; DOS3Call
         jmp $
+
+; The buffer of SystemParametersInfo full of AAh.
+guard:
+        push di
+        push ds
+        pop es
+        mov di, spi_buffer
+        mov cx, 200
+        mov ax, 0aaaah
+        rep stosw
+        pop di
+        ret
 
 ; C:\SET16OUT.TXT: the result words.
 save:
@@ -258,6 +332,7 @@ mode_y  dw 0
 framebuf db 'FRAMEBUF.DRV', 0
 display db 'DISPLAY', 0
 validate_name db 'ValidateMode', 0
+spi_buffer times 400 db 0aah
 fout    db 'C:\SET16OUT.TXT', 0
 res     times 32 dw -1                ; a part that never ran reads as FFFFh
 out_end:

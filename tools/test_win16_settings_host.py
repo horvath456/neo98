@@ -14,6 +14,10 @@ properties (DESKCP16.DLL) and other 16-bit settings pages use:
          loads for its ValidateMode, answers the loaded DISPLAY, which is the
          port's own; its ValidateMode answers 0 for the mode of the screen,
          2 for a resolution and 3 for a depth the display lacks
+  spi    USER.483 SystemParametersInfo fills the structures of 16 bits, ints
+         as words and LOGFONTs of 50 bytes: the icon title font, the
+         NONCLIENTMETRICS of 10Eh bytes and the ICONMETRICS of 3Ah bytes,
+         and nothing behind them; SPI_GETBORDER writes one word
 
 The program writes its words again after each part, so a part that stops the
 run leaves the ones before it; the log line of the stop is printed.
@@ -30,6 +34,7 @@ if __name__ == '__main__':
 
 import os
 import shutil
+import string
 import struct
 import subprocess
 import sys
@@ -44,6 +49,11 @@ import win16_fixture  # noqa: E402
 import win98_c  # noqa: E402
 
 WORDS = 32
+
+
+def letter(word):
+    """Whether the low byte of a word is an ASCII letter, the first of a face name."""
+    return chr(word & 0xff) in string.ascii_letters
 
 
 def main():
@@ -82,6 +92,19 @@ def main():
         'mode: it is the loaded DISPLAY': w[8] == 0,
         'mode: GetProcAddress finds ValidateMode': w[9] == 1,
         f'mode: ValidateMode answers 0, 2 and 3: {w[10:13]}': w[10:13] == (0, 2, 3),
+        f'spi: the icon title LOGFONT of 16 bits: height {w[14]:04x}, face {chr(w[15] & 0xff)!r}':
+            w[13] == 1 and 0xff80 <= w[14] <= 0xffff and letter(w[15]),
+        'spi: nothing written behind that LOGFONT': w[16] == 0xaaaa,
+        f'spi: NONCLIENTMETRICS of 16 bits, border {w[18]}, scroll bar {w[19]}':
+            w[17] == 1 and w[18] == 1 and 12 <= w[19] < 40,
+        f'spi: its caption and message fonts have their faces: {chr(w[20] & 0xff)!r} {chr(w[21] & 0xff)!r}':
+            letter(w[20]) and letter(w[21]),
+        'spi: nothing written behind the NONCLIENTMETRICS': w[22] == 0xaaaa,
+        f'spi: ICONMETRICS of 16 bits, spacing {w[24]}, face {chr(w[25] & 0xff)!r}':
+            w[23] == 1 and 32 <= w[24] < 200 and letter(w[25]),
+        'spi: nothing written behind the ICONMETRICS': w[26] == 0xaaaa,
+        f'spi: SPI_GETBORDER writes one word: {w[28]}, behind it {w[29]:04x}':
+            w[27] == 1 and 1 <= w[28] < 16 and w[29] == 0xaaaa,
         'every call took its word count off the stack': w[31] == 0,
     }
     for name, passed in checks.items():

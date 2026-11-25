@@ -2100,6 +2100,100 @@ bool Application::Win16UserCall(unsigned ordinal, const Win16Frame &frame, unsig
                     Win16Word(at + k * 2, Read32(scratch + k * 4));
             return true;
         }
+        // The structures of the metrics come in two shapes on this side: with
+        // the ints and LOGFONTs of 16 bits (NONCLIENTMETRICS 10Eh bytes, there
+        // 154h; ICONMETRICS 3Ah and 4Ch; MINIMIZEDMETRICS 0Ah and 14h;
+        // ANIMATIONINFO 4 and 8), or in the 32-bit shape, which cbSize tells.
+        // The Appearance page of DESKCP16 (Windows 95) passes NONCLIENTMETRICS
+        // in the 32-bit shape and the LOGFONT of the icon titles in the 16-bit
+        // one (uiParam 32h, there 3Ch). A getter of one int or BOOL writes a
+        // word.
+        struct Shape { unsigned action, bytes16, bytes32; };
+        static const Shape shapes[] = {
+            {0x1f, 50, 60},   {0x22, 50, 60},   {0x29, 270, 340}, {0x2a, 270, 340}, {0x2b, 10, 20},
+            {0x2c, 10, 20},   {0x2d, 58, 76},   {0x2e, 58, 76},   {0x48, 4, 8},     {0x49, 4, 8},
+        };
+        const Shape *shape = nullptr;
+        for (const auto &s : shapes)
+            if (s.action == action)
+                shape = &s;
+        if (shape && at &&
+            (action == 0x1f || action == 0x22 ? arg(1) != shape->bytes32 : Win16Word(at) == shape->bytes16))
+        {
+            const unsigned scratch = Win16Scratch();
+            if (!scratch) return false;
+            // The LOGFONTs and the ints of one structure, in order; a LOGFONT
+            // is five ints and forty bytes.
+            const unsigned fonts = action == 0x1f || action == 0x22 ? 1u : action == 0x29 || action == 0x2a ? 5u
+                                   : action == 0x2d || action == 0x2e                                   ? 1u
+                                                                                                         : 0u;
+            auto convert = [&](bool widen) {
+                unsigned from = widen ? at : scratch, to = widen ? scratch : at;
+                const unsigned from_int = widen ? 2 : 4, to_int = widen ? 4 : 2;
+                auto copy_int = [&] {
+                    const unsigned value = widen ? (unsigned)(int)(short)Win16Word(from) : Read32(from);
+                    if (to_int == 4) Write32(to, value); else Win16Word(to, value & 0xffff);
+                    from += from_int;
+                    to += to_int;
+                };
+                auto copy_font = [&] {
+                    for (unsigned i = 0; i < 5; ++i) copy_int();
+                    unsigned char bytes[40];
+                    Read(from, bytes, sizeof bytes);
+                    Store(to, bytes, sizeof bytes);
+                    from += 40;
+                    to += 40;
+                };
+                if (action == 0x1f || action == 0x22)
+                    return copy_font();
+                // cbSize, then the fields: NONCLIENTMETRICS has five ints
+                // before its first font, two before the second and the third,
+                // and the last two fonts follow each other.
+                if (widen) Write32(scratch, shape->bytes32); else Win16Word(at, Win16Word(at));
+                from += from_int;
+                to += to_int;
+                if (action == 0x29 || action == 0x2a)
+                {
+                    for (unsigned i = 0; i < 5; ++i) copy_int();
+                    copy_font();
+                    copy_int(); copy_int(); copy_font();
+                    copy_int(); copy_int(); copy_font();
+                    copy_font();
+                    copy_font();
+                    return;
+                }
+                const unsigned ints = (shape->bytes16 - 2 - fonts * 50) / 2;
+                for (unsigned i = 0; i < ints; ++i) copy_int();
+                for (unsigned i = 0; i < fonts; ++i) copy_font();
+            };
+            const bool setter = action == 0x22 || action == 0x2a || action == 0x2c || action == 0x2e || action == 0x49;
+            if (setter)
+                convert(true);
+            else if (action != 0x1f)
+                Write32(scratch, shape->bytes32);
+            const unsigned parameter = arg(1) == shape->bytes16 ? shape->bytes32 : arg(1);
+            const unsigned a[] = {action, parameter, scratch, frame.Word(0)};
+            result = Api("SystemParametersInfoA", a);
+            if (result && !setter)
+                convert(false);
+            return true;
+        }
+        static const unsigned short words_out[] = {1,  5,  10, 13, 14, 16, 22, 24, 25, 27, 35, 38,
+                                                   56, 68, 70, 74, 79, 80, 83, 84, 94, 95};
+        bool word_out = false;
+        for (unsigned w : words_out)
+            word_out = word_out || w == action;
+        if ((word_out || action == 3) && at)
+        {
+            const unsigned scratch = Win16Scratch();
+            if (!scratch) return false;
+            const unsigned a[] = {action, arg(1), scratch, frame.Word(0)};
+            result = Api("SystemParametersInfoA", a);
+            if (result)
+                for (unsigned k = 0; k < (action == 3 ? 3u : 1u); ++k)
+                    Win16Word(at + k * 2, Read32(scratch + k * 4) & 0xffff);
+            return true;
+        }
         const unsigned a[] = {action, arg(1), at, frame.Word(0)};
         result = Api("SystemParametersInfoA", a);
         return true;
