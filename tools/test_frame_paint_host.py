@@ -13,6 +13,7 @@ tools/frame_paint_fixture.c draws three things on the host:
   dock's client, so the dock's window DC paints its whole frame (yellow).
 - a dialog with DS_3DLOOK turns the WS_BORDER of its edit into the sunken
   WS_EX_CLIENTEDGE, as the Shortcut page's fields have it.
+- a group box is framed etched, grey over white, as in Display Properties.
 
 Then WordPad (MFC 4.2): the borders of its two toolbars and of the dock bar
 around them are painted, so no pixel of the teal desktop shows through
@@ -97,7 +98,7 @@ def main():
     for shot in shots.values():
         shot.unlink(missing_ok=True)
     fixture_code, fixture_log = run(binary, out, 'fixture', exe,
-                                    ['0:wait=FramePaint', '0:wait=|Edge sunken', '0:idle=2000',
+                                    ['0:wait=FramePaint', '0:wait=|Edge sunken', '0:wait=|Group etched', '0:idle=2000',
                                      f'1:shot={shots["fixture"]}', '2:menu=quit'])
     wordpad_code, wordpad_log = run(binary, out, 'wordpad', Path('C:\\Program Files\\Accessories\\WORDPAD.EXE'),
                                     ['0:wait=|Document - WordPad', '0:idle=3000', '1:windows=1',
@@ -124,6 +125,7 @@ def main():
         "the dock's window DC paints its whole frame above the bar": figures.get('yellow') == 300 * 4,
         'WS_BORDER of a control in a DS_3DLOOK dialog becomes WS_EX_CLIENTEDGE':
             'input wait=|Edge sunken reached' in fixture_log,
+        'a group box has an etched frame': 'input wait=|Group etched reached' in fixture_log,
         'WordPad ran': (wordpad_code == 0 and shots['wordpad'].exists() and frame is not None
                         and 'input wait=|Document - WordPad reached' in wordpad_log),
         'no desktop shows through the toolbar area of WordPad': figures.get('wordpad_teal') == 0,

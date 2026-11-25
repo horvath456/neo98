@@ -1305,7 +1305,10 @@ void PaintControlContent(HWND h, Window &w, Gdi::HDC dc)
             if(w.button&&kind!=7)content=ButtonCaption(w,dc,client,text,x,y);
             if(w.button) {
                 if(kind==7) {
-                    Edge(dc,{p.x,p.y+text.cy/2,p.x+client.right,p.y+client.bottom},true);x+=8;y=p.y;
+                    // USER frames a group box with EDGE_ETCHED (6), grey over
+                    // white; BS_FLAT adds BF_FLAT|BF_MONO (C000h).
+                    Gdi::RECT frame={p.x,p.y+text.cy/2,p.x+client.right,p.y+client.bottom};
+                    Win98Draw::DrawEdge(dc,&frame,6,15u|((w.style&0x8000)?0xc000u:0u));x+=8;y=p.y;
                     Gdi::RECT caption={x-2,y,x+text.cx+2,y+text.cy};
                     if(brush)Gdi::FillRect(dc,&caption,brush);else Fill(dc,caption,0xc0c0c0);
                 }
