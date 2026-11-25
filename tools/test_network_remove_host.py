@@ -92,11 +92,13 @@ def main():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
     click = lambda at, point: f'{at}:click={point[0]},{point[1]}'
     try:
-        log = run(args.kms, drive, ['0:wait=#32770', '2:shot={out}/start.png', click(3, FIFTH), click(4, REMOVE),
-                                    '5:shot={out}/removed.png', click(6, OK),
-                                    f'6:wait={RESTART_BOX[0]},{RESTART_BOX[1]},c0c0c0', '7:shot={out}/restart.png',
-                                    click(8, NO), '10:quit=1'], 90)
-        log += run(args.kms, drive, ['0:wait=#32770', '2:shot={out}/restarted.png', '3:quit=1'], 60)
+        # Each click and picture once the machine is quiet, not at a time.
+        log = run(args.kms, drive, ['0:wait=#32770', '0:idle=500', '0:shot={out}/start.png', click(0.5, FIFTH),
+                                    '0.5:idle=300', click(1, REMOVE), '1:idle=500', '1:shot={out}/removed.png',
+                                    click(1.5, OK), f'1.5:wait={RESTART_BOX[0]},{RESTART_BOX[1]},c0c0c0',
+                                    '1.5:idle=300', '1.5:shot={out}/restart.png', click(2, NO), '2:idle=500',
+                                    '2.5:quit=1'], 180)
+        log += run(args.kms, drive, ['0:wait=#32770', '0:idle=500', '0:shot={out}/restarted.png', '0.5:quit=1'], 120)
     finally:
         shutil.rmtree(drive, ignore_errors=True)
         win98_c.journal(drive).unlink(missing_ok=True)
@@ -106,7 +108,9 @@ def main():
     pictures = {name: read_png(WORK / f'{name}.png') if (WORK / f'{name}.png').is_file() else None
                 for name in ('start', 'removed', 'restart', 'restarted')}
     start, removed, restarted = (lines(pictures[name]) for name in ('start', 'removed', 'restarted'))
+    timed_out = [line for line in log.splitlines() if 'timed out after' in line]
     checks = {
+        f'every dialog and quiet moment came: {timed_out}': not timed_out,
         f'the list shows the six components of setup: {start}': len([n for n in start if n]) == 6,
         f'remove: TCP/IP -> Dial-Up Adapter leaves the list: {removed}':
             start and removed == start[:4] + start[5:] + [0],
