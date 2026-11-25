@@ -31,7 +31,13 @@ struct Break{U count,next;};
 template<class E> Break Next(E&e,State&st,const char*s,U start,U end,U flags){
  U previous=start,candidate=start,next=start;bool wrapped=false;
  while(previous<end){candidate=Word(s,previous,end,flags);int width=Measure(e,st,s+start,candidate-start,flags,st.rect.left,0,false);
-  if((flags&0x10)&&W(width+st.overhang)>st.width){wrapped=true;if(previous!=start)candidate=previous;else if(flags&0x2000)candidate=start+Fit(e,st,s+start,candidate-start,flags);next=candidate;break;}
+  if((flags&0x10)&&W(width+st.overhang)>st.width){wrapped=true;if(previous!=start)candidate=previous;
+   // 0F4A..0FB3: with DT_WORD_ELLIPSIS a first word that is too wide stays
+   // whole, also under DT_EDITCONTROL (the line's ellipsis shortens it), and
+   // takes a line break right behind it along.
+   else if((flags&0x2000)&&!(flags&0x40000))candidate=start+Fit(e,st,s+start,candidate-start,flags);
+   else if((flags&0x40000)&&candidate<end&&(s[candidate]=='\r'||s[candidate]=='\n')){wrapped=false;next=candidate+1;if(next<end&&s[next]==(s[candidate]^7))++next;break;}
+   next=candidate;break;}
   if(candidate<end&&(s[candidate]=='\r'||s[candidate]=='\n')){next=candidate+1;if(next<end&&s[next]==(s[candidate]^7))++next;break;}
   previous=candidate;next=candidate;
  }
@@ -39,9 +45,10 @@ template<class E> Break Next(E&e,State&st,const char*s,U start,U end,U flags){
  if(wrapped&&next<end){U align=flags&3;if((align==1||align==2)&&count&&(s[next-1]==' '||s[next-1]=='\t'))--count;if((align==0||align==1)&&(s[next]==' '||s[next]=='\t'))++next;}
  return {count,next};
 }
-// USER for one line of a multi-line DrawText with DT_END_ELLIPSIS:
-// the text is cut where it and "..." still fit (0FE8..1097) and drawn with
-// the ellipsis. Only the end ellipsis without prefix processing is provided.
+// USER for one line of a multi-line DrawText with DT_END_ELLIPSIS or
+// DT_WORD_ELLIPSIS, which 1224 treats alike: the text is cut where it and
+// "..." still fit (0FE8..1097) and drawn with the ellipsis. Only the
+// ellipsis without prefix processing is provided.
 template<class E> void EllipsisLine(E&e,State&st,const char*s,U n,U flags,int y){
  if(!n||e.Extent(s,n)<=st.width){Line(e,st,s,n,flags,y);return;}
  char line[1024];if(n>sizeof line-4)n=sizeof line-4;for(U i=0;i<n;++i)line[i]=s[i];
@@ -65,8 +72,9 @@ template<class E> int Layout(E&e,const char*s,U length,bool explicit_zero,Rect&r
     // visible line takes the rest of the text through 1224, and so does a
     // line that reaches the end of the text.
     if((flags&0x8000)&&stop){U end=consumed;while(end<length&&s[end]!='\r'&&s[end]!='\n')++end;EllipsisLine(e,st,s+consumed,end-consumed,flags,y);consumed=length;++lines;y=W(y+st.height);break;}
+    // DT_WORD_ELLIPSIS (1634..1675): every line goes through 1224.
     auto b=Next(e,st,s,consumed,length,flags);
-    if((flags&0x8000)&&b.next>=length)EllipsisLine(e,st,s+consumed,b.count,flags,y);else Line(e,st,s+consumed,b.count,flags,y);
+    if((flags&0x40000)||((flags&0x8000)&&b.next>=length))EllipsisLine(e,st,s+consumed,b.count,flags,y);else Line(e,st,s+consumed,b.count,flags,y);
     if(b.next<=consumed){e.NoProgress();return 0;}consumed=b.next;++lines;y=W(y+st.height);
    }bottom=y;if(!(flags&0x2000)&&length&&(s[length-1]=='\r'||s[length-1]=='\n'))bottom=W(bottom+st.height);
   }

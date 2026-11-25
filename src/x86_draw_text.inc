@@ -27,7 +27,10 @@ unsigned Application::DrawTextApi(ApiName name,const unsigned *a)
     if(p&&p->size!=12)return finish(0);
     if(!count)return finish(1);
     // Native unsupported providers. These are failures, not ignored layout flags.
-    if((flags&~0xafffu)||(flags&0x1000)||((flags&0x8000)&&!(flags&0x800)&&!(flags&0x20))){last_error=50;return 0;}
+    // DT_WORD_ELLIPSIS (40000h) is the end ellipsis per line; the list view of
+    // the Windows 95 COMCTL32 measures every label with it. A single line
+    // takes either ellipsis with its prefix too (below).
+    if((flags&~0x4afffu)||(flags&0x1000)||((flags&0x48000)&&!(flags&0x800)&&!(flags&0x20))){last_error=50;return 0;}
     if(!Gdi::ValidDC(a[0])){last_error=6;return 0;}
     char text[8192]={};unsigned length=count;
     if(count==65535){const char*s=ReadString(a[1]);length=strlen(s);if(length>=sizeof text){last_error=50;return 0;}memcpy(text,s,length);}
@@ -37,17 +40,18 @@ unsigned Application::DrawTextApi(ApiName name,const unsigned *a)
         (check.tmCharSet==128||check.tmCharSet==129||check.tmCharSet==130||check.tmCharSet==134||check.tmCharSet==136)){last_error=50;return 0;}
     int saved=Gdi::SaveDC(a[0]);if(!saved)return 0;
     if(!(flags&0x100))Gdi::IntersectClipRect(a[0],r.left,r.top,r.right,r.bottom);
-    // USER fit and1224:132F/1395 end-ellipsis assembly. This bounded
-    // adapter supports single-line NOPREFIX; path/word ellipsis remain absent.
-    // A single line takes the ellipsis here; several lines take it per line
-    // inside Layout (Win98DrawText::EllipsisLine).
+    // USER fit and1224:132F/1395 end-ellipsis assembly, which serves the end
+    // and the word ellipsis alike. This bounded adapter supports NOPREFIX;
+    // path ellipsis remains absent. A single line takes the ellipsis here;
+    // several lines take it per line inside Layout
+    // (Win98DrawText::EllipsisLine).
     // The ellipsis of a single line with its prefix: COMCTL32 4.00 of
     // Windows 95 draws a tab label with "&" this way ("Date && Time" of
     // TIMEDATE.CPL). The ellipsis measures the text as it shows, without
     // the prefix characters; a text that fits keeps its prefix and needs no
     // ellipsis, one that does not loses the underline and is shortened as
     // plain text.
-    if((flags&0x8000)&&(flags&0x20)&&!(flags&0x800)){
+    if((flags&0x48000)&&(flags&0x20)&&!(flags&0x800)){
         char shown[sizeof text]={};unsigned shown_length=0;
         for(unsigned i=0;i<length;++i){if(text[i]=='&'&&++i>=length)break;shown[shown_length++]=text[i];}
         Gdi::TEXTMETRICA font{};Gdi::GetTextMetricsA(a[0],&font);
@@ -56,17 +60,17 @@ unsigned Application::DrawTextApi(ApiName name,const unsigned *a)
         if(!Win98Caption::EndEllipsis(e,fitted,fitted_length,sizeof fitted,width,font.tmOverhang)){
             Gdi::RestoreDC(a[0],saved);last_error=50;return 0;
         }
-        if(fitted_length==shown_length&&!memcmp(fitted,shown,shown_length))flags&=~0x8000u;
+        if(fitted_length==shown_length&&!memcmp(fitted,shown,shown_length))flags&=~0x48000u;
         else{memcpy(text,shown,shown_length);text[shown_length]=0;length=shown_length;flags|=0x800;}
     }
-    if((flags&0x8000)&&(flags&0x20)){
+    if((flags&0x48000)&&(flags&0x20)){
         Gdi::TEXTMETRICA font{};Gdi::GetTextMetricsA(a[0],&font);
         int width=W(r.right-r.left-(p?p->left+p->right:0));
         if(!Win98Caption::EndEllipsis(e,text,length,sizeof text,width,font.tmOverhang)){
             Gdi::RestoreDC(a[0],saved);last_error=50;return 0;
         }
     }
-    int result=Layout(e,text,length,count==0,r,(flags&0x20)?flags&~0x8000u:flags,p);
+    int result=Layout(e,text,length,count==0,r,(flags&0x20)?flags&~0x48000u:flags,p);
     Gdi::RestoreDC(a[0],saved);
     if(!(flags&0x400))User::DrawingChanged(a[0]);
     return finish(e.okay?unsigned(result):0);
