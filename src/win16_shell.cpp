@@ -326,6 +326,54 @@ bool Application::Win16ShellCall(unsigned ordinal, const Win16Frame &frame, unsi
         result = Api("GetDriveTypeA", a);
         return true;
     }
+    case 401: // SHCheckDrive(hwnd, options, drives, place), the ScanDisk
+              // front end SCANDSKW.EXE hands its command line to, `retf 0Eh`.
+    {
+        // SHELL.DLL clears the window word at `place` first and answers -3
+        // for an empty drive mask, unless options bit 04000000h or 08000000h
+        // (/SAGESET, /SAGERUN) puts a settings number in place of the mask.
+        // Then it runs its dialog 411 and has DSKMAINT check each drive
+        // asked for. DSKMAINT reads the sectors of a FAT volume through the
+        // block driver, and the drives of this port are host folders without
+        // one: every generic control call (DOS 440Dh) answers
+        // ERROR_INVALID_FUNCTION, so no drive can be checked. The answer is
+        // the one SHELL gives at the end of such a walk: string 10351 for a
+        // drive ScanDisk cannot check, 10320 when none of several can,
+        // under caption 10323 with MB_ICONINFORMATION as its message routine
+        // takes them, and 0, the result of a run that checked nothing. The
+        // dialog and the settings numbers are not ported.
+        words = 7;
+        const unsigned options = frame.Long(4), drives = frame.Long(2), place = frame.Pointer(0);
+        if (place)
+            Win16Word(place, 0);
+        if (options & 0x0c000000u)
+        {
+            Fail("Win16 SHELL ordinal 401 SHCheckDrive with /SAGESET or /SAGERUN is not ported yet");
+            return false;
+        }
+        if (!drives)
+        {
+            result = 0xfffffffdu;
+            return true;
+        }
+        // SHELL answers -5 when the memory for its run is not there.
+        const unsigned shell = Win16SystemModule("SHELL"), text = Allocate(512);
+        if (!shell || !text)
+        {
+            if (text)
+                Free(text);
+            result = 0xfffffffbu;
+            return true;
+        }
+        const bool one = !(drives & (drives - 1));
+        Win16LoadStringInto(shell, one ? 10351 : 10320, text, 384);
+        Win16LoadStringInto(shell, 10323, text + 384, 128);
+        const unsigned a[] = {frame.Word(6), text, text + 384, 0x40};
+        Api("MessageBoxA", a);
+        Free(text);
+        result = 0;
+        return state != Failed;
+    }
     default:
         // The page collector SHELL.DLL hands a 16-bit page function
         // (src/win16_property_sheet.cpp).
