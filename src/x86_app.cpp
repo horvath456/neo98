@@ -3709,6 +3709,7 @@ bool Application::Start(const void *exe, unsigned length, const unsigned char *f
     }
     else snprintf(executable_path, sizeof executable_path, "C:\\WINDOWS\\%s", program_name);
     Copy(modules[0].path, executable_path, sizeof modules[0].path);
+    command = ShellCommandLine(program_name, command);
     command_line = String(command ? command : program_name);
     if(initial_title) startup_info[3]=String(initial_title);
     crt_data = Allocate(64);

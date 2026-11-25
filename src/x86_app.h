@@ -967,6 +967,11 @@ private:
     unsigned RegisterMessage(const char *);
     unsigned ShellWindow();
     unsigned SetShellWindow(unsigned);
+    // An Explorer with arguments while no shell runs starts as the shell
+    // without them; they run once its shell window is registered
+    // (src/x86_shell.cpp).
+    const char *ShellCommandLine(const char *program, const char *command);
+    void RunPendingShellCommand();
     unsigned RegisterShell(unsigned hwnd, unsigned flags);
     void ShellEvent(unsigned code, unsigned hwnd, unsigned parameter);
     struct AtomTable;
