@@ -6809,6 +6809,45 @@ bool Application::Win16DosCall(unsigned &result)
         result = ax;
         Register(Reg::Eflags, flags & ~1u);
         return true;
+    case 0x5a: // Create a unique file: DS:DX names the directory, its
+               // backslash at the end and 13 bytes of room behind it, CX the
+               // attributes. DOS appends a name of its own that is not there
+               // yet (eight hex digits from the clock), creates the file as
+               // 5Bh does and leaves its full name in DS:DX. COMMDLG.DLL of
+               // Windows 95 asks this way whether the folder of a Save As can
+               // be written, and closes and deletes the file again.
+    {
+        const unsigned name = Win16Linear(Register(Reg::Ds), Register(Reg::Edx) & 0xffff);
+        const char *folder = name ? ReadString(name) : nullptr;
+        const unsigned length = folder ? (unsigned)strlen(folder) : 0;
+        if (!folder || length + 13 > 260)
+        {
+            Register(Reg::Eflags, flags | 1u);
+            result = 3; // ERROR_PATH_NOT_FOUND
+            machine.RememberDosError(result);
+            return true;
+        }
+        const unsigned seed = Api("GetTickCount", nullptr);
+        unsigned attempt = 0;
+        for (; attempt < 64; ++attempt)
+        {
+            char leaf[13];
+            snprintf(leaf, sizeof leaf, "%08X", seed + attempt * 0x10001u);
+            Store(name + length, leaf, 9);
+            const unsigned probe[] = {name};
+            if (Api("GetFileAttributesA", probe) == 0xffffffffu)
+                break;
+        }
+        if (attempt == 64)
+        {
+            Store(name + length, "", 1);
+            Register(Reg::Eflags, flags | 1u);
+            result = 5; // ERROR_ACCESS_DENIED, as DOS when no name is left
+            machine.RememberDosError(result);
+            return true;
+        }
+    }
+        [[fallthrough]];
     case 0x3d: // Open DS:DX with the access and sharing mode in AL.
     case 0x3c: // Create DS:DX with the attributes in CX.
     case 0x5b: // Create a new file: as 3Ch, but a file that is there already
@@ -6822,9 +6861,9 @@ bool Application::Win16DosCall(unsigned &result)
         const unsigned name = Win16Linear(Register(Reg::Ds), Register(Reg::Edx) & 0xffff);
         // Bit 7 of AL keeps the handle from a child's handle table; no DOS
         // child inherits the table of a Win16 task here, so it is dropped.
-        const bool create = function == 0x3c || function == 0x5b;
+        const bool create = function == 0x3c || function == 0x5b || function == 0x5a;
         const unsigned a[] = {name, create ? Register(Reg::Ecx) & 0xffff : ax & 0x7f};
-        if (function == 0x5b && name)
+        if ((function == 0x5b || function == 0x5a) && name)
         {
             const unsigned probe[] = {name};
             if (Api("GetFileAttributesA", probe) != 0xffffffffu)
