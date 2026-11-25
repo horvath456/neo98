@@ -747,6 +747,7 @@ unsigned Application::Win16Deliver(unsigned procedure, unsigned hwnd, unsigned m
     {
         const auto *rule = Win16U::RuleFor(message);
         Win16U::SwapTo16(*rule, wparam, lparam, wparam16, lparam16);
+        wparam16 = Win16MenuSelectTo16(message, wparam, lparam, wparam16);
         break;
     }
     case Win16U::KindControlColor:
@@ -3569,6 +3570,18 @@ unsigned Application::Win16EditHandle(unsigned hwnd, unsigned message, unsigned 
     record->handle = handle;
     return handle;
 }
+// WM_MENUSELECT of a popup item names the item by its position on the 32-bit
+// side and by the popup's own menu on the 16-bit side, the way the 32-to-16
+// message thunk of USER hands it on; File Manager's MenuHelp finds the help
+// line of a popup by that menu. The closing form (flags FFFFh, no menu) and
+// every command keep their word.
+unsigned Application::Win16MenuSelectTo16(unsigned message, unsigned wparam, unsigned lparam, unsigned word)
+{
+    if (message != Win16U::WmMenuSelect || !((wparam >> 16) & 0x10) || ((wparam >> 16) == 0xffff && !lparam))
+        return word;
+    const unsigned popup = User::GetSubMenu(lparam, wparam & 0xffff);
+    return popup ? popup & 0xffff : word;
+}
 unsigned Application::Win16Send(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam)
 {
     if (User::IsEdit(hwnd) && (message == Win16U::EmGetHandle || message == Win16U::EmSetHandle))
@@ -3714,6 +3727,20 @@ bool Application::Win16ToThirtyTwo(unsigned hwnd, unsigned &message, unsigned &w
         const auto *rule = Win16U::RuleFor(message);
         unsigned wide = 0, out = 0;
         Win16U::SwapTo32(*rule, wparam, lparam, wide, out);
+        // WM_MENUSELECT of a popup: the 16-bit side names the popup by its
+        // menu, the 32-bit side by its position in the menu that holds it.
+        if (message == Win16U::WmMenuSelect && (lparam & 0x10) && (lparam & 0xffff) != 0xffff)
+        {
+            unsigned position = 0;
+            const unsigned count_args[] = {lparam >> 16};
+            for (unsigned i = 0, n = Api("GetMenuItemCount", count_args); i < n && i < 0xffff; ++i)
+                if (User::GetSubMenu(lparam >> 16, i) == (wparam & 0xffff))
+                {
+                    position = i;
+                    break;
+                }
+            wide = position | (wide & 0xffff0000u);
+        }
         wparam = wide;
         lparam = out;
         return true;
@@ -3940,6 +3967,7 @@ void Application::Win16WriteMessage(unsigned at, const User::Message &message)
     {
         const auto *rule = Win16U::RuleFor(message.message);
         Win16U::SwapTo16(*rule, message.wparam, message.lparam, wparam, lparam);
+        wparam = Win16MenuSelectTo16(message.message, message.wparam, message.lparam, wparam);
     }
     else if (number16 == message.message && kind == Win16U::KindControlColor)
     {

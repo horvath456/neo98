@@ -906,6 +906,128 @@ bool Application::Win16ToolbarSend(unsigned hwnd, unsigned message, unsigned wpa
         return false;
     }
 }
+// MenuHelp of the 16-bit COMMCTRL (ordinal 2): the help line of a menu item
+// in the simple part of a status bar. The body ends in `retf 12h` and does
+// this, by its message:
+// - WM_MENUSELECT with the flags FFFFh and no menu (the menu closes) turns
+//   the simple part off.
+// - Any other WM_MENUSELECT loads a string and shows it with SB_SETTEXT on
+//   part 255 without borders (1FFh), then SB_SIMPLE on. A separator shows an
+//   empty line. A command takes the string `ids[0] + command`; a system
+//   command (F000h and up) the string `command + 9000h` of COMMCTRL itself.
+//   A popup is looked up in the pairs of words behind the first two of `ids`
+//   (string, menu, up to a zero string); a popup of the main menu that is
+//   not there takes `ids[1] + its position`, where the system menu of a
+//   maximized MDI child at position 0 does not count and takes COMMCTRL's
+//   8FF0h, as does any other system menu. Only a command updates the bar at
+//   once with UpdateWindow.
+// - WM_COMMAND from a toolbar carries the 16-bit toolbar notification in the
+//   high word of lParam: TBN_BEGINDRAG (201h) shows the help of the button's
+//   command, which is the low word; TBN_BEGINADJUST (204h) COMMCTRL's
+//   string 8FF3h; TBN_ENDDRAG (203h) and TBN_ENDADJUST (206h) turn the simple
+//   part off again.
+// File Manager hands every WM_MENUSELECT and the notifications of its
+// toolbar to it; the first menu opened with the mouse stopped at it.
+void Application::Win16MenuHelp(unsigned message, unsigned wparam, unsigned lparam, unsigned menu,
+                                unsigned instance, unsigned status, unsigned ids)
+{
+    auto send = [&](unsigned m, unsigned w, unsigned l) {
+        const unsigned a[] = {status, m, w, l};
+        return Api("SendMessageA", a);
+    };
+    const unsigned own = Win16SystemModule("COMMCTRL");
+    unsigned id = 0;
+    bool update = true, text = true;
+    if (message == 0x111)
+    {
+        switch (lparam >> 16)
+        {
+        case 0x201: // TBN_BEGINDRAG
+            Win16MenuHelp(0x11f, lparam & 0xffff, 0, menu, instance, status, ids);
+            return;
+        case 0x203: // TBN_ENDDRAG
+        case 0x206: // TBN_ENDADJUST
+            send(0x409 /* SB_SIMPLE */, 0, 0);
+            return;
+        case 0x204: // TBN_BEGINADJUST
+            update = false;
+            id = 0x8ff3;
+            instance = own;
+            send(0x409, 1, 0);
+            break;
+        default:
+            return;
+        }
+    }
+    else if (message == 0x11f)
+    {
+        const unsigned flags = lparam & 0xffff, popup_menu = lparam >> 16;
+        wparam &= 0xffff;
+        if (flags == 0xffff && !popup_menu)
+        {
+            send(0x409, 0, 0);
+            return;
+        }
+        if (flags & 0x800) // MF_SEPARATOR: an empty line
+            text = false;
+        else if (flags & 0x10) // MF_POPUP
+        {
+            update = false;
+            text = false;
+            for (unsigned at = ids + 4; ids && Win16Word(at); at += 4)
+                if (Win16Word(at + 2) == wparam)
+                {
+                    id = Win16Word(at);
+                    text = true;
+                    break;
+                }
+            if (!text && popup_menu == menu)
+            {
+                int position = -1;
+                const unsigned count_args[] = {menu};
+                if (menu && wparam)
+                    for (int i = int(Api("GetMenuItemCount", count_args)) - 1; i >= 0; --i)
+                        if (User::GetSubMenu(menu, unsigned(i)) == wparam)
+                        {
+                            position = i;
+                            break;
+                        }
+                if (position >= 0)
+                {
+                    // The system menu of a maximized MDI child stands first
+                    // in the bar, with Restore as the last item.
+                    const unsigned last[] = {menu, Api("GetMenuItemCount", count_args) - 1};
+                    const bool child_menu = Api("GetMenuItemID", last) == 0xf120;
+                    if (child_menu && !position)
+                        id = 0x8ff0, instance = own;
+                    else
+                        id = Win16Word(ids + 2) + unsigned(position - (child_menu ? 1 : 0));
+                    text = true;
+                }
+            }
+            if (!text && (flags & 0x2000)) // MF_SYSMENU
+                id = 0x8ff0, instance = own, text = true;
+        }
+        else if (wparam >= 0xf000)
+            id = (wparam + 0x9000) & 0xffff, instance = own;
+        else
+            id = (Win16Word(ids) + wparam) & 0xffff;
+    }
+    else
+        return;
+    const unsigned buffer = Win16Scratch();
+    if (!buffer)
+        return;
+    if (text)
+        Win16LoadStringInto(instance, id, buffer, 256);
+    send(0x401 /* SB_SETTEXT */, 0x1ff, buffer);
+    send(0x409, 1, 0);
+    if (update)
+    {
+        const unsigned a[] = {status};
+        Api("UpdateWindow", a);
+    }
+}
 // The classes of the common controls belong to COMCTL32, and they come into
 // being when COMCTL32 is attached to the process. A 16-bit program never
 // attaches it by itself: under Win98 it binds COMMCTRL.DLL, the thunk half,
@@ -948,6 +1070,12 @@ bool Application::Win16CommonControlCall(unsigned ordinal, const Win16Frame &fra
         words = 0;
         result = 0;
         return true;
+    case 2: // MenuHelp(message, wParam, lParam, menu, instance, status, ids), nine words
+        words = 9;
+        result = 0;
+        Win16MenuHelp(frame.Word(8), frame.Word(7), frame.Long(5), frame.Word(4), frame.Word(3), frame.Word(2),
+                      frame.Pointer(0));
+        return state != Failed;
     case 4: // GetEffectiveClientRect(hwnd, rect, info), five words. The body
             // ends in `retf 0Ah` and does this: GetClientRect for
             // the window, then a walk over the pairs of words of the info
