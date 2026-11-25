@@ -954,8 +954,11 @@ void PaintFrame(HWND h, const Window &w, Gdi::POINT p)
     // and DefWindowProc answers it out of the class brush; the client area
     // belongs to the window's own paint. Only the frame body between the
     // border and the client is COLOR_BTNFACE; the caption, the menu bar and
-    // the scroll bars draw over it below.
-    if (!w.parent)
+    // the scroll bars draw over it below. A child window with a caption or a
+    // sizing or dialog frame has that body too (an MDI child, the group
+    // windows of Program Manager): unfilled, its inner border and the line
+    // under its caption kept the pixels of a window that had covered it.
+    if (!w.parent || (w.style & 0x440000))
     {
         const Gdi::RECT inner = At(w.client, p);
         Fill({outer.left, outer.top, outer.right, inner.top}, 0xc0c0c0);
@@ -996,6 +999,15 @@ void PaintFrame(HWND h, const Window &w, Gdi::POINT p)
     }
     if(w.nonclient_flags&2)ScrollPaint(h,w,1,p);
     if(w.nonclient_flags&4)ScrollPaint(h,w,0,p);
+    // The square between the two bars is COLOR_BTNFACE as well; the body
+    // above covers it only for a window with a frame of its own, and the
+    // corner of an MDI client kept what a closed window had drawn there.
+    if((w.nonclient_flags&6)==6)
+    {
+        const Gdi::RECT client = At(w.client, p);
+        Fill({client.right, client.bottom, client.right + settings.Word(0x2e2), client.bottom + settings.Word(0x2e4)},
+             0xc0c0c0);
+    }
 }
 void PaintWindow(HWND h, Window &w);
 void PaintSiblings(HWND parent)
