@@ -18,6 +18,14 @@ namespace X86
 {
 namespace
 {
+// The bytes FindFirstFileA and FindNextFileA write: WIN32_FIND_DATAA up to
+// the end of cAlternateFileName. KERNEL32 of Windows 9x fills it through
+// INT 21h 714Eh/714Fh, whose record is these 318 bytes; the two bytes a
+// 32-bit compiler pads the structure with belong to the caller. 16-bit code
+// declares the record without them: COMMDLG.DLL keeps the filter of its
+// old-style file dialog right behind the one it hands KERNEL.413/414, and
+// two bytes more wiped the filter's first character (an empty file list).
+constexpr unsigned FindDataBytes = 318;
 unsigned Fold(unsigned c) { return c >= 'a' && c <= 'z' ? c - 32 : c; }
 bool PathEqual(const char *a,const char *b) {
     while(*a&&Fold(*a)==Fold(*b))++a,++b;
@@ -88,7 +96,7 @@ unsigned Application::NextFile(unsigned slot, unsigned output)
         data[0] = 0x10;   // FILE_ATTRIBUTE_DIRECTORY
         memcpy((char *)data + 44, dot, strlen(dot) + 1);
         for(unsigned i=0;i<3;++i){auto stamp=node->times[i];Win98Time::Q value=0;Win98Time::DosService(1,stamp.date,stamp.time,stamp.hundredths,value,EffectiveTimeBias());data[1+i*2]=unsigned(value);data[2+i*2]=unsigned(value>>32);}
-        return Store(output, data, sizeof data);
+        return Store(output, data, FindDataBytes);
     }
     while (!files.store.EnumerateNext(find.directory, find.index, id))
     {
@@ -105,7 +113,7 @@ unsigned Application::NextFile(unsigned slot, unsigned output)
             memcpy((char *)data + 304, node->alias, strlen(node->alias) + 1);
         for(unsigned i=0;i<3;++i){auto stamp=node->times[i];Win98Time::Q value=0;Win98Time::DosService(1,stamp.date,stamp.time,stamp.hundredths,value,EffectiveTimeBias());data[1+i*2]=unsigned(value);data[2+i*2]=unsigned(value>>32);}
         // The backend does not synthesize a DOS short-name alias.
-        return Store(output, data, sizeof data);
+        return Store(output, data, FindDataBytes);
     }
     last_error = 18;
     return 0;
@@ -382,7 +390,7 @@ unsigned Application::FileApi(ApiName name, const unsigned *a)
                 if (find.device) {
                     unsigned data[80]{};data[0]=0x20;
                     memcpy((char*)data+44,pattern,strlen(pattern)+1);
-                    if (!Store(a[1],data,sizeof data)) {find.used=false;return Files::Invalid;}
+                    if (!Store(a[1],data,FindDataBytes)) {find.used=false;return Files::Invalid;}
                     return 0x30000000|(find.generation<<8)|i;
                 }
                 if (NextFile(i, a[1]))
