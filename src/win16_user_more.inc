@@ -305,6 +305,44 @@ bool Application::Win16UserMore(unsigned ordinal, const Win16Frame &frame, unsig
         result = Api("DrawCaptionTempA", a);
         return true;
     }
+    case 661: // SetSysColorsTemp(colours, brushes, count), the colour scheme a
+              // preview draws with (DESKCP16's Appearance page of Windows 95).
+              // The brushes are words here and doublewords there. USER.EXE
+              // answers a near pointer as the cookie of the old scheme, which
+              // comes back as the count with null colours; here it is the low
+              // word of USER32's cookie.
+    {
+        const unsigned scratch = Win16Scratch(), colours = pointer(0), brushes = pointer(2);
+        if (!scratch) return false;
+        if (!dword(0))
+        {
+            const unsigned a[] = {0, 0, SystemColourCookie | arg(4)};
+            result = Api("SetSysColorsTemp", a) ? 1 : 0;
+            return true;
+        }
+        const unsigned count = arg(4);
+        if (count > 25 || !brushes)
+        {
+            result = 0;
+            return true;
+        }
+        for (unsigned i = 0; i < count; ++i)
+        {
+            Write32(scratch + i * 4, Read32(colours + i * 4));
+            Write32(scratch + 128 + i * 4, Win16Word(brushes + i * 2));
+        }
+        const unsigned a[] = {scratch, scratch + 128, count};
+        result = Api("SetSysColorsTemp", a) & 0xffff;
+        return true;
+    }
+    case 662: // DrawMenuBarTemp(hwnd, hdc, rect, menu, font)
+    {
+        const unsigned scratch = Win16Scratch();
+        if (!scratch) return false;
+        const unsigned a[] = {arg(0), arg(1), rect_in(pointer(2), scratch), arg(4), arg(5)};
+        result = Api("DrawMenuBarTemp", a) & 0xffff;
+        return true;
+    }
     case 428: // TileWindows(parent, how, rect, count, kids)
     case 429: // CascadeWindows(parent, how, rect, count, kids): the windows
               // are words, the native array dwords.

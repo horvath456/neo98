@@ -42,6 +42,15 @@ bool Application::VgaInterrupt()
         Register(Reg::Ebx, (Register(Reg::Ebx) & ~65535u) | 8);
         return true;
     }
+    // VBE/PM, the power management of the display BIOS: the Screen Saver page
+    // of DESKCP16 (Windows 95) asks for its capabilities. The display has
+    // none, so the call fails (AL 4Fh: function known, AH 01h: failed) and
+    // the page leaves its Energy Star settings out.
+    if (ax == 0x4f10)
+    {
+        Register(Reg::Eax, (Register(Reg::Eax) & ~65535u) | 0x014f);
+        return true;
+    }
     if (!(ax & 0xff00) && ((ax & 0x7f) == 3 || (ax & 0x7f) == 0x12 || (ax & 0x7f) == 0x13))
     {
         if (!EnsureVga()) return false;

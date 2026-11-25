@@ -566,6 +566,7 @@ inline const Ordinal *UserOrdinals(U &count)
         {650, 3, "ActivateKeyboardLayout"}, {651, 2, "GetKeyboardLayout"},
         {652, 3, "GetKeyboardLayoutList"}, {654, 2, "UnloadKeyboardLayout"},
         {656, 5, "DrawFrameControl"}, {657, 9, "DrawCaptionTemp"}, {659, 5, "DrawEdge"},
+        {661, 5, "SetSysColorsTemp"}, {662, 6, "DrawMenuBarTemp"},
         {660, 5, "DrawCaption"}, {663, 3, "GetMenuDefaultItem"}, {664, 3, "SetMenuDefaultItem"},
         {665, 5, "GetMenuItemRect"}, {666, 5, "CheckMenuRadioItem"}, {667, 7, "TrackPopupMenuEx"},
         {668, 3, "SetWindowRgn"}, {669, 2, "GetWindowRgn"},
