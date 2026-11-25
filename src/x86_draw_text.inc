@@ -27,7 +27,7 @@ unsigned Application::DrawTextApi(ApiName name,const unsigned *a)
     if(p&&p->size!=12)return finish(0);
     if(!count)return finish(1);
     // Native unsupported providers. These are failures, not ignored layout flags.
-    if((flags&~0xafffu)||(flags&0x1000)||((flags&0x8000)&&!(flags&0x800))){last_error=50;return 0;}
+    if((flags&~0xafffu)||(flags&0x1000)||((flags&0x8000)&&!(flags&0x800)&&!(flags&0x20))){last_error=50;return 0;}
     if(!Gdi::ValidDC(a[0])){last_error=6;return 0;}
     char text[8192]={};unsigned length=count;
     if(count==65535){const char*s=ReadString(a[1]);length=strlen(s);if(length>=sizeof text){last_error=50;return 0;}memcpy(text,s,length);}
@@ -41,6 +41,24 @@ unsigned Application::DrawTextApi(ApiName name,const unsigned *a)
     // adapter supports single-line NOPREFIX; path/word ellipsis remain absent.
     // A single line takes the ellipsis here; several lines take it per line
     // inside Layout (Win98DrawText::EllipsisLine).
+    // The ellipsis of a single line with its prefix: COMCTL32 4.00 of
+    // Windows 95 draws a tab label with "&" this way ("Date && Time" of
+    // TIMEDATE.CPL). The ellipsis measures the text as it shows, without
+    // the prefix characters; a text that fits keeps its prefix and needs no
+    // ellipsis, one that does not loses the underline and is shortened as
+    // plain text.
+    if((flags&0x8000)&&(flags&0x20)&&!(flags&0x800)){
+        char shown[sizeof text]={};unsigned shown_length=0;
+        for(unsigned i=0;i<length;++i){if(text[i]=='&'&&++i>=length)break;shown[shown_length++]=text[i];}
+        Gdi::TEXTMETRICA font{};Gdi::GetTextMetricsA(a[0],&font);
+        const int width=W(r.right-r.left-(p?p->left+p->right:0));
+        char fitted[sizeof text]={};memcpy(fitted,shown,shown_length);unsigned fitted_length=shown_length;
+        if(!Win98Caption::EndEllipsis(e,fitted,fitted_length,sizeof fitted,width,font.tmOverhang)){
+            Gdi::RestoreDC(a[0],saved);last_error=50;return 0;
+        }
+        if(fitted_length==shown_length&&!memcmp(fitted,shown,shown_length))flags&=~0x8000u;
+        else{memcpy(text,shown,shown_length);text[shown_length]=0;length=shown_length;flags|=0x800;}
+    }
     if((flags&0x8000)&&(flags&0x20)){
         Gdi::TEXTMETRICA font{};Gdi::GetTextMetricsA(a[0],&font);
         int width=W(r.right-r.left-(p?p->left+p->right:0));
