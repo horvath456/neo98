@@ -22,6 +22,8 @@ desktop in memory:
   msdos    the properties of COMMAND.COM show the pages of an MS-DOS
            program; Ctrl+Tab goes from General to Program and Font
 
+The steps wait for each sheet and for a quiet machine, not for a time.
+
     build/analysis-venv/bin/python tools/test_display_advanced_host.py [--no-build] [--keep] [--kms KMS]
 """
 import sys as _sys
@@ -76,13 +78,13 @@ def session(kms, drive, program, command, steps, limit):
     return result.stdout + result.stderr
 
 
-def walk(name, count, first):
-    """Steps that show `count` pages one after the other with Ctrl+Tab, the
-    first picture at second `first`."""
-    steps = [f'{first}:shot={{out}}/{name}0.png']
+def walk(name, count):
+    """Steps that show `count` pages one after the other with Ctrl+Tab, each
+    picture once the machine is quiet."""
+    steps = ['0:idle=1000', f'0:shot={{out}}/{name}0.png']
     for page in range(1, count):
-        steps += [f'{first + 2 * page - 1}:ctrl=09', f'{first + 2 * page}:shot={{out}}/{name}{page}.png']
-    return steps + [f'{first + 2 * count}:quit=1']
+        steps += [f'{0.3 * page}:ctrl=09', f'{0.3 * page}:idle=500', f'{0.3 * page}:shot={{out}}/{name}{page}.png']
+    return steps + [f'{0.3 * count}:quit=1']
 
 
 def pages(name, count, box):
@@ -112,10 +114,12 @@ def main():
                     '-Wl,-e,_mainCRTStartup', '-mwindows', '-lshell32', '-luser32', '-lkernel32',
                     '-o', str(drive / 'PROPS.EXE')], check=True)
     try:
+        # Each step waits for its sheet or for a quiet machine.
         text = session(args.kms, drive, 'C:\\WINDOWS\\RUNDLL32.EXE',
                        'rundll32.exe shell32.dll,Control_RunDLL desk.cpl,,3',
-                       ['0:wait=#32770', f'3:click={ADVANCED[0]},{ADVANCED[1]}', *walk('page', PAGES, 8)], 50)
-        msdos = session(args.kms, drive, 'C:\\PROPS.EXE', None, ['0:wait=#32770', *walk('msdos', 3, 4)], 40)
+                       ['0:wait=#32770|Display Properties', '0:idle=1000', f'0:click={ADVANCED[0]},{ADVANCED[1]}',
+                        '0:wait=#32770|NEO98 Display Adapter Properties', *walk('page', PAGES)], 120)
+        msdos = session(args.kms, drive, 'C:\\PROPS.EXE', None, ['0:wait=#32770', *walk('msdos', 3)], 120)
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
@@ -123,6 +127,7 @@ def main():
     (WORK / 'log.txt').write_text(text + msdos)
     stops = [line for line in (text + msdos).splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
+    timed_out = [line for line in (text + msdos).splitlines() if 'timed out after' in line]
     titles = re.findall(r'WIN16 proxy page info record=\w+ size=\d+x\d+ title=\[(.*?)\]', text)
     dialogs = re.findall(r'WIN16 proxy page dialog record=\w+ parent=\w+ procedure=\w+ hwnd=(\w+)', text)
     shown = pages('page', PAGES, PAGE)
@@ -131,6 +136,7 @@ def main():
     msdos_shown = pages('msdos', 3, MSDOS_PAGE)
     msdos_distinct = len({b''.join(page) for page in msdos_shown if page})
     checks = {
+        f'every sheet and quiet moment came: {timed_out}': not timed_out,
         'both sheets open without a stop': not stops and all(shown) and all(msdos_shown),
         f'pages: Adapter, Monitor and Performance of DESKCP16 are in the sheet: {titles}':
             {'Adapter', 'Monitor', 'Performance'} <= set(titles),
