@@ -7,8 +7,11 @@ CD's WIN98 folder: the Add Printer wizard, Add/Remove Programs > Windows Setup,
 the hardware wizard. SETUPX looks there first through the source path of
 setup, HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Setup "SourcePath",
 and asks for the CD when the files are not there ("Insert Windows 98 Second
-Edition CD-ROM"). A computer maker's preinstallation copies the
-WIN98 folder to C:\\WINDOWS\\OPTIONS\\CABS and points SourcePath at it; this
+Edition CD-ROM"). "Discover Windows 98" on the Welcome screen (TOUR98.EXE)
+starts the Windows 98 Tour out of WINDOWS\\OPTIONS\\CABS\\TOUR, else out of
+TOUR below SourcePath, and asks for the CD when DISCOVER.EXE is in neither.
+A computer maker's preinstallation copies the WIN98 folder with its TOUR to
+C:\\WINDOWS\\OPTIONS\\CABS and points SourcePath at it; this
 step does the same with the checked ISO of `neo98.py setup`, so no prompt for
 the CD comes. The value goes into the registry change journal beside the
 folder, the layer the runtime replays over the imported hives, and the step
@@ -32,14 +35,20 @@ SOURCE = "C:\\WINDOWS\\OPTIONS\\CABS"
 KEY = "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Setup"
 REG_SZ = 1
 SECTOR = 2048
-VERSION = 1
+# 2: the Windows 98 Tour in TOUR as well.
+VERSION = 2
+TOUR = "TOUR"
 
 
 def iso_files(iso):
-    """(name, offset, size) of every file in the ISO's WIN98 folder."""
-    return [(name, lba * SECTOR, size)
-            for name, (lba, size, flags) in win98_iso.setup_files(iso).items()
-            if not flags & 2]
+    """(name, offset, size) of every file in the ISO's WIN98 folder and below
+    its TOUR, the Tour's as 'TOUR/SUB/NAME.EXT'."""
+    files = [(name, lba * SECTOR, size)
+             for name, (lba, size, flags) in win98_iso.setup_files(iso).items()
+             if not flags & 2]
+    files += [(f"{TOUR}/{name}", lba * SECTOR, size)
+              for name, (lba, size) in win98_iso.setup_tree(iso, TOUR).items()]
+    return files
 
 
 def copy(iso, folder):
@@ -50,7 +59,8 @@ def copy(iso, folder):
     files = total = 0
     with Path(iso).open("rb") as image:
         for name, offset, size in iso_files(iso):
-            path = target / name
+            path = target.joinpath(*name.split("/"))
+            path.parent.mkdir(parents=True, exist_ok=True)
             files += 1
             total += size
             if path.is_file() and path.stat().st_size == size:
