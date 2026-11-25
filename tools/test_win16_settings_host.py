@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
-"""What the 16-bit parts of the display properties ask of USER and the BIOS.
+"""What the 16-bit parts of the control panel ask of USER, the BIOS and DOS.
 
 tools/settings_win16_fixture.asm calls what the 16-bit pages of the display
-properties (DESKCP16.DLL) and other 16-bit settings pages use:
+properties (DESKCP16.DLL) and other 16-bit settings pages and network
+software use:
 
   temp   USER.661 SetSysColorsTemp takes 25 colours and 25 brushes of 16
          bits and answers a cookie that puts the old colours back; USER.662
@@ -18,6 +19,12 @@ properties (DESKCP16.DLL) and other 16-bit settings pages use:
          as words and LOGFONTs of 50 bytes: the icon title font, the
          NONCLIENTMETRICS of 10Eh bytes and the ICONMETRICS of 3Ah bytes,
          and nothing behind them; SPI_GETBORDER writes one word
+  dos    the checks for a real mode network: INT 21h AX=5F30h and IOCTL
+         AX=4412h fail with ERROR_INVALID_FUNCTION, INT 15h AH=C0h hands out
+         the configuration table of an AT, INT 31h 0009h sets the rights of a
+         descriptor, and INT 31h 0300h runs real mode INT 2Fh AX=7A20h (no
+         resident program answers), INT 21h AX=5802h, AH=52h, AX=356Eh and
+         AH=DCh as DOS without network software answers them
 
 The program writes its words again after each part, so a part that stops the
 run leaves the ones before it; the log line of the stop is printed.
@@ -48,7 +55,7 @@ from native_app import ROOT, build_host  # noqa: E402
 import win16_fixture  # noqa: E402
 import win98_c  # noqa: E402
 
-WORDS = 32
+WORDS = 48
 
 
 def letter(word):
@@ -105,7 +112,16 @@ def main():
         'spi: nothing written behind the ICONMETRICS': w[26] == 0xaaaa,
         f'spi: SPI_GETBORDER writes one word: {w[28]}, behind it {w[29]:04x}':
             w[27] == 1 and 1 <= w[28] < 16 and w[29] == 0xaaaa,
-        'every call took its word count off the stack': w[31] == 0,
+        f'dos: 5F30h and IOCTL 4412h fail with 1: {w[32]} {w[33]}': (w[32], w[33]) == (1, 1),
+        f'dos: INT 15h AH=C0h names an AT: {w[34]:02x}': w[34] == 0xfc,
+        f'dos: INT 31h 0009h sets the rights of a descriptor: {w[35]} {w[36]:02x}': w[35] == 0 and w[36] == 0xf2,
+        f'dos: real mode INT 2Fh AX=7A20h returns unchanged: {w[37]} {w[38]:04x}': w[37] == 0 and w[38] == 0x7a20,
+        f'dos: real mode INT 21h AX=5802h answers no link: {w[39]} {w[40]:04x}': w[39] == 0 and w[40] == 0x5800,
+        f'dos: real mode INT 21h AH=52h answers 0080h:0026h: {w[42]:04x}:{w[43]:04x}':
+            w[41] == 0 and (w[42], w[43]) == (0x80, 0x26),
+        f'dos: real mode INT 21h AX=356Eh and AH=DCh: {w[44]} {w[45]} {w[46]:04x}':
+            w[44] == 0 and w[45] == 0 and w[46] == 0xdc00,
+        'every call took its word count off the stack': w[47] == 0,
     }
     for name, passed in checks.items():
         print('ok  ' if passed else 'FAIL', name, flush=True)

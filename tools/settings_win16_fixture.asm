@@ -1,5 +1,5 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
-; What the 16-bit parts of the display properties ask of USER and the BIOS
+; What the 16-bit parts of the control panel ask of USER, the BIOS and DOS
 ;
 ; one 16-bit program that uses it and writes down what came back;
 ; tools/test_win16_settings_host.py reads the words.
@@ -21,6 +21,14 @@
 ;        LOGFONT of the icon titles (50 bytes), NONCLIENTMETRICS with cbSize
 ;        10Eh and ICONMETRICS with cbSize 3Ah, each followed by a guard word
 ;        that must stay; SPI_GETBORDER writes one word.
+; dos    what network software looks for in real mode: INT 21h AX=5F30h (the
+;        LAN Manager redirector) and IOCTL AX=4412h fail with carry and 1;
+;        INT 15h AH=C0h hands out the BIOS configuration table of an AT
+;        (model FCh); INT 31h 0009h sets the access rights of a descriptor;
+;        INT 31h 0300h runs real mode INT 2Fh AX=7A20h (no resident program
+;        answers, AX unchanged), INT 21h AX=5802h (no upper memory link,
+;        AL 0), AH=52h (the list of lists at 0080h:0026h), AX=356Eh (a vector
+;        of the real mode table) and AH=DCh (above DOS 7, AL 0).
 ;
 ; Each part writes the result file again when it is done, so a part that
 ; stops the run leaves the words of the parts before it. The last word is
@@ -47,6 +55,36 @@ __SECT__
         push ds
         pop es
         stosw
+%endmacro
+; AX when the carry is set, 0 when it is clear.
+%macro KEEPCF 0
+        jc %%failed
+        xor ax, ax
+%%failed:
+        KEEP
+%endmacro
+; INT 31h 0300h for real mode interrupt %1 with AX=%2 in the registers of
+; `rm`: the carry of the call into the next word.
+%macro REAL 2
+        push di
+        push ds
+        pop es
+        mov di, rm
+        mov cx, 25
+        xor ax, ax
+        rep stosw
+        pop di
+        mov dword [rm + 1ch], %2
+        push di
+        push ds
+        pop es
+        mov di, rm
+        mov bx, %1
+        xor cx, cx
+        mov ax, 0300h
+        int 31h
+        pop di
+        KEEPCF
 %endmacro
 ; 1 when AX is not zero, 0 otherwise.
 %macro KEEPNZ 0
@@ -268,10 +306,65 @@ code_start:
         KEEP
         call save
 
+        ; dos: what DOS answers without network software
+        mov di, res + 2 * 32
+        mov ax, 5f30h
+        int 21h
+        KEEPCF
+        mov ax, 4412h
+        xor bx, bx
+        int 21h
+        KEEPCF
+        ; the BIOS configuration table
+        push es
+        mov ah, 0c0h
+        int 15h
+        mov ax, 0ffffh
+        jc .no_table
+        mov al, [es:bx + 2]             ; the model
+        xor ah, ah
+.no_table:
+        pop es
+        KEEP
+        ; 0000h one descriptor, 0009h its rights: present ring-three data,
+        ; writable, 32-bit
+        xor ax, ax
+        mov cx, 1
+        int 31h
+        mov [dpmi_selector], ax
+        mov bx, ax
+        mov cx, 40f2h
+        mov ax, 0009h
+        int 31h
+        KEEPCF
+        lar ax, [dpmi_selector]
+        mov al, ah
+        mov ah, 0
+        and al, 0feh
+        KEEP
+        call save
+        ; real mode through 0300h
+        REAL 2fh, 7a20h
+        mov ax, [rm + 1ch]
+        KEEP
+        REAL 21h, 5802h
+        mov ax, [rm + 1ch]
+        KEEP
+        REAL 21h, 5200h
+        mov ax, [rm + 22h]
+        KEEP
+        mov ax, [rm + 10h]
+        KEEP
+        REAL 21h, 356eh
+        REAL 21h, 0dc00h
+        mov ax, [rm + 1ch]
+        KEEP
+        call save
+
         ; The stack pointer against the one before the first call.
         mov ax, [sp0]
         sub ax, sp
-        mov [res + 62], ax
+        mov [res + 2 * 47], ax
         call save
         mov ax, 4c00h
         API 1, 102                      ; DOS3Call
@@ -333,8 +426,11 @@ framebuf db 'FRAMEBUF.DRV', 0
 display db 'DISPLAY', 0
 validate_name db 'ValidateMode', 0
 spi_buffer times 400 db 0aah
+dpmi_selector dw 0
+; the registers of a real mode call (INT 31h 0300h)
+rm      times 50 db 0
 fout    db 'C:\SET16OUT.TXT', 0
-res     times 32 dw -1                ; a part that never ran reads as FFFFh
+res     times 48 dw -1                ; a part that never ran reads as FFFFh
 out_end:
         times 512 db 0
 data_end:

@@ -5505,6 +5505,32 @@ void Application::Win16Interrupt(Cpu &cpu, unsigned number, void *context)
                      (app.Register(Reg::Eax) & 0xffff0000u) | 0x0022u);
         return;
     }
+    else if (number == 0x15 && ((app.Register(Reg::Eax) >> 8) & 0xff) == 0xc0)
+    {
+        // The BIOS system configuration: ES:BX names the table of the ROM at
+        // F000h:E6F5h, a word of its length, the model, the submodel, the
+        // revision and five feature bytes. An AT (FCh, 01h) with the real
+        // time clock, the keyboard intercept and the second interrupt
+        // controller, without Micro Channel. NETOS.DLL of the Network applet
+        // (Windows 95) reads the model.
+        constexpr unsigned Rom = 0xf000, Table = 0xe6f5;
+        const unsigned image = app.Win16RealModeImage();
+        const unsigned selector = image ? app.Win16RealModeSelector(Rom) : 0;
+        const unsigned flags = app.Register(Reg::Eflags);
+        if (!selector)
+        {
+            app.Register(Reg::Eax, (app.Register(Reg::Eax) & 0xffff00ffu) | 0x8600u);
+            app.Register(Reg::Eflags, flags | 1u);
+            return;
+        }
+        static const unsigned char table[10] = {8, 0, 0xfc, 0x01, 0x00, 0x70, 0, 0, 0, 0};
+        app.Store(image + Rom * 16 + Table, table, sizeof table);
+        app.Register(Reg::Es, selector);
+        app.Register(Reg::Ebx, (app.Register(Reg::Ebx) & 0xffff0000u) | Table);
+        app.Register(Reg::Eax, app.Register(Reg::Eax) & 0xffff00ffu);
+        app.Register(Reg::Eflags, flags & ~1u);
+        return;
+    }
     else if (number == 0x12)
     {
         if (app.Win16SetupxRealModeCall())
@@ -5601,6 +5627,35 @@ void Application::Win16Interrupt(Cpu &cpu, unsigned number, void *context)
             if (!app.Win16Descriptor(selector))
             {
                 entry->limit = previous;
+                return answer(0x8022);
+            }
+            return answer(0);
+        }
+        if (function == 0x0009)
+        {
+            // Set descriptor access rights: BX the selector, CL byte 5 of the
+            // descriptor (present, ring three, code or data and its type), CH
+            // the high nibble of byte 6 (granularity and the default size).
+            // Other rings and system descriptors answer 8021h. NETOS.DLL of
+            // Windows 95's Network applet sets up its selectors this way.
+            const unsigned selector = app.Register(Reg::Ebx) & 0xffff;
+            const unsigned rights = app.Register(Reg::Ecx) & 0xff, extended = (app.Register(Reg::Ecx) >> 8) & 0xff;
+            auto *entry = app.selectors.Find(selector << 16);
+            if (!selector || !entry || !(selector & 4))
+                return answer(0x8022);
+            if (!(rights & 0x80) || (rights & 0x60) != 0x60 || !(rights & 0x10))
+                return answer(0x8021);
+            const auto previous = *entry;
+            const bool pages = previous.limit > 0xfffff;
+            if ((extended & 0x80) && !pages)
+                entry->limit = previous.limit << 12 | 0xfff;
+            else if (!(extended & 0x80) && pages)
+                entry->limit = previous.limit >> 12;
+            entry->code = (rights & 8) != 0;
+            entry->big = (extended & 0x40) != 0;
+            if (!app.Win16Descriptor(selector))
+            {
+                *entry = previous;
                 return answer(0x8022);
             }
             return answer(0);
@@ -5837,6 +5892,81 @@ void Application::Win16Interrupt(Cpu &cpu, unsigned number, void *context)
             // the protected mode call.
             if (vector == 0x21 && structure && app.Win16RealModeDos(structure))
                 return answer(0);
+            // INT 21h AX=5802h, whether the upper memory blocks are linked
+            // into DOS's chain (NETCPL.CPL of Windows 95 asks): there are
+            // none, AL 0, carry clear.
+            if (vector == 0x21 && ax == 0x5802 && structure)
+            {
+                app.Win16Word(structure + 0x1c, 0x5800);
+                app.Win16Word(structure + 0x20, app.Win16Word(structure + 0x20) & ~1u);
+                return answer(0);
+            }
+            // INT 21h AX=5803h links or unlinks them: nothing to do. AH=52h,
+            // the list of lists, as a real mode address: SysVars at
+            // 0080h:0026h as the protected mode call answers it, and the
+            // segment of the first memory control block in the word before.
+            // NETOS walks the chain from there for the owner of an interrupt
+            // vector (a real mode network driver); here it is one last
+            // block ('Z') over all conventional memory, owned by DOS and
+            // without a name.
+            // INT 21h above DOS 7's last function (73h): the NetWare shell
+            // and other network software extend DOS there (DCh the station
+            // number, E3h, F1h...), and DOS without them answers AL 0.
+            // NETOS.DLL of the Network applet asks.
+            if (vector == 0x21 && structure && (ax >> 8) > 0x73)
+            {
+                app.Win16Word(structure + 0x1c, ax & 0xff00);
+                return answer(0);
+            }
+            // INT 21h AH=35h, a vector of the real mode table at 0000h:0000h:
+            // ES:BX. NETOS.DLL looks at INT 6Eh, which a real mode network
+            // driver would hook.
+            if (vector == 0x21 && structure && (ax >> 8) == 0x35)
+            {
+                const unsigned image = app.Win16RealModeImage();
+                if (!image)
+                    return answer(0x8001);
+                const unsigned address = app.Read32(image + (ax & 0xff) * 4);
+                app.Win16Word(structure + 0x22, address >> 16);
+                app.Win16Word(structure + 0x10, address & 0xffff);
+                return answer(0);
+            }
+            if (vector == 0x21 && structure && (ax == 0x5803 || (ax >> 8) == 0x52))
+            {
+                if ((ax >> 8) == 0x52)
+                {
+                    constexpr unsigned DosData = 0x0080, SysVars = 0x26, FirstBlock = 0x00f0;
+                    const unsigned image = app.Win16RealModeImage();
+                    if (!image)
+                        return answer(0x8001);
+                    const unsigned char drives = 26;
+                    app.Store(image + DosData * 16 + SysVars + 0x21, &drives, 1);
+                    app.Win16Word(image + DosData * 16 + SysVars - 2, FirstBlock);
+                    const unsigned char block[16] = {'Z', 8, 0, (0xa000 - FirstBlock - 1) & 0xff,
+                                                     (0xa000 - FirstBlock - 1) >> 8};
+                    app.Store(image + FirstBlock * 16, block, sizeof block);
+                    app.Win16Word(structure + 0x22, DosData);
+                    app.Win16Word(structure + 0x10, SysVars);
+                }
+                app.Win16Word(structure + 0x20, app.Win16Word(structure + 0x20) & ~1u);
+                return answer(0);
+            }
+            // Any other INT 2Fh: the multiplex chain of real mode has no
+            // resident program behind it, and DOS at its end returns with the
+            // registers as they were. The callers are installation checks:
+            // NETWARE.DRV of Windows 95's NetWare client asks for the VLMs
+            // (7A20h) while MPREXE starts it, NETOS.DLL of the Network applet
+            // for every real mode network it knows (11h, 7Ah, B8h, BFh...).
+            if (vector == 0x2f && structure)
+            {
+                if (app.log)
+                {
+                    char text[120];
+                    snprintf(text, sizeof text, "WIN16 real mode INT 2Fh AX=%04xh: no resident program answers", ax);
+                    app.log(text);
+                }
+                return answer(0);
+            }
             char text[160];
             snprintf(text, sizeof text,
                      "Win16 DPMI 0300h for real mode INT %02xh AX=%04xh at %04x:%04x is not ported yet", vector,
@@ -6945,6 +7075,17 @@ bool Application::Win16DosCall(unsigned &result)
             machine.RememberDosError(result);
             return true;
         }
+        // Subfunctions above DOS 7's last one (11h) belong to network
+        // software (E0h and up for the NetWare shell); DOS refuses them with
+        // carry and ERROR_INVALID_FUNCTION. NETOS.DLL of Windows 95's Network
+        // applet asks.
+        if (sub > 0x11)
+        {
+            Register(Reg::Eflags, flags | 1u);
+            result = 1;
+            machine.RememberDosError(result);
+            return true;
+        }
         break;
     }
     case 0x1a: // Set the disk transfer address to DS:DX. Only find-first and
@@ -7164,6 +7305,17 @@ bool Application::Win16DosCall(unsigned &result)
         {
             Register(Reg::Eflags, flags | 1u);
             result = 18;
+            machine.RememberDosError(result);
+            return true;
+        }
+        // 5F30h asks the LAN Manager redirector for its version; NETOS.DLL
+        // of Windows 95's Network applet looks for a real mode network this
+        // way. There is no redirector of that kind: carry and "invalid
+        // function", as DOS answers without one.
+        if ((ax & 0xff) == 0x30)
+        {
+            Register(Reg::Eflags, flags | 1u);
+            result = 1;
             machine.RememberDosError(result);
             return true;
         }
