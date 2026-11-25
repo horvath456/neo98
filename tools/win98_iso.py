@@ -141,6 +141,92 @@ def setup_files(iso: Path) -> dict:
         return files
 
 
+JOLIET_ESCAPES = (b'%/@', b'%/C', b'%/E')
+JOLIET_NAME = re.compile(r'[A-Z0-9_~][A-Z0-9_.~-]{0,126}\Z')
+MAX_TREE_FILES = 4096
+
+
+def setup_tree(iso: Path, folder: str) -> dict:
+    """The files below WIN98\\<folder>, as {'SUB/NAME.EXT': (LBA, size)}.
+
+    The names are the Joliet ones when the image has a Joliet volume: Windows
+    98 reads the CD through it, and the Windows 98 Tour in WIN98\\TOUR links
+    to its folder ~INTRO, whose ISO9660 name is _INTRO. An image without
+    Joliet gives the ISO9660 names. Missing folder: an empty result.
+    """
+    with Path(iso).open('rb') as image:
+        image.seek(0, 2)
+        image_size = image.tell()
+        volume = joliet = None
+        for sector in range(16, 80):
+            descriptor = _read(image, sector * SECTOR, SECTOR)
+            if descriptor[1:7] != b'CD001\x01':
+                _fail('Invalid ISO9660 volume descriptor')
+            if descriptor[0] == 1 and volume is None:
+                volume = descriptor
+            elif descriptor[0] == 2 and descriptor[88:91] in JOLIET_ESCAPES:
+                joliet = descriptor
+            elif descriptor[0] == 255:
+                break
+        if joliet is not None:
+            volume = joliet
+        if volume is None or _both(volume, 128, 2) != SECTOR:
+            _fail('Missing or invalid ISO9660 primary volume')
+        limit = min(_both(volume, 80, 4) * SECTOR, image_size)
+
+        def entries(lba, size):
+            if size > MAX_DIRECTORY or not size or lba * SECTOR + size > limit:
+                _fail('Invalid or oversized ISO9660 directory')
+            data = _read(image, lba * SECTOR, size)
+            at = 0
+            while at < size:
+                length = data[at]
+                if not length:
+                    at = (at // SECTOR + 1) * SECTOR
+                    continue
+                if length < 34 or at + length > size:
+                    _fail('Truncated ISO9660 directory record')
+                record = data[at:at + length]
+                at += length
+                raw = record[33:33 + record[32]]
+                if raw in (b'\0', b'\1'):
+                    continue
+                if record[25] & ~3 or record[26] or record[27]:
+                    _fail('Unsupported ISO9660 interleaved or multi-extent file')
+                try:
+                    name = (raw.decode('utf-16-be') if joliet is not None else raw.decode('ascii')).upper()
+                except UnicodeDecodeError:
+                    _fail('Undecodable ISO9660 filename')
+                name = name.split(';', 1)[0]
+                if not JOLIET_NAME.fullmatch(name) or '..' in name:
+                    _fail(f'Unsafe ISO9660 filename: {raw!r}')
+                lba_, size_ = _both(record, 2, 4), _both(record, 10, 4)
+                if lba_ * SECTOR > limit or size_ > limit - lba_ * SECTOR:
+                    _fail('ISO9660 extent exceeds the declared volume')
+                yield name, lba_, size_, record[25] & 2
+
+        root = volume[156:156 + 34]
+        here = (_both(root, 2, 4), _both(root, 10, 4))
+        for part in ('WIN98', folder.upper()):
+            found = next((e for e in entries(*here) if e[0] == part and e[3]), None)
+            if found is None:
+                return {}
+            here = found[1:3]
+        files, pending = {}, [('', here, 0)]
+        while pending:
+            prefix, (lba, size), depth = pending.pop()
+            for name, lba_, size_, directory in entries(lba, size):
+                if directory:
+                    if depth >= 8:
+                        _fail('ISO9660 folders nested too deep')
+                    pending.append((prefix + name + '/', (lba_, size_), depth + 1))
+                else:
+                    files[prefix + name] = (lba_, size_)
+                    if len(files) > MAX_TREE_FILES:
+                        _fail('Too many files in an ISO9660 folder')
+        return files
+
+
 def _cabinet(data, size, name):
     """Read the bounded CAB index, without decompressing any file."""
     if len(data) < 36 or data[:4] != b'MSCF':
