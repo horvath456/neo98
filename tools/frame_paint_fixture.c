@@ -14,7 +14,9 @@
    frame of the dock is yellow.
    A dialog with DS_3DLOOK whose edit asks for WS_BORDER: the dialog manager
    gives it WS_EX_CLIENTEDGE instead, and the dialog says so in its title,
-   "Edge sunken" or "Edge flat". */
+   "Edge sunken" or "Edge flat".
+   A group box: its frame is etched, a grey line with a white one inside,
+   and the main window says so in its title, "Group etched" or "Group ...". */
 #include <windows.h>
 
 static LRESULT CALLBACK bordered(HWND h, UINT m, WPARAM w, LPARAM l)
@@ -144,9 +146,16 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR line, int show)
                                 20, 120, 300, 60, top, 0, instance, 0);
     CreateWindowA("FrameBar", "", WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS, 10, -4, 100, 30, docked, 0, instance, 0);
     ShowWindow(child, SW_SHOWNA);
+    HWND group = CreateWindowA("BUTTON", "G", WS_CHILD | WS_VISIBLE | BS_GROUPBOX, 250, 190, 120, 60, top, 0, instance, 0);
     ShowWindow(top, SW_SHOW);
     UpdateWindow(top);
     edge(instance);
+    /* The left side of the frame, halfway down: grey, then white. */
+    HDC dc = GetDC(group);
+    const COLORREF outer = GetPixel(dc, 0, 30), inner = GetPixel(dc, 1, 30);
+    ReleaseDC(group, dc);
+    SetWindowTextA(top, outer == RGB(128, 128, 128) && inner == RGB(255, 255, 255) ? "Group etched" :
+                        inner == RGB(0, 0, 0) ? "Group sunken" : "Group other");
     MSG message;
     while (GetMessageA(&message, 0, 0, 0)) { TranslateMessage(&message); DispatchMessageA(&message); }
     return 0;
