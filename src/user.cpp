@@ -1878,7 +1878,9 @@ void ReleaseProcessWindows(unsigned pid){auto*p=Process(pid);if(!p)return;unsign
 // function stays for the windows of the others (CallbackContext resolves
 // the window's own process first).
 void DropExclusiveMode(unsigned pid);
+namespace { void HandFallbacksOn(void *gone, void *heir); }
 void DetachProcess(unsigned pid){DropExclusiveMode(pid);if(auto*p=Process(pid)){DropScreenLease(p->context,pid);ForgetPointerOwner(p->context);if(frame_icon_context==p->context)frame_icon_context=nullptr;if(drag_icon_context==p->context)drag_icon_context=nullptr;if(shell_hook_context==p->context)shell_hook_context=nullptr;if(shell_context==p->context)shell_context=nullptr;auto **link=&processes;while(*link!=p)link=&(*link)->next;*link=p->next;
+ HandFallbacksOn(p->context,processes?processes->context:nullptr);
  class_store.LocalFree(p->owner);delete p;--process_count;}if(active_process==pid)BindTask(0,0);if(processes)return;property_cleanup=nullptr;property_context=nullptr;Shutdown();SetClipboardCallbacks(nullptr,nullptr,nullptr);SetCaretProvider(nullptr,nullptr,nullptr);SetCaretBracket(nullptr,nullptr);}
 Settings &SystemSettings() { return settings; }
 namespace { InstanceVersion instance_version = nullptr; }
@@ -6386,6 +6388,27 @@ unsigned PendingPaintWindows(unsigned *first){SettleGeometry();unsigned n=0;for(
 HWND ThreadCapture(unsigned thread) { return QueueCapture(thread); }
 HWND ProcessCapture(unsigned pid) { return ProcessCaptureOf(pid); }
 #include "user_mouse_capture.inc"
+
+namespace {
+// Every process binds the providers of USER to itself when it starts
+// (Application::BindUserProviders), so these contexts name the process that
+// started last. They are the fallback for a window of no process
+// (CallbackContext, CurrentContext), and a few calls take one directly.
+// When that process ends, one that stays takes its place, or none: a context
+// of a process that is gone would be called after its end, and every later
+// saved state would refuse it (a pointer to memory that is not the state's).
+void HandFallbacksOn(void *gone, void *heir)
+{
+    if (!gone) return;
+    void **fallbacks[] = {&metadata_context, &default_icon_context, &icon_size_context, &scroll_brush_context,
+                          &edit_notify_context, &edit_word_context, &property_context, &control_context,
+                          &guest_paint_context, &common_context, &caret_context, &caret_bracket_context,
+                          &clipboard_context, &menu_context, &menu_owner_context, &frame_context, &cursor_context,
+                          &capture_context, &win_event_context};
+    for (void **fallback : fallbacks)
+        if (*fallback == gone) *fallback = heir;
+}
+}
 
 // The paint of the STATIC class procedure : into the DC of
 // WM_PAINT, which the caller took with BeginPaint or passed in wParam.
