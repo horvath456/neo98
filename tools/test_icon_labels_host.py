@@ -46,6 +46,9 @@ DESKTOP = {'Internet Explorer': ((0, 186, 76, 218), 2), 'Recycle Bin': ((0, 261,
            'Connect to the Internet': ((0, 561, 76, 592), 2)}
 MY_COMPUTER = {'Printers': ((350, 212, 396, 245), 1), 'Dial-Up Networking': ((490, 212, 556, 245), 2),
                'Scheduled Tasks': ((568, 212, 630, 245), 2)}
+# A point of the background of the label "Connect to the Internet", the
+# last icon the desktop shows.
+CONNECT = (10, 575)
 # The focus rectangle around "Neo98 (C:)", the first icon of My Computer.
 DRIVE_C = (272, 320, 213, 227)
 
@@ -91,8 +94,12 @@ def main():
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
     desktop, folder = WORK / 'desktop.png', WORK / 'my-computer.png'
-    steps = ['0:wait=Shell_TrayWnd', f'6:shot={desktop}', '7:dblclick=30,20', '8:wait=CabinetWClass',
-             f'14:shot={folder}', '15:quit=1']
+    # Each picture once its window is complete and the machine quiet, not
+    # at a time: the desktop adds Connect to the Internet, its last icon,
+    # after a pause, so the first picture also waits for the teal of its
+    # label.
+    steps = ['0:wait=Shell_TrayWnd', f'0:wait={CONNECT[0]},{CONNECT[1]},008080', '0:idle=500', f'0:shot={desktop}',
+             '0.5:dblclick=30,20', '0.5:wait=CabinetWClass', '0.5:idle=500', f'0.5:shot={folder}', '1:quit=1']
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
@@ -105,7 +112,9 @@ def main():
         shutil.rmtree(drive, ignore_errors=True)
         win98_c.journal(drive).unlink(missing_ok=True)
     (WORK / 'log.txt').write_text(result.stdout + result.stderr)
-    checks = {}
+    text = result.stdout + result.stderr
+    timed_out = [line for line in text.splitlines() if 'timed out after' in line]
+    checks = {f'the shell, My Computer and a quiet machine came: {timed_out}': not timed_out}
     pictures = [read_png(shot) if shot.is_file() else None for shot in (desktop, folder)]
     checks['the desktop and My Computer show'] = all(pictures)
     if all(pictures):
