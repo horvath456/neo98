@@ -65,6 +65,13 @@ bool Application::Win16KeyboardCall(unsigned ordinal, const Win16Frame &frame, u
         result = Api("GetKeyNameTextA", a);
         return true;
     }
+    case 7: // SetSpeed(rate): the typematic rate of the keyboard controller;
+            // -1 asks whether the driver can set it, which the Keyboard page
+            // of MAIN.CPL (Windows 95) looks for. The host keyboard repeats by
+            // the settings of SystemParametersInfo, so the rate is taken.
+        words = 1;
+        result = frame.Word(0) == 0xffff ? 0 : frame.Word(0);
+        return true;
     default:
         break;
     }

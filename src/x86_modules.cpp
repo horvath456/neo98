@@ -1208,10 +1208,11 @@ unsigned Application::Win16ModuleApi(unsigned ordinal, const unsigned *a)
  // that asks for one by its module name gets a handle of its own, and for an
  // export the far address of the gate, which it calls through QT_Thunk like
  // any 16-bit routine: MSISYS.OCX of MSINFO32 takes eighteen entries of
- // KERNEL, four of USER, one of GDI and five of TOOLHELP this way.
+ // KERNEL, four of USER, one of GDI and five of TOOLHELP this way, and the
+ // Keyboard page of MAIN.CPL (Windows 95) looks for KEYBOARD's SetSpeed.
  // The original KRNL386.EXE and GDI.EXE are never placed as 16-bit code.
  // (USER and VER have rows of the catalogue below and keep them.)
- static const char*const system16[]={"KERNEL","GDI","TOOLHELP"};
+ static const char*const system16[]={"KERNEL","GDI","TOOLHELP","KEYBOARD"};
  constexpr unsigned System16Handle=0xf007;
  const auto system_gate=[&](const char*module,unsigned number)->unsigned{
   if(!Win16HostedReady())return 0;

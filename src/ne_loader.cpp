@@ -251,6 +251,7 @@ unsigned Application::Win16SystemOrdinal(const char *module, const char *name)
         {"KEYBOARD", "OemToAnsi", 6},           {"KEYBOARD", "MapVirtualKey", 131},
         {"KEYBOARD", "GetKeyNameText", 133},    {"KEYBOARD", "AnsiToOemBuff", 134},
         {"KEYBOARD", "OemToAnsiBuff", 135},     {"COMMCTRL", "GetEffectiveClientRect", 4},
+        {"KEYBOARD", "SetSpeed", 7},
         {"COMMCTRL", "CreateStatusWindow", 6},    {"SHELL", "DragAcceptFiles", 9},
         {"SHELL", "ShellExecute", 20},          {"SHELL", "ExtractIcon", 34},  {"SHELL", "ExtractIconExA", 40},
         {"SHELL", "RegisterShellHook", 102},    {"SHELL", "DriveType", 262},
