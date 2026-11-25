@@ -655,14 +655,22 @@ void SettleGeometry()
             for (unsigned guard = 0; up && up != Desktop && guard < 64; ++guard)
             {
                 auto *ancestor = Find(up);
-                if (!ancestor || (ancestor->style & 0x02000000u)) break;
+                if (!ancestor) break;
                 if (stationary)
                     for (const auto &part : shown)
                         if (part.handle && part.count && ShownInside(part.handle, branch, true))
                             for (unsigned k = 0; k < part.count; ++k) propagated.Subtract(part.rects[k]);
                 if (!propagated.n) break;
+                // An ancestor with WS_CLIPCHILDREN cannot paint inside its
+                // children, but the one above it can when it lacks the
+                // style: RDW_ALLCHILDREN reaches it, and its visible region
+                // takes in the whole subtree. A group box never paints its
+                // interior; in a page with WS_CLIPCHILDREN (Settings of
+                // Display Properties) only the property sheet above it
+                // does, and without it the interior kept what was there
+                // before, black after a change of the display mode.
                 const auto area = ClientScreenRect(*ancestor);
-                for (unsigned k = 0; k < propagated.n; ++k)
+                for (unsigned k = 0; k < propagated.n && !(ancestor->style & 0x02000000u); ++k)
                 {
                     Gdi::RECT c{};
                     if (!Win98::IntersectRect(&c, &propagated.r[k], &area)) continue;
