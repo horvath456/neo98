@@ -956,8 +956,15 @@ bool Application::WriteRegistryDisplayMode(int width, int height, int depth)
     // size is the guest's own choice, and the host's screen gives way to it.
     int panel_width = 0, panel_height = 0;
     User::ScreenPanel(panel_width, panel_height);
+    // Choosing the host's size again gives the desktop back to the host: a
+    // desktop set to 800x600 and back to the host's 1024x700 has the host's
+    // size as its desktop again, not as a mode of a program.
     if (panel_width && width == panel_width && height == panel_height)
+    {
+        host_display_width = panel_width;
+        host_display_height = panel_height;
         return !registry.Set(key, "BitsPerPixel", 1, bits, b);
+    }
     host_display_width = host_display_height = 0;
     return !registry.Set(key, "Resolution", 1, resolution, r) && !registry.Set(key, "BitsPerPixel", 1, bits, b);
 }
