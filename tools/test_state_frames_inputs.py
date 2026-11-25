@@ -83,6 +83,42 @@ int main(int argc, char **) { Guest g; return Invoke(g,argc)+Tail(g,argc); }
                 with patch.object(state_frames,'LIST',listing), \
                      patch.object(state_frames,'graph',return_value=({state_frames.SUSPEND:callers},counts)):
                     self.assertEqual(state_frames.check(Path('unused')),1)
+    def test_each_compiler_is_held_to_its_own_reviewed_count(self):
+        from collections import Counter
+        with tempfile.TemporaryDirectory() as folder:
+            listing = Path(folder)/'frames.calls'
+            listing.write_text('restart Known sites=1 llvm21=2 # reviewed wait, LLVM 21 inlines it twice\n')
+            with patch.object(state_frames,'LIST',listing):
+                self.assertEqual(state_frames.read_list()['Known'], ('restart', 1, 1, {21: 2}))
+            for compiler, count, result in [(18, 1, 0), (18, 2, 1), (21, 2, 0), (21, 1, 1), (None, 1, 0), (19, 1, 0)]:
+                counts = Counter({('Known', state_frames.SUSPEND): count})
+                with patch.object(state_frames,'LIST',listing), \
+                     patch.object(state_frames,'compiler_of',return_value=compiler), \
+                     patch.object(state_frames,'graph',return_value=({state_frames.SUSPEND:{'Known'}},counts)):
+                    self.assertEqual(state_frames.check(Path('unused')), result, (compiler, count))
+            listing.write_text('restart Known llvm21=2 # a compiler count alone\n')
+            with patch.object(state_frames,'LIST',listing):
+                with self.assertRaisesRegex(SystemExit, 'stands beside sites=N'):
+                    state_frames.read_list()
+            listing.write_text('restart Known sites=1 llvm21=two # not a number\n')
+            with patch.object(state_frames,'LIST',listing):
+                with self.assertRaisesRegex(SystemExit, 'invalid site count: two'):
+                    state_frames.read_list()
+
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'the .comment section of an ELF program')
+    def test_compiler_comes_from_the_program(self):
+        import neo98
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / 'main.cpp').write_text('int main() { return 0; }\n')
+            env = neo98.tool_environment()
+            subprocess.run(['clang++', '-O2', str(root / 'main.cpp'), '-o', str(root / 'fixture')], env=env, check=True)
+            version = subprocess.run(['clang++', '--version'], env=env, capture_output=True, text=True).stdout
+            import re
+            self.assertEqual(state_frames.compiler_of(root / 'fixture'),
+                             int(re.search(r'clang version (\d+)\.', version)[1]))
+            self.assertIsNone(state_frames.compiler_of(root / 'main.cpp'))
+
     def test_failed_debug_reader_does_not_cache_partial_output(self):
         with tempfile.TemporaryDirectory() as folder:
             cache = Path(folder) / 'cache'

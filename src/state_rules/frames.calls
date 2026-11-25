@@ -12,6 +12,8 @@
 #   transient   a state waits until the thread has left the frame
 #   sites=N     reviewed number of compiled callback/wait/tail sites; a
 #               changed count stops the build even in a function already here
+#   llvmNN=M    the reviewed number of a build with clang NN where it counts
+#               the same source differently (inlining, a dropped GiveTail)
 #
 # A transient frame is safe without anybody's care: Call keeps no tail for
 # it, so MachineState::CanSave refuses while a thread is inside. What a line

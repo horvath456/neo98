@@ -2,10 +2,15 @@
 # Classifications shared with frames.calls retain their reviewed reasons.
 # LLVM keeps different inline wrappers and duplicates template call sites.
 # Review changes with tools/state_frames.py, never regenerate this list in the build.
+# llvmNN=M: the reviewed count of a build with clang NN where it differs
+# from LLVM 18's for the same source. LLVM 21 (reviewed 25 November 2026
+# on the sources whose LLVM 18 counts this list holds) inlines differently
+# and drops a GiveTail that the next GiveTail overwrites; each such line
+# says what its LLVM 21 sites are.
 transient  X86::{anon}::CallTspProvider sites=1  # noinline provider callback must finish before a state can be saved
 
 entry      MachineState::Machine::LoadProcess::lambda::call sites=2  # Starts the restored Win16 or Win32 fiber in Run.
-resumable  X86::Application::Api sites=13  # callback/modal gates preserve their stated tail; GetMessage/PeekMessage record only a requested native settings section and its original arguments
+resumable  X86::Application::Api sites=13 llvm21=14  # callback/modal gates preserve their stated tail; GetMessage/PeekMessage record only a requested native settings section and its original arguments. LLVM 21: the same 13 sites in the source (DialogBox, SendMessage, CallWindowProc, SendMessageCallback, GetMessage, DispatchMessage) and one more inlined copy of the Call wrapper without a line, merged by the compiler from those Call sites
 resumable  X86::Application::BuildFileDialog sites=3  # heap FileDialogFrame plus HostFileDialog; the loaded loop runs the same cleanup
 resumable  X86::Application::BuildMessageBox sites=2  # record HostMessageBox, when it is the handler of its gate (TakeFresh); FinishMessageBox is the rest
 loop       X86::Application::Call sites=4  # a callback of the flat side; its mark keeps the registers below and what the caller has left (call_marks, ResumeCall)
@@ -23,7 +28,7 @@ transient  X86::Application::CommonMemory::Compare sites=1  # one callback insid
 resumable  X86::Application::ConfirmEndTask sites=2  # the target task remains in HostEndTask until the confirmation result is normalized and termination finishes
 transient  X86::Application::ConsoleApi sites=2  # a console read that waits for a key, and the handler of Ctrl+C
 resumable  X86::Application::ContinueCreateWindow sites=1  # restores the interrupted notification, then advances the recorded creation phase
-resumable  X86::Application::ContinueCreateWindow::lambda::call sites=8  # each notification records its next phase before passing the callback tail; failed() callers share phase 4
+resumable  X86::Application::ContinueCreateWindow::lambda::call sites=8 llvm21=9  # each notification records its next phase before passing the callback tail; failed() callers share phase 4. LLVM 21 inlines failed() into both its callers (phases 1 and 3), so its call(4, WM_NCDESTROY) is there twice
 resumable  X86::Application::ContinuePropertyCollect sites=2  # preserves descriptor cursor, output count and presentation phase without recreating completed pages
 resumable  X86::Application::ContinuePropertyInit sites=2  # heap tab/start/eager-page progress resumes INITIALIZED, creation and initial activation
 resumable  X86::Application::ContinuePropertyReleaseInput sites=5  # a matching API phase owns header conversion and the decremented reverse release cursor
@@ -117,7 +122,7 @@ transient  X86::Application::ProcessWinEvents sites=1  # one callback inside a c
 resumable  X86::Application::PropertyPageApi sites=3  # gate or owned collection records the created Unicode page; callback return resumes handle/refcount/string cleanup
 resumable  X86::Application::PropertyPageApi::E::Callback sites=3  # only the page API's own frame passes TailRecord; an unrecorded native caller keeps its stack guard
 resumable  X86::Application::PropertySheetApi sites=2  # gate-owned header scratch survives presentation; the loaded ANSI path releases converted strings before returning
-resumable  X86::Application::PropertySheetEnvironment::Begin sites=26  # creates a typed operation for the exact caller and clears inherited tail promises
+resumable  X86::Application::PropertySheetEnvironment::Begin sites=26 llvm21=32  # creates a typed operation for the exact caller and clears inherited tail promises. Its GiveTail and PushHostFrame for each of its 13 callers; LLVM 21 also inlines Release (into four callers) and Apply (into ContinueCommand) with their Begin, and drops two PushHostFrame of the Release copies
 transient  X86::Application::PropertySheetEnvironment::Callback sites=1  # Page callback completes within its enclosing recorded phase.
 resumable  X86::Application::PropertySheetEnvironment::ContinueActivate sites=1  # takes up its child before advancing page selection and visibility
 resumable  X86::Application::PropertySheetEnvironment::ContinueAdd sites=1  # preserves insertion/eager-creation remainder; failure returns the live handle to its caller
@@ -132,7 +137,7 @@ resumable  X86::Application::PropertySheetEnvironment::ContinueRemoveRequest sit
 resumable  X86::Application::PropertySheetEnvironment::ContinueSetCurrent sites=2  # keeps index, direction and tab selection result across KILLACTIVE and SETACTIVE
 resumable  X86::Application::PropertySheetEnvironment::CreatePage sites=3  # only a registered collection hands its unfinished input cursor to the page API
 resumable  X86::Application::PropertySheetEnvironment::Notify sites=1  # stages a guest notification and records its result/cleanup
-resumable  X86::Application::PropertySheetEnvironment::Phase sites=33  # only its own typed registered operation passes TailRecord; slot/thread/phase validated when saving
+resumable  X86::Application::PropertySheetEnvironment::Phase sites=33 llvm21=32  # only its own typed registered operation passes TailRecord; slot/thread/phase validated when saving. LLVM 21 drops the GiveTail of Phase(w,1) in ContinueRemove, which the GiveTail(TailNone) before DestroyWindow overwrites at once
 resumable  X86::Application::PropertySheetEnvironment::WorkScope::~WorkScope sites=16  # clears any unused tail before removing and freeing its owned operation
 transient  X86::Application::ResourceApi sites=2  # one callback inside a call
 loop       X86::Application::ResumeCall sites=1  # the loop of Call and Win16Invoke for a callback out of a state
@@ -231,7 +236,7 @@ resumable  X86::Application::Win16OpenDialog::ContinueMessage sites=2  # registe
 resumable  X86::Application::Win16OpenDialog::ContinueOutput sites=2  # FileOK result ends the already-written output once
 resumable  X86::Application::Win16OpenDialog::DriveChosen sites=1  # only failed-drive warning keeps the later combo rebuild
 transient  X86::Application::Win16OpenDialog::Hook sites=5  # File hook returns to the enclosing recorded controller phase.
-resumable  X86::Application::Win16OpenDialog::Phase sites=14  # exact typed slot/thread/phase is required when saving
+resumable  X86::Application::Win16OpenDialog::Phase sites=14 llvm21=13  # exact typed slot/thread/phase is required when saving. LLVM 21 drops the GiveTail of Phase in Wait, which the GiveTail(TailFresh or TailNone) right after it overwrites
 resumable  X86::Application::Win16OpenDialog::Wait sites=1  # operation owns warning strings through the registered box and its result
 resumable  X86::Application::Win16OpenDialog::WorkScope::~WorkScope sites=1  # clears unused promise and releases its operation and warning strings
 resumable  X86::Application::Win16PrintDialog sites=2  # HostWin16PrintApi holds the API scratch and cursor/extended-error remainder

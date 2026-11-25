@@ -32,6 +32,14 @@ The build stops
   * when the number of callback/wait/tail sites in a listed function
     differs from its reviewed sites=N count.
 
+The count is one of the compiled program: inlining and the removal of a
+store that the next one overwrites change it without a change of the
+source. Where two compilers that build the host count differently for the
+same code, the line keeps both reviewed numbers, sites=N for the compiler of
+the list's header and llvmNN=M for the clang of that major version, which
+the program names in its .comment section. Each build is held to the number
+of its own compiler.
+
     tools/state_frames.py --binary build/native-app/neo98-host
     tools/state_frames.py --binary... --propose lines for what is missing
 """
@@ -187,15 +195,42 @@ def read_list():
             raise SystemExit(f'{LIST}:{number}: not a line of the list: {line}')
         if '#' not in line or not line.split('#', 1)[1].strip():
             raise SystemExit(f'{LIST}:{number}: a line says why (# ...): {line}')
-        name, _, sites = match.group(2).rpartition(' sites=')
-        if not name:
-            name, sites = match.group(2), None
-        if sites is not None and not sites.isdigit():
-            raise SystemExit(f'{LIST}:{number}: invalid site count: {sites}')
+        # The name, then the reviewed counts: sites=N, and llvmNN=M for a
+        # compiler that counts the same code differently.
+        counts = re.match(r'^(\S.*?)((?:\s+(?:sites|llvm\d+)=\S*)*)$', match.group(2))
+        name, sites, compilers = counts.group(1), None, {}
+        for token in counts.group(2).split():
+            key, _, value = token.partition('=')
+            if not value.isdigit():
+                raise SystemExit(f'{LIST}:{number}: invalid site count: {value}')
+            if key == 'sites':
+                sites = int(value)
+            else:
+                compilers[int(key[4:])] = int(value)
+        if compilers and sites is None:
+            raise SystemExit(f'{LIST}:{number}: a count of one compiler stands beside sites=N: {line}')
         if name in listed:
             raise SystemExit(f'{LIST}:{number}: duplicate function {name} (first listed on line {listed[name][1]})')
-        listed[name] = (match.group(1), number, int(sites) if sites is not None else None)
+        listed[name] = (match.group(1), number, sites, compilers)
     return listed
+
+
+def compiler_of(binary):
+    """The major version of the clang that compiled the program, from the
+    .comment section of an ELF file; None when it does not say (a Mach-O
+    program) or names more than one."""
+    try:
+        text = subprocess.run(['readelf', '-p', '.comment', str(binary)], capture_output=True, text=True,
+                              errors='replace', env=dict(os.environ, LC_ALL='C')).stdout
+    except OSError:
+        return None
+    versions = {int(version) for version in re.findall(r'clang version (\d+)\.', text)}
+    return versions.pop() if len(versions) == 1 else None
+
+
+def reviewed_sites(record, compiler):
+    """The reviewed count of a line for the program's compiler."""
+    return record[3].get(compiler, record[2]) if compiler is not None else record[2]
 
 
 def long_frames(text):
@@ -313,6 +348,7 @@ def instruction_calls(binary, objects):
 def check(binary, propose=False, propose_sites=False):
     callers, sites = graph(binary)
     listed = read_list()
+    compiler = compiler_of(binary)
     kind = {name: entry[0] for name, entry in listed.items()}
     wanted = {}   # function -> what it calls that puts it on the list
     for name in callers.get(STEP, ()):
@@ -338,9 +374,12 @@ def check(binary, propose=False, propose_sites=False):
         for line in LIST.read_text().splitlines():
             content, mark, reason = line.partition('#')
             if content.strip():
-                match = re.match(r'^(\w+\s+)(.*?)(?:\s+sites=\d+)?\s*$', content)
-                name = match[2]
-                line = f'{match[1]}{name} sites={counts_of_sites[name]}  #{reason}'
+                match = re.match(r'^(\w+\s+)(.*?)((?:\s+(?:sites|llvm\d+)=\d+)*)\s*$', content)
+                name, counts = match[2], dict(token.split('=') for token in match[3].split())
+                # This build's count goes where its compiler's number stands.
+                counts['llvm%d' % compiler if 'llvm%s' % compiler in counts else 'sites'] = counts_of_sites[name]
+                counts = {'sites': counts.pop('sites'), **counts}
+                line = f'{match[1]}{name} ' + ' '.join(f'{key}={value}' for key, value in counts.items()) + f'  #{reason}'
             print(line)
         return 0
     problems = []
@@ -354,9 +393,11 @@ def check(binary, propose=False, propose_sites=False):
         if name in kind and kind[name] not in ('resumable', 'loop', 'entry'):
             problems.append(f'{name} hands a tail position on or keeps a record and is listed as {kind[name]}')
     for name, how in sorted(kind.items()):
-        if listed[name][2] != counts_of_sites[name]:
+        expected = reviewed_sites(listed[name], compiler)
+        if expected != counts_of_sites[name]:
+            key = f'llvm{compiler}=' if compiler in listed[name][3] else 'sites='
             problems.append(f'{name} has {counts_of_sites[name]} callback/wait/tail sites, '
-                            f'listed {listed[name][2]}; review the changed sites and update sites=')
+                            f'listed {expected}; review the changed sites and update {key}')
         if how == 'resumable' and name not in tails and name not in TAIL:
             problems.append(f'{name} is listed as resumable and neither hands a tail position on nor keeps a record')
         if name not in wanted and name != STEP and name not in TAIL:
