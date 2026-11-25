@@ -273,11 +273,18 @@ void Application::MdiActivate(MdiClient &record, unsigned child)
             if (!User::IsWindow(client) || !User::IsWindow(child)) return;
         }
         const unsigned position[] = {child, 0, 0, 0, 0, 0, 0x13}; // SWP_NOMOVE|NOSIZE|NOACTIVATE
-        Api("SetWindowPos", position);
-        Send(child, WmNcActivate, 1, 0);
         const unsigned client = record.hwnd, frame = User::Parent(client);
-        if (User::IsWindow(frame) && User::ThreadActivation(User::WindowThread(frame)).active == frame)
+        // The caption of the new child turns active only while the frame is
+        // the active window; otherwise the frame's own WM_NCACTIVATE brings
+        // it later through DefFrameProc and the MDI client.
+        const bool frame_active =
+            User::IsWindow(frame) && User::ThreadActivation(User::WindowThread(frame)).active == frame;
+        Api("SetWindowPos", position);
+        if (frame_active)
+        {
+            Send(child, WmNcActivate, 1, 0);
             SetFocus(client); // MDICLIENT forwards focus through the child's procedure.
+        }
         if (!User::IsWindow(client) || !User::IsWindow(child)) return;
         Send(child, WmMdiActivate, old, child);
     }
@@ -322,6 +329,12 @@ unsigned Application::MdiClientMessage(unsigned hwnd, unsigned message, unsigned
         if (User::IsWindow(record->active) && !(User::Style(record->active) & StyleMinimize))
             SetFocus(record->active);
         return 0;
+    case WmNcActivate:
+        // The frame turns active or inactive (DefFrameProc hands its
+        // WM_NCACTIVATE on): the active child's caption follows it.
+        if (User::IsWindow(record->active))
+            Send(record->active, WmNcActivate, wp, lp);
+        break;
     case WmSize:
         // A maximized child's client covers the MDI client. Its outer
         // rectangle still includes its caption and borders, even while

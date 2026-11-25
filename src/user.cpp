@@ -71,6 +71,11 @@ struct Window {
     int host_width = 0, host_height = 0, host_x = 0, host_y = 0;
     Gdi::HDC host_dc = 0;
     bool used = false, visible = false, enabled = true, modified = false, redraw = true;
+    // USER's frame-on bit of the WND: DefWindowProc sets it with
+    // WM_NCACTIVATE TRUE and clears it with FALSE. A child window's caption
+    // is drawn active by it; an MDI child gets the message from the MDI
+    // client while its frame is the active window.
+    bool frame_on = false;
     // USER marks an overlapped window at creation: its first WM_SIZE
     // and WM_MOVE come from ShowWindow, not from CreateWindow.
     bool send_size_move = false;
@@ -1556,7 +1561,7 @@ unsigned NativeSignature(HWND h, const Window &w)
     unsigned hash = 2166136261u;
     auto mix = [&](unsigned value) { for (unsigned i = 0; i < 4; ++i) { hash ^= (value >> (i * 8)) & 255; hash *= 16777619u; } };
     mix(w.style); mix(w.extended); mix(unsigned(w.width)); mix(unsigned(w.height)); mix(w.nonclient_flags);
-    mix(foreground == h); mix(focus == h); mix(w.enabled); mix(w.pressed_hit);
+    mix(foreground == h); mix(w.frame_on); mix(focus == h); mix(w.enabled); mix(w.pressed_hit);
     for (const char *s = w.title; *s; ++s) mix(unsigned(char(*s)));
     if (w.edit)
     {
@@ -4463,7 +4468,18 @@ unsigned DefaultMessage(HWND h, unsigned msg, unsigned wp, unsigned lp)
     if(msg==0x1f){CancelFrameTrack(h);CaptureOperation(7,h);return 0;}
     // The default window procedure accepts WM_QUERYENDSESSION and
     // WM_QUERYOPEN.
-    if (msg == 0x81 || msg == 0x86 || msg == 0x11 || msg == 0x13) return 1; // WM_NCCREATE, WM_NCACTIVATE, WM_QUERYENDSESSION, WM_QUERYOPEN
+    // WM_NCACTIVATE turns the frame on or off and draws the caption again,
+    // and answers TRUE.
+    if (msg == 0x86)
+    {
+        if (auto *w = Find(h); w && w->frame_on != (wp != 0))
+        {
+            w->frame_on = wp != 0;
+            dirty = true;
+        }
+        return 1;
+    }
+    if (msg == 0x81 || msg == 0x11 || msg == 0x13) return 1; // WM_NCCREATE, WM_QUERYENDSESSION, WM_QUERYOPEN
     if (msg == 0x2e || msg == 0x2f) return ~0u; // USER: default listbox key/character handling.
     if (msg == 0x112)
     {

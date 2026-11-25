@@ -6397,7 +6397,10 @@ void Application::FinishCreatedWindow(unsigned hwnd, bool show, unsigned command
         {
             if (++record->created > 0x7ffe) record->created = 0;
             if (User::Style(hwnd) & 0x01000000u) record->maximized = hwnd;
-            if ((User::Style(hwnd) & 0x10000000u) && User::IsEnabled(hwnd))
+            // A visible child is activated even while its frame is disabled:
+            // Program Manager makes its groups from the dialog of File > New,
+            // and the new group is the active one once the dialog is closed.
+            if (User::Style(hwnd) & 0x10000000u)
             {
                 // Win98 publishes the menu refresh through MDICLIENT's
                 // procedure, then positions the visible child with activation.
