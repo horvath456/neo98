@@ -1194,6 +1194,10 @@ private:
     void DrainDosUiGraphics();
     bool BindRestoredDosVm(DosVm::Session *session, const DosVm::Launch &launch);
     unsigned SystemParametersWrite(const unsigned *);
+    // The accessibility settings, SPI 32h to 47h (src/x86_accessibility.inc).
+    unsigned AccessibilityParameters(const unsigned *);
+    void AccessibilityKey(unsigned key, bool down, bool repeat);
+    bool ApplyAppearanceScheme(const char *name);
     bool WriteSystemProfile(const char *section, const char *key, const char *value);
     // USER HWND_BROADCAST. Mode is the original delivery selector.
     unsigned BroadcastMessage(unsigned mode, unsigned message, unsigned wp, unsigned lp);

@@ -5592,6 +5592,7 @@ void Application::RawKey(unsigned key, unsigned character, bool down, unsigned s
     if (User::InputBlocked() && !injected_input)
         return;
     auto packet=User::CaptureKey(key, character, down, scan, extended);
+    AccessibilityKey(packet.key, down, (packet.parameter & 0x40000000) != 0); // ToggleKeys
     // Win98 keybd_event keeps explicitly supplied left/right modifier VKs.
     // Host keyboard events still use the generic VK for window messages.
     if(injected_input && key>=0xa0 && key<=0xa5)packet.key=key;

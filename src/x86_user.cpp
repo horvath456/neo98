@@ -5,6 +5,7 @@
 #include "win98_broadcast.h"
 #include "win98_gdi_parameters.h"
 #include "registry.h"
+#include "sound.h"
 #include "files.h"
 #include "profile_files.h"
 #include "win98_profile_struct.h"
@@ -64,6 +65,7 @@ unsigned Application::SystemMetric(unsigned index)
     return Win98Metrics::Query(provider, static_cast<int>(index));
 }
 #include "x86_parameters_write.inc"
+#include "x86_accessibility.inc"
 // USER reads its settings once at start. It opens HKLM\Software\Microsoft\Plus!\Setup,
 // reads the value "cool.dll" into a 104h-byte buffer
 // and, when that succeeds with a nonzero length, loads
@@ -302,6 +304,9 @@ unsigned Application::SystemParameters(const unsigned *a)
         if(!a[2]||!virtual_memory.Access(a[2],4,true)){last_error=87;return 0;}
         return Store(a[2],&enabled,4);
     }
+    // FILTERKEYS to SCREENREADER, src/x86_accessibility.inc.
+    if (a[0] >= 0x32 && a[0] <= 0x47)
+        return AccessibilityParameters(a);
     // Actions that change a setting run the implemented write branches.
     if (a[0] == 20 || a[0] == 21 || a[0] == 34 || a[0] == 42 || a[0] == 44 || a[0] == 46 || a[0] == 47)
         return SystemParametersWrite(a);
