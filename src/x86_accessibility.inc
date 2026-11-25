@@ -13,8 +13,9 @@
 // ask; High Contrast puts the colour scheme it names into effect when it is
 // turned on and the scheme before it back when it is turned off; ToggleKeys
 // sounds a high tone when Caps Lock, Num Lock or Scroll Lock turns on and a
-// low one when it turns off. StickyKeys, FilterKeys, MouseKeys, the time-out,
-// SoundSentry and SerialKeys keep their settings without acting on input.
+// low one when it turns off. StickyKeys, MouseKeys and FilterKeys act on the
+// keys in Application::RawKey (StickyKey, MouseKey, FilterKey below). The
+// time-out, SoundSentry and SerialKeys keep their settings without acting.
 namespace
 {
 struct AccessFlag
@@ -236,6 +237,16 @@ struct MouseKeysState
     unsigned button = 1, key = 0, since = 0;
 } mouse_keys_state;
 constexpr unsigned MouseKeysIndex = 2, MouseKeysOn = 1, MouseKeysModifiers = 0x40, MouseKeysNumbers = 0x80;
+// FilterKeys: when each key went up last (BounceKeys) and whether its press
+// was dropped; the key held now, since when, since when it counts and its
+// last repeat, and the press SlowKeys holds back.
+struct FilterState
+{
+    unsigned up[256] = {}, key = 0, since = 0, counted = 0, last = 0;
+    bool bounced[256] = {}, upped[256] = {}, accepted = false;
+    User::InputPacket pending{};
+} filter_state;
+constexpr unsigned FilterIndex = 0, FilterOn = 1, FilterClick = 0x40;
 void StickyTone(unsigned frequency)
 {
     if (access_state.values[StickyIndex][1] & StickyAudible)
@@ -436,6 +447,88 @@ bool Application::MouseKey(unsigned key, bool extended, bool down, bool repeat)
             MouseButtons(p.x, p.y, buttons & ~chosen);
         }
     return true;
+}
+// FilterKeys (FKF_FILTERKEYSON). BounceKeys, with iBounceMSec: a press of a
+// key within that time after it went up is dropped with its release.
+// Otherwise SlowKeys, with iWaitMSec: a key counts once it is held that
+// long, its press goes on at its first repeat or its release after that
+// time, and a shorter press is dropped; and RepeatKeys: a held key repeats
+// after iDelayMSec, every iRepeatMSec at most, and not at all when that is
+// zero. FKF_CLICKON clicks when a key counts. The modifiers and the lock keys
+// pass as they are; the hot key (Right Shift for eight seconds) is not
+// ported. Answers whether the packet goes no further.
+bool Application::FilterKey(User::InputPacket &packet, bool down, bool repeat)
+{
+    auto &s = AccessLoaded();
+    const unsigned flags = s.values[FilterIndex][1];
+    const unsigned vk = packet.key & 255;
+    if (!(flags & FilterOn) || packet.kind != 1 || (vk >= 0x10 && vk <= 0x14) || vk == 0x90 || vk == 0x91 ||
+        (vk >= 0xa0 && vk <= 0xa5) || vk == 0x5b || vk == 0x5c)
+        return false;
+    auto &f = filter_state;
+    const unsigned wait = s.values[FilterIndex][2], delay = s.values[FilterIndex][3],
+                   rate = s.values[FilterIndex][4], bounce = s.values[FilterIndex][5];
+    const unsigned now = unsigned(Now() / 1000);
+    auto click = [&] {
+        if (flags & FilterClick)
+            Sound::Speaker::Tone(2000, 5);
+    };
+    if (bounce)
+    {
+        if (down && !repeat)
+            f.bounced[vk] = f.upped[vk] && now - f.up[vk] < bounce;
+        if (down)
+            return f.bounced[vk];
+        const bool dropped = f.bounced[vk];
+        f.bounced[vk] = false;
+        if (!dropped)
+        {
+            f.up[vk] = now;
+            f.upped[vk] = true;
+        }
+        return dropped;
+    }
+    if (down && !repeat)
+    {
+        f.key = vk;
+        f.since = f.counted = f.last = now;
+        f.accepted = !wait;
+        if (wait)
+        {
+            f.pending = packet;
+            return true;
+        }
+        click();
+        return false;
+    }
+    if (vk != f.key)
+        return false;
+    if (down)
+    {
+        if (!f.accepted)
+        {
+            if (now - f.since >= wait)
+            {
+                f.accepted = true;
+                f.counted = f.last = now;
+                EnqueueInput(f.pending);
+                click();
+            }
+            return true;
+        }
+        if (!rate || now - f.counted < delay || now - f.last < rate)
+            return true;
+        f.last = now;
+        return false;
+    }
+    f.key = 0;
+    if (f.accepted)
+        return false;
+    if (now - f.since < wait)
+        return true;
+    EnqueueInput(f.pending);
+    click();
+    return false;
 }
 // The latched modifiers go up after the key they were held for, and with
 // `all` the locked ones too. Alt goes up as a plain WM_KEYUP: a key went by

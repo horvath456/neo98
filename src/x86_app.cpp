@@ -5598,6 +5598,8 @@ void Application::RawKey(unsigned key, unsigned character, bool down, unsigned s
     AccessibilityKey(packet.key, down, repeat); // ToggleKeys
     // MouseKeys takes the keys of the numeric keypad for the pointer.
     if (MouseKey(key, extended, down, repeat)) return;
+    // FilterKeys drops bounces, short presses and repeats.
+    if (FilterKey(packet, down, repeat)) return;
     // StickyKeys holds a modifier for the next key, or lets it go after it.
     bool sticky_release = false;
     if (StickyKey(packet, down, repeat, sticky_release)) return;

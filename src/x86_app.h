@@ -1227,6 +1227,7 @@ private:
     bool StickyKey(User::InputPacket &packet, bool down, bool repeat, bool &release);
     void StickyRelease(bool all);
     bool MouseKey(unsigned key, bool extended, bool down, bool repeat);
+    bool FilterKey(User::InputPacket &packet, bool down, bool repeat);
     bool ApplyAppearanceScheme(const char *name);
     bool WriteSystemProfile(const char *section, const char *key, const char *value);
     // USER HWND_BROADCAST. Mode is the original delivery selector.
