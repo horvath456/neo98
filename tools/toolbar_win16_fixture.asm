@@ -26,7 +26,8 @@
 ; button without a string, for "Four" with its sixteen bytes, for the missing
 ; command and without a buffer, the rows before, TB_SETROWS(2) with its
 ; rectangle, the rows after, TB_SETROWS(1) with its rectangle and the rows
-; after that. Then it runs its message loop until the host quits.
+; after that. Then its window takes the title "Toolbar16 done", and it runs
+; its message loop until the host quits.
 ; tools/test_win16_toolbar_host.py; the New Executable is made as for
 ; tools/layer_win16_fixture.asm, with the bitmap as a resource.
         bits 16
@@ -201,6 +202,10 @@ code_start:
         API 1, 86                       ; _lwrite
         push si
         API 1, 81                       ; _lclose
+        push word [window]
+        push ds
+        push word done
+        API 2, 37                       ; SetWindowText: the file is complete
 next:   push ds
         push word message
         push word 0
@@ -250,6 +255,7 @@ wc_instance dw 0
          dd 0                           ; no class menu
 wc_class dw class, 0
 class    db 'Toolbar16', 0
+done     db 'Toolbar16 done', 0
 fout     db 'C:\TOOLBR16.TXT', 0
 ; TBBUTTON of the 16-bit COMMCTRL: iBitmap, idCommand, fsState
 ; (TBSTATE_ENABLED), fsStyle (TBSTYLE_BUTTON), dwData, iString.

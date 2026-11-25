@@ -95,8 +95,11 @@ def main():
                            resources=[(2, 1, strip()), (6, 1, strings())])
     shutil.copyfile(out / 'TOOLBR16.EXE', drive / 'TOOLBR16.EXE')
     shot = out / 'toolbars.ppm'
-    steps = ['0:wait=Toolbar16|Toolbar16', '2:shot=' + str(shot), '1:menu=quit']
-    env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_DEADLINE='60',
+    # The fixture names its window "Toolbar16 done" once its file is
+    # complete; the picture waits for a quiet machine, the quit for the
+    # picture.
+    steps = ['0:wait=Toolbar16|Toolbar16 done', '0:idle=500', '0:shot=' + str(shot), '0.5:menu=quit']
+    env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_DEADLINE='150',
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'),
                NEO98_HOST_INPUT=';'.join(steps))
     for key in ('NEO98_HOST_ATTACHED', 'NEO98_HOST_MENU'):
@@ -106,6 +109,7 @@ def main():
                         '--system-tree', str(drive), '--drive-c', str(drive), '--registry', str(out / 'c.registry'),
                         '--crash-report-dir', str(out / 'reports')], cwd=out, env=env, stdout=log,
                        stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, timeout=180)
+    host_log = (out / 'log.txt').read_text(errors='replace')
     written = win98_c.path('C:\\TOOLBR16.TXT', drive)
     data = written.read_bytes() if written else b''
     shutil.rmtree(drive, ignore_errors=True)
@@ -132,6 +136,9 @@ def main():
     colours = [centre(image, r, top_origin) for r in top] if complete and sized else []
     bottom_colours = [centre(image, r, bottom_origin) for r in bottom] if complete and sized else []
     checks = {
+        'the fixture said it was done and the picture waited for a quiet machine':
+            'NEO98 HOST input wait=Toolbar16|Toolbar16 done reached' in host_log and
+            'NEO98 HOST input idle=500 reached' in host_log and 'timed out' not in host_log,
         'the program wrote the answers and the screenshot exists': complete,
         f'TB_ADDBITMAP of MAKELONG(instance, 1) answers the first index: {added}': added == 0,
         f'TB_ADDBUTTONS took the three 16-bit buttons: {count}': count == 3,
