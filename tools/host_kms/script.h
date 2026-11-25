@@ -4,6 +4,7 @@
 // src/x86_app.h, as those hosts do.
 #pragma once
 #include "../../src/usb_keys.h"
+#include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -19,13 +20,18 @@ namespace HostKms
 // dblclick=X,Y, move=X,Y, drag=X1,Y1,X2,Y2 (guest coordinates), key=VK,
 // ctrl=VK and alt=VK (hexadecimal), keydown=VK and keyup=VK (a key held over
 // the steps between them), type=TEXT, shot=PATH (the screen as PNG), quit=1
-// (also menu=quit).
+// (also menu=quit), and idle=MS: until no thread of the machine has been
+// runnable for MS milliseconds since the step began, as the other hosts
+// wait before a picture. A wait gives up after 240 s and says so; the
+// seconds of the later steps count from the end of a wait.
 class Script
 {
     struct Step { double time; std::string action, value; };
     std::vector<Step> steps;
     size_t at = 0;
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now(), stepped = start;
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now(), stepped = start, busy_at = start,
+                                          waiting_since{};
+    bool waiting = false;
     // Within 48 of each channel, as the other hosts compare.
     static bool Pixel(int x, int y, unsigned want)
     {
@@ -78,21 +84,47 @@ class Script
     // Returns false when the script asks to quit.
     bool Pump(X86::Application &app, const std::function<bool(const std::string &)> &shot)
     {
-        if (at == steps.size()) return true;
         const auto now = std::chrono::steady_clock::now();
+        if (app.SystemRunnable()) busy_at = now;
+        if (at == steps.size()) return true;
         const auto &step = steps[at];
         if (std::chrono::duration<double>(now - start).count() < step.time) return true;
-        if (step.action == "wait")
+        if (step.action == "wait" || step.action == "idle")
         {
+            if (!waiting) { waiting = true; waiting_since = now; }
+            const double waited = std::chrono::duration<double>(now - waiting_since).count();
             int x = 0, y = 0;
             unsigned colour = 0;
             char rest = 0;
-            const bool pixel = sscanf(step.value.c_str(), "%d,%d,%x%c", &x, &y, &colour, &rest) == 3;
-            if (pixel ? !Pixel(x, y, colour) : !Window(step.value)) return true;
+            const bool pixel = step.action == "wait" && sscanf(step.value.c_str(), "%d,%d,%x%c", &x, &y, &colour, &rest) == 3;
+            bool met;
+            if (step.action == "idle")
+            {
+                // Quiet since the step began, not only before it: the input
+                // of the step before may not have run yet.
+                const double quiet = std::min(std::chrono::duration<double>(now - busy_at).count(), waited);
+                met = quiet * 1000 >= atof(step.value.c_str());
+            }
+            else met = pixel ? Pixel(x, y, colour) : Window(step.value);
+            const bool expired = waited > 240;
+            if (!met && !expired) return true;
+            waiting = false;
+            start = now - std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(step.time));
+            if (!met)
+            {
+                // Not the line of a step that was taken: a test that looks
+                // for it sees that the wait came to nothing.
+                fprintf(stderr, "NEO98 KMS input %s=%s timed out after %.1f s\n", step.action.c_str(),
+                        step.value.c_str(), waited);
+                stepped = now;
+                ++at;
+                return true;
+            }
             if (pixel)
                 fprintf(stderr, "NEO98 KMS input pixel %d,%d is %06x after %.3f s\n", x, y, colour,
                         std::chrono::duration<double>(now - stepped).count());
-            start = now - std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(step.time));
+            if (step.action == "idle")
+                fprintf(stderr, "NEO98 KMS input idle=%s reached after %.1f s\n", step.value.c_str(), waited);
         }
         else if (step.action == "shot") shot(step.value);
         else if (step.action == "quit" || (step.action == "menu" && step.value == "quit")) { ++at; return false; }
