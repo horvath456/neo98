@@ -357,8 +357,14 @@ class Session
         const bool started = app->Start(exe.data(), exe.size(), font.data(), font.size(), options.exe.c_str(),
                                       command.empty() ? nullptr : command.c_str());
         if (!started) fprintf(stderr, "Guest startup failed: %s\n", app->Error());
-        else if (!options.directory.empty() && app->files.SetDirectory(options.directory.c_str()))
-            fprintf(stderr, "Could not open guest working directory: %s\n", options.directory.c_str());
+        else
+        {
+            // The shell of SYSTEM.INI started without a command line is the
+            // start of Windows; its logon comes first.
+            if (options.command.empty()) app->LogonAtStart();
+            if (!options.directory.empty() && app->files.SetDirectory(options.directory.c_str()))
+                fprintf(stderr, "Could not open guest working directory: %s\n", options.directory.c_str());
+        }
         return started;
     }
     bool Finished() const

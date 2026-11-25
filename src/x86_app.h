@@ -148,6 +148,14 @@ class Application final : private Pe32::AddressSpace
     // launching the SYSTEM.INI shell, without a default fallback sound. The
     // host calls this once per machine start.
     void PlayStartupSound();
+    // The logon of a Windows start. MSGSRV32.EXE logs the user on (USER.534
+    // WNetLogon, which MPR carries out through MPREXE) before it starts the
+    // shell of SYSTEM.INI; without it MPR serves no request that needs a
+    // logged on user (WNetGetUser), and Passwords in the Control Panel shows
+    // no Change Passwords. The host calls this once per machine start, after
+    // Start of the program; when that program is the shell, its first thread
+    // logs on before its entry point (src/x86_shell.cpp).
+    void LogonAtStart();
     const unsigned *ConsolePixels(); // Native host view of the active text buffer.
     // Write the GPU's pending surface changes back before the host reads pixels.
     void SyncSurfaces() { HalSyncAll(); }
@@ -972,6 +980,10 @@ private:
     // (src/x86_shell.cpp).
     const char *ShellCommandLine(const char *program, const char *command);
     void RunPendingShellCommand();
+    bool logon_at_start = false;
+    void RunStartLogon();
+    unsigned StartLogonModule(const char *dll);
+    void StartPasswordList();
     unsigned RegisterShell(unsigned hwnd, unsigned flags);
     void ShellEvent(unsigned code, unsigned hwnd, unsigned parameter);
     struct AtomTable;

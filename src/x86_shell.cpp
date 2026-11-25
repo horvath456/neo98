@@ -94,6 +94,139 @@ const char *Application::ShellCommandLine(const char *program, const char *comma
     }
     return nullptr;
 }
+void Application::LogonAtStart()
+{
+    char shell[260] = {};
+    ProfileString("boot", "shell", "", shell, sizeof shell, "SYSTEM.INI");
+    if (char *space = strchr(shell, ' ')) *space = 0;
+    if (!shell[0] || !SameText(PathLeaf(shell), PathLeaf(program_name))) return;
+    // Windows asks for a logon at its start once a network client is
+    // installed (a provider under NetworkProvider\Order: Microsoft Family
+    // Logon, which Setup of Windows 98 installs, or Client for Microsoft
+    // Networks, which Dial-Up Networking brings). Without one MPRSERV would
+    // ask for a user name the setup of such a drive was never asked for. A
+    // drive with Client for NetWare Networks has no NetWare driver here: its
+    // provider would stop the logon at "The NetWare-compatible shell is not
+    // available" before the shell starts.
+    auto &registry = Registry::System();
+    unsigned key = Registry::Missing;
+    bool created = false;
+    const Registry::Value *value = nullptr;
+    if (registry.Open(registry.roots[2], "System\\CurrentControlSet\\Control\\NetworkProvider\\Order", false, key,
+                      created) || registry.EnumValue(key, 0, value))
+        return;
+    if (!registry.Query(key, "NWNP32", value))
+    {
+        if (log) log("LOGON none at the start of the shell: the NetWare client of this drive has no driver");
+        return;
+    }
+    logon_at_start = true;
+}
+// A system DLL the logon at the start loads into the shell, where it stays:
+// its index, or ModuleCapacity.
+unsigned Application::StartLogonModule(const char *dll)
+{
+    if (state == Failed || state == Exited || !LockLoader()) return ModuleCapacity;
+    const unsigned index = LoadModule(dll);
+    bool ready = false;
+    if (index < ModuleCapacity)
+    {
+        ++modules[index].references;
+        ready = InitializeModule(index);
+        if (!ready) --modules[index].references;
+    }
+    UnlockLoader();
+    return ready && state != Failed && state != Exited ? index : ModuleCapacity;
+}
+// MPRSERV logs on without a dialog when the password list of the user opens
+// with an empty password. Windows Setup leaves the user none when its
+// primary network logon is Microsoft Family Logon, and the first start
+// under Windows Logon asks "Enter Windows Password"; an empty password
+// there makes the list (MSPWL32's CreatePasswordCache), and the dialog does
+// not come back. The user of Network\Logon without a list gets that list
+// here, as if that first start had been answered so.
+void Application::StartPasswordList()
+{
+    auto &registry = Registry::System();
+    unsigned key = Registry::Missing;
+    bool created = false;
+    const Registry::Value *value = nullptr;
+    char user[64] = {};
+    if (registry.Open(registry.roots[2], "Network\\Logon", false, key, created) ||
+        registry.Query(key, "username", value) || !value || value->size < 2 || value->size > sizeof user)
+        return;
+    memcpy(user, value->data, value->size);
+    user[sizeof user - 1] = 0;
+    if (!user[0]) return;
+    const unsigned index = StartLogonModule("MSPWL32.DLL");
+    if (index >= ModuleCapacity) return;
+    const unsigned name = ModuleProcedure(index, "GetCacheFileName", 0),
+                   create = ModuleProcedure(index, "CreatePasswordCache", 0),
+                   close = ModuleProcedure(index, "ClosePasswordCache", 0);
+    // The handle, the empty password, the user and the file of the list.
+    const unsigned memory = name && create && close ? Allocate(8 + sizeof user + 260) : 0;
+    if (!memory) return;
+    const unsigned zero[2] = {};
+    Store(memory, zero, sizeof zero);
+    Store(memory + 8, user, sizeof user);
+    const unsigned file = memory + 8 + sizeof user;
+    // GetCacheFileName finds the list by [Password Lists] of SYSTEM.INI.
+    const unsigned query[] = {memory + 8, file, 260};
+    const unsigned attributes[] = {file};
+    const bool listed = !Call(name, query, 3) && state != Failed && state != Exited;
+    if (listed && Api("GetFileAttributesA", attributes) != ~0u)
+    {
+        Free(memory);
+        return;
+    }
+    unsigned result = ~0u;
+    if (state != Failed && state != Exited)
+    {
+        const unsigned arguments[] = {memory, memory + 8, memory + 4};
+        result = Call(create, arguments, 3);
+        if (!result && Read32(memory))
+        {
+            const unsigned closing[] = {Read32(memory), 1};
+            Call(close, closing, 2);
+        }
+    }
+    if (log)
+    {
+        char text[200];
+        snprintf(text, sizeof text, "LOGON password list of %s with an empty password: %s, result %u", user,
+                 result ? "not made" : "made", result);
+        log(text);
+    }
+    Free(memory);
+}
+// MSGSRV32 calls USER's WNetLogon with no provider, whose thunk asks MPR to
+// log on to every provider: MPR.DLL starts MPREXE.EXE, whose MPRSERV logs on
+// through the primary network logon (Network\Logon, PrimaryProvider) and the
+// password list of the user in Network\Logon\username. With the user of
+// setup, whose list has an empty password, nothing is shown. MPR's own
+// WNetLogonA(NULL, NULL) is the same request (1Ah) from a 32-bit process; it
+// returns when MPREXE answered, so the shell starts after the logon as on
+// Windows.
+void Application::RunStartLogon()
+{
+    logon_at_start = false;
+    StartPasswordList();
+    const unsigned index = StartLogonModule("MPR.DLL");
+    const unsigned logon = index < ModuleCapacity ? ModuleProcedure(index, "WNetLogonA", 0) : 0;
+    unsigned result = ~0u;
+    if (logon && state != Failed && state != Exited)
+    {
+        const unsigned arguments[] = {0, 0};
+        result = Call(logon, arguments, 2);
+    }
+    if (log)
+    {
+        char text[160];
+        snprintf(text, sizeof text, "LOGON WNetLogonA at the start of the shell: %s, result %u",
+                 logon ? "called" : "MPR.DLL has none", result);
+        log(text);
+    }
+}
 void Application::RunPendingShellCommand()
 {
     if (!pending_shell_command[0])

@@ -4871,6 +4871,8 @@ void Application::Run()
     }
     else NotifyModules(2);
     UnlockLoader();
+    if (!current_thread && logon_at_start && state != Failed && state != Exited)
+        RunStartLogon();
     if (current_thread && state != Failed && state != Exited &&
         !threads[current_thread].done && threads[current_thread].crt_start_data)
         RunCrtThread();

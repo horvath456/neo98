@@ -2442,6 +2442,7 @@ int main(int real_argc, char **real_argv)
         // "SystemStart" begins, then the shell of SYSTEM.INI is started. A
         // machine out of a saved state did not start, it goes on.
         a->PlayStartupSound();
+        a->LogonAtStart();
     }
     }
     // NEO98_HOST_TRACE_EIP="ADDR[=REG+OFF,...];..." prints the registers each
