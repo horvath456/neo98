@@ -14,8 +14,8 @@
 ; SB_GETTEXT and its sixteen bytes, the SB_GETTEXTLENGTH answer, the
 ; SB_GETPARTS answer, its two words and the guard word, the SB_GETRECT answer
 ; and its rectangle, the SB_GETBORDERS answer and its three words, and the
-; client origin of the status bar on the screen. Then it runs its message
-; loop until the host quits. tools/test_win16_status_host.py; the New
+; client origin of the status bar on the screen. Then its window takes the
+; title "Status16 done", and it runs its message loop until the host quits. tools/test_win16_status_host.py; the New
 ; Executable is made as for tools/layer_win16_fixture.asm.
         bits 16
 section header start=0
@@ -120,6 +120,10 @@ code_start:
         API 1, 86                       ; _lwrite
         push si
         API 1, 81                       ; _lclose
+        push word [window]
+        push ds
+        push word done
+        API 2, 37                       ; SetWindowText: the file is complete
 next:   push ds
         push word message
         push word 0
@@ -167,6 +171,7 @@ wc_instance dw 0
          dd 0                           ; no class menu
 wc_class dw class, 0
 class    db 'Status16', 0
+done     db 'Status16 done', 0
 fout     db 'C:\STATUS16.TXT', 0
 first_text  db 'First part', 0
 second_text db 'Second part', 0

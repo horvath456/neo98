@@ -89,12 +89,14 @@ def main():
                            neo98.tool_environment(), modules=('KERNEL', 'USER', 'COMMCTRL'))
     shutil.copyfile(WORK / 'STATUS16.EXE', drive / 'STATUS16.EXE')
     try:
-        log = session(args.kms, drive, 'C:\\STATUS16.EXE', ['0:wait=Status16', '3:shot={out}/fixture.png',
-                                                             '4:quit=1'], 20)
+        # The fixture names its window "Status16 done" once its file is
+        # complete; the pictures wait until the machine is quiet.
+        log = session(args.kms, drive, 'C:\\STATUS16.EXE', ['0:wait=Status16|Status16 done', '0:idle=500',
+                                                             '0:shot={out}/fixture.png', '0.5:quit=1'], 90)
         written = win98_c.path('C:\\STATUS16.TXT', drive)
         data = written.read_bytes() if written else b''
-        log += session(args.kms, drive, 'C:\\WINDOWS\\WINFILE.EXE', ['0:wait=WFS_Frame', '5:shot={out}/winfile.png',
-                                                                     '6:quit=1'], 25)
+        log += session(args.kms, drive, 'C:\\WINDOWS\\WINFILE.EXE', ['0:wait=WFS_Frame', '0:idle=500',
+                                                                     '0:shot={out}/winfile.png', '0.5:quit=1'], 90)
     finally:
         shutil.rmtree(drive, ignore_errors=True)
         win98_c.journal(drive).unlink(missing_ok=True)
@@ -104,7 +106,9 @@ def main():
     w = struct.unpack_from('<30H', data) if len(data) >= 60 else None
     fixture = read_png(WORK / 'fixture.png') if (WORK / 'fixture.png').is_file() else None
     winfile = read_png(WORK / 'winfile.png') if (WORK / 'winfile.png').is_file() else None
-    checks = {'the fixture wrote its answers, both runs without a stop': w is not None and not stops}
+    checks = {'the fixture wrote its answers, both runs without a stop': w is not None and not stops,
+              'the fixture said it was done, both pictures waited for a quiet machine':
+                  'NEO98 KMS input wait=Status16|Status16 done' in log and log.count('NEO98 KMS input idle=500 reached') == 2}
     if w:
         text = data[12:28].split(b'\0')[0]
         rect = [v - 65536 if v & 0x8000 else v for v in w[20:24]]
