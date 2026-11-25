@@ -954,6 +954,92 @@ bool Application::Win16ToolbarSend(unsigned hwnd, unsigned message, unsigned wpa
         return false;
     }
 }
+// A message of 16-bit code to a status bar (msctls_statusbar32, COMCTL32's or
+// the native one) whose arguments have another shape on the 16-bit side: the
+// strings are far pointers, the parts and the borders arrays of 16-bit ints
+// and the rectangle has words. The status bar of CreateStatusWindow got them
+// unchanged and read them at flat addresses; File Manager's status bar showed
+// a stray "]" instead of the free space and its files. Answers true when the
+// message was one of them and has been sent; SB_GETTEXTLENGTH,
+// SB_SETMINHEIGHT and SB_SIMPLE have the same arguments on both sides.
+bool Application::Win16StatusSend(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam,
+                                  unsigned &result)
+{
+    if (message < 0x401 || message > 0x40a || message == 0x403 || message == 0x408 || message == 0x409)
+        return false;
+    char name[32] = {};
+    if (!User::GetClassName(hwnd, name, sizeof name) || strcasecmp(name, "msctls_statusbar32"))
+        return false;
+    const unsigned flat = lparam >> 16 ? Win16Linear(lparam >> 16, lparam & 0xffff) : 0;
+    auto send = [&](unsigned wp, unsigned lp) {
+        const unsigned a[] = {hwnd, message, wp, lp};
+        return Api("SendMessageA", a);
+    };
+    result = 0;
+    switch (message)
+    {
+    case 0x401: // SB_SETTEXT(part | type, text); an owner-drawn part keeps its data
+        result = send(wparam & 0xffff, (wparam & 0x1000) ? lparam : flat);
+        return true;
+    case 0x402: // SB_GETTEXT(part, buffer): MAKELONG(length, type) in DX:AX
+        result = send(wparam & 0xffff, flat);
+        return true;
+    case 0x404: // SB_SETPARTS(count, right edges)
+    case 0x405: // SB_SETBORDERS(0, three widths)
+    {
+        const unsigned count = message == 0x405 ? 3 : wparam & 0xffff;
+        if (!flat || !count || count > 256)
+            return true;
+        const unsigned block = Allocate(count * 4);
+        if (!block)
+        {
+            last_error = 8;
+            return true;
+        }
+        for (unsigned i = 0; i < count; ++i)
+            Write32(block + i * 4, (int)(short)Win16Word(flat + i * 2));
+        result = send(message == 0x405 ? wparam & 0xffff : count, block);
+        Free(block);
+        return true;
+    }
+    case 0x406: // SB_GETPARTS(count, right edges): the number of parts
+    case 0x407: // SB_GETBORDERS(0, three widths)
+    {
+        const unsigned count = message == 0x407 ? 3 : wparam & 0xffff;
+        if (!flat || !count)
+        {
+            result = message == 0x406 ? send(0, 0) : 0;
+            return true;
+        }
+        const unsigned block = Allocate(count * 4);
+        if (!block)
+        {
+            last_error = 8;
+            return true;
+        }
+        result = send(message == 0x407 ? wparam & 0xffff : count, block);
+        const unsigned filled = message == 0x407 ? (result ? 3 : 0) : (result < count ? result : count);
+        for (unsigned i = 0; i < filled; ++i)
+            Win16Word(flat + i * 2, Read32(block + i * 4) & 0xffff);
+        Free(block);
+        return true;
+    }
+    case 0x40a: // SB_GETRECT(part, rect)
+    {
+        const unsigned block = flat ? Allocate(16) : 0;
+        if (!block)
+            return true;
+        result = send(wparam & 0xffff, block);
+        if (result)
+            for (unsigned i = 0; i < 4; ++i)
+                Win16Word(flat + i * 2, Read32(block + i * 4) & 0xffff);
+        Free(block);
+        return true;
+    }
+    default:
+        return false;
+    }
+}
 // TB_SAVERESTORE of a 16-bit program names two far strings, an INI section and
 // an INI file (File Manager: "Settings" and its WINFILE.INI). The 16-bit
 // COMMCTRL of Windows 98 keeps the state in neither. Its SaveRestore writes

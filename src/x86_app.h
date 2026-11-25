@@ -2150,6 +2150,7 @@ private:
     void Win16ToolbarButtonIn(unsigned source, unsigned target);
     void Win16ToolbarButtonOut(unsigned source, unsigned target);
     bool Win16ToolbarSend(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam, unsigned &result);
+    bool Win16StatusSend(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam, unsigned &result);
     unsigned Win16MenuSelectTo16(unsigned message, unsigned wparam, unsigned lparam, unsigned word);
     void Win16MenuHelp(unsigned message, unsigned wparam, unsigned lparam, unsigned menu, unsigned instance,
                        unsigned status, unsigned ids);
