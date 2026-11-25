@@ -18,6 +18,9 @@ it. On neo98-kms with the picture of a 1024x768 desktop in memory:
           drop-down list are black, none grey, and the drop-down list keeps
           the window colour behind its text
 
+The picture waits for the title the fixture sets when it is done and for a
+quiet machine, not for a time.
+
     build/analysis-venv/bin/python tools/test_ancestor_disabled_host.py [--no-build] [--keep] [--kms KMS]
 """
 import sys as _sys
@@ -79,25 +82,31 @@ def main():
     subprocess.run(['i686-w64-mingw32-gcc', str(ROOT / 'tools/ancestor_disabled_fixture.c'), '-nostartfiles',
                     '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32',
                     '-o', str(drive / 'ENABLED.EXE')], check=True)
-    steps = ['0:wait=AncestorDisabled', '3:shot={out}/disabled.png', '4:quit=1']
+    # The picture waits for the title the fixture sets once it has written
+    # its answers and repainted, and for a quiet machine.
+    steps = ['0:wait=AncestorDisabled|Disabled window done', '0:idle=500', '0:shot={out}/disabled.png', '0:quit=1']
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps).replace('{out}', str(WORK)))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
         env.pop(variable, None)
     try:
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '1024x768',
-                                 '--exe', 'C:\\ENABLED.EXE', '--time-limit', '20'], cwd=ROOT, env=env,
-                                capture_output=True, text=True, timeout=110)
+                                 '--exe', 'C:\\ENABLED.EXE', '--time-limit', '120'], cwd=ROOT, env=env,
+                                capture_output=True, text=True, timeout=180)
         written = win98_c.path('C:\\ENABLED.TXT', drive)
         data = written.read_bytes() if written else b''
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
             win98_c.journal(drive).unlink(missing_ok=True)
-    (WORK / 'log.txt').write_text(result.stdout + result.stderr)
+    text = result.stdout + result.stderr
+    (WORK / 'log.txt').write_text(text)
+    timed_out = [line for line in text.splitlines() if 'timed out after' in line]
     answers = struct.unpack('<7i', data) if len(data) >= 28 else None
     picture = read_png(WORK / 'disabled.png') if (WORK / 'disabled.png').is_file() else None
     checks = {
+        f'the window said it was done, and the run ended before the time limit: {timed_out} {result.returncode}':
+            not timed_out and result.returncode == 0,
         'the program wrote its answers and the picture exists': answers is not None and picture is not None,
         f'answer: IsWindowEnabled is FALSE for the window and TRUE for each control: {answers}':
             answers is not None and answers[0] == 0 and all(answers[1:]),

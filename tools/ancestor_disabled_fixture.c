@@ -6,7 +6,8 @@
    second after the start the window is disabled and repainted with its
    children; Windows draws each control by its own state, so they still look
    enabled. C:\ENABLED.TXT gets seven ints: IsWindowEnabled of the window,
-   then of each control. tools/test_ancestor_disabled_host.py */
+   then of each control, and then the window is titled "Disabled window
+   done". tools/test_ancestor_disabled_host.py */
 #include <windows.h>
 
 static HWND window, controls[6];
@@ -25,6 +26,9 @@ static LRESULT CALLBACK WindowProcedure(HWND hwnd, UINT message, WPARAM wp, LPAR
         DWORD written = 0;
         WriteFile(file, results, sizeof results, &written, NULL);
         CloseHandle(file);
+        /* The test waits for this title: the answers are written and the
+           window has painted in its disabled state. */
+        SetWindowTextA(hwnd, "Disabled window done");
         return 0;
     }
     if (message == WM_DESTROY) PostQuitMessage(0);
