@@ -18,6 +18,9 @@ of 1024x768 with the picture in memory:
   run      File > Run starts Notepad (an empty working directory through
            SHELL.DLL)
 
+Every step waits for the menu, dialog or window it needs and every picture
+for a quiet machine, not for a time.
+
     build/analysis-venv/bin/python tools/test_progman_host.py [--no-build] [--keep] [--kms KMS]
 """
 import sys as _sys
@@ -86,26 +89,45 @@ def main():
     subprocess.run(['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
-    # File > New: Enter takes Program Group the first time, Program Item once a
-    # group is there; the Right key picks Program Group again.
-    steps = ['0:wait=Progman', '3:alt=46', '4:type=n', '6:key=0d', '8:type=First', '9:key=0d',
-             '11:alt=46', '12:type=n', '14:key=0d', '16:type=Notepad', '17:key=09', '18:type=NOTEPAD.EXE',
-             '19:key=0d', '22:alt=46', '23:type=n', '25:key=0d', '27:type=File Manager', '28:key=09',
-             '29:type=WINFILE.EXE', '30:key=0d', '33:alt=46', '34:type=n', '36:key=27', '37:key=0d',
-             '39:type=Second', '40:key=0d', '43:shot={out}/second.png', '44:alt=57', '45:type=1',
-             '47:shot={out}/groups.png',
-             '48:alt=46', '49:type=r', '51:type=WINFILE.EXE', '52:key=0d', '53:wait=WFS_Frame',
-             '62:shot={out}/winfile.png', '63:click=1010,12', '67:shot={out}/covered.png',
-             '68:alt=46', '69:type=r', '71:type=NOTEPAD.EXE', '72:key=0d', '73:wait=Notepad',
-             '76:shot={out}/notepad.png', '77:quit=1']
+    # Each step waits for the menu, the dialog or the window it needs (a
+    # group window is a child of the MDI client, which FindWindow does not
+    # see: a new group waits for a quiet machine), and each picture for a
+    # quiet machine. File > New asks for the properties
+    # of a group at once while there is none; once a group is there it asks
+    # what to make first, where Enter takes Program Item and Right picks
+    # Program Group.
+    def menu(key, item):
+        return [f'0:alt={key}', '0:wait=#32768', f'0:type={item}']
+
+    def dialog(title):
+        return [f'0:wait=#32770|{title}', '0:idle=300']
+
+    def item(name, command):
+        return (menu('46', 'n') + dialog('New Program Object') + ['0:key=0d'] +
+                dialog('Program Item Properties') + [f'0:type={name}', '0:key=09', f'0:type={command}', '0:key=0d',
+                                                     '0:idle=500'])
+
+    def run(command):
+        return menu('46', 'r') + dialog('Run') + [f'0:type={command}', '0:key=0d']
+
+    steps = (['0:wait=Progman', '0:idle=1000'] +
+             menu('46', 'n') + dialog('Program Group Properties') + ['0:type=First', '0:key=0d', '0:idle=1000'] +
+             item('Notepad', 'NOTEPAD.EXE') + item('File Manager', 'WINFILE.EXE') +
+             menu('46', 'n') + dialog('New Program Object') + ['0:key=27', '0:key=0d'] +
+             dialog('Program Group Properties') + ['0:type=Second', '0:key=0d', '0:idle=1000',
+                                                   '0:shot={out}/second.png'] +
+             menu('57', '1') + ['0:idle=1000', '0:shot={out}/groups.png'] +
+             run('WINFILE.EXE') + ['0:wait=WFS_Frame', '0:idle=1500', '0:shot={out}/winfile.png',
+                                   '0:click=1010,12', '0:idle=1500', '0:shot={out}/covered.png'] +
+             run('NOTEPAD.EXE') + ['0:wait=Notepad', '0:idle=1000', '0:shot={out}/notepad.png', '0:quit=1'])
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps).replace('{out}', str(WORK)))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
         env.pop(variable, None)
     try:
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '1024x768',
-                                 '--exe', 'C:\\WINDOWS\\PROGMAN.EXE', '--time-limit', '115'], cwd=ROOT, env=env,
-                                capture_output=True, text=True, timeout=180)
+                                 '--exe', 'C:\\WINDOWS\\PROGMAN.EXE', '--time-limit', '240'], cwd=ROOT, env=env,
+                                capture_output=True, text=True, timeout=300)
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
@@ -114,10 +136,13 @@ def main():
     (WORK / 'log.txt').write_text(text)
     stops = [line for line in text.splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
+    timed_out = [line for line in text.splitlines() if 'timed out after' in line]
     pictures = {name: read_png(WORK / f'{name}.png') if (WORK / f'{name}.png').is_file() else None
                 for name in ('second', 'groups', 'winfile', 'covered', 'notepad')}
     groups, covered, second = pictures['groups'], pictures['covered'], pictures['second']
     checks = {
+        f'every menu, dialog, window and quiet moment came before the time limit: {timed_out} {result.returncode}':
+            not timed_out and result.returncode == 0,
         'groups: File > New makes the groups and items without a missing gate': not stops and groups is not None,
         'groups: the new group Second is the active group on top':
             second is not None and caption_active(second, SECOND_CAPTION) and
