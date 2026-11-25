@@ -197,6 +197,9 @@ struct Application::Win16Machine
         unsigned task = 0;
     };
     HostedThread hosted_threads[16];
+    // KERNEL.454 and 455, __FLATCS and __FLATDS: the flat selectors of the
+    // 16-bit side, made on first use.
+    unsigned flat_code = 0, flat_data = 0;
     // Conventional memory of GlobalDOSAlloc (src/ne_loader.cpp): the
     // paragraph-aligned blocks handed out between 10000h and A0000h.
     struct DosBlock

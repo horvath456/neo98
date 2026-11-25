@@ -956,6 +956,21 @@ bool Application::Win16KernelConstant(unsigned ordinal, unsigned &value)
         value = 0;
         memcpy(&value, system_vm_memory + SystemVm::KernelBase + SystemVm::WinFlagsOffset, 2);
         return true;
+    // __FLATCS and __FLATDS: KRNL386 exports them as constants of zero and
+    // puts the selectors of the flat 32-bit code and data segments in at
+    // boot. 16-bit code of the thunk compiler loads __FLATDS to reach the
+    // flat pointers of the 32-bit side (COMMDLG.DLL of Windows 95 in its LS
+    // thunk targets). Here they are ring-three descriptors over the whole
+    // address space of the process, made on first use.
+    case 454:
+    case 455:
+    {
+        if (!win16.state) return false;
+        unsigned &flat = ordinal == 454 ? win16.state->flat_code : win16.state->flat_data;
+        if (!flat) flat = Win16Segment(0, 0xffffffffu, ordinal == 454, true);
+        value = flat;
+        return flat != 0;
+    }
     default: return false;
     }
 }
