@@ -35,6 +35,9 @@ CHECKS = [
     'b LoadResource after the last FreeResource: the bytes of the file again',
     'c INT 21h AH=32h of C: answers its drive parameter block',
     'd INT 21h AH=32h of a drive that is not there answers AL FFh',
+    'e GetClassLong(GCL_WNDPROC) of a list box: CallWindowProc of it adds a string',
+    'f SetClassLong(GCL_WNDPROC) answers the far pointer registered, GetClassLong the new one',
+    'g a window made after SetClassLong runs the new procedure, which hands on to the old',
 ]
 
 

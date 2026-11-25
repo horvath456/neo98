@@ -2976,11 +2976,26 @@ bool Application::Win16UserCall(unsigned ordinal, const Win16Frame &frame, unsig
         result = Api("PostThreadMessageA", a);
         return true;
     }
-    case 131: { const unsigned a[] = {arg(0), signed_word(1)}; result = Api("GetClassLongA", a); return true; }
+    // GetClassLong and SetClassLong. GCL_WNDPROC (-24) is a far pointer on
+    // this side and a mark or a native procedure on the other, as with
+    // GWL_WNDPROC: COMMDLG.DLL of Windows 95 takes the procedure of the
+    // LISTBOX class this way for its subclassed file lists and hands it to
+    // CallWindowProc.
+    case 131:
+    {
+        const unsigned a[] = {arg(0), signed_word(1)};
+        result = Api("GetClassLongA", a);
+        if (signed_word(1) == 0xffffffe8u)
+            result = Win16ProcedurePointer(result);
+        return true;
+    }
     case 132:
     {
-        const unsigned a[] = {arg(0), signed_word(1), frame.Long(0)};
+        const bool procedure = signed_word(1) == 0xffffffe8u;
+        const unsigned a[] = {arg(0), signed_word(1), procedure ? Win16Procedure(frame.Long(0)) : frame.Long(0)};
         result = Api("SetClassLongA", a);
+        if (procedure)
+            result = Win16ProcedurePointer(result);
         return true;
     }
     case 137: { const unsigned a[] = {arg(0)}; result = Api("OpenClipboard", a); return true; }
