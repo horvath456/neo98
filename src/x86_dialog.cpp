@@ -142,8 +142,13 @@ unsigned Application::CreateDialog(unsigned instance, unsigned resource, unsigne
     if (!LockLoader())
         return 0;
     struct Unlock { Application &app; bool held = true; void Release() { if (held) { held = false; app.UnlockLoader(); } } ~Unlock() { Release(); } } unlock{*this};
+    // A view of LOAD_LIBRARY_AS_DATAFILE (bit 0 set) holds templates as well:
+    // USER finds them through KERNEL32, whose resource functions take it.
+    ResourceModule mapped;
+    if ((instance & 1) && !ResolveResourceModule(instance, mapped))
+        return 0;
     const unsigned index = instance ? ModuleIndex(instance, true) : 0;
-    const auto *pe = index < ModuleCapacity ? modules[index].pe : nullptr;
+    const auto *pe = mapped.pe ? mapped.pe : index < ModuleCapacity ? modules[index].pe : nullptr;
     if (!pe)
     {
         Fail("Dialog template requested from an unknown module");
@@ -168,19 +173,20 @@ unsigned Application::CreateDialog(unsigned instance, unsigned resource, unsigne
         // English Win98 SE the stubs run without it. The log line
         // names what was asked for: by number or by name, out of which module.
         char message[320];
+        const unsigned named = mapped.pe ? instance : modules[index].handle;
         if (resource < 65536)
-            snprintf(message, sizeof message, "Missing dialog resource %u in module %08x", resource,
-                     modules[index].handle);
+            snprintf(message, sizeof message, "Missing dialog resource %u in module %08x", resource, named);
         else
             snprintf(message, sizeof message, "Missing dialog resource %s in module %08x", ReadString(resource),
-                     modules[index].handle);
+                     named);
         if (log)
             log(message);
         last_error = found ? 1812 : (error ? error : 1814);
         return 0;
     }
     auto *copy = static_cast<unsigned char *>(malloc(entry.size));
-    if (!copy || !Read(pe->Base() + entry.data, copy, entry.size))
+    const unsigned address = mapped.pe ? mapped.Address(entry.data) : pe->Base() + entry.data;
+    if (!copy || !address || !Read(address, copy, entry.size))
     {
         free(copy);
         Fail("Dialog template unreadable");
@@ -190,7 +196,7 @@ unsigned Application::CreateDialog(unsigned instance, unsigned resource, unsigne
     // from, as CreateDialogParam's hInstance says: Mozilla's setup registers
     // its dialog class MozillaSetupDlg for SETUPRSC.DLL and creates the
     // dialogs out of it.
-    const unsigned module = instance ? modules[index].handle : image.Base();
+    const unsigned module = mapped.pe ? instance : instance ? modules[index].handle : image.Base();
     unlock.Release();
     const unsigned result = CreateDialogTemplate(copy, entry.size, owner, procedure, parameter, modal, module);
     free(copy);

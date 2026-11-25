@@ -1370,10 +1370,7 @@ void Application::DragListDragging(unsigned list)
 }
 // An icon or a cursor of 32x32 of COMCTL32.DLL of the system folder: the
 // arrow of DrawInsert and the cursors of a drag. The DLL is read for its
-// resources only (LOAD_LIBRARY_AS_DATAFILE, nothing of it runs), and the
-// image is made the way LoadImage makes it: the group, the member of the
-// group that fits, CreateIconFromResourceEx of that member. LoadImageA
-// itself takes no such view.
+// resources only (LOAD_LIBRARY_AS_DATAFILE, nothing of it runs).
 unsigned Application::DragListImage(unsigned id, bool icon)
 {
     if (!drag_list_module)
@@ -1384,23 +1381,8 @@ unsigned Application::DragListImage(unsigned id, bool icon)
         if (name)
             Free(name);
     }
-    const unsigned module = drag_list_module;
-    // The data of a resource of the view and its size, or zero.
-    auto data = [&](unsigned name, unsigned type, unsigned &size) -> unsigned {
-        const unsigned find[] = {module, name, type};
-        const unsigned found = module && name ? Api("FindResourceA", find) : 0;
-        const unsigned handle[] = {module, found};
-        size = found ? Api("SizeofResource", handle) : 0;
-        const unsigned loaded = found ? Api("LoadResource", handle) : 0;
-        return loaded ? Api("LockResource", &loaded) : 0;
-    };
-    unsigned size = 0;
-    const unsigned group = data(id, icon ? 14 : 12, size); // RT_GROUP_ICON, RT_GROUP_CURSOR
-    const unsigned lookup[] = {group, icon, 32, 32, 0};
-    const unsigned member = group ? ImageApi("LookupIconIdFromDirectoryEx", lookup) : 0;
-    const unsigned bits = data(member, icon ? 3 : 1, size); // RT_ICON, RT_CURSOR
-    const unsigned create[] = {bits, size, icon, 0x30000, 32, 32, 0};
-    return bits && size ? ImageApi("CreateIconFromResourceEx", create) : 0;
+    const unsigned image[] = {drag_list_module, id, icon ? 1u : 2u, 32, 32, 0};
+    return drag_list_module ? ImageApi("LoadImageA", image) : 0;
 }
 void Application::DragListEnd(unsigned list, unsigned code)
 {

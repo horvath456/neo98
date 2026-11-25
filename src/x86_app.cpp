@@ -5872,7 +5872,14 @@ unsigned Application::LoadNamedMenu(const char *name, unsigned module)
     if (!name || !name[0]) return 0;
     if (!module) module = image.Base();
     const Pe32::Image *source = &image;
-    if (module != image.Base())
+    ResourceModule mapped;
+    if (module & 1)
+    {
+        // A view of LOAD_LIBRARY_AS_DATAFILE, as for a resource by number.
+        if (!ResolveResourceModule(module, mapped)) return 0;
+        source = mapped.pe;
+    }
+    else if (module != image.Base())
     {
         const unsigned index = ModuleIndex(module);
         if (index == ModuleCapacity || !modules[index].pe) return 0;
@@ -5899,7 +5906,8 @@ unsigned Application::LoadNamedMenu(const char *name, unsigned module)
         return 0;
     }
     auto *data = static_cast<unsigned char *>(malloc(entry.size));
-    if (!data || !Read(source->Base() + entry.data, data, entry.size))
+    const unsigned address = mapped.pe ? mapped.Address(entry.data) : source->Base() + entry.data;
+    if (!data || !address || !Read(address, data, entry.size))
     {
         free(data);
         return 0;
@@ -5919,7 +5927,15 @@ unsigned Application::LoadMenu(unsigned id, unsigned module, bool shared)
 {
     if (!module) module = image.Base();
     const Pe32::Image *source = &image;
-    if (module != image.Base())
+    if (module & 1)
+    {
+        // A view of LOAD_LIBRARY_AS_DATAFILE: USER finds the template through
+        // KERNEL32, whose resource functions take such a view.
+        ResourceModule mapped;
+        if (!ResolveResourceModule(module, mapped)) return 0;
+        source = mapped.pe;
+    }
+    else if (module != image.Base())
     {
         const unsigned index = ModuleIndex(module);
         if (index == ModuleCapacity || !modules[index].pe) return 0;
@@ -8142,8 +8158,12 @@ unsigned Application::Api(ApiName name, const unsigned *a)
                      (a[1] & 65535) / 16 + 1, a[3]);
             log(trace);
         }
-        if (module >= ModuleCapacity || !modules[module].pe) return 0;
-        const auto *data = modules[module].pe->Resource(6, (a[1] & 65535) / 16 + 1, &length);
+        // A view of LOAD_LIBRARY_AS_DATAFILE (bit 0 set) has its strings in
+        // the view: LoadStringA of USER32 is KERNEL32's, whose resource
+        // functions take such a view.
+        const bool view = (a[0] & 1) && module >= ModuleCapacity;
+        if (!view && (module >= ModuleCapacity || !modules[module].pe)) return 0;
+        const auto *data = view ? nullptr : modules[module].pe->Resource(6, (a[1] & 65535) / 16 + 1, &length);
         // USER reads the block out of the mapped image, as LoadResource hands
         // it out. A packed program has its string tables there and not in the
         // file: UPX keeps them compressed and its stub rebuilds them before
@@ -8160,7 +8180,7 @@ unsigned Application::Api(ApiName name, const unsigned *a)
                 unsigned error = 0;
                 type.id = 6;
                 id.id = (a[1] & 65535) / 16 + 1;
-                if (ResolveResourceModule(a[0], mapped) && !mapped.datafile &&
+                if (ResolveResourceModule(a[0], mapped) &&
                     (mapped.pe->FindResource(type, id, 0, entry, &error) ||
                      mapped.pe->FindResource(type, id, 0x409, entry, &error) ||
                      mapped.pe->FindResource(type, id, ~0u, entry, &error)))

@@ -96,7 +96,9 @@ struct Application::ImageResources final:IR::Environment {
  IW ExpectedVersion()override{const unsigned v=app.image.SubsystemVersion();return IW(((v>>8)&0xff00)|(v&255));}
  unsigned ApplicationTable()override{return 1;}unsigned TaskTable()override{return 1;}unsigned SystemTable()override{return 2;}
  bool Win32Module(unsigned)override{return true;}
- unsigned ModuleIdentity(unsigned h)override{unsigned i=app.ModuleIndex(h);return i<Application::ModuleCapacity?app.modules[i].order*Application::ModuleCapacity+i:0;}
+ // A view of LOAD_LIBRARY_AS_DATAFILE is known by its handle, which is odd
+ // and above every identity of a loaded module.
+ unsigned ModuleIdentity(unsigned h)override{if(h&1)return h;unsigned i=app.ModuleIndex(h);return i<Application::ModuleCapacity?app.modules[i].order*Application::ModuleCapacity+i:0;}
  unsigned Head(unsigned t)override{return heads[t];}void Head(unsigned t,unsigned h)override{heads[t]=h;}
  IR::Record&Item(unsigned h)override{return records[h-1];}
  unsigned AllocateRecord()override{for(unsigned i=0;i<256;++i)if(!used[i]){used[i]=true;records[i]={};return i+1;}app.last_error=8;return 0;}
@@ -113,14 +115,21 @@ struct Application::ImageResources final:IR::Environment {
    for(const auto&v:OriginalImageResources)if(v.type==type&&((key.name&&EqualImageName(v.name,text))||(!key.name&&!v.name[0]&&v.id==key.id))){*r={true,0,v.Size(),type,v.data,nullptr};return slot+1;}
    app.last_error=1814;return 0;
   }
-  const unsigned index=app.ModuleIndex(module);if(index>=Application::ModuleCapacity){app.last_error=6;return 0;}
-  const auto*pe=app.modules[index].pe;if(!pe){app.last_error=1812;return 0;}
+  // A module handle with bit 0 set is a view of LOAD_LIBRARY_AS_DATAFILE:
+  // USER finds the resources of a Win32 module through KERNEL32, whose
+  // resource functions take such a view (src/x86_datafile.cpp).
+  Application::ResourceModule mapped;
+  if(module&1){if(!app.ResolveResourceModule(module,mapped))return 0;}
+  else{const unsigned index=app.ModuleIndex(module);if(index>=Application::ModuleCapacity){app.last_error=6;return 0;}
+   mapped.pe=app.modules[index].pe;if(!mapped.pe){app.last_error=1812;return 0;}}
+  const auto*pe=mapped.pe;
   Pe32::Image::ResourceEntry entry;Pe32::Image::ResourceKey tk;tk.id=type;unsigned error=0;
   bool found=pe->FindResource(tk,key,0,entry,&error);
   if(!found&&error==1815)found=pe->FindResource(tk,key,0x409,entry,&error)||pe->FindResource(tk,key,~0u,entry,&error);
   if(!found){app.last_error=error;return 0;}
-  if(!entry.size){app.last_error=13;return 0;}
-  *r={true,pe->Base()+entry.data,entry.size,type,nullptr,nullptr};return slot+1;
+  const unsigned address=mapped.Address(entry.data);
+  if(!entry.size||!address){app.last_error=13;return 0;}
+  *r={true,address,entry.size,type,nullptr,nullptr};return slot+1;
  }
  unsigned LoadResource(unsigned,unsigned h)override{return h;}
  IR::Block LockResource(unsigned h)override{
@@ -427,8 +436,10 @@ unsigned Application::ImageApi(ApiName name, const unsigned *a) {
   API_CASE("LoadCursorFromFileA"){unsigned v[]={0,a[0],2,0,0,0x50};return ImageApi("LoadImageA",v);}
   API_CASE("LoadImageA"){
     if(IW(a[2])>2||(IW(a[5])&0xf00)){last_error=87;return 0;}
-    if(a[0]&&ModuleIndex(a[0])>=ModuleCapacity){last_error=6;return 0;}
     if(!LockLoader())return 0;struct Unlock{Application&a;~Unlock(){a.UnlockLoader();}}unlock{*this};
+    // A loaded module or a view of LOAD_LIBRARY_AS_DATAFILE (bit 0 set).
+    ResourceModule mapped;
+    if(a[0]&&ModuleIndex(a[0])>=ModuleCapacity&&!((a[0]&1)&&ResolveResourceModule(a[0],mapped))){last_error=6;return 0;}
     if(!InitializeImageResources())return 0;
     return IR::Load(*image_resources,a[0],{a[1],a[1]>65535},IW(a[2]),IW(a[3]),IW(a[4]),IW(a[5]));
   }
