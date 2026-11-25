@@ -34,7 +34,7 @@ from native_app import ROOT, build_host  # noqa: E402
 import win16_fixture  # noqa: E402
 import win98_c  # noqa: E402
 
-WORDS = 49
+WORDS = 57
 
 
 def main():
@@ -72,22 +72,24 @@ def main():
         'USER.517 WNetAddConnection answers WN_NOT_SUPPORTED': w[3] == 1,
         'USER.76 PtInRect takes x from the low word of the point': (w[4], w[5]) == (1, 0),
         'USER.373 SubtractRect widens and narrows three RECTs': w[6] == 1 and s[7:11] == [0, 40, 100, 100],
-        'GDI.52 CreateCompatibleDC': w[11] == 1,
-        'GDI.483 MoveToEx writes the previous POINT as two words': w[12] == 1 and w[13] == 1 and s[14:16] == [10, 20],
-        'GDI.78 GetCurrentPosition answers y:x in DX:AX': s[16:18] == [30, -5],
-        'GDI.63 CreatePolygonRgn and GDI.134 GetRgnBox': w[18] == 1 and w[19] == 2 and s[20:24] == [2, 3, 12, 8],
-        'USER.41 CreateWindow of the window to enumerate': w[24] == 1,
+        'USER.77 OffsetRect moves the far RECT by dx and dy': s[11:15] == [11, -3, 13, -1],
+        'USER.78 InflateRect widens the far RECT by dx and dy': s[15:19] == [7, 12, 23, 18],
+        'GDI.52 CreateCompatibleDC': w[19] == 1,
+        'GDI.483 MoveToEx writes the previous POINT as two words': w[20] == 1 and w[21] == 1 and s[22:24] == [10, 20],
+        'GDI.78 GetCurrentPosition answers y:x in DX:AX': s[24:26] == [30, -5],
+        'GDI.63 CreatePolygonRgn and GDI.134 GetRgnBox': w[26] == 1 and w[27] == 2 and s[28:32] == [2, 3, 12, 8],
+        'USER.41 CreateWindow of the window to enumerate': w[32] == 1,
         'USER.54 EnumWindows calls the far procedure with the window and the LONG':
-            w[25] == 1 and w[26] == 1 and (w[27], w[28]) == (0x5678, 0x1234),
-        'USER.475 SetScrollInfo and USER.476 GetScrollInfo': w[29] == 9 and w[30] == 1 and s[31:34] == [3, 70, 9],
+            w[33] == 1 and w[34] == 1 and (w[35], w[36]) == (0x5678, 0x1234),
+        'USER.475 SetScrollInfo and USER.476 GetScrollInfo': w[37] == 9 and w[38] == 1 and s[39:42] == [3, 70, 9],
         'USER.415 CreatePopupMenu, USER.441 InsertMenuItem, USER.443 GetMenuItemInfo':
-            w[34] == 1 and w[35] == 1 and w[36] == 1 and (w[37], w[38]) == (0x123, 4) and menu[:5] == b'Item\0',
+            w[42] == 1 and w[43] == 1 and w[44] == 1 and (w[45], w[46]) == (0x123, 4) and menu[:5] == b'Item\0',
         'USER.259 to 261 position a window through an HDWP word':
-            w[39] == 1 and w[40] == 1 and w[41] == 1 and s[42:46] == [5, 6, 35, 46],
+            w[47] == 1 and w[48] == 1 and w[49] == 1 and s[50:54] == [5, 6, 35, 46],
         # TRUE in DX, the length with the terminating zero in AX, as SHELL32 counts.
         'SHELL.37 DoEnvironmentSubst expands through SHELL32':
-            (w[46], w[47]) == (len(environment) + 1, 1) and environment == b'C:\\WINDOWS\\X',
-        'every gate took its word count off the stack': w[48] == 0,
+            (w[54], w[55]) == (len(environment) + 1, 1) and environment == b'C:\\WINDOWS\\X',
+        'every gate took its word count off the stack': w[56] == 0,
     }
     for name, passed in checks.items():
         print('ok  ' if passed else 'FAIL', name, flush=True)

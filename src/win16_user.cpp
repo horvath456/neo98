@@ -2120,16 +2120,17 @@ bool Application::Win16UserCall(unsigned ordinal, const Win16Frame &frame, unsig
     case 77: // OffsetRect(rect, dx, dy)
     case 78: // InflateRect(rect, dx, dy)
     {
-        if (!pointer(1))
+        // The far pointer is the first two words, dx and dy the two after.
+        if (!pointer(0))
         {
             result = 0;
             return true;
         }
         Gdi::RECT r{};
-        Win16ReadRect(pointer(1), r);
-        result = (unsigned)(ordinal == 77 ? Win98::OffsetRect(&r, (int)(short)arg(1), (int)(short)arg(2))
-                                          : Win98::InflateRect(&r, (int)(short)arg(1), (int)(short)arg(2)));
-        Win16WriteRect(pointer(1), r);
+        Win16ReadRect(pointer(0), r);
+        result = (unsigned)(ordinal == 77 ? Win98::OffsetRect(&r, (int)(short)arg(2), (int)(short)arg(3))
+                                          : Win98::InflateRect(&r, (int)(short)arg(2), (int)(short)arg(3)));
+        Win16WriteRect(pointer(0), r);
         return true;
     }
     case 79: // IntersectRect(out, a, b)

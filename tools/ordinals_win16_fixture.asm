@@ -9,6 +9,7 @@
 ; USER.517 WNetAddConnection WN_NOT_SUPPORTED
 ; USER.76 PtInRect x is the low word
 ; USER.373 SubtractRect three RECTs widened and back
+; USER.77 OffsetRect, USER.78 InflateRect the far RECT first, dx and dy after it
 ; GDI.483 MoveToEx, GDI.78 GetCurrentPosition the POINT out, the pair in DX:AX
 ; GDI.63 CreatePolygonRgn, GDI.134 GetRgnBox a POINT array in, a RECT out
 ; USER.54 EnumWindows the far callback, word and LONG
@@ -114,6 +115,25 @@ code_start:
         lodsw
         KEEP
         loop .copy_rect
+
+        ; USER.77 OffsetRect(rect, 10, -5) and USER.78 InflateRect(rect, 3, -2):
+        ; the far pointer is pushed first, dy last
+        push ds
+        push word rmove
+        push word 10
+        push word -5
+        API 2, 77
+        push ds
+        push word rgrow
+        push word 3
+        push word -2
+        API 2, 78
+        mov si, rmove
+        mov cx, 8
+.copy_moved:
+        lodsw
+        KEEP
+        loop .copy_moved
 
         ; GDI.52 CreateCompatibleDC(0)
         push word 0
@@ -353,6 +373,8 @@ rb      dw 0, 0, 100, 40
 rout    dw -1, -1, -1, -1
 rbox    dw -1, -1, -1, -1
 rwin    dw -1, -1, -1, -1
+rmove   dw 1, 2, 3, 4
+rgrow   dw 10, 10, 20, 20
 point   dw -1, -1
 polygon dw 2, 3, 12, 3, 12, 8, 2, 8
 ; SCROLLINFO: cbSize, fMask, nMin, nMax, nPage, nPos, nTrackPos
