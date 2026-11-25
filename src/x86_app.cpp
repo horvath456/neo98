@@ -5596,6 +5596,8 @@ void Application::RawKey(unsigned key, unsigned character, bool down, unsigned s
     auto packet=User::CaptureKey(key, character, down, scan, extended);
     const bool repeat = (packet.parameter & 0x40000000) != 0 && down;
     AccessibilityKey(packet.key, down, repeat); // ToggleKeys
+    // MouseKeys takes the keys of the numeric keypad for the pointer.
+    if (MouseKey(key, extended, down, repeat)) return;
     // StickyKeys holds a modifier for the next key, or lets it go after it.
     bool sticky_release = false;
     if (StickyKey(packet, down, repeat, sticky_release)) return;

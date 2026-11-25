@@ -229,6 +229,13 @@ unsigned StickyBit(unsigned key)
 {
     return key == 0x10 ? 1 : key == 0x11 ? 2 : key == 0x12 ? 4 : 0;
 }
+// MouseKeys: the button the keypad clicks (1 left, 2 right, 3 both), and the
+// key that moves the pointer and since when.
+struct MouseKeysState
+{
+    unsigned button = 1, key = 0, since = 0;
+} mouse_keys_state;
+constexpr unsigned MouseKeysIndex = 2, MouseKeysOn = 1, MouseKeysModifiers = 0x40, MouseKeysNumbers = 0x80;
 void StickyTone(unsigned frequency)
 {
     if (access_state.values[StickyIndex][1] & StickyAudible)
@@ -349,6 +356,86 @@ bool Application::StickyKey(User::InputPacket &packet, bool down, bool repeat, b
     if (!down && k.latched)
         release = true;
     return false;
+}
+// MouseKeys (MKF_MOUSEKEYSON): the numeric keypad is the mouse, with
+// MKF_REPLACENUMBERS while Num Lock is on (its digits), else while it is off
+// (the keys of the keypad that are not extended). 1 to 9 but 5 move the
+// pointer in their direction, one pixel at the first press and faster while
+// the key repeats, up to an eighth of iMaxSpeed a step after
+// iTimeToMaxSpeed milliseconds; with MKF_MODIFIERS Ctrl makes the steps four
+// times as long and Shift one pixel. 5 clicks the chosen button, + double
+// clicks it, / chooses the left button, * both, - the right one; 0 (Ins)
+// holds the button down and the decimal point (Del) lets it go. Answers
+// whether the key was MouseKeys', which then goes no further.
+bool Application::MouseKey(unsigned key, bool extended, bool down, bool repeat)
+{
+    auto &s = AccessLoaded();
+    auto &m = mouse_keys_state;
+    const unsigned flags = s.values[MouseKeysIndex][1];
+    if (!(flags & MouseKeysOn))
+        return false;
+    // The keypad by its digit: 0 to 9, 10 the decimal point, 11 to 14 for
+    // / * - +; -1 for another key.
+    int digit = -1;
+    if (key == 0x6f) digit = 11;
+    else if (key == 0x6a) digit = 12;
+    else if (key == 0x6d) digit = 13;
+    else if (key == 0x6b) digit = 14;
+    else if (flags & MouseKeysNumbers)
+    {
+        if (key >= 0x60 && key <= 0x69) digit = int(key - 0x60);
+        else if (key == 0x6e) digit = 10;
+    }
+    else if (!extended)
+    {
+        static const unsigned keys[11] = {0x2d, 0x23, 0x28, 0x22, 0x25, 0x0c, 0x27, 0x24, 0x26, 0x21, 0x2e};
+        for (int i = 0; i < 11; ++i)
+            if (keys[i] == key) digit = i;
+    }
+    if (digit < 0)
+        return false;
+    if (!down)
+        return true;
+    Gdi::POINT p{};
+    User::CursorPosition(&p);
+    const unsigned buttons = User::PhysicalMouseButtons();
+    const unsigned chosen = m.button == 3 ? 3u : m.button == 2 ? 2u : 1u;
+    static const int dx[10] = {0, -1, 0, 1, -1, 0, 1, -1, 0, 1}, dy[10] = {0, 1, 1, 1, 0, 0, 0, -1, -1, -1};
+    if (digit >= 1 && digit <= 9 && digit != 5)
+    {
+        const unsigned now = unsigned(Now() / 1000);
+        if (!repeat || m.key != key)
+        {
+            m.key = key;
+            m.since = now;
+        }
+        const unsigned top = s.values[MouseKeysIndex][2] / 8 ? s.values[MouseKeysIndex][2] / 8 : 1;
+        const unsigned time = s.values[MouseKeysIndex][3] ? s.values[MouseKeysIndex][3] : 1;
+        const unsigned elapsed = now - m.since < time ? now - m.since : time;
+        int step = repeat ? int(1 + (top - 1) * elapsed / time) : 1;
+        if (flags & MouseKeysModifiers)
+        {
+            if (User::PhysicalKeyDown(0x11)) step *= 4;
+            if (User::PhysicalKeyDown(0x10)) step = 1;
+        }
+        MouseButtons(p.x + dx[digit] * step, p.y + dy[digit] * step, buttons);
+        return true;
+    }
+    if (repeat)
+        return true;
+    if (digit == 11 || digit == 12 || digit == 13)
+        m.button = digit == 11 ? 1 : digit == 12 ? 3 : 2;
+    else if (digit == 0)
+        MouseButtons(p.x, p.y, buttons | chosen);
+    else if (digit == 10)
+        MouseButtons(p.x, p.y, buttons & ~chosen);
+    else
+        for (int i = digit == 14 ? 2 : 1; i > 0; --i)
+        {
+            MouseButtons(p.x, p.y, buttons | chosen);
+            MouseButtons(p.x, p.y, buttons & ~chosen);
+        }
+    return true;
 }
 // The latched modifiers go up after the key they were held for, and with
 // `all` the locked ones too. Alt goes up as a plain WM_KEYUP: a key went by
