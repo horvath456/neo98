@@ -16,8 +16,12 @@ starts as the shell:
              [Password Lists] of SYSTEM.INI)
   user       tools/wnet_user_fixture.c, run from Start > Run, gets the user
              from WNetGetUserA (error 1245, not logged on, before)
-  passwords  Passwords in the Control Panel has the page Change Passwords
-             beside User Profiles (User Profiles alone before)
+  passwords  Passwords in the Control Panel, which the fixture opens, has the
+             page Change Passwords beside User Profiles (User Profiles alone
+             before)
+
+The steps wait for the Start menu, the Run box, Passwords Properties and a
+quiet machine, not for a time.
 
     build/analysis-venv/bin/python tools/test_logon_start_host.py [--no-build] [--kms KMS]
 """
@@ -80,12 +84,12 @@ def main():
                     '-Wl,-e,_mainCRTStartup', '-mwindows', '-lmpr', '-luser32', '-lkernel32',
                     '-o', str(drive / 'WNETUSER.EXE')], check=True)
     shot = WORK / 'passwords.png'
-    run = [f'{{t}}:click={START[0]},{START[1]}', '{t1}:type=r', '{t2}:wait=#32770', '{t3}:type={command}',
-           '{t4}:key=0d']
-    steps = ['0:wait=Shell_TrayWnd',
-             *[step.format(t=5, t1=6, t2=7, t3=8, t4=9, command='C:\\WNETUSER.EXE') for step in run],
-             *[step.format(t=12, t1=13, t2=14, t3=15, t4=16, command='control password.cpl') for step in run],
-             f'22:shot={shot}', '23:quit=1']
+    # Start > Run of the fixture, which opens Passwords: each step waits for
+    # the Start menu and the Run box, the picture for Passwords Properties
+    # and a quiet machine.
+    steps = ['0:wait=Shell_TrayWnd', '0:idle=500', f'1:click={START[0]},{START[1]}', '1:wait=BaseBar', '1.5:type=r',
+             '1.5:wait=#32770|Run', '1.5:idle=300', '2:type=C:\\WNETUSER.EXE', '2.5:key=0d',
+             '2.5:wait=#32770|Passwords Properties', '2.5:idle=500', f'2.5:shot={shot}', '3:quit=1']
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
@@ -105,8 +109,10 @@ def main():
     (WORK / 'log.txt').write_text(text)
     listed = re.search(r'^\[Password Lists\]\s*\nNEO98=C:\\WINDOWS\\NEO98\.PWL', system_ini, re.M | re.I)
     picture = read_png(shot) if shot.is_file() else None
+    timed_out = [line for line in text.splitlines() if 'timed out after' in line]
     checks = {
-        'start: the shell starts without asking for a password': 'NEO98 KMS input wait=Shell_TrayWnd' in text,
+        'start: the shell starts without asking for a password': 'NEO98 KMS input wait=Shell_TrayWnd\n' in text,
+        f'every menu, dialog and quiet moment came: {timed_out}': not timed_out,
         'start: the user has a password list, named in SYSTEM.INI': password_list is not None and listed,
         f'user: WNetGetUserA answers the user: "{user}"': user == '0 NEO98',
         'passwords: Passwords has the page Change Passwords beside User Profiles':
