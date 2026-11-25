@@ -18,9 +18,12 @@
 // allows, and every move changes the toolbar at once and ends in
 // TBN_TOOLBARCHANGE. Reset sends TBN_RESET and fills the lists again, Help
 // sends TBN_CUSTHELP and Close ends the dialog. The lists are drawn by the
-// dialog: a button face with the image beside the text.
-// Not ported: dragging items between the lists (MakeDragList) and the context
-// help of the controls.
+// dialog: a button face with the image beside the text. Both lists are drag
+// lists (MakeDragList, src/x86_listbox.cpp): an item of either one dragged
+// over "Toolbar buttons" goes in before the item under the pointer, which the
+// arrow of DrawInsert marks, and a button of the toolbar dragged onto
+// "Available buttons" is removed, each the way Add, Remove and the Move
+// buttons do it. Not ported: the context help of the controls.
 namespace X86 {
 namespace {
 constexpr unsigned CustomizeAvailable = 201, CustomizeReset = 202, CustomizeCurrent = 203,
@@ -387,6 +390,59 @@ void Application::ToolbarCustomizeMove(unsigned dialog, unsigned from, unsigned 
     if (!failed && User::IsWindow(toolbar))
         ToolbarItemNotify(toolbar, TbnToolbarChange, ~0u);
 }
+// A drag in the dialog (COMMCTRL's AdjustDlgProc on its drag lists). The
+// press selects the item, so the selection is the item dragged; a button
+// that cannot be removed is not dragged. The answers of DL_DRAGGING are the
+// pointer: 3 (DL_MOVECURSOR) for a place in the toolbar's list or, from
+// there, over the available buttons, 2 (DL_COPYCURSOR) from the available
+// buttons into the toolbar's list, 1 (DL_STOPCURSOR) elsewhere.
+unsigned Application::ToolbarCustomizeDrag(unsigned dialog, unsigned id, unsigned info)
+{
+    unsigned fields[4] = {};
+    if (!Read(info, fields, sizeof fields))
+        return 0;
+    const unsigned code = fields[0], list = fields[1];
+    const int x = int(fields[2]), y = int(fields[3]);
+    const unsigned current = User::GetDlgItem(dialog, CustomizeCurrent),
+                   available = User::GetDlgItem(dialog, CustomizeAvailable);
+    if (!current || !available || (list != current && list != available))
+        return 0;
+    auto send = [&](unsigned hwnd, unsigned message, unsigned wp, unsigned lp) {
+        const unsigned a[] = {hwnd, message, wp, lp};
+        return Api("SendMessageA", a);
+    };
+    auto over = [&](unsigned hwnd) {
+        Gdi::RECT r{};
+        User::GetWindowRect(hwnd, &r);
+        return x >= r.left && x < r.right && y >= r.top && y < r.bottom;
+    };
+    const unsigned item = send(list, LbGetCurSel, 0, 0);
+    if (code == DragListBegin)
+        return item != ~0u && DragListItem(list, x, y, false) == int(item) &&
+               !(list == current && ((send(list, LbGetItemData, item, 0) >> 16) & ItemFixed));
+    if (code == DragListCancel || item == ~0u)
+    {
+        DragListInsert(dialog, current, -1);
+        return 0;
+    }
+    if (code == DragListDrag)
+    {
+        const int place = DragListItem(current, x, y, true);
+        DragListInsert(dialog, current, place);
+        if (place >= 0)
+            return list == current ? 3 : 2;
+        return list == current && over(available) ? 3 : 1;
+    }
+    if (code != DragListDropped)
+        return 0;
+    DragListInsert(dialog, current, -1);
+    const int place = DragListItem(current, x, y, false);
+    if (place >= 0 && !(list == current && (unsigned(place) == item || unsigned(place) == item + 1)))
+        ToolbarCustomizeMove(dialog, id & 0xffff, item, CustomizeCurrent, place, 0);
+    else if (place < 0 && list == current && over(available))
+        ToolbarCustomizeMove(dialog, CustomizeCurrent, item, CustomizeAvailable, 0, 0);
+    return 0;
+}
 // WM_DRAWITEM of the two lists: the text on the window colour, or the
 // highlight while the list has the focus; a button face with the image to its
 // left; a frame around the selection of the list without the focus.
@@ -525,12 +581,20 @@ unsigned Application::ToolbarCustomizeMessage(unsigned dialog, unsigned message,
         const unsigned a[] = {dialog, id, LbGetCurSel, 0, 0};
         return Api("SendDlgItemMessageA", a);
     };
+    if (message == drag_list_message && drag_list_message && lp)
+    {
+        unsigned answer = ToolbarCustomizeDrag(dialog, wp, lp);
+        User::WindowLong(dialog, 0, answer, true); // DWL_MSGRESULT
+        return 1;
+    }
     switch (message)
     {
     case 0x110:
     {
         if (!ToolbarCustomizeLists(dialog, toolbar, t->customize_position))
             end(0);
+        MakeDragList(User::GetDlgItem(dialog, CustomizeAvailable));
+        MakeDragList(User::GetDlgItem(dialog, CustomizeCurrent));
         const unsigned show[] = {dialog, 5};
         Api("ShowWindow", show);
         Api("UpdateWindow", &dialog);

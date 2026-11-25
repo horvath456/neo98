@@ -1046,6 +1046,7 @@ private:
                               unsigned select_next);
     void ToolbarCustomizeButtons(unsigned dialog);
     void ToolbarCustomizeDraw(unsigned dialog, unsigned item);
+    unsigned ToolbarCustomizeDrag(unsigned dialog, unsigned id, unsigned info);
     int ToolbarInsertPlace(unsigned toolbar, int index, int limit, unsigned directions);
     unsigned ToolbarItemNotify(unsigned toolbar, unsigned code, unsigned index);
     bool ToolbarButtonInfo(unsigned toolbar, unsigned index, unsigned button, unsigned text, unsigned capacity);
@@ -1127,6 +1128,19 @@ private:
     struct ListBox;
     ListBox *list_boxes[64] = {};
     ListBox *FindListBox(unsigned, bool create = false);
+    // The drag list of COMCTL32 for native list boxes (src/x86_listbox.cpp).
+    static constexpr unsigned DragListBegin = 0x485, DragListDrag = 0x486, DragListDropped = 0x487,
+                              DragListCancel = 0x488, DragListTimer = 0x7d4c;
+    unsigned drag_list_message = 0, drag_list_scrolled = 0, drag_list_parent = 0, drag_list_icon = 0;
+    int drag_list_insert = -1;
+    Gdi::POINT drag_list_at{};
+    unsigned DragListMessage();
+    bool MakeDragList(unsigned list);
+    unsigned DragListNotify(unsigned list, unsigned code);
+    void DragListDragging(unsigned list);
+    void DragListEnd(unsigned list, unsigned code);
+    int DragListItem(unsigned list, int x, int y, bool scroll);
+    void DragListInsert(unsigned parent, unsigned list, int item);
     unsigned ListBoxMessage(unsigned, unsigned, unsigned, unsigned);
     void DrawListBox(unsigned, Gdi::HDC, const Gdi::RECT &, unsigned item = ~0u, unsigned action = 1, bool focus = true);
     void FreeListBoxes();

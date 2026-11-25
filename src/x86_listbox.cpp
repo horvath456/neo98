@@ -21,6 +21,8 @@ struct Application::ListBox
     int tabs[32] = {};
     unsigned tab_count = 0;
     bool deleting = false, tracking = false;
+    // MakeDragList made it a drag list; a drag of an item is under way.
+    bool drag_list = false, dragging = false;
     char *text[Capacity] = {};
     unsigned data[Capacity] = {};
     unsigned char selected[Capacity] = {}, heights[Capacity] = {};
@@ -913,6 +915,23 @@ unsigned Application::ListBoxMessage(unsigned hwnd, unsigned message, unsigned w
         if (index >= b.count) index = b.count - 1;
         return index | (outside ? 0x10000u : 0);
     }
+    case 0x200:
+    case 0x113:
+    case 0x204:
+        // During a drag a drag list asks its parent what a drop here would
+        // do (DL_DRAGGING) and shows the answer as the pointer; the right
+        // button cancels it.
+        if (b.dragging && message == 0x204)
+        {
+            DragListEnd(hwnd, DragListCancel);
+            return 0;
+        }
+        if (b.dragging && (message == 0x200 || wp == DragListTimer))
+        {
+            DragListDragging(hwnd);
+            return 0;
+        }
+        return User::DefaultMessage(hwnd, message, wp, lp);
     case 0x201:
     case 0x203:
     {
@@ -938,21 +957,41 @@ unsigned Application::ListBoxMessage(unsigned hwnd, unsigned message, unsigned w
                 break;
             }
         }
+        // A drag list starts a drag when its parent takes DL_BEGINDRAG; the
+        // capture of the click stays for it.
+        if (message == 0x201 && b.hwnd && b.drag_list && DragListNotify(hwnd, DragListBegin) && b.hwnd &&
+            User::ThreadCapture(User::WindowThread(hwnd)) == hwnd)
+        {
+            b.dragging = true;
+            const unsigned timer[] = {hwnd, DragListTimer, 100, 0};
+            Api("SetTimer", timer);
+        }
         return 0;
     }
     case 0x202:
     {
         const bool tracking=b.tracking;
         b.tracking=false;
-        if(User::ThreadCapture(User::WindowThread(hwnd))==hwnd)User::CaptureOperation(9,hwnd);
+        if (b.dragging)
+            DragListEnd(hwnd, DragListDropped);
+        if(b.hwnd&&User::ThreadCapture(User::WindowThread(hwnd))==hwnd)User::CaptureOperation(9,hwnd);
         if(tracking&&b.hwnd&&(b.style&1))notify(1);
         return 0;
     }
     case 0x215:
         b.tracking=false;
+        if (b.dragging)
+            DragListEnd(hwnd, DragListCancel);
         return 0;
     case 0x100:
     {
+        if (wp == 0x1b && b.dragging)
+        {
+            DragListEnd(hwnd, DragListCancel);
+            if (b.hwnd && User::ThreadCapture(User::WindowThread(hwnd)) == hwnd)
+                User::CaptureOperation(9, hwnd);
+            return 0;
+        }
         if (!b.count)
             return 0;
         if (b.style & 0x400)
@@ -1266,6 +1305,148 @@ void Application::DrawListBox(unsigned hwnd, Gdi::HDC dc, const Gdi::RECT &bound
 // USER GetListBoxInfo. A multi-column list answers how many items fit
 // in one column, every other one the whole item count. An invalid
 // handle and a window that is not a list box answer zero.
+// The drag list of COMCTL32 for a native list box: MakeDragList,
+// LBItemFromPt and DrawInsert. A drag list tells its parent about a drag of
+// one of its items with the registered message "commctrl_DragListMsg",
+// wParam the control's ID and lParam a DRAGLISTINFO (the notification, the
+// list and the pointer on the screen): DL_BEGINDRAG at the press, which the
+// parent answers TRUE to drag; DL_DRAGGING while the pointer moves, and
+// every tenth of a second so that a list scrolls under a pointer above or
+// below it, answered with the pointer to show (DL_STOPCURSOR,
+// DL_COPYCURSOR, DL_MOVECURSOR); DL_DROPPED at the release and
+// DL_CANCELDRAG for Esc, the right button or a lost capture.
+unsigned Application::DragListMessage()
+{
+    if (!drag_list_message)
+        drag_list_message = RegisterMessage("commctrl_DragListMsg");
+    return drag_list_message;
+}
+bool Application::MakeDragList(unsigned list)
+{
+    auto *b = FindListBox(list, false);
+    // Not a list of several selections, as COMCTL32 refuses them.
+    if (!b || (b->style & 0x808) || !DragListMessage())
+        return false;
+    b->drag_list = true;
+    return true;
+}
+unsigned Application::DragListNotify(unsigned list, unsigned code)
+{
+    const unsigned parent = User::Parent(list) ? User::Parent(list) : User::Owner(list);
+    const unsigned info = parent ? Allocate(16) : 0;
+    if (!info)
+        return 0;
+    // The point of the message the list is serving, the press, the move or
+    // the release itself, on the screen.
+    const unsigned at = Api("GetMessagePos", nullptr);
+    const unsigned fields[4] = {code, list, unsigned(int(short(at))), unsigned(int(short(at >> 16)))};
+    Store(info, fields, sizeof fields);
+    const unsigned answer = CallWindow(parent, DragListMessage(), User::ControlID(list), info);
+    Free(info);
+    return answer;
+}
+void Application::DragListDragging(unsigned list)
+{
+    const unsigned answer = DragListNotify(list, DragListDrag);
+    // DL_STOPCURSOR shows "no", the others the arrow.
+    const unsigned load[] = {0, answer == 1 ? 32648u : 32512u};
+    if (const unsigned cursor = Api("LoadCursorA", load))
+        Api("SetCursor", &cursor);
+}
+void Application::DragListEnd(unsigned list, unsigned code)
+{
+    if (auto *b = FindListBox(list, false))
+        b->dragging = false;
+    const unsigned timer[] = {list, DragListTimer};
+    Api("KillTimer", timer);
+    DragListNotify(list, code);
+}
+// LBItemFromPt: the item of the list under a point of the screen, or -1.
+// Above or below the list, within its width, it scrolls the list by one
+// item at most every 200 ms when asked to and answers -1.
+int Application::DragListItem(unsigned list, int x, int y, bool scroll)
+{
+    auto *b = FindListBox(list, false);
+    if (!b)
+        return -1;
+    Gdi::POINT p{x, y};
+    User::ScreenToClient(list, &p);
+    Gdi::RECT client{};
+    User::GetClientRect(list, &client);
+    int index = int(b->first);
+    if (p.x >= client.left && p.x < client.right && p.y >= client.top && p.y < client.bottom)
+    {
+        const auto layout = b->Layout();
+        for (; index < int(b->count); ++index)
+        {
+            Gdi::RECT r{};
+            Win98ListBox::Rectangle(layout, unsigned(index), r);
+            if (p.x >= r.left && p.x < r.right && p.y >= r.top && p.y < r.bottom)
+                return index;
+        }
+        return -1;
+    }
+    if (p.x < client.left || p.x >= client.right)
+        return -1;
+    index += p.y < 0 ? -1 : 1;
+    const unsigned now = unsigned(Now() / 1000);
+    if (scroll && index >= 0 && index < int(b->count) && now - drag_list_scrolled > 200)
+    {
+        drag_list_scrolled = now;
+        const unsigned top[] = {list, 0x197, unsigned(index), 0}; // LB_SETTOPINDEX
+        Api("SendMessageA", top);
+    }
+    return -1;
+}
+// DrawInsert: the arrow of COMCTL32 (its icon 150) left of the list at the
+// top of `item`, in the parent; the arrow of the item before goes away, and
+// -1 draws none.
+void Application::DragListInsert(unsigned parent, unsigned list, int item)
+{
+    if (item == drag_list_insert && parent == drag_list_parent)
+        return;
+    if (drag_list_insert >= 0 && User::IsWindow(drag_list_parent))
+    {
+        Gdi::RECT r{drag_list_at.x, drag_list_at.y, drag_list_at.x + 32, drag_list_at.y + 32};
+        User::InvalidateRect(drag_list_parent, &r, true);
+        Api("UpdateWindow", &drag_list_parent);
+    }
+    drag_list_insert = -1;
+    drag_list_parent = parent;
+    auto *b = item >= 0 ? FindListBox(list, false) : nullptr;
+    if (!b || !User::IsWindow(parent))
+        return;
+    Gdi::RECT r{};
+    Win98ListBox::Rectangle(b->Layout(), unsigned(item), r);
+    // From the list's client area over the screen to the parent's.
+    Gdi::POINT list_origin{0, 0}, parent_origin{0, 0};
+    User::ScreenToClient(list, &list_origin);
+    User::ScreenToClient(parent, &parent_origin);
+    const Gdi::POINT p{r.left - list_origin.x + parent_origin.x, r.top - list_origin.y + parent_origin.y};
+    drag_list_insert = item;
+    drag_list_at = {p.x - 16, p.y - 8};
+    if (!drag_list_icon)
+    {
+        // COMCTL32.DLL of the system folder, read for its resources only.
+        const unsigned name = String("COMCTL32.DLL");
+        const unsigned load[] = {name, 0, 2}; // LOAD_LIBRARY_AS_DATAFILE
+        const unsigned module = name ? Api("LoadLibraryExA", load) : 0;
+        if (name)
+            Free(name);
+        const unsigned image[] = {module, 150, 1, 32, 32, 0};
+        drag_list_icon = module ? ImageApi("LoadImageA", image) : 0;
+    }
+    const unsigned dc = Api("GetDC", &parent);
+    if (!dc)
+        return;
+    if (drag_list_icon)
+    {
+        const unsigned draw[] = {dc, unsigned(drag_list_at.x), unsigned(drag_list_at.y), drag_list_icon};
+        Api("DrawIcon", draw);
+    }
+    const unsigned release[] = {parent, dc};
+    Api("ReleaseDC", release);
+}
 unsigned Application::ListBoxItemsPerColumn(unsigned hwnd)
 {
     if (!User::IsWindow(hwnd)) return 0;

@@ -24,6 +24,10 @@ memory:
   restart    File Manager comes back with the toolbar of the first session;
              Reset in the dialog brings the standard buttons back
   standard   after Reset, a new start shows the standard buttons again
+  drag       File > Move dragged from the available buttons onto the first
+             button of the toolbar's list goes on the toolbar; dragged back
+             onto the available buttons it goes away again (the lists were
+             no drag lists before)
 
 Before, the dialog stopped the run (toolbar message 041Bh not ported), and
 the toolbar answered that it neither saved nor restored.
@@ -62,6 +66,9 @@ FACE = (192, 192, 192)
 CUSTOMIZE = ['{t}:click=160,31', '{t2}:click=200,86']
 MOVE, ADD, SORT_BY_TYPE, REMOVE = (85, 164), (250, 176), (370, 139), (250, 210)
 SORT_BY_SIZE, MOVE_UP, CLOSE, RESET = (370, 164), (516, 228), (516, 118), (516, 145)
+# The first item the toolbar's list shows, and a free place of the available
+# buttons.
+SORT_BY_NAME, AVAILABLE = (370, 139), (110, 200)
 
 
 def area(picture, box):
@@ -99,6 +106,10 @@ def click(at, x_y):
     return f'{at}:click={x_y[0]},{x_y[1]}'
 
 
+def drag(at, start, end):
+    return f'{at}:drag={start[0]},{start[1]},{end[0]},{end[1]}'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--no-build', action='store_true')
@@ -131,6 +142,10 @@ def main():
                                          click(11, RESET), '13:shot={out}/reset.png', click(14, CLOSE),
                                          '16:shot={out}/reset-closed.png', '17:quit=1'], 40)
         log += session(args.kms, drive, ['0:wait=WFS_Frame', '4:shot={out}/standard.png', '5:quit=1'], 30)
+        customize = [step.format(t=5, t2=7) for step in CUSTOMIZE]
+        log += session(args.kms, drive, ['0:wait=WFS_Frame', *customize, drag(10, MOVE, SORT_BY_NAME),
+                                         '12:shot={out}/dragged.png', drag(13, SORT_BY_NAME, AVAILABLE),
+                                         '15:shot={out}/dragged-back.png', click(16, CLOSE), '18:quit=1'], 40)
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
@@ -139,7 +154,7 @@ def main():
     stops = [line for line in log.splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
     names = ('start', 'dialog', 'added', 'removed', 'moved', 'closed', 'restored', 'reset', 'reset-closed',
-             'standard')
+             'standard', 'dragged', 'dragged-back')
     pictures = {name: read_png(WORK / f'{name}.png') if (WORK / f'{name}.png').is_file() else None for name in names}
     present = all(pictures.values())
     bar = {name: area(picture, TOOLBAR) for name, picture in pictures.items() if picture}
@@ -169,6 +184,11 @@ def main():
         'restart: Reset brings back the standard buttons': present and bar['reset'] == bar['start'],
         'standard: after Reset a new start shows the standard buttons':
             present and bar['standard'] == bar['start'] and bar['reset-closed'] == bar['start'],
+        f'drag: File > Move dragged into the toolbar\'s list goes on the toolbar '
+        f'{end.get("standard")} -> {end.get("dragged")}':
+            present and end['dragged'] > end['standard'] + 16,
+        'drag: dragged back onto the available buttons it goes away':
+            present and bar['dragged-back'] == bar['standard'],
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():
