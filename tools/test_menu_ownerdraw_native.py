@@ -26,6 +26,7 @@ def _native_app():
 
 
 sys.path.insert(0,str(ROOT));import neo98
+sys.path.insert(0,str(ROOT/'tools'));import runner_windows
 
 def test(source_root=ROOT):
  OUT.mkdir(exist_ok=True);env=neo98.tool_environment();libs=[]
@@ -52,15 +53,18 @@ def test(source_root=ROOT):
  package=Path(subprocess.check_output([str(neo98.analysis_python()),'-c','import unicorn;print(unicorn.__file__)'],text=True).strip()).parent
  library=package/'lib'/('libunicorn.2.dylib'if sys.platform=='darwin'else'libunicorn.so.2')
  binary=OUT/'test-menu-ownerdraw-native'
- compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),str(source),
+ # The tables of src/ come from setup's drive C: when the runner starts, as
+ # in the hosts (tools/runner_windows.py).
+ windows,font=runner_windows.prepare(OUT)
+ compiled=subprocess.run(['clang++','-std=c++17','-O1','-g','-fsanitize=address,undefined', *_native_app().engine_flags(),*runner_windows.FLAGS,str(source),
                           str(source_root/('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),
                           *[str(source_root/'src'/f'{s}.cpp')for s in sources],*_engine_link_extra(), *_native_app().unicorn_link(library),'-o',str(binary)],
                          env=env,capture_output=True,text=True)
  (OUT/'native-build.log').write_text(compiled.stdout+compiled.stderr)
  if compiled.returncode:print(compiled.stdout+compiled.stderr)
  compiled.check_returncode()
- run=subprocess.run([str(binary),str(exe),str(ROOT/'build/generated/notepad-fixedsys.fnt'),str(OUT/'ownerdraw.ppm')],
-                    env=env,capture_output=True,text=True)
+ run=subprocess.run([str(binary),str(exe),str(font),str(OUT/'ownerdraw.ppm')],
+                    env={**env,**windows},capture_output=True,text=True)
  (OUT/'native.log').write_text(run.stdout+run.stderr);print(run.stdout+run.stderr,end='');run.check_returncode()
  ppm=(OUT/'ownerdraw.ppm').read_bytes();pixels=ppm.split(b'\n',3)[3]
  def chunk(kind,data):return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)

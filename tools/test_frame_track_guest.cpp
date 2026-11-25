@@ -5,6 +5,9 @@
 // resulting geometry and pixels.
 #include "../src/x86_app.h"
 #include "../src/user_settings.h"
+#ifdef NEO98_RUNTIME_CONTENT
+#include "runner_windows_data.h"
+#endif
 #include <cassert>
 #include <chrono>
 #include <cstdio>
@@ -76,12 +79,17 @@ unsigned Differences(const std::vector<unsigned char> &a, const std::vector<unsi
 int main(int argc, char **argv)
 {
     assert(argc == 3 || argc == 4);
+#ifdef NEO98_RUNTIME_CONTENT
+    if (!RunnerWindowsData::Load()) return 1;
+#endif
     auto exe = Load(argv[1]), font = Load(argv[2]);
     const unsigned before_objects = Gdi::LiveObjects();
     {
         X86::Application application(nullptr);
         app = &application;
-        assert(application.Start(exe.data(), exe.size(), font.data(), font.size(), "FRAME.EXE"));
+        const bool started = application.Start(exe.data(), exe.size(), font.data(), font.size(), "FRAME.EXE");
+        if (!started) fprintf(stderr, "FRAME guest did not start: %s\n", application.Error());
+        assert(started);
         const unsigned window = Track();
         if (!window)
             fprintf(stderr, "FRAME guest did not reach its loop: status=%u code=%u error=%s\n",

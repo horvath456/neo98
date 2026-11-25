@@ -28,7 +28,9 @@ def _native_app():
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'build/frame-track'
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / 'tools'))
 import neo98
+import runner_windows  # noqa: E402
 
 IMPORTS = {
     'KERNEL32': {'ExitProcess': 4},
@@ -76,8 +78,12 @@ def test(source_root=ROOT, build=True):
                                             'import unicorn;print(unicorn.__file__)'], text=True).strip()).parent
     library = package / 'lib' / ('libunicorn.2.dylib' if sys.platform == 'darwin' else 'libunicorn.so.2')
     binary = OUT / 'test-frame-track'
+    # The tables of src/ come from setup's drive C: when the runner starts,
+    # as in the hosts (tools/runner_windows.py).
+    windows, font = runner_windows.prepare(OUT)
     if build:
         result = subprocess.run(['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags(),
+                                 *runner_windows.FLAGS,
                                  str(source), str(source_root / ('src/fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'src/fiber_aarch64.S')),
                                  *[str(source_root / 'src' / f'{s}.cpp') for s in sources],
                                  *_engine_link_extra(), *_native_app().unicorn_link(library), '-o', str(binary)],
@@ -86,8 +92,8 @@ def test(source_root=ROOT, build=True):
         if result.returncode:
             print(result.stdout + result.stderr)
         result.check_returncode()
-    run = subprocess.run([str(binary), str(exe), str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
-                          str(OUT / 'cursor.ppm')], env=env, capture_output=True, text=True)
+    run = subprocess.run([str(binary), str(exe), str(font), str(OUT / 'cursor.ppm')], env={**env, **windows},
+                         capture_output=True, text=True)
     (OUT / 'run.log').write_text(run.stdout + run.stderr)
     print(run.stdout + run.stderr, end='')
     run.check_returncode()

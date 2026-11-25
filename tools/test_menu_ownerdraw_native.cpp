@@ -8,12 +8,18 @@
 #include "../src/x86_app.h"
 #undef private
 #include "../src/user.cpp"
+#ifdef NEO98_RUNTIME_CONTENT
+#include "runner_windows_data.h"
+#endif
 static std::vector<unsigned char> load(const char*p){FILE*f=fopen(p,"rb");assert(f);fseek(f,0,SEEK_END);auto n=ftell(f);rewind(f);std::vector<unsigned char>b(n);assert(fread(b.data(),1,n,f)==size_t(n));fclose(f);return b;}
 static void capture(const char*path){User::Render();FILE*f=fopen(path,"wb");assert(f);fprintf(f,"P6\n800 600\n255\n");auto*p=User::Pixels();for(unsigned n=0;n<800*600;++n){unsigned char rgb[3]={p[n*4+2],p[n*4+1],p[n*4]};assert(fwrite(rgb,1,3,f)==3);}fclose(f);}
 static unsigned pixel(int x,int y){auto*p=User::Pixels();return (unsigned(p[(y*800+x)*4+2])<<16)|(unsigned(p[(y*800+x)*4+1])<<8)|p[(y*800+x)*4];}
 int main(int argc,char**argv)
 {
  assert(argc==4);
+#ifdef NEO98_RUNTIME_CONTENT
+ if(!RunnerWindowsData::Load())return 1;
+#endif
  auto exe=load(argv[1]),font=load(argv[2]);
  X86::Application app(nullptr);
  assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"MENUODRW.EXE"));
