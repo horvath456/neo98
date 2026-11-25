@@ -50,6 +50,13 @@ struct Environment
     virtual void RepositionWindows(const Rect &previous) = 0;  // USER.
     virtual bool WriteProfileInt(U identifier, int value) = 0; // USER.
     virtual bool WriteProfileFont(U identifier, const unsigned char *logfont) = 0; // USER.
+    // USER keeps a second writer for the LOGFONT32 inside NONCLIENTMETRICS and
+    // ICONMETRICS (segment 21, 9480h): it narrows the font into a LOGFONT16
+    // on its stack and calls the one above (9448h).
+    virtual bool WriteProfileFont32(U identifier, const unsigned char *logfont)
+    {
+        return WriteProfileFont(identifier, logfont);
+    }
     virtual void ApplyNonClientMetrics(const unsigned char *) = 0; // USER.
     virtual void ApplyMinimizedMetrics(const unsigned char *) = 0; // USER.
     virtual void ApplyIconMetrics(const unsigned char *) = 0;      // USER.
@@ -94,11 +101,11 @@ inline bool SetNonClientMetrics(Environment &e, const unsigned char *m, bool upd
     written |= e.WriteProfileInt(0x79, Signed(Word(m, 0x58)));
     written |= e.WriteProfileInt(0x7b, Signed(Word(m, 0x98)));
     written |= e.WriteProfileInt(0x7c, Signed(Word(m, 0x9c)));
-    written |= e.WriteProfileFont(0x77, m + 0x18);
-    written |= e.WriteProfileFont(0x7a, m + 0x5c);
-    written |= e.WriteProfileFont(0x7d, m + 0xa0);
-    written |= e.WriteProfileFont(0x88, m + 0xdc);
-    written |= e.WriteProfileFont(0x89, m + 0x118);
+    written |= e.WriteProfileFont32(0x77, m + 0x18);
+    written |= e.WriteProfileFont32(0x7a, m + 0x5c);
+    written |= e.WriteProfileFont32(0x7d, m + 0xa0);
+    written |= e.WriteProfileFont32(0x88, m + 0xdc);
+    written |= e.WriteProfileFont32(0x89, m + 0x118);
     return written;
 }
 // USER.
@@ -122,7 +129,7 @@ inline bool SetIconMetrics(Environment &e, const unsigned char *m, bool update_i
     e.WriteProfileInt(0x40, Signed(Word(m, 4)));
     e.WriteProfileInt(0x41, Signed(Word(m, 8)));
     e.WriteProfileInt(0x42, Signed(Word(m, 0xc)));
-    return e.WriteProfileFont(0x86, m + 0x10);
+    return e.WriteProfileFont32(0x86, m + 0x10);
 }
 // USER. A NULL LOGFONT keeps the current object and reports success.
 inline bool SetIconTitleFont(Environment &e, const unsigned char *logfont, bool update_ini)

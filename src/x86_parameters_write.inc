@@ -163,6 +163,14 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
                 face[i] = char(logfont[18 + i]);
             return app.WriteSystemProfile(entry->section, entry->key, face);
         }
+        bool WriteProfileFont32(unsigned identifier, const unsigned char *logfont) override
+        {
+            if (!logfont)
+                return false;
+            unsigned char narrow[50];
+            NarrowFont(logfont, narrow);
+            return WriteProfileFont(identifier, narrow);
+        }
         void ApplyNonClientMetrics(const unsigned char *m) override
         {
             Win98Metrics::ApplyNonClientMetrics(
