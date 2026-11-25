@@ -237,15 +237,12 @@ static void tray_icon(U which,U key_value,U wanted)
     {
         H next=0;
         if(which==TRAY_WIFI-1)next=wifi_picture(key_value&7,(key_value>>3)&1);
-        /* Windows 98's own pictures, read from the installed files: the
-           PC card of the tray's hardware icon, and the power icons of the
-           Power Management control panel (plug, battery, plug charging the
-           battery). Ours stand in when a file is missing. */
-        else if(which==TRAY_EJECT-1)
-        {
-            next=original_icon("C:\\WINDOWS\\SYSTEM\\SYSTRAY.EXE",210);
-            if(!next)next=art_icon(&eject_tray_art);
-        }
+        /* Unplug or Eject Hardware is our own drawing (tools/host_devices/icons):
+           Windows 98's tray only has the PC card, which reads as a card slot.
+           The power icons are Windows 98's own, read from the Power
+           Management control panel (plug, battery, plug charging the
+           battery); ours stand in when the file is missing. */
+        else if(which==TRAY_EJECT-1)next=art_icon(&eject_art);
         else next=original_icon("C:\\WINDOWS\\SYSTEM\\POWERCFG.CPL",
                                 status.power.ac!=1?201:status.power.flags&8?202:200);
         if(!next&&which==TRAY_POWER-1)
@@ -791,8 +788,8 @@ void mainCRTStartup(void)
     network_icon=original_icon("C:\\WINDOWS\\SYSTEM\\RNAUI.DLL",101);if(!network_icon)network_icon=picture_from(tower);
     medium_icon=original_icon("C:\\WINDOWS\\SYSTEM\\SHELL32.DLL",8);if(!medium_icon)medium_icon=picture_from(stick);
     cdrom_icon=original_icon("C:\\WINDOWS\\SYSTEM\\SHELL32.DLL",12);if(!cdrom_icon)cdrom_icon=picture_from(disc);
-    /* Unplug or Eject Hardware from Microsoft's KB242975 (tools/host_devices/icons). */
-    eject_icon=art_icon(&eject_dialog_art);
+    /* Unplug or Eject Hardware (tools/host_devices/icons). */
+    eject_icon=art_icon(&eject_art);
     CLASS c={0,proc,0,0,instance,0,LoadCursorA(0,(S)32512),(H)16,0,"NEO98Hardware"};RegisterClassA(&c);
     c.name="NEO98Wifi";RegisterClassA(&c);c.name="NEO98WifiKey";RegisterClassA(&c);c.name="NEO98Eject";RegisterClassA(&c);
     c.name="NEO98Battery";RegisterClassA(&c);c.name="NEO98WifiStatus";RegisterClassA(&c);c.name="NEO98WifiHidden";RegisterClassA(&c);

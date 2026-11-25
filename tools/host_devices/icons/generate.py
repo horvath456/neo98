@@ -1,30 +1,45 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 # Copyright (C) 2026 Andreas Horvath
-"""Reproduce Neo98's eject icons from geometric primitives, without input art."""
+"""Reproduce Neo98's Unplug or Eject Hardware icon from the pixel map below, without input art."""
 from pathlib import Path
 import struct
 
+# A green arrow that points up out of a grey card with gold contacts, in the
+# 16 Windows colours. '.' is transparent.
+ART = (
+    "....K...........",
+    "...KGK..........",
+    "..KGGGK.........",
+    ".KGGGGGK........",
+    "KGGGGGGgK.......",
+    "KKKGGgKKK.......",
+    "..KGGgKKKKKKKKK.",
+    "..KGGgKWWWWWWWLK",
+    "..KGGgKLLLLLLLDK",
+    "..KKKKKLWWWWWLDK",
+    "..KWLLLLWDDDWLDK",
+    "..KWLLLLWWWWWLDK",
+    "..KWLLLLLLLLLLDK",
+    "..KWYDYDYDYDYDDK",
+    "..KDDDDDDDDDDDDK",
+    "..KKKKKKKKKKKKKK",
+)
+COLOURS = {'K': (0, 0, 0), 'G': (0, 255, 0), 'g': (0, 128, 0), 'W': (255, 255, 255),
+           'L': (192, 192, 192), 'D': (128, 128, 128), 'Y': (128, 128, 0)}
 
-def icon(dialog=False):
-    # A teal upward arrow above a detached base. The dialog adds a blue frame.
+
+def icon():
     pixels = []
     masks = []
-    for y in reversed(range(16)):
+    for row in reversed(ART):
         bits = 0
-        for x in range(16):
-            colour = None
-            if dialog and (x in (0, 15) or y in (0, 15)):
-                colour = (45, 65, 100)
-            if (3 <= y <= 7 and abs(x - 7.5) <= y - 2.5) or (6 <= x <= 9 and 7 <= y <= 10):
-                colour = (0, 135, 135)
-            if 4 <= x <= 11 and 12 <= y <= 13:
-                colour = (45, 65, 100)
-            if colour is None:
+        for x, key in enumerate(row):
+            if key == '.':
                 bits |= 1 << (31 - x)
                 pixels.append(b'\0\0\0\0')
             else:
-                pixels.append(bytes((*reversed(colour), 255)))
+                pixels.append(bytes((*reversed(COLOURS[key]), 255)))
         masks.append(struct.pack('>I', bits))
     payload = struct.pack('<IiiHHIIiiII', 40, 16, 32, 1, 32, 0, 1088, 0, 0, 0, 0)
     payload += b''.join(pixels) + b''.join(masks)
@@ -32,5 +47,4 @@ def icon(dialog=False):
 
 
 if __name__ == '__main__':
-    for name, dialog in [('eject-tray', False), ('eject-dialog', True)]:
-        Path(__file__).with_name(name + '.ico').write_bytes(icon(dialog))
+    Path(__file__).with_name('eject.ico').write_bytes(icon())

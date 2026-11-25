@@ -42,6 +42,10 @@ inline constexpr Format texture_formats[] = {
     {H::PixelFormat::FourCCFlag, 0, 0, 0, 0, 0, H::FourCC::Dxt4},
     {H::PixelFormat::FourCCFlag, 0, 0, 0, 0, 0, H::FourCC::Dxt5},
 };
+// D3DFMT_Q8W8V8U8: the DirectX 8 and 9 runtime names it by its number in the
+// FourCC field; the driver treats it as this format of four signed bytes.
+inline constexpr unsigned SignedBytesFourCC = 63;
+inline constexpr Format signed_bytes_format = {H::PixelFormat::BumpDuDv, 32, 0xff, 0xff00, 0xff0000, 0xff000000u};
 constexpr unsigned TextureFormatCount = sizeof texture_formats / sizeof texture_formats[0];
 constexpr unsigned CompressedFormatCount = 5;
 // The Z buffer formats: 16 and 32 bits of depth, and 24 bits of depth with 8

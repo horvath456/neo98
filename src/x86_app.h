@@ -281,6 +281,11 @@ class Application final : private Pe32::AddressSpace
     // ChangeDisplaySettings of another process would reach it.
     static void SetHostDisplay(int width, int height, bool apply);
     static void HostDisplay(int &width, int &height);
+    // A screen size the host offers as one more mode of the display while it
+    // sets no desktop size of its own (the size that fills the Mac's screen
+    // in full screen): the guest may choose it, and the registry stores it
+    // like any other. Ignored while SetHostDisplay holds a size.
+    static void OfferHostScreen(int width, int height);
     static bool HostDisplayPending();
     // A window of the guest the user picked on the Mac (Mission Control, the
     // window menu): it comes to the foreground on the same kind of thread.

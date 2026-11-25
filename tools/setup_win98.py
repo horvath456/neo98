@@ -914,6 +914,12 @@ def _setup_iso(iso=None, timeout=7200, reset=False, folder=None, work_root=None,
         print(f"Windows 98 is already installed in {folder}")
         if not user:
             complete(folder, iso)
+        else:
+            # The assistant with the CD over a finished folder brings in what
+            # a newer setup copies from it (the Windows 98 Tour).
+            check_source_iso(folder, check_iso(iso))
+            if win98_cabs.apply(iso, folder):
+                print(f"setup: files of the CD copied to {win98_cabs.SOURCE}", flush=True)
         return 0
     if foreign_folder(folder):
         raise RuntimeError(f"{folder} is not empty; choose another install location")

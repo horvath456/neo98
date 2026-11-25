@@ -185,7 +185,8 @@ bool PixelShaderToMsl(const unsigned *tokens, unsigned count, const char *name, 
     if (!tokens || count < 2) { error = "no tokens"; return false; }
     const unsigned version = tokens[0];
     if ((version >> 16) == 0xffff && ((version >> 8) & 0xff) == 2) return Model2ToMsl(tokens, count, name, true, out, error);
-    if ((version >> 16) != 0xffff || ((version >> 8) & 0xff) != 1 || (version & 0xff) < 1 || (version & 0xff) > 4)
+    // 1.0 is 1.1 with fewer instructions and registers; nothing here differs.
+    if ((version >> 16) != 0xffff || ((version >> 8) & 0xff) != 1 || (version & 0xff) > 4)
     {
         char text[64];
         snprintf(text, sizeof text, "pixel shader version %08x", version);

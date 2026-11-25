@@ -98,6 +98,8 @@ const D3DFormat d3d_formats[] = {
     {80, Op::ZStencil | Op::ZStencilAnyColor},   // D16
     {71, Op::ZStencil | Op::ZStencilAnyColor},   // D32
     {75, Op::ZStencil | Op::ZStencilAnyColor},   // D24S8
+    // Last: only for a backend with Backend::SignedByteTextures.
+    {63, Op::Texture | Op::BumpMap},                                        // Q8W8V8U8
 };
 constexpr unsigned D3DFormatCount = sizeof d3d_formats / sizeof d3d_formats[0];
 
@@ -120,6 +122,8 @@ Format FormatOf(const unsigned char *pf)
     Format f = {get(H::PixelFormat::Flags), get(H::PixelFormat::BitCount), get(H::PixelFormat::RMask),
                 get(H::PixelFormat::GMask), get(H::PixelFormat::BMask), get(H::PixelFormat::AMask)};
     if (f.flags & H::PixelFormat::FourCCFlag) f.fourcc = get(H::PixelFormat::FourCC);
+    if ((f.flags & H::PixelFormat::FourCCFlag) && f.fourcc == Direct3DState::SignedBytesFourCC)
+        return Direct3DState::signed_bytes_format;
     return f;
 }
 bool SameFormat(const Format &a, const Format &b)
@@ -139,6 +143,8 @@ bool DriverFormat(const Format &f, int display_depth, bool compressed)
     Format display;
     DisplayFormat(display_depth, display);
     if (SameFormat(f, display)) return true;
+    // D3DFMT_Q8W8V8U8; the DirectX 7 list has no such format.
+    if (SameFormat(f, Direct3DState::signed_bytes_format)) return true;
     for (const auto &t : texture_formats)
         if (!t.fourcc && SameFormat(f, t)) return true;
     for (const auto &z : z_formats)
@@ -1983,6 +1989,14 @@ bool Application::HalSurfaceView(unsigned lcl, Gpu::Surface &view)
     view.b_mask = get(H::PixelFormat::BMask);
     view.a_mask = get(H::PixelFormat::AMask);
     view.indexed = (pflags & H::PixelFormat::Indexed8) != 0;
+    if (view.fourcc == Direct3DState::SignedBytesFourCC)
+    {
+        const Format &f = Direct3DState::signed_bytes_format;
+        view.fourcc = 0;
+        view.bump = true;
+        view.bit_count = f.bits;
+        view.r_mask = f.r; view.g_mask = f.g; view.b_mask = f.b; view.a_mask = f.a;
+    }
     if ((caps & H::DDSCAPS_ZBUFFER) || (pflags & H::PixelFormat::ZBuffer))
     {
         view.depth = true;
@@ -2167,6 +2181,7 @@ unsigned Application::HalCreateSurface(unsigned data)
             bits = Read32(gbl + H::SurfaceGlobal::PixelFormat + H::PixelFormat::BitCount);
             if (Read32(gbl + H::SurfaceGlobal::PixelFormat + H::PixelFormat::Flags) & H::PixelFormat::FourCCFlag)
                 fourcc = Read32(gbl + H::SurfaceGlobal::PixelFormat + H::PixelFormat::FourCC);
+            if (fourcc == Direct3DState::SignedBytesFourCC) { fourcc = 0; bits = 32; }
         }
         const unsigned size = Read32(gbl + H::SurfaceGlobal::Height);
         const unsigned w = size >> 16, h = size & 0xffff;
@@ -2443,14 +2458,14 @@ unsigned Application::HalDriverInfo2(unsigned out, unsigned expected)
     }
     if (type == I::GetFormatCount)
     {
-        Write32(out + I::Payload, D3DFormatCount);
+        Write32(out + I::Payload, D3DFormatCount - (gpu_backend->SignedByteTextures() ? 0 : 1));
         return expected;
     }
     if (type == I::GetFormat)
     {
         // DD_GETFORMATDATA: the index, then the DDPIXELFORMAT to fill.
         const unsigned index = Read32(out + I::Payload);
-        if (index >= D3DFormatCount) return 0;
+        if (index >= D3DFormatCount - (gpu_backend->SignedByteTextures() ? 0 : 1)) return 0;
         unsigned pf[8] = {H::PixelFormat::Size, H::D3DFormatFlag, d3d_formats[index].format, 0, d3d_formats[index].operations, 0, 0, 0};
         Store(out + I::Payload + 4, pf, sizeof pf);
         return expected;
@@ -3588,9 +3603,10 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
         const unsigned set = c.streams[0].stride;
         return set ? set : Gpu::VertexLayout::Of(c.vertex_shader).stride;
     };
-    auto stream_draw = [&](unsigned type, unsigned primitives, unsigned offset, unsigned vertex_total, unsigned min_index,
-                           bool indexed, unsigned index_offset) {
+    auto stream_draw = [&](unsigned type, unsigned primitives, unsigned declared_offset, unsigned vertex_total,
+                           unsigned declared_min, bool indexed, unsigned index_offset) {
         if (!primitives) return true;
+        unsigned offset = declared_offset, min_index = declared_min;
         // The vertex layout: a DirectX 8 shader's declaration, or a DirectX 9
         // declaration read through the dcl of the function or, without one,
         // through the registers of the fixed function pipeline; none for an
@@ -3630,14 +3646,63 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
         default: DriverTrace("DDHAL draw8 primitive type", type); return false;
         }
         const unsigned stride = stream_stride();
-        const unsigned vertices = indexed ? vertex_total : elements;
+        unsigned vertices = indexed ? vertex_total : elements;
+        // The indices first. A GPU fetches the vertex an index names, whatever
+        // MinIndex and NumVertices of the call say, and programs do pass
+        // ranges that are too small: a range that misses an index grows to
+        // the vertices the indices really use.
+        unsigned char *raw = nullptr;
+        bool widened = false;
+        if (indexed)
+        {
+            auto *buffer = HalSurfaceByHandle(c.index_handle, true);
+            unsigned index_at = 0, index_size = 0;
+            if (!buffer || !HalBufferBytes(buffer->lcl, index_at, index_size)) { DriverTrace("DDHAL draw8 no index buffer", c.index_handle); return false; }
+            const unsigned index_bytes = elements * c.index_stride;
+            if (index_offset > index_size || index_bytes > index_size - index_offset) { DriverTrace("DDHAL draw8 past the indices", index_offset); return false; }
+            if (!GrowIndices(h.indices, h.index_capacity, elements * (c.index_stride == 4 ? 3 : 2))) return false;
+            raw = reinterpret_cast<unsigned char *>(h.indices + elements);
+            if (!Read(index_at + index_offset, raw, index_bytes)) return false;
+            unsigned lowest = ~0u, highest = 0;
+            for (unsigned i = 0; i < elements; ++i)
+            {
+                const unsigned value = c.index_stride == 4 ? unsigned(raw[i * 4]) | unsigned(raw[i * 4 + 1]) << 8 |
+                                                                 unsigned(raw[i * 4 + 2]) << 16 | unsigned(raw[i * 4 + 3]) << 24
+                                                           : unsigned(raw[i * 2]) | unsigned(raw[i * 2 + 1]) << 8;
+                if (value < lowest) lowest = value;
+                if (value > highest) highest = value;
+            }
+            const long long moved = (long long)declared_offset + ((long long)lowest - declared_min) * stride;
+            if (stride && (lowest < declared_min || highest - declared_min >= vertex_total) &&
+                highest - lowest < 0x10000 && moved >= 0 && moved <= ~0u)
+            {
+                offset = unsigned(moved);
+                min_index = lowest;
+                vertices = highest - lowest + 1;
+                widened = true;
+            }
+        }
         if ((!stride && !program) || !vertices || vertices > 0x10000) { DriverTrace("DDHAL draw8 vertex count", vertices); return false; }
+        // The grown range may run past the stream: then the call's own range
+        // is all there is to draw from.
+        auto declared_range = [&]() {
+            widened = false;
+            offset = declared_offset;
+            min_index = declared_min;
+            vertices = vertex_total;
+        };
         if (program)
         {
             // The streams of the declaration into input registers, from the
             // vertex the offset names in stream 0 on.
             unsigned slots = 0;
-            if (!HalGatherInputs(c, layout, layout_count, stride ? offset / stride : 0, vertices, vertex_base, slots)) return false;
+            bool gathered = HalGatherInputs(c, layout, layout_count, stride ? offset / stride : 0, vertices, vertex_base, slots);
+            if (!gathered && widened)
+            {
+                declared_range();
+                gathered = HalGatherInputs(c, layout, layout_count, stride ? offset / stride : 0, vertices, vertex_base, slots);
+            }
+            if (!gathered) return false;
             d.shader_inputs = function;
             d.stride = slots * 16;
             // A declaration without a function feeds the fixed function
@@ -3658,6 +3723,7 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
                 address += c.streams[0].offset;
                 size = c.streams[0].offset < size ? size - c.streams[0].offset : 0;
             }
+            if (widened && size != ~0u && (offset > size || vertices * stride > size - offset)) declared_range();
             const unsigned bytes = vertices * stride;
             if (size != ~0u && (offset > size || bytes > size - offset)) { DriverTrace("DDHAL draw8 past the stream", offset); return false; }
             if (!Grow(h.stream_vertices, h.stream_capacity, bytes + 64) || !Read(address + offset, h.stream_vertices, bytes)) return false;
@@ -3669,19 +3735,6 @@ unsigned Application::HalDrawPrimitives2(unsigned data)
         d.primitive_count = primitives;
         if (indexed)
         {
-            auto *buffer = HalSurfaceByHandle(c.index_handle, true);
-            unsigned index_at = 0, index_size = 0;
-            if (!buffer || !HalBufferBytes(buffer->lcl, index_at, index_size)) { DriverTrace("DDHAL draw8 no index buffer", c.index_handle); return false; }
-            const unsigned index_bytes = elements * c.index_stride;
-            if (index_offset > index_size || index_bytes > index_size - index_offset) { DriverTrace("DDHAL draw8 past the indices", index_offset); return false; }
-            if (!GrowIndices(h.indices, h.index_capacity, elements * 2)) return false;
-            unsigned char *raw = reinterpret_cast<unsigned char *>(h.indices + elements);
-            if (c.index_stride == 4)
-            {
-                if (!GrowIndices(h.indices, h.index_capacity, elements * 3)) return false;
-                raw = reinterpret_cast<unsigned char *>(h.indices + elements);
-            }
-            if (!Read(index_at + index_offset, raw, index_bytes)) return false;
             for (unsigned i = 0; i < elements; ++i)
             {
                 const unsigned value = c.index_stride == 4 ? unsigned(raw[i * 4]) | unsigned(raw[i * 4 + 1]) << 8 |
@@ -4712,7 +4765,9 @@ unsigned Application::DisplayDriverApi(ApiName name, const unsigned *a)
         }
         HalForgetSurface(copy ? copy->lcl : lcl);
         Write32(data + D::SurfaceResult, H::DD_OK);
-        return H::DriverHandled;
+        // DDRAW cut the block out of the heap (HalCreateSurface), and it puts
+        // the block back only when the driver leaves the call to it.
+        return H::DriverNotHandled;
     }
     API_CASE("Flip") return HalFlip(data);
     API_CASE("Lock") return HalLock(data);

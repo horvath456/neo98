@@ -5,6 +5,7 @@
 #import <AppKit/AppKit.h>
 
 #include <cerrno>
+#include <copyfile.h>
 #include <deque>
 #include <fcntl.h>
 #include <signal.h>
@@ -12,6 +13,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/xattr.h>
 #include <unistd.h>
 
 extern char **environ;
@@ -75,6 +77,20 @@ std::string BundleIdentifier(const std::string &name)
     return text;
 }
 
+// Only the bytes, and no quarantine. A Neo98.app downloaded with a browser
+// carries com.apple.quarantine on every file, and a copy of the helper would
+// take it along (macOS may also set it on a file the host writes).
+// Gatekeeper then checks the new bundle on the helper's first start, finds
+// an Info.plist the helper's signature does not seal, and macOS reports the
+// program as damaged although the helper runs. The helper is the one of the
+// Neo98.app the user already opened.
+bool CopyData(const std::string &from, NSString *to)
+{
+    if (copyfile(from.c_str(), to.UTF8String, nullptr, COPYFILE_DATA | COPYFILE_EXCL) != 0) return false;
+    removexattr(to.UTF8String, "com.apple.quarantine", 0);
+    return true;
+}
+
 // <directory>/<Name>.app with the helper, the icon and an Info.plist of its
 // own. Written anew for every start of a program: the icon may have changed.
 bool WriteBundle(const std::string &bundle, const HostDock::Program &program, const std::string &helper,
@@ -92,7 +108,7 @@ bool WriteBundle(const std::string &bundle, const HostDock::Program &program, co
     // new one beside it and rename.
     NSString *fresh = [program_path stringByAppendingString:@".neu"];
     [files removeItemAtPath:fresh error:nil];
-    if (![files copyItemAtPath:Text(helper) toPath:fresh error:nil]) return false;
+    if (!CopyData(helper, fresh)) return false;
     if (rename(fresh.UTF8String, program_path.UTF8String) != 0) return false;
     chmod(program_path.UTF8String, 0755);
     NSString *icon = [resources stringByAppendingPathComponent:@"icon.icns"];
@@ -100,7 +116,7 @@ bool WriteBundle(const std::string &bundle, const HostDock::Program &program, co
     if (!has_icon && !fallback_icon.empty())
     {
         [files removeItemAtPath:icon error:nil];
-        has_icon = [files copyItemAtPath:Text(fallback_icon) toPath:icon error:nil];
+        has_icon = CopyData(fallback_icon, icon);
     }
     const std::string name = HostDock::DisplayName(program.name);
     NSMutableDictionary *info = [@{

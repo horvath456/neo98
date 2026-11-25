@@ -19,6 +19,8 @@ A Dock icon per program:
 - a bundle <settings>/Programme/Calc.app with the helper, an Info.plist
   (name, identifier at.andreas-horvath.neo98.app.<hash>) and an.icns made
   from the icon of the window, and one for the fixture, which has no icon;
+  the helper is under quarantine beside the host, as in a downloaded app,
+  and its copy in the bundle is not;
 - "activate" from the helper brings the program's window to the foreground,
   "quit" closes the program (WM_CLOSE), and when the program has ended the
   helper is told to end and its process is gone.
@@ -86,10 +88,18 @@ def main():
                NEO98_DOCK_HELPER_SCRIPT='12:activate@Calc;16:quit@Calc')
     for key in ('NEO98_HOST_ATTACHED', 'NEO98_HOST_MENU'):
         env.pop(key, None)
+    # A Neo98.app downloaded with a browser has every file under quarantine,
+    # the helper too. Its copy in a bundle must not be: macOS would report the
+    # program as damaged at the helper's first start.
+    source_helper = binary.with_name('neo98-dock-helper')
+    subprocess.run(['xattr', '-w', 'com.apple.quarantine', '0081;00000000;Neo98 test;', str(source_helper)], check=True)
     log_path = out / 'host.log'
-    with log_path.open('w') as log:
-        code = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
-                              stdin=subprocess.DEVNULL, timeout=300).returncode
+    try:
+        with log_path.open('w') as log:
+            code = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
+                                  stdin=subprocess.DEVNULL, timeout=300).returncode
+    finally:
+        subprocess.run(['xattr', '-d', 'com.apple.quarantine', str(source_helper)], capture_output=True)
     shutil.rmtree(drive, ignore_errors=True)
     text = log_path.read_text(errors='replace')
     lines = [line for line in text.splitlines() if line.startswith('NEO98 HOST')]
@@ -135,6 +145,9 @@ def main():
             and str(info.get('CFBundleIdentifier', '')).startswith('at.andreas-horvath.neo98.app.')
             and str(info.get('NEO98Program', '')).endswith('CALC.EXE') and 'LSUIElement' not in info)
         checks['the helper is in the bundle'] = os.access(bundle / 'Contents/MacOS/neo98-dock-helper', os.X_OK)
+        checks['the helper in the bundle is not under quarantine'] = subprocess.run(
+            ['xattr', '-p', 'com.apple.quarantine', str(bundle / 'Contents/MacOS/neo98-dock-helper')],
+            capture_output=True).returncode != 0
         checks['the icon of the window is 32x32'] = (calc.group(3), calc.group(4)) == ('32', '32')
         checks['icon.icns holds it enlarged (512 wide)'] = (icon.exists() and icon.read_bytes()[:4] == b'icns'
                                                             and 'pixelWidth: 512' in sips.stdout)

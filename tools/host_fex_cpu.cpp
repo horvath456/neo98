@@ -161,7 +161,8 @@ void GlobalInit()
     // x87 with 64-bit doubles: a Win32 thread starts at 53-bit precision
     // (control word 027Fh), and a process that asks for
     // 64-bit precision is switched to 80-bit values (FexCpu::X87Full).
-    // NEO98_FEX_X87=80 starts every process with 80-bit values.
+    // NEO98_FEX_X87=80 starts every process with 80-bit values, and
+    // NEO98_FEX_X87=64 never leaves doubles.
     const char *x87 = getenv("NEO98_FEX_X87");
     Set(CONFIG_X87REDUCEDPRECISION, x87 && !strcmp(x87, "80") ? "0" : "1");
     // The dispatcher looks a guest address up in the page table of the lookup
@@ -326,6 +327,12 @@ class FexCpu final : public Cpu
     // dropped; a switch to 80-bit x87 waits for the next exit then.
     bool in_syscall = false, x87_switch_pending = false;
     unsigned long long x87_switches = 0;
+    // Back to doubles (X87ReturnToDoubles): the process was switched by the
+    // guest, the time since the guest last showed 64-bit precision, and how
+    // many times it came back so far.
+    bool x87_may_return = false;
+    uint64_t x87_below_full_since = 0;
+    unsigned x87_returns = 0;
     struct
     {
         unsigned begin = 0, end = 0;
@@ -1305,6 +1312,15 @@ class FexCpu final : public Cpu
         return (sign << 63) | (uint64_t(e) << 52) | (kept & ((1ull << 52) - 1));
     }
     bool X87Reduced() const { return ctx->NEO98X87Reduced(); }
+    // 64-bit precision that needs 80-bit values. 133Fh with any rounding
+    // control does not: the CRT's math functions hold it for one call (patch
+    // 0018).
+    static bool X87WantsFull(unsigned control)
+    {
+        // NEO98_FEX_X87=64: doubles throughout, faster and less exact.
+        static const bool always_doubles = [] { const char *mode = getenv("NEO98_FEX_X87"); return mode && !strcmp(mode, "64"); }();
+        return !always_doubles && (control & 0x300) == 0x300 && (control & 0xf3ff) != 0x133f;
+    }
     // The x86 rounding control (0 nearest, 1 down, 2 up, 3 toward zero) in
     // FPCR.RMode, bit-reversed as FEXCore's SetRoundingMode does it.
     static void SetHostRounding(unsigned control)
@@ -1337,8 +1353,46 @@ class FexCpu final : public Cpu
         RegistersToExtended(State());
         ClearCode();
         ++x87_switches;
+        x87_may_return = true;
+        x87_below_full_since = 0;
         if (Debug())
             fprintf(stderr, "FEXCPU x87 switched to 80-bit at %08x fcw=%04x\n", (unsigned)State().rip, State().FCW);
+    }
+    // A program that asked for 64-bit precision once usually goes back: the
+    // CRT's _control87 at startup, then Direct3D's single precision for the
+    // rest of the run. Doubles serve again when the control word has stayed
+    // below 64 bits for a while and the register stack is empty, so no value
+    // loses bits. Each return waits twice as long as the one before, which
+    // bounds the translation work of a program that keeps switching.
+    void X87ReturnToDoubles()
+    {
+        auto &s = State();
+        if (X87WantsFull(s.FCW))
+        {
+            x87_below_full_since = 0;
+            return;
+        }
+        if (s.AbridgedFTW)
+            return;
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts);
+        const uint64_t now = (uint64_t)ts.tv_sec * 1000000000ull + ts.tv_nsec;
+        if (!x87_below_full_since)
+        {
+            x87_below_full_since = now;
+            return;
+        }
+        if (now - x87_below_full_since < 1000000000ull << std::min(x87_returns, 6u))
+            return;
+        for (auto &reg : s.mm)
+            reg[0] = reg[1] = 0;
+        ctx->NEO98SetX87Reduced(true);
+        SetHostRounding((s.FCW >> 10) & 3);
+        ClearCode();
+        ++x87_returns;
+        x87_may_return = false;
+        if (Debug())
+            fprintf(stderr, "FEXCPU x87 back to doubles at %08x fcw=%04x\n", (unsigned)s.rip, s.FCW);
     }
     unsigned Fsw()
     {
@@ -1444,7 +1498,7 @@ class FexCpu final : public Cpu
             // The host sets the control word for the guest (_controlfp and
             // _control87 of the CRT, a restored CONTEXT): 64-bit precision
             // switches the process like a guest FLDCW does.
-            if ((value & 0x300) == 0x300 && X87Reduced())
+            if (X87WantsFull(value) && X87Reduced())
             {
                 if (in_syscall)
                 {
@@ -1574,6 +1628,26 @@ class FexCpu final : public Cpu
         CopyArchitectural(State(), c.state);
         if (c.x87_reduced && !X87Reduced())
             RegistersToExtended(State());
+        else if (!c.x87_reduced && X87Reduced())
+        {
+            // Saved in 80 bits, and the process has gone back to doubles
+            // since. A thread still at 64-bit precision takes it to 80 bits
+            // again with its registers as they are.
+            if (X87WantsFull(State().FCW))
+            {
+                ctx->NEO98SetX87Reduced(false);
+                ClearCode();
+                ++x87_switches;
+                x87_may_return = true;
+                x87_below_full_since = 0;
+            }
+            else
+                for (auto &reg : State().mm)
+                {
+                    reg[0] = ExtendedToDouble(reg[0], reg[1] & 0xffff);
+                    reg[1] = 0;
+                }
+        }
         // Each thread has its own rounding control; with doubles it lives in
         // the host FPCR (SetHostRounding).
         if (X87Reduced())
@@ -1792,6 +1866,8 @@ class FexCpu final : public Cpu
                 break;
             if (x87_switch_pending)
                 X87Full();
+            else if (x87_may_return)
+                X87ReturnToDoubles();
             s.NEO98Exit = 0;
             s.NEO98CycleOffset = CycleOffset();
             cpu_frame->SynchronousFaultData.FaultToTopAndGeneratedException = 0;
