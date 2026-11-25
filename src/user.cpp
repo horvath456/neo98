@@ -5604,10 +5604,16 @@ static void RouteMouse(const InputPacket &packet, void *context, InputFocus call
             return;
         }
         client_event(selected, w->double_clicks ? press_message() : 0x201);
-        // A plain window: the port's focus change stands for the activation
-        // of the press, which the answer MA_NOACTIVATE declines. The controls
-        // above take the focus themselves, as their procedures do.
-        if (!keep_inactive) mouse_focus(selected);
+        // A plain window: the press activates its top-level window, which
+        // the answer MA_NOACTIVATE declines, and takes no focus itself. USER
+        // moves the focus only through the activation (DefWindowProc gives it
+        // to the window on WM_ACTIVATE, DefDlgProc back to the control that
+        // had it); a press in the window that is active already leaves it
+        // where it is, so a click on the empty client area or on a static
+        // (HTTRANSPARENT) of a dialog does not take it from its edit. The
+        // controls above take the focus themselves, as their procedures do.
+        // Without the activation of a process, the press gives the focus.
+        if (!keep_inactive) mouse_focus(selected, !callback);
     }
 }
 void Mouse(int x, int y, bool down, bool up, unsigned milliseconds)
