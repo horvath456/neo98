@@ -17,8 +17,9 @@ namespace HostKms
 // (until the pixel of the screen has about that colour; the time since the
 // step before goes to stderr), click=X,Y,
 // dblclick=X,Y, move=X,Y, drag=X1,Y1,X2,Y2 (guest coordinates), key=VK,
-// ctrl=VK and alt=VK (hexadecimal), type=TEXT, shot=PATH (the screen as PNG),
-// quit=1 (also menu=quit).
+// ctrl=VK and alt=VK (hexadecimal), keydown=VK and keyup=VK (a key held over
+// the steps between them), type=TEXT, shot=PATH (the screen as PNG), quit=1
+// (also menu=quit).
 class Script
 {
     struct Step { double time; std::string action, value; };
@@ -114,6 +115,25 @@ class Script
             app.RawKey(key, 0, false, scan, extended);
             if (alt) app.RawKey(0x12, 0, false, 0x38, false);
             app.KeyboardModifiers(0);
+        }
+        else if (step.action == "keydown" || step.action == "keyup")
+        {
+            // A key held over several steps, as a hand holds a key down: the
+            // same key with the same scan code as neo98-host's.
+            const unsigned key = strtoul(step.value.c_str(), nullptr, 16);
+            unsigned scan = 0; bool extended = false;
+            for (unsigned usage = 1; usage < 128; ++usage)
+            {
+                const auto mapped = UsbKeys::Map(usage, false, true);
+                if (mapped.vk == key) { scan = mapped.scan; extended = mapped.extended; break; }
+            }
+            switch (key)
+            {
+            case 0xa0: scan = 0x2a; break; case 0xa1: scan = 0x36; break;
+            case 0xa2: case 0xa3: scan = 0x1d; break; case 0xa4: case 0xa5: scan = 0x38; break;
+            default: break;
+            }
+            app.RawKey(key, 0, step.action == "keydown", scan, extended || key == 0xa3 || key == 0xa5);
         }
         else if (step.action == "click" || step.action == "dblclick" || step.action == "move")
         {

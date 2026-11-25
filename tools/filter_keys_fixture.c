@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* FilterKeys: a window that keeps the characters it gets. "bounce" turns
-   FilterKeys on with BounceKeys of 500 ms, "slow" with SlowKeys of 300 ms;
-   Esc writes C:\FILTER.TXT with the characters.
+   FilterKeys on with BounceKeys of 1.5 s, "slow" with SlowKeys of 1 s; Esc
+   writes C:\FILTER.TXT with the characters and ends the program.
    tools/test_filter_keys_host.py */
 #include <windows.h>
 
@@ -40,8 +40,8 @@ void mainCRTStartup(void)
     FILTERKEYS filter = {sizeof filter};
     SystemParametersInfoA(SPI_GETFILTERKEYS, sizeof filter, &filter, 0);
     filter.dwFlags |= FKF_FILTERKEYSON;
-    filter.iWaitMSec = slow ? 300 : 0;
-    filter.iBounceMSec = slow ? 0 : 500;
+    filter.iWaitMSec = slow ? 1000 : 0;
+    filter.iBounceMSec = slow ? 0 : 1500;
     SystemParametersInfoA(SPI_SETFILTERKEYS, sizeof filter, &filter, 0);
     WNDCLASSA wc = {0};
     wc.lpfnWndProc = procedure;
