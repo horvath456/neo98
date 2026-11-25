@@ -717,6 +717,7 @@ inline const Ordinal *GdiOrdinals(U &count)
         {527, 5, "SetMiterLimit"}, {529, 1, "CreateHalftonePalette"}, {602, 5, "SetDIBColorTable"},
         {603, 5, "GetDIBColorTable"}, {606, 4, "SetMagicColors"}, {611, 3, "GetRandomRgn"},
         {612, 1, "GetTextCharset"}, {616, 1, "GetFontLanguageInfo"},
+        {613, 9, "EnumFontFamiliesEx"},
     };
     count = sizeof table / sizeof table[0];
     return table;

@@ -252,7 +252,9 @@ unsigned Application::Win16FontCallback(unsigned far_pointer, const unsigned cha
     // with WORD sizes (31 bytes), ntmFlags, then ntmSizeEM, ntmCellHeight
     // and ntmAvgWidth as WORDs. GDI and share the body, so
     // EnumFonts and EnumFontFamilies hand over the same records.
-    constexpr unsigned LogfontBytes = 50 + 64 + 32, MetricBytes = Win16U::TextMetricBytes + 10;
+    const bool extended = win16_font_extended;
+    const unsigned LogfontBytes = 50 + 64 + 32 + (extended ? 32 : 0),
+                   MetricBytes = Win16U::TextMetricBytes + 10 + (extended ? 24 : 0);
     const unsigned stack = Register(Reg::Ss);
     unsigned sp = (Register(Reg::Esp) & 0xffff) & ~1u;
     // USER and GDI check the task's stack before they set up a
@@ -288,7 +290,8 @@ unsigned Application::Win16FontCallback(unsigned far_pointer, const unsigned cha
         Win16Word(base + logfont_at + i * 2, value);
     }
     Store(base + logfont_at + 10, logfont + 20, 40);
-    Store(base + logfont_at + 50, record + 60, 64 + 32);
+    // ENUMLOGFONTEX adds elfScript, which the shared record keeps at 156.
+    Store(base + logfont_at + 50, record + 60, 64 + 32 + (extended ? 32 : 0));
     sp = (sp - MetricBytes) & ~1u;
     const unsigned metrics_at = sp;
     const int values[] = {metrics.tmHeight, metrics.tmAscent, metrics.tmDescent,
@@ -301,6 +304,13 @@ unsigned Application::Win16FontCallback(unsigned far_pointer, const unsigned cha
     Store(base + metrics_at + Win16U::TextMetricBytes, &extra[0], 4);
     for (unsigned i = 1; i < 4; ++i)
         Win16Word(base + metrics_at + Win16U::TextMetricBytes + 2 + i * 2, extra[i]);
+    // NEWTEXTMETRICEX adds the FONTSIGNATURE, which the shared record does
+    // not carry; zero says no Unicode or code page ranges.
+    if (extended)
+    {
+        const unsigned char none[24] = {};
+        Store(base + metrics_at + Win16U::TextMetricBytes + 10, none, sizeof none);
+    }
     sp -= 18;
     Win16Word(base + sp, CallbackReturn & 0xffff);
     Win16Word(base + sp + 2, Win16GateSelector());
@@ -5588,7 +5598,38 @@ bool Application::Win16GdiCall(unsigned ordinal, const Win16Frame &frame, unsign
         const unsigned mark = Win16Mark(callback);
         if (!mark) { Fail("Win16 font enumeration has no procedure mark left"); return false; }
         const unsigned a[] = {arg(0), frame.Pointer(4), mark, frame.Long(0)};
+        // A callback of EnumFontFamiliesEx that enumerates again gets the
+        // records of EnumFontFamilies.
+        const bool extended = win16_font_extended;
+        win16_font_extended = false;
         result = Api(ordinal == 70 ? "EnumFontsA" : "EnumFontFamiliesA", a) & 0xffff;
+        win16_font_extended = extended;
+        return true;
+    }
+    case 613: // EnumFontFamiliesEx(hdc, logfont, callback, parameter, flags),
+              // GDI of Windows 95. The LOGFONT is the 16-bit one; the
+              // 16-bit ChooseFont of COMMDLG.DLL fills its lists with it.
+    {
+        const unsigned callback = frame.Long(4), source = frame.Pointer(6);
+        if (!callback || !source) { result = 0; return true; }
+        const unsigned mark = Win16Mark(callback);
+        if (!mark) { Fail("Win16 font enumeration has no procedure mark left"); return false; }
+        unsigned char logfont[60] = {};
+        for (unsigned i = 0; i < 5; ++i)
+        {
+            const int value = (short)Win16Word(source + i * 2);
+            memcpy(logfont + i * 4, &value, 4);
+        }
+        Read(source + 10, logfont + 20, 40);
+        const unsigned copy = Allocate(sizeof logfont);
+        if (!copy) { result = 0; return true; }
+        Store(copy, logfont, sizeof logfont);
+        const unsigned a[] = {arg(0), copy, mark, frame.Long(2), frame.Long(0)};
+        const bool extended = win16_font_extended;
+        win16_font_extended = true;
+        result = Api("EnumFontFamiliesExA", a) & 0xffff;
+        win16_font_extended = extended;
+        Free(copy);
         return true;
     }
     case 74: // GetBitmapBits(bitmap, count, bits)

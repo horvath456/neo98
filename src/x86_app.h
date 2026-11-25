@@ -2079,6 +2079,10 @@ private:
     // NEWTEXTMETRIC in their 16-bit forms.
     unsigned Win16FontCallback(unsigned far_pointer, const unsigned char *record, unsigned font_type,
                                unsigned parameter);
+    // Set while GDI.613, EnumFontFamiliesEx, runs: its callback gets
+    // ENUMLOGFONTEX and NEWTEXTMETRICEX, with the script name and the font
+    // signature behind the records of EnumFontFamilies.
+    bool win16_font_extended = false;
     unsigned Win16HookCallback(unsigned procedure, unsigned code, unsigned wparam, unsigned lparam);
     unsigned Win16Far(unsigned flat);
     void Win16NoteFarAlias(unsigned flat, unsigned far_pointer);
