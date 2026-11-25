@@ -1825,7 +1825,7 @@ static HWND WheelWindow(const InputPacket &p)
     if (WheelMenuOpen()) return 0;
     if (!wheel_to_pointer || QueueCapture(ForegroundQueue())) return focus;
     const HWND under = HitWindow(Desktop, p.x, p.y);
-    if (!under || under == Desktop || !IsEnabled(under) || !IsVisible(under)) return focus;
+    if (!under || under == Desktop || !ReceivesInput(under) || !IsVisible(under)) return focus;
     // Over a SCROLLBAR control the wheel is its parent's, which the bar
     // scrolls (DefWindowProc finds the bar, src/x86_activation.cpp).
     if (const Window *w = Find(under); w && w->common == 10 && w->parent && w->parent != Desktop) return w->parent;
@@ -2351,7 +2351,8 @@ bool CanvasInfo(HWND h,bool&has,bool&drawn){auto*w=Find(h);if(!w)return false;ha
 unsigned CommonControl(HWND h){auto *w=Find(h);return w?w->common:0;}
 void SetCommonDraw(void *p,CommonDraw draw){common_context=p;common_draw=draw;}
 bool IsVisible(HWND h) {if(!Find(h))return false;for(unsigned n=0;h&&n<MaxWindows;++n){auto *w=Find(h);if(!w||!w->visible)return false;h=w->parent;}return true;}
-bool IsEnabled(HWND h) {if(!Find(h))return false;for(unsigned n=0;h&&n<MaxWindows;++n){auto *w=Find(h);if(!w||!w->enabled)return false;h=w->parent;}return true;}
+bool IsEnabled(HWND h) {auto *w=Find(h);return w&&w->enabled;}
+bool ReceivesInput(HWND h) {if(!Find(h))return false;for(unsigned n=0;h&&n<MaxWindows;++n){auto *w=Find(h);if(!w||!w->enabled)return false;h=w->parent;}return true;}
 HWND Owner(HWND h){auto *w=Find(h);return w?w->owner:0;}
 unsigned ExtendedStyle(HWND h){auto *w=Find(h);return w?w->extended:0;}
 void SetExtendedStyle(HWND h,unsigned style){if(auto *w=Find(h)){if(h==Desktop)return;

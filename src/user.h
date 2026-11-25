@@ -196,7 +196,11 @@ void AdoptLabel(HWND);
 bool AdoptEdit(HWND,const char *title=nullptr);
 bool CanvasInfo(HWND,bool&,bool&);
 unsigned CommonControl(HWND); // 1 tree view, 2 list view, 3 status bar, 4 listbox, 5 toolbar, 6 combobox, 7 tab, 8 updown, 9 tooltip, 10 scrollbar
+// IsWindowEnabled: the window's own WS_DISABLED, as USER answers it and as
+// a control draws itself; a disabled parent does not grey its children.
 bool IsEnabled(HWND);
+// Whether input can reach the window: it and every parent are enabled.
+bool ReceivesInput(HWND);
 bool IsVisible(HWND);
 HWND Owner(HWND);
 unsigned ExtendedStyle(HWND);

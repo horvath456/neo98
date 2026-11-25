@@ -140,7 +140,7 @@ TouchMouse TouchInput(unsigned long long device, unsigned long long finger, unsi
         while (h && !TouchFind(h) && Parent(h) && Parent(h) != Desktop) h = Parent(h);
         Gdi::RECT client = {};
         if (TouchFind(h) && ClientScreenRect(h, &client) && x >= client.left && x < client.right &&
-            y >= client.top && y < client.bottom && IsEnabled(h)) {
+            y >= client.top && y < client.bottom && ReceivesInput(h)) {
             contact->hwnd = h;
             NoteInputPress(h, time);
             mouse.activate = TouchRoot(h);
