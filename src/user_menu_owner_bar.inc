@@ -51,6 +51,7 @@ unsigned ServeOwnerBars(HWND only)
             auto item=m->items[i];if(!(item.type&0x100)&&item.bitmap!=0xffff)continue;
             const auto box=w->menu_item[i];
             item.x=box.left;item.y=box.top;item.width=box.right-box.left;item.height=box.bottom-box.top;
+            OwnerItemColors(dc,item.state,false);   // the bar keeps the menu colours
             if(item.type&0x100)OD::DrawOwnerItem(environment,m,handle,item,false,0,1,h,dc);
             else{
                 const int saved=Gdi::SaveDC(dc);

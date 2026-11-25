@@ -82,6 +82,17 @@ struct MenuOwnerEnvironment final : OD::Environment {
   menu_draw(CallbackContext(menu_owner_context,window),window,fields);
  }
 } menu_owner_environment;
+// USER selects the item's colours into the DC before WM_DRAWITEM. Owners such
+// as the shell's file menus (Send To) only set colours for the selected item
+// and otherwise paint with ETO_OPAQUE in what they find, so a fresh DC's
+// white background and black text would show. On the menu bar a highlighted
+// item keeps the menu colours.
+void OwnerItemColors(Gdi::HDC dc,unsigned short state,bool highlighted){
+ const unsigned*colors=Win98Frame::SystemColors();
+ Gdi::SetBkColor(dc,colors[highlighted?Win98MenuDraw::ColorHighlight:Win98MenuDraw::ColorMenu]);
+ Gdi::SetTextColor(dc,colors[(state&1)?Win98MenuDraw::ColorGrayText:   // MF_GRAYED
+                             highlighted?Win98MenuDraw::ColorHighlightText:Win98MenuDraw::ColorMenuText]);
+}
 #include "user_menu_owner_bar.inc"
 void MeasurePopup(PopupView&v){auto*m=FindMenu(v.popup.menu);if(!m){v.width=v.height=0;return;}
  const int save=Gdi::SaveDC(screen);
@@ -557,6 +568,7 @@ Gdi::SelectObject(dc,system_font);
    Gdi::SetViewportOrgEx(dc,v.geometry.client_x-r.left,v.geometry.client_y-r.top);
    const auto kept_dc=menu_surface_dc;const auto kept_window=menu_surface_window;
    menu_surface_dc=dc;menu_surface_window=popup_window;
+   OwnerItemColors(dc,i.state,int(n)==v.popup.selected);
    OD::DrawOwnerItem(environment,m,v.popup.menu,i,!(i.type&0x100),
       (i.type&0x100)?0:4+((m->flags&8)?0:environment.CheckWidth()),1,v.popup.owner,dc);
    menu_surface_dc=kept_dc;menu_surface_window=kept_window;
