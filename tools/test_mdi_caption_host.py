@@ -20,7 +20,9 @@ Three sessions on neo98-kms, with the picture of a 1024x768 desktop in memory:
            the first the inactive one; a message box over the frame turns
            both inactive, and closing it brings the active caption back
 
-Before, every MDI child kept the inactive caption.
+Before, every MDI child kept the inactive caption. Each step that needs a
+menu or a dialog waits for it, and each picture waits until the machine is
+quiet, so a loaded machine only makes the sessions longer.
 
     build/analysis-venv/bin/python tools/test_mdi_caption_host.py [--no-build] [--keep] [--kms KMS]
 """
@@ -127,17 +129,19 @@ def main():
     try:
         # File > Run is the item below the separator under Properties.
         log = session(args.kms, drive, 'C:\\WINDOWS\\WINFILE.EXE',
-                      ['0:wait=WFS_Frame', '4:shot={out}/winfile-active.png', '5:click=19,31', '7:click=40,163',
-                       '9:shot={out}/winfile-dialog.png', '10:key=1b', '12:shot={out}/winfile-back.png', '13:quit=1'],
-                      40)
-        # File > New takes Program Group the first time.
+                      ['0:wait=WFS_Frame', '0:idle=500', '0:shot={out}/winfile-active.png', '0.5:click=19,31',
+                       '0.5:wait=#32768', '1:click=40,163', '1:wait=#32770|Run', '1:idle=300',
+                       '1:shot={out}/winfile-dialog.png', '1.5:key=1b', '1.5:idle=500',
+                       '1.5:shot={out}/winfile-back.png', '2:quit=1'], 120)
+        # File > New without a group asks for the properties of a new one.
         log += session(args.kms, drive, 'C:\\WINDOWS\\PROGMAN.EXE',
-                       ['0:wait=Progman', '3:alt=46', '4:type=n', '6:key=0d', '8:type=First', '9:key=0d',
-                        '12:shot={out}/progman-group.png', '13:quit=1'], 40)
+                       ['0:wait=Progman', '0:idle=500', '0.5:alt=46', '0.5:wait=#32768', '1:type=n',
+                        '1:wait=#32770|Program Group Properties', '1:idle=300', '1.5:type=First', '2:key=0d',
+                        '2:idle=500', '2:shot={out}/progman-group.png', '2.5:quit=1'], 120)
         log += session(args.kms, drive, 'C:\\MDICAP.EXE',
-                       ['0:wait=Neo98MdiCaptionFrame', '4:shot={out}/fixture-active.png', '5:type=m',
-                        '7:shot={out}/fixture-box.png', '8:key=0d', '10:shot={out}/fixture-back.png', '11:quit=1'],
-                       40)
+                       ['0:wait=Neo98MdiCaptionFrame', '0:idle=500', '0:shot={out}/fixture-active.png', '0.5:type=m',
+                        '0.5:wait=#32770', '0.5:idle=500', '0.5:shot={out}/fixture-box.png', '1:key=0d', '1:idle=500',
+                        '1:shot={out}/fixture-back.png', '1.5:quit=1'], 120)
         written = win98_c.path('C:\\MDICAP.TXT', drive)
         rectangles = [list(map(int, line.split())) for line in written.read_text().split('\n') if line.strip()] \
             if written else []
@@ -157,8 +161,10 @@ def main():
     fixture = {name: [pixel(pictures[name], *point) for point in points] for name in names[3:6]
                if pictures[name] and points}
     group = pixel(pictures['progman-group'], *PROGMAN_CAPTION) if pictures['progman-group'] else None
+    timed_out = [line for line in log.splitlines() if 'timed out after' in line]
     checks = {
         'every session runs without a stop': not stops and all(pictures.values()) and len(points) == 2,
+        f'every menu, dialog and quiet moment came: {timed_out}': not timed_out,
         f'winfile: the active child shows the active caption {winfile.get("winfile-active")}':
             'winfile-active' in winfile and active(winfile['winfile-active']),
         f'winfile: inactive while File > Run is open {winfile.get("winfile-dialog")}':
