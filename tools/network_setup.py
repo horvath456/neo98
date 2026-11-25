@@ -46,7 +46,17 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-INF = ROOT / 'build/win98-c/WINDOWS/INF'
+
+
+def inf(name):
+    """An INF file of the Win98 folder the registry is imported from: the one
+    tools/win98_c.py names (NEO98_WIN98_ROOT, a test's pristine copy), as the
+    hives themselves (tools/import_registry.py --folder)."""
+    import win98_c
+    found = win98_c.path('C:\\WINDOWS\\INF\\' + name)
+    return found if found is not None else win98_c.FOLDER / 'WINDOWS/INF' / name
+
+
 SZ, BINARY, DWORD = 1, 3, 4
 CLASS = 'System\\CurrentControlSet\\Services\\Class'
 
@@ -127,7 +137,7 @@ def addreg(parsed, section, hkr, table):
 
 
 def install(inf_name, install_section, hkr):
-    parsed = sections(INF / inf_name)
+    parsed = sections(inf(inf_name))
     table = strings(parsed)
     values = {}
     for line in parsed.get(install_section.lower(), []):
