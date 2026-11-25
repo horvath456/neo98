@@ -247,6 +247,16 @@ struct FilterState
     User::InputPacket pending{};
 } filter_state;
 constexpr unsigned FilterIndex = 0, FilterOn = 1, FilterClick = 0x40;
+// The hot keys of MouseKeys and FilterKeys: the flag that turns the feature
+// on (MKF_MOUSEKEYSON, FKF_FILTERKEYSON), the one that lets the hot key act
+// and the one that sounds it; and since when Right Shift is held, and
+// whether its hot key has acted in this hold.
+constexpr unsigned HotKeyActive = 4, HotKeySound = 0x10, FilterHotKeyHold = 8000;
+struct HotKeyState
+{
+    unsigned right_shift_since = 0;
+    bool right_shift_held = false, right_shift_acted = false;
+} hot_key_state;
 void StickyTone(unsigned frequency)
 {
     if (access_state.values[StickyIndex][1] & StickyAudible)
@@ -455,8 +465,8 @@ bool Application::MouseKey(unsigned key, bool extended, bool down, bool repeat)
 // time, and a shorter press is dropped; and RepeatKeys: a held key repeats
 // after iDelayMSec, every iRepeatMSec at most, and not at all when that is
 // zero. FKF_CLICKON clicks when a key counts. The modifiers and the lock keys
-// pass as they are; the hot key (Right Shift for eight seconds) is not
-// ported. Answers whether the packet goes no further.
+// pass as they are; the hot key is AccessibilityHotKey's. Answers whether
+// the packet goes no further.
 bool Application::FilterKey(User::InputPacket &packet, bool down, bool repeat)
 {
     auto &s = AccessLoaded();
@@ -529,6 +539,51 @@ bool Application::FilterKey(User::InputPacket &packet, bool down, bool repeat)
     EnqueueInput(f.pending);
     click();
     return false;
+}
+// The hot keys the shortcuts of ACCESS.CPL name and ENABLE3.DLL confirms:
+// Left Alt+Left Shift+Num Lock turns MouseKeys on or off, Right Shift held
+// for eight seconds FilterKeys, each with MKF_HOTKEYACTIVE or
+// FKF_HOTKEYACTIVE, and with the HOTKEYSOUND flag a rising tone when it goes
+// on and a falling one when it goes off, as the hot key of StickyKeys. The
+// hold is seen at a repeat of the key, as the keyboard repeats it; the keys
+// themselves go on as they are. The confirmation of the CONFIRMHOTKEY flags
+// is not shown.
+void Application::AccessibilityHotKey(const User::InputPacket &packet, bool down, bool repeat)
+{
+    if (packet.kind != 1)
+        return;
+    auto &s = AccessLoaded();
+    auto toggle = [&](unsigned &flags, unsigned on) {
+        if (!(flags & HotKeyActive))
+            return;
+        flags ^= on;
+        if (flags & HotKeySound)
+            Sound::Speaker::Tone((flags & on) ? 1600 : 400, 150);
+    };
+    if (packet.key == 0x90 && down && !repeat && User::PhysicalKeyDown(0xa4) && User::PhysicalKeyDown(0xa0))
+        toggle(s.values[MouseKeysIndex][1], MouseKeysOn);
+    auto &h = hot_key_state;
+    const bool right_shift = packet.key == 0x10 && ((packet.parameter >> 16) & 0xff) == 0x36;
+    if (!right_shift)
+        return;
+    const unsigned now = unsigned(Now() / 1000);
+    if (!down)
+    {
+        h.right_shift_held = false;
+        return;
+    }
+    if (!repeat || !h.right_shift_held)
+    {
+        h.right_shift_held = true;
+        h.right_shift_acted = false;
+        h.right_shift_since = now;
+        return;
+    }
+    if (!h.right_shift_acted && now - h.right_shift_since >= FilterHotKeyHold)
+    {
+        h.right_shift_acted = true;
+        toggle(s.values[FilterIndex][1], FilterOn);
+    }
 }
 // The latched modifiers go up after the key they were held for, and with
 // `all` the locked ones too. Alt goes up as a plain WM_KEYUP: a key went by
