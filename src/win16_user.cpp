@@ -3994,6 +3994,66 @@ bool Application::Win16ToThirtyTwo(unsigned hwnd, unsigned &message, unsigned &w
             lparam = wide;
             return true;
         }
+        // An owner-draw structure in a copy of the 16-bit code's own:
+        // COMMDLG.DLL of Windows 95 hands the hook of a Win32 program its
+        // copy of the MEASUREITEMSTRUCT of its owner-drawn lists (through a
+        // thunklet, Win16ThunkletCall), which USER's relay widens for the
+        // 32-bit reader. The fields keep their order; item numbers and the
+        // rectangle are signed words, the item data a dword. Of WM_MEASUREITEM
+        // the first five fields are words, and its width and height go back
+        // (RectOut narrows them); the other three are only read.
+        const unsigned owner_draw = Win16U::RuleFor(message)->structure;
+        if (transfer && lparam &&
+            (owner_draw == Win16U::StructureMeasureItem || owner_draw == Win16U::StructureDrawItem ||
+             owner_draw == Win16U::StructureDeleteItem || owner_draw == Win16U::StructureCompareItem))
+        {
+            const unsigned source = Win16RememberFar(lparam);
+            const unsigned wide = source ? Allocate(48) : 0;
+            if (!wide) return false;
+            auto word = [&](unsigned at) { return Win16Word(source + at); };
+            auto item = [&](unsigned at) { return (unsigned)(int)(short)word(at); };
+            auto dword = [&](unsigned at) { return word(at) | word(at + 2) << 16; };
+            unsigned fields[12] = {}, count = 0;
+            switch (owner_draw)
+            {
+            case Win16U::StructureMeasureItem:
+            {
+                const unsigned values[] = {word(Win16U::MeasureType), word(Win16U::MeasureId), item(Win16U::MeasureItem),
+                                           word(Win16U::MeasureWidth), word(Win16U::MeasureHeight), dword(Win16U::MeasureData)};
+                count = 6; memcpy(fields, values, sizeof values);
+                break;
+            }
+            case Win16U::StructureDrawItem:
+            {
+                const unsigned values[] = {word(Win16U::DrawType), word(Win16U::DrawId), item(Win16U::DrawItem),
+                                           word(Win16U::DrawAction), word(Win16U::DrawState), word(Win16U::DrawWindow),
+                                           word(Win16U::DrawDc), item(Win16U::DrawRect), item(Win16U::DrawRect + 2),
+                                           item(Win16U::DrawRect + 4), item(Win16U::DrawRect + 6), dword(Win16U::DrawData)};
+                count = 12; memcpy(fields, values, sizeof values);
+                break;
+            }
+            case Win16U::StructureDeleteItem:
+            {
+                const unsigned values[] = {word(Win16U::DeleteType), word(Win16U::DeleteId), item(Win16U::DeleteItem),
+                                           word(Win16U::DeleteWindow), dword(Win16U::DeleteData)};
+                count = 5; memcpy(fields, values, sizeof values);
+                break;
+            }
+            default:
+            {
+                const unsigned values[] = {word(Win16U::CompareType), word(Win16U::CompareId), word(Win16U::CompareWindow),
+                                           item(Win16U::CompareFirst), dword(Win16U::CompareFirstData),
+                                           item(Win16U::CompareSecond), dword(Win16U::CompareSecondData), 0};
+                count = 8; memcpy(fields, values, sizeof values);
+                break;
+            }
+            }
+            Store(wide, fields, count * 4);
+            *transfer = owner_draw == Win16U::StructureMeasureItem ? Win16ControlTransfer{source, wide, 5, Win16C::RectOut}
+                                                                    : Win16ControlTransfer{source, wide, 0, Win16C::WordsIn};
+            lparam = wide;
+            return true;
+        }
         // Nothing of this process staged that pointer, so a 16-bit structure
         // would reach a 32-bit reader. The gate says so instead.
         break;

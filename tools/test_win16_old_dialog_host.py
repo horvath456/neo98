@@ -40,6 +40,10 @@ CHECKS = [
     'g a window made after SetClassLong runs the new procedure, which hands on to the old',
     'h INT 21h AH=59h after _lopen of a missing file: file not found',
     'i INT 21h AH=59h after _lcreat in a missing folder: path not found',
+    'j WM_MEASUREITEM with a copy of the program: the fields arrive, width and height come back',
+    'k WM_DRAWITEM with a copy of the program: the fields arrive, the answer comes back',
+    'l WM_COMPAREITEM with a copy of the program: the fields arrive, -1 comes back',
+    'm WM_DELETEITEM with a copy of the program: the fields arrive, the answer comes back',
 ]
 
 

@@ -23,6 +23,14 @@
 ;   AH=59h then answers error 2, file not found
 ; i _lcreat in a folder that is not there answers HFILE_ERROR, and INT
 ;   21h AH=59h then answers error 3, path not found
+; j SendMessage of WM_MEASUREITEM to the program's window with a
+;   MEASUREITEMSTRUCT of the program's own: procedure A sees every field
+;   as it was sent, and the width and height it sets come back
+; k the same with a DRAWITEMSTRUCT whose rectangle starts left of zero:
+;   A sees every field and answers TRUE
+; l the same with a COMPAREITEMSTRUCT: A sees every field and answers -1
+;   for the smaller item data first
+; m the same with a DELETEITEMSTRUCT: A sees every field and answers TRUE
 ;
 ; Each step puts its letter into C:\OLDDLG16.TXT as soon as it is done,
 ; "-" when it failed, so a step that stops the program leaves the letters
@@ -293,6 +301,64 @@ code_start:
 .i_bad: xor al, al
 .i_end: MARK 'i'
 
+        ; j to m: owner-draw structures of the program's own
+        mov ax, [listbox]
+        mov [dis + 10], ax
+        mov [cis + 4], ax
+        mov [deis + 6], ax
+        push word [window]
+        push word 2ch                   ; WM_MEASUREITEM
+        push word 7
+        push ds
+        push word mis
+        API 2, 111                      ; SendMessage
+        xor si, si
+        cmp byte [seen_measure], 1
+        jne .j_end
+        cmp word [mis + 6], 123         ; itemWidth
+        jne .j_end
+        cmp word [mis + 8], 45          ; itemHeight
+        jne .j_end
+        inc si
+.j_end: mov ax, si
+        MARK 'j'
+        push word [window]
+        push word 2bh                   ; WM_DRAWITEM
+        push word 7
+        push ds
+        push word dis
+        API 2, 111                      ; SendMessage
+        cmp ax, 1
+        jne .k_bad
+        mov al, [seen_draw]
+        jmp .k_end
+.k_bad: xor al, al
+.k_end: MARK 'k'
+        push word [window]
+        push word 39h                   ; WM_COMPAREITEM
+        push word 7
+        push ds
+        push word cis
+        API 2, 111                      ; SendMessage
+        cmp ax, -1
+        jne .l_bad
+        mov al, [seen_compare]
+        jmp .l_end
+.l_bad: xor al, al
+.l_end: MARK 'l'
+        push word [window]
+        push word 2dh                   ; WM_DELETEITEM
+        push word 7
+        push ds
+        push word deis
+        API 2, 111                      ; SendMessage
+        cmp ax, 1
+        jne .m_bad
+        mov al, [seen_delete]
+        jmp .m_end
+.m_bad: xor al, al
+.m_end: MARK 'm'
+
         push word [output]
         API 1, 81                       ; _lclose
         mov ax, 4c00h
@@ -321,26 +387,75 @@ create:
 
 ; LRESULT FAR PASCAL procedure_a(HWND, UINT, WPARAM, LPARAM): [bp+14]
 ; the window, [bp+12] the message, [bp+10] wParam, [bp+8] and [bp+6]
-; lParam. WM_USER+5 answers 41h; the rest goes to DefWindowProc.
+; lParam. WM_USER+5 answers 41h. An owner-draw message notes whether its
+; structure has the bytes of the one the program sent; WM_MEASUREITEM
+; sets width 123 and height 45, WM_COMPAREITEM answers -1 and the other two
+; TRUE. The rest goes to DefWindowProc.
 procedure_a:
         push bp
         mov bp, sp
         push ds
         push ss
         pop ds
-        cmp word [bp + 12], 405h
-        jne .default
-        mov ax, 41h
-        xor dx, dx
-        jmp .done
-.default:
+        push si
+        push di
+        push es
+        mov ax, [bp + 12]
+        cmp ax, 405h
+        je .user
+        mov si, mis
+        mov cx, 12
+        mov bx, seen_measure
+        cmp ax, 2ch                     ; WM_MEASUREITEM
+        je .structure
+        mov si, dis
+        mov cx, 26
+        mov bx, seen_draw
+        cmp ax, 2bh                     ; WM_DRAWITEM
+        je .structure
+        mov si, cis
+        mov cx, 18
+        mov bx, seen_compare
+        cmp ax, 39h                     ; WM_COMPAREITEM
+        je .structure
+        mov si, deis
+        mov cx, 12
+        mov bx, seen_delete
+        cmp ax, 2dh                     ; WM_DELETEITEM
+        je .structure
         push word [bp + 14]
         push word [bp + 12]
         push word [bp + 10]
         push word [bp + 8]
         push word [bp + 6]
         API 2, 107                      ; DefWindowProc
-.done:  pop ds
+        jmp .done
+.structure:
+        les di, [bp + 6]
+        cld
+        repe cmpsb
+        jne .answer
+        mov byte [bx], 1
+.answer:
+        les di, [bp + 6]
+        mov ax, 1
+        cmp word [bp + 12], 2ch
+        jne .compare
+        mov word [es:di + 6], 123       ; itemWidth
+        mov word [es:di + 8], 45        ; itemHeight
+.compare:
+        cmp word [bp + 12], 39h
+        jne .signed
+        mov ax, -1
+.signed:
+        cwd
+        jmp .done
+.user:  mov ax, 41h
+        xor dx, dx
+.done:  pop es
+        pop di
+        pop si
+        pop ds
         pop bp
         retf 10
 
@@ -404,6 +519,27 @@ wc_class dw class, 0
 class    db 'OldDialog16', 0
 listbox_class db 'LISTBOX', 0
 item_text db 'Item', 0
+seen_measure db 0
+seen_draw db 0
+seen_compare db 0
+seen_delete db 0
+; MEASUREITEMSTRUCT: CtlType (ODT_LISTBOX), CtlID, itemID, itemWidth,
+; itemHeight, itemData.
+mis      dw 2, 7, -1, 0, 0
+         dd 12345678h
+; DRAWITEMSTRUCT: CtlType, CtlID, itemID, itemAction (ODA_DRAWENTIRE),
+; itemState (ODS_SELECTED), hwndItem, hDC, rcItem, itemData.
+dis      dw 2, 7, 3, 1, 1, 0, 0, -3, 4, 100, 20
+         dd 9abcdef0h
+; COMPAREITEMSTRUCT: CtlType, CtlID, hwndItem, itemID1, itemData1,
+; itemID2, itemData2.
+cis      dw 2, 7, 0, 1
+         dd 11h
+         dw 2
+         dd 22h
+; DELETEITEMSTRUCT: CtlType, CtlID, itemID, hwndItem, itemData.
+deis     dw 2, 7, 5, 0
+         dd 0cafe1234h
 missing_file db 'C:\NOSUCH16.TXT', 0
 missing_folder db 'C:\NOSUCH16\NEW.TXT', 0
 fout     db 'C:\OLDDLG16.TXT', 0
