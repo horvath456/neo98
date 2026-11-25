@@ -397,7 +397,12 @@ unsigned Application::FlatThunkApi(ApiName, const unsigned *a)
         // 16-bit side may be a module it already loaded, which is loading
         // this DLL from its own ThunkConnect16 right now (UMDM16 loads
         // UMDM32 for MODEM.CPL).
-        if (!provider && win16.state && Win16Find(ThunkLeaf(ReadString(a[2]))))
+        // ThunkConnect32 loads the 16-bit side when it is not loaded yet: the
+        // Network applet's NETDI loads DEVMGR32 with LoadLibraryEx32W when
+        // its changes are applied, and DEVMGR32 connects SYSDM.CPL, which no
+        // one loaded before.
+        if (!provider && win16.state &&
+            (Win16Find(ThunkLeaf(ReadString(a[2]))) || FlatThunkFile16(ThunkLeaf(ReadString(a[2])))))
             original16 = true;
         else if (!Win98FlatThunk::Compatible(signature, Read32(block + 4),
                                              provider ? provider->signature : 0,

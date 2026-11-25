@@ -20,6 +20,25 @@ namespace
 constexpr unsigned SignatureLs = 0x3130534c, SignatureSl = 0x31304c53; // "LS01", "SL01"
 }
 
+// Whether the 16-bit side of a flat thunk is a file where
+// Win16HostedThunkData looks for it, so ThunkConnect32 can load it.
+bool Application::FlatThunkFile16(const char *leaf)
+{
+    const char *roots[] = {"C:\\WINDOWS\\SYSTEM", "C:\\WINDOWS"};
+    for (const char *root : roots)
+    {
+        char path[260];
+        snprintf(path, sizeof path, "%s\\%s", root, leaf);
+        unsigned handle = 0, status = 0;
+        if (!files.Open(path, 1, 1, 3, 0, handle, status))
+        {
+            files.Close(handle);
+            return true;
+        }
+    }
+    return false;
+}
+
 // The 16-bit thunk data block `name` of the hosted module `dll16`, loading
 // the module (and running its initialization) when the process has not yet.
 unsigned Application::Win16HostedThunkData(const char *dll16_text, const char *name_text, unsigned &module)

@@ -2396,6 +2396,7 @@ private:
     // Flat thunks into and out of hosted 16-bit modules, and the KERNEL
     // entries of their 16-bit side. src/x86_thunk_hosted.cpp.
     unsigned Win16HostedThunkData(const char *dll16, const char *name, unsigned &module);
+    bool FlatThunkFile16(const char *leaf);
     bool FlatThunkHostedCall(unsigned token, unsigned arguments, unsigned bytes, unsigned &result, unsigned &words);
     bool Win16ThunkConnect16(const Win16Frame &frame, unsigned &result);
     bool Win16SlThunk(const Win16Frame &frame, unsigned &result, unsigned &words);
