@@ -14,6 +14,13 @@ the network card and TCP/IP bound to each adapter:
            16-bit SYSDM.CPL; ThunkConnect32 loads that module, which no one
            had loaded, and the run stopped at address 0 when NETDI called
            DEVMGR32.
+  restart  the applet of a new start shows the list that OK applied. NETDI
+           made new instances of the client and Family Logon under
+           Enum\\Network and deleted the old ones with the protocol; the
+           journal of the registry brought every instance of the hives back
+           at the next start, as it does for the devices a machine finds
+           again, and the list showed the client and Family Logon twice and
+           the removed protocol again.
 
     build/analysis-venv/bin/python tools/test_network_remove_host.py [--no-build] [--kms KMS]
 """
@@ -89,6 +96,7 @@ def main():
                                     '5:shot={out}/removed.png', click(6, OK),
                                     f'6:wait={RESTART_BOX[0]},{RESTART_BOX[1]},c0c0c0', '7:shot={out}/restart.png',
                                     click(8, NO), '10:quit=1'], 90)
+        log += run(args.kms, drive, ['0:wait=#32770', '2:shot={out}/restarted.png', '3:quit=1'], 60)
     finally:
         shutil.rmtree(drive, ignore_errors=True)
         win98_c.journal(drive).unlink(missing_ok=True)
@@ -96,8 +104,8 @@ def main():
     stops = [line for line in log.splitlines() if 'CRASHREPORT' in line or 'not ported' in line
              or 'no native provider' in line or 'Guest execution at address' in line]
     pictures = {name: read_png(WORK / f'{name}.png') if (WORK / f'{name}.png').is_file() else None
-                for name in ('start', 'removed', 'restart')}
-    start, removed = lines(pictures['start']), lines(pictures['removed'])
+                for name in ('start', 'removed', 'restart', 'restarted')}
+    start, removed, restarted = (lines(pictures[name]) for name in ('start', 'removed', 'restarted'))
     checks = {
         f'the list shows the six components of setup: {start}': len([n for n in start if n]) == 6,
         f'remove: TCP/IP -> Dial-Up Adapter leaves the list: {removed}':
@@ -105,6 +113,7 @@ def main():
         'apply: OK copies the files and asks to restart': pictures['restart'] is not None
             and f'NEO98 KMS input pixel {RESTART_BOX[0]},{RESTART_BOX[1]} is c0c0c0' in log,
         'apply: the run goes on without a stop': not stops,
+        f'restart: the list is the one OK applied: {restarted}': removed and restarted == removed,
     }
     for name, passed in checks.items():
         print(('ok  ' if passed else 'FAIL'), name, flush=True)

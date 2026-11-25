@@ -275,6 +275,12 @@ U Restore(Store &store)
                 for (U i = 0; i < count; ++i)
                 {
                     const U device = store.nodes[instances[i]].parent, enumerator = store.nodes[device].parent;
+                    // The clients, protocols and services under Enum\Network
+                    // are software NETDI installed, not devices that are
+                    // found again: one removed in the Network applet stays
+                    // removed, with its driver key, as under Windows.
+                    if (!strcasecmp(store.nodes[enumerator].name, "Network"))
+                        continue;
                     snprintf(machine.paths[machine.count++], sizeof machine.paths[0], "Enum\\%s\\%s\\%s",
                              store.nodes[enumerator].name, store.nodes[device].name, store.nodes[instances[i]].name);
                     const Value *driver = nullptr;
