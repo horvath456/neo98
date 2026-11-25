@@ -16,8 +16,11 @@ came back through the dialog manager with all of the edit's text selected.
 tools/click_focus_fixture.c makes a window with a focused EDIT and a STATIC,
 a plain window in one run and a dialog in the other, and a second window,
 Other. On neo98-kms with the picture of a 1024x768 desktop in memory, each
-run clicks the empty client area, the static and the caption, then Other,
-then the empty client area again.
+run waits until the fixture says it is ready, clicks the empty client area,
+the static and the caption, then Other, then the empty client area again,
+and ends the host once the fixture has written its last results: the steps
+wait for what the fixture says in its title, not for a time, so a loaded
+machine only makes the run longer.
 
   inside      the three clicks arrive (two in the client area, one on the
               frame); the window gets neither WM_SETFOCUS nor WM_ACTIVATE,
@@ -57,18 +60,20 @@ EMPTY, LABEL, CAPTION, OTHER = (403, 322), (130, 192), (250, 111), (700, 170)
 
 
 def session(kms, drive, dialog):
-    steps = ['0:wait=' + ('#32770' if dialog else 'ClickFocus'), '2:shot={out}/start.png']
-    for at, (x, y) in zip((3, 4, 5, 7, 9), (EMPTY, LABEL, CAPTION, OTHER, EMPTY)):
+    window = '#32770' if dialog else 'ClickFocus'
+    steps = [f'0:wait={window}|Click focus ready', '1:shot={out}/start.png']
+    for at, (x, y) in zip((2, 3, 4, 6, 8), (EMPTY, LABEL, CAPTION, OTHER, EMPTY)):
         steps.append(f'{at}:click={x},{y}')
-    steps += ['11:shot={out}/end.png', '12:quit=1']
+    # The fixture's last file is written and its timer stopped.
+    steps += [f'9:wait={window}|Click focus done', '9.5:shot={out}/end.png', '10:quit=1']
     name = 'dialog' if dialog else 'plain'
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps).replace('{out}', str(WORK)).replace('.png', f'-{name}.png'))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
         env.pop(variable, None)
     result = subprocess.run([str(kms), '--drive-c', str(drive), '--desktop', '1024x768', '--exe', 'C:\\FOCUS.EXE',
-                             '--command', 'FOCUS.EXE' + (' dialog' if dialog else ''), '--time-limit', '25'],
-                            cwd=ROOT, env=env, capture_output=True, text=True, timeout=120)
+                             '--command', 'FOCUS.EXE' + (' dialog' if dialog else ''), '--time-limit', '120'],
+                            cwd=ROOT, env=env, capture_output=True, text=True, timeout=180)
     written = win98_c.path('C:\\FOCUS.TXT', drive)
     data = written.read_bytes() if written else b''
     if written:
@@ -106,7 +111,10 @@ def main():
     (WORK / 'log.txt').write_text(plain_log + dialog_log)
     stops = [line for line in (plain_log + dialog_log).splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
-    checks = {'both runs wrote their results without a stop': not stops and plain and dialog}
+    finished = [name for name, log in (('plain', plain_log), ('dialog', dialog_log))
+                if 'NEO98 KMS input wait=' in log and '|Click focus done' in log]
+    checks = {'both runs wrote their results without a stop': not stops and plain and dialog,
+              f'both fixtures said they were done: {finished}': finished == ['plain', 'dialog']}
     for name, r in (('plain', plain), ('dialog', dialog)):
         inside, end = (r[10:], r[:10]) if r else ((0,) * 10, (0,) * 10)
         checks.update({

@@ -11,6 +11,10 @@ script stopped there. Over a copy of setup's drive C:, Notepad starts; the
 script waits for its white edit, types "MMMM" and waits for the stem of the
 fourth M before it takes the picture.
 
+wait=CLASS|TITLE waits for a window of that class with that title, as in the
+other hosts (an empty class is any): a test waits for the title a program
+gives its window when it has come so far.
+
     build/analysis-venv/bin/python tools/test_kms_pixel_wait_host.py [--no-build] [--kms KMS]
 """
 import sys as _sys
@@ -56,7 +60,8 @@ def main():
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
     shot = WORK / 'typed.png'
-    steps = ['0:wait=Notepad', f'0:wait={EDIT[0]},{EDIT[1]},ffffff', '1:type=MMMM',
+    steps = ['0:wait=Notepad', '0:wait=Notepad|Untitled - Notepad', '0:wait=|Untitled - Notepad',
+             f'0:wait={EDIT[0]},{EDIT[1]},ffffff', '1:type=MMMM',
              f'1:wait={FOURTH_M[0]},{FOURTH_M[1]},000000', f'1:shot={shot}', '2:quit=1']
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps))
@@ -75,7 +80,10 @@ def main():
     picture = read_png(shot) if shot.is_file() else None
     stem = picture and bytes(picture[2][(FOURTH_M[1] * picture[0] + FOURTH_M[0]) * 3:][:3])
     checks = {
-        'Notepad starts': 'NEO98 KMS input wait=Notepad' in text,
+        'Notepad starts': 'NEO98 KMS input wait=Notepad\n' in text,
+        'the script waits for Notepad by its class and title, and by its title alone':
+            'NEO98 KMS input wait=Notepad|Untitled - Notepad' in text and
+            'NEO98 KMS input wait=|Untitled - Notepad' in text,
         f'the script waits for the white edit and says after how long: {waits[:1]}':
             waits[:1] and waits[0][:3] == (str(EDIT[0]), str(EDIT[1]), 'ffffff'),
         f'it waits for the fourth M after typing: {waits[1:2]}':

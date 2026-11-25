@@ -11,16 +11,20 @@
    activation.
 
    A second after the start the counts begin from zero, with the focus on the
-   edit and the caret after "abc" again. Every fifth of a second
-   C:\FOCUS.TXT gets ten ints: whether this is the
-   dialog, the presses of the left button the window saw in its client area
-   and on its frame, the WM_SETFOCUS and WM_ACTIVATE (active) the window got,
-   the WM_KILLFOCUS and WM_SETFOCUS the edit got, whether the edit has the
-   focus, and the start and end of its selection; then the same ten as they
-   were when the window lost the activation. */
+   edit and the caret after "abc" again, and the window takes the title
+   "Click focus ready". Every fifth of a second C:\FOCUS.TXT gets ten ints:
+   whether this is the dialog, the presses of the left button the window saw
+   in its client area and on its frame, the WM_SETFOCUS and WM_ACTIVATE
+   (active) the window got, the WM_KILLFOCUS and WM_SETFOCUS the edit got,
+   whether the edit has the focus, and the start and end of its selection;
+   then the same ten as they were when the window lost the activation. The
+   first file written after the window has been activated again is the last:
+   the timer stops and the title says "Click focus done", so that the test
+   ends the host after the file is complete. */
 #include <windows.h>
 
 static int results[20];
+static int deactivated, reactivated;
 static HWND window, edit;
 static WNDPROC edit_procedure;
 
@@ -48,7 +52,9 @@ static void Note(UINT message, WPARAM wp)
     {
         Sample(results);
         for (int i = 0; i < 10; ++i) results[10 + i] = results[i];
+        deactivated = 1;
     }
+    if (message == WM_ACTIVATE && LOWORD(wp) && deactivated) reactivated = 1;
     if (message == WM_LBUTTONDOWN) ++results[1];
     if (message == WM_NCLBUTTONDOWN) ++results[2];
     if (message == WM_SETFOCUS) ++results[3];
@@ -59,16 +65,23 @@ static void Write(void)
 {
     static int ticks;
     DWORD written = 0;
+    const int last = reactivated;
     if (++ticks == 5)
     {
         SetFocus(edit);
         SendMessageA(edit, EM_SETSEL, 3, 3);
         for (int i = 1; i < 7; ++i) results[i] = 0;
+        SetWindowTextA(window, "Click focus ready");
     }
     Sample(results);
     HANDLE file = CreateFileA("C:\\FOCUS.TXT", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
     WriteFile(file, results, sizeof results, &written, NULL);
     CloseHandle(file);
+    if (last)
+    {
+        KillTimer(window, 1);
+        SetWindowTextA(window, "Click focus done");
+    }
 }
 
 /* The controls in pixels, wherever the dialog units put them, and the focus

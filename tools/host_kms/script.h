@@ -13,8 +13,9 @@
 namespace HostKms
 {
 // Timed test input (NEO98_HOST_INPUT), the steps the other hosts know:
-// wait=CLASS, wait=X,Y,RRGGBB (until the pixel of the screen has about that
-// colour; the time since the step before goes to stderr), click=X,Y,
+// wait=CLASS, wait=CLASS|TITLE (an empty class is any), wait=X,Y,RRGGBB
+// (until the pixel of the screen has about that colour; the time since the
+// step before goes to stderr), click=X,Y,
 // dblclick=X,Y, move=X,Y, drag=X1,Y1,X2,Y2 (guest coordinates), key=VK,
 // ctrl=VK and alt=VK (hexadecimal), type=TEXT, shot=PATH (the screen as PNG),
 // quit=1 (also menu=quit).
@@ -37,6 +38,14 @@ class Script
     }
     static bool Window(const std::string &name)
     {
+        // CLASS|TITLE as the other hosts take it: a window whose title a
+        // program sets when it has come so far.
+        if (const auto bar = name.find('|'); bar != std::string::npos)
+        {
+            const std::string klass = name.substr(0, bar), title = name.substr(bar + 1);
+            const unsigned h = User::FindWindow(klass.empty() ? nullptr : klass.c_str(), title.empty() ? nullptr : title.c_str());
+            return h && User::IsVisible(h);
+        }
         unsigned windows[User::WindowCapacity], count = 0;
         if (!User::WindowSnapshot(0, windows, User::WindowCapacity, count)) return false;
         for (unsigned i = 0; i < count; ++i)
