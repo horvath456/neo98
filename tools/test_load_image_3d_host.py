@@ -9,7 +9,7 @@ background of System Properties' OEM logo) and with LR_LOADMAP3DCOLORS alone
 (the greys become the 3-D colours). Each engine runs on a private copy of
 drive C:.
 
-    build/analysis-venv/bin/python tools/test_load_image_3d_host.py [--binary HOST]
+    build/analysis-venv/bin/python tools/test_load_image_3d_host.py [--no-build] [--binary HOST]
 """
 if __name__ == '__main__':
     import shutil as _shutil, sys as _sys
@@ -37,10 +37,13 @@ CHECKS = 20
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--no-build', action='store_true', help='run the host as it is built')
     parser.add_argument('--binary', type=Path, default=ROOT / 'build/native-app/neo98-host')
     parser.add_argument('--out', type=Path, default=ROOT / 'build/load-image-3d-host')
     parser.add_argument('--engine', action='append', choices=native_app.ENGINE_NAMES)
     args = parser.parse_args()
+    if not args.no_build:
+        native_app.build_host()
     out = args.out.resolve()
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
