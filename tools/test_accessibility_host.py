@@ -21,6 +21,9 @@ private copy of drive C: with the picture of a 1024x768 desktop in memory:
            preference back from the registry
   panel    Accessibility Options offers StickyKeys, FilterKeys and ToggleKeys
 
+The fixture ends the host when it has written its answers, and the picture
+of the panel waits until the machine is quiet: no step waits for a time.
+
     build/analysis-venv/bin/python tools/test_accessibility_host.py [--no-build] [--kms KMS]
 """
 import sys as _sys
@@ -33,6 +36,7 @@ if not _shutil.which('i686-w64-mingw32-gcc'):  # the fixture; docs/BUILDING.md
     _sys.exit(77)
 import argparse
 import os
+import re
 import shutil
 import struct
 import subprocess
@@ -70,7 +74,7 @@ def session(kms, drive, program, command, steps, limit):
     if command:
         line += ['--command', command]
     result = subprocess.run(line, cwd=ROOT, env=env, capture_output=True, text=True, timeout=limit + 90)
-    return result.stdout + result.stderr
+    return result.stdout + result.stderr + f'\nNEO98 TEST host ended with {result.returncode}\n'
 
 
 def answers(drive, name):
@@ -101,10 +105,10 @@ def main():
     try:
         # The panel first, as Setup left the settings, then the fixture twice.
         log = session(args.kms, drive, 'C:\\WINDOWS\\RUNDLL32.EXE', 'rundll32.exe shell32.dll,Control_RunDLL access.cpl',
-                      ['0:wait=#32770', '4:shot={out}/panel.png', '5:quit=1'], 25)
-        log += session(args.kms, drive, 'C:\\ACCESS.EXE', None, ['8:quit=1'], 15)
+                      ['0:wait=#32770', '0:idle=500', '0:shot={out}/panel.png', '0.5:quit=1'], 90)
+        log += session(args.kms, drive, 'C:\\ACCESS.EXE', None, [], 90)
         first = answers(drive, 'C:\\ACCESS.TXT')
-        log += session(args.kms, drive, 'C:\\ACCESS.EXE', 'ACCESS.EXE again', ['6:quit=1'], 15)
+        log += session(args.kms, drive, 'C:\\ACCESS.EXE', 'ACCESS.EXE again', [], 90)
         second = answers(drive, 'C:\\ACCESS2.TXT')
     finally:
         shutil.rmtree(drive, ignore_errors=True)
@@ -116,8 +120,11 @@ def main():
     names = ('FILTERKEYS', 'TOGGLEKEYS', 'MOUSEKEYS', 'STICKYKEYS', 'ACCESSTIMEOUT', 'SERIALKEYS', 'SOUNDSENTRY',
              'HIGHCONTRAST')
     flags = dict(zip(names, r[1:9]))
+    ends = re.findall(r'^NEO98 TEST host ended with (-?\d+)$', log, re.M)
     checks = {
         'the fixture ran twice without a stop': first is not None and second is not None and not stops,
+        f'the panel was quiet for its picture, the fixture ended its runs itself: {ends}':
+            'NEO98 KMS input idle=500 reached' in log and ends == ['0', '0', '0'],
         f'get: every structure answers and its feature is available: {flags}':
             all(value >= 0 for value in flags.values()) and
             all(flags[name] & 2 for name in names if name != 'ACCESSTIMEOUT'),
