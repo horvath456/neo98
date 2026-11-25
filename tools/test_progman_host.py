@@ -8,8 +8,10 @@ of 1024x768 with the picture in memory:
 
   groups   File > New makes the group First with the items Notepad and File
            Manager (DumpIcon, USER.459, files their icons) and an empty group
-           Second; each item shows its icon with its title below it (16-bit
-           OffsetRect places the title)
+           Second, which is then the active group on top (the dialog of
+           File > New gives no focus back to First when it ends); Window > 1
+           brings First back, and each item shows its icon with its title
+           below it (16-bit OffsetRect places the title)
   covered  File Manager, started from File > Run, covers both group windows
            maximized; once it is closed they look as before, borders and the
            line under the caption included
@@ -34,6 +36,7 @@ sys.path[:0] = [str(ROOT / 'tools'), str(ROOT)]
 import native_app  # noqa: E402
 import win98_c  # noqa: E402
 from test_media_center_host import read_png  # noqa: E402
+from test_support import active_caption_pair  # noqa: E402
 
 BINARY = ROOT / 'build/native-app/neo98-kms'
 WORK = ROOT / 'build/progman-test'
@@ -44,12 +47,20 @@ FIRST = (68, 98, 582, 382)
 SECOND_EDGE = (582, 120, 604, 404)
 ITEMS = (95, 172)
 ICON_TOP, TITLE_TOP = 123, 157
+# Points of the captions of First and of Second where both show.
+FIRST_CAPTION, SECOND_CAPTION = ((300, 110), (500, 110)), ((300, 131), (500, 131))
 
 
 def colours(picture, left, top, right, bottom):
     width, _, data = picture
     return {bytes(data[(y * width + x) * 3:(y * width + x) * 3 + 3])
             for y in range(top, bottom) for x in range(left, right)}
+
+
+def caption_active(picture, points):
+    width, _, data = picture
+    left, right = (bytes(data[(y * width + x) * 3:(y * width + x) * 3 + 3]).hex() for x, y in points)
+    return active_caption_pair(left, right)
 
 
 def area(picture, box):
@@ -81,18 +92,19 @@ def main():
              '11:alt=46', '12:type=n', '14:key=0d', '16:type=Notepad', '17:key=09', '18:type=NOTEPAD.EXE',
              '19:key=0d', '22:alt=46', '23:type=n', '25:key=0d', '27:type=File Manager', '28:key=09',
              '29:type=WINFILE.EXE', '30:key=0d', '33:alt=46', '34:type=n', '36:key=27', '37:key=0d',
-             '39:type=Second', '40:key=0d', '43:shot={out}/groups.png',
-             '44:alt=46', '45:type=r', '47:type=WINFILE.EXE', '48:key=0d', '49:wait=WFS_Frame',
-             '58:shot={out}/winfile.png', '59:click=1010,12', '63:shot={out}/covered.png',
-             '64:alt=46', '65:type=r', '67:type=NOTEPAD.EXE', '68:key=0d', '69:wait=Notepad',
-             '72:shot={out}/notepad.png', '73:quit=1']
+             '39:type=Second', '40:key=0d', '43:shot={out}/second.png', '44:alt=57', '45:type=1',
+             '47:shot={out}/groups.png',
+             '48:alt=46', '49:type=r', '51:type=WINFILE.EXE', '52:key=0d', '53:wait=WFS_Frame',
+             '62:shot={out}/winfile.png', '63:click=1010,12', '67:shot={out}/covered.png',
+             '68:alt=46', '69:type=r', '71:type=NOTEPAD.EXE', '72:key=0d', '73:wait=Notepad',
+             '76:shot={out}/notepad.png', '77:quit=1']
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps).replace('{out}', str(WORK)))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
         env.pop(variable, None)
     try:
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '1024x768',
-                                 '--exe', 'C:\\WINDOWS\\PROGMAN.EXE', '--time-limit', '110'], cwd=ROOT, env=env,
+                                 '--exe', 'C:\\WINDOWS\\PROGMAN.EXE', '--time-limit', '115'], cwd=ROOT, env=env,
                                 capture_output=True, text=True, timeout=180)
     finally:
         if not args.keep:
@@ -103,10 +115,15 @@ def main():
     stops = [line for line in text.splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
     pictures = {name: read_png(WORK / f'{name}.png') if (WORK / f'{name}.png').is_file() else None
-                for name in ('groups', 'winfile', 'covered', 'notepad')}
-    groups, covered = pictures['groups'], pictures['covered']
+                for name in ('second', 'groups', 'winfile', 'covered', 'notepad')}
+    groups, covered, second = pictures['groups'], pictures['covered'], pictures['second']
     checks = {
         'groups: File > New makes the groups and items without a missing gate': not stops and groups is not None,
+        'groups: the new group Second is the active group on top':
+            second is not None and caption_active(second, SECOND_CAPTION) and
+            not caption_active(second, FIRST_CAPTION),
+        'groups: Window > 1 makes First the active group again':
+            groups is not None and caption_active(groups, FIRST_CAPTION),
         'groups: each item of First shows its icon':
             groups is not None and all(len(colours(groups, x, ICON_TOP, x + 32, ICON_TOP + 32)) >= 4 for x in ITEMS),
         'groups: each title stands below its icon':

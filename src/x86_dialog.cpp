@@ -207,7 +207,6 @@ unsigned Application::CreateDialogTemplate(const unsigned char *data, unsigned l
     const unsigned tail = threads[current_thread].tail;
     const bool fresh = TakeFresh();
     const bool may_record = fresh || tail == TailRecord;
-    const unsigned previous_focus = User::GetFocus();
     if (!instance) instance=image.Base();
     auto *definition = new DialogResource::Template;
     if (!definition->Parse(data, length))
@@ -375,7 +374,15 @@ unsigned Application::CreateDialogTemplate(const unsigned char *data, unsigned l
     slot->procedure = procedure;
     slot->owner = owner;
     slot->font = font;
-    slot->previous_focus = previous_focus;
+    // A dialog box gives the focus back to no window of its own when its
+    // modal loop ends (RunModal): EndDialog activates the owner, whose
+    // WM_ACTIVATE puts the focus where the owner keeps it (DefWindowProc on
+    // the owner itself, DefFrameProc on the active MDI child, DefDlgProc on
+    // the control it saved). Only a message box and a property sheet bring
+    // back the window that had it. Bringing back the window of a dialog box
+    // took the activation from the group Program Manager's File > New had
+    // just made and gave it to the group before.
+    slot->previous_focus = 0;
     slot->xunit = xunit;
     slot->yunit = yunit;
     if (procedure && font != system)
