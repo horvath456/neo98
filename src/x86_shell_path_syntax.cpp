@@ -102,7 +102,9 @@ struct Application::ShellExecuteEnvironment:ShellCommandEnvironment {
   if(!text(info[4],file,sizeof file)||!text(info[5],params,sizeof params)||!text(info[6],directory,sizeof directory)||!text(info[3],verb,sizeof verb))return Finish(info,5);
   if(!file[0])return Finish(info,Unsupported("ShellExecuteExA empty target requires shell folder provider"));
   if(Win98ShellCommand::Url(file)||(file[0]=='\\'&&file[1]=='\\'))return Finish(info,Unsupported("ShellExecuteExA URL or network target requires shell provider"));
-  if(!info[6])strcpy(directory,app.files.current);const char*dirs[]={directory,nullptr};U key=0;bool own=false;
+  // An empty directory is no directory, as for a null one: Program Manager
+  // passes "" through SHELL.DLL for a command without one.
+  if(!info[6]||!directory[0])strcpy(directory,app.files.current);const char*dirs[]={directory,nullptr};U key=0;bool own=false;
   if((info[1]&3)==3)key=info[11];
   else if((info[1]&3)==1){if(!text(info[10],klass,sizeof klass))return Finish(info,5);bool created=false;app.registry.Open(0x80000000,klass,false,key,created);own=key!=0;}
   else{
