@@ -4357,10 +4357,16 @@ bool PeekMessage(Message *out, HWND filter, unsigned minimum, unsigned maximum, 
     // must deliver WM_CHAR before a later queued Enter key reaches a dialog.
     // Preserve FIFO order within each category and apply the caller's filters
     // before choosing a message; PM_NOREMOVE must not deliver keyboard state.
+    // A WM_QUIT that PostMessage or PostThreadMessage put into the queue is
+    // a message like any other and meets both filters: the autocomplete of
+    // BROWSEUI drains its further 402h with PeekMessage(402h..402h,
+    // PM_REMOVE) until it answers FALSE, without looking at what came, and
+    // ends only at the WM_QUIT it takes next. The quit flag of
+    // PostQuitMessage is another matter (below).
     for (unsigned hardware = 0; hardware < 2; ++hardware) {
     for (unsigned i = 0; i < queued; ++i) if ((!active_thread||input_events[i].target==active_thread)&&input_events[i].genuine == bool(hardware) &&
-        (!filter || queue[i].hwnd == filter || queue[i].message == 0x12) &&
-        ((!minimum && !maximum) || (queue[i].message >= minimum && queue[i].message <= maximum) || queue[i].message == 0x12)) {
+        (!filter || queue[i].hwnd == filter) &&
+        ((!minimum && !maximum) || (queue[i].message >= minimum && queue[i].message <= maximum))) {
         if(!hardware){
             struct Receive final:Win98MessageMetadata::PostedEnvironment{
                 unsigned index;Message*out;
