@@ -569,7 +569,7 @@ Gdi::RECT Client(const Window &w)
 {
     return {0, 0, w.client.right - w.client.left, w.client.bottom - w.client.top};
 }
-void Layout(HWND h);
+void Layout(HWND h, bool keep_client = false);
 bool Custom(const Window &w) { return &w == &desktop || (w.procedure && !w.edit && !w.button && !w.label && !w.common); }
 // Controls USER draws through guest callbacks: buttons, labels and common
 // controls, except scrollbars. Draw them on their owning thread.
@@ -814,7 +814,9 @@ void CaptionButtons(Window &w, const NonclientEnvironment &e, unsigned units)
         entry.state = Win98CaptionButton::CaptionState(result.cell) | (result.disabled ? Win98Frame::Inactive : 0u);
     }
 }
-void Layout(HWND h)
+// keep_client: the window's size and frame stay, and so does the client
+// rectangle the window answered WM_NCCALCSIZE with.
+void Layout(HWND h, bool keep_client)
 {
     auto *w = Find(h);
     if (!w)
@@ -832,7 +834,7 @@ void Layout(HWND h)
     NonclientEnvironment e;
     Win98Nonclient::Rect r{0, 0, w->width, w->height};
     Win98Nonclient::Calculate(e, h, r, 0);
-    w->client = {r.left, r.top, r.right, r.bottom};
+    if (!keep_client) w->client = {r.left, r.top, r.right, r.bottom};
     if (w->nonclient_flags & 8)
     {
         const unsigned units = Win98Nonclient::BorderUnits(e, w->style, w->extended, 1, 0);
@@ -2649,6 +2651,7 @@ bool ShowWindow(HWND h, int command, bool defer_geometry)
         return false;
     const bool old = w->visible;
     const auto old_style = w->style;
+    const int old_width = w->width, old_height = w->height;
     if (command == 2 || command == 6 || command == 7 || command == 3)
     {
         if (!(old_style & 0x21000000))
@@ -2691,7 +2694,12 @@ bool ShowWindow(HWND h, int command, bool defer_geometry)
     if (w->visible && !old) ++w->shown;
     GeometryChanged();
     USER_TRACE("SHOW hwnd=%u command=%u visible=%u old=%u\n", h, command, w->visible ? 1u : 0u, old ? 1u : 0u);
-    Layout(h);
+    // A show that neither sizes nor minimizes or maximizes the window is
+    // SetWindowPos with SWP_NOSIZE|SWP_NOMOVE in Win98, which sends no
+    // WM_NCCALCSIZE: the client keeps what the window answered. MFC's control
+    // bars (WordPad's toolbars) take a border that way; a client computed from
+    // the styles covered it and left it unpainted.
+    Layout(h, w->width == old_width && w->height == old_height && !((old_style ^ w->style) & 0x21000000));
     // USER restores the SPB, or leaves the exposed area
     // invalid, during the hide itself. A subsequent show must not capture
     // pixels from this window, even when it reuses an existing record.
@@ -3515,17 +3523,32 @@ unsigned UpdateRectangles(HWND h, Gdi::RECT *out, unsigned capacity)
     return w->update.count;
 }
 // The visible children of a window, front to back, for DCX_CLIPCHILDREN, and
-// the siblings above it for DCX_CLIPSIBLINGS. Both answer screen rectangles.
+// the siblings above it for DCX_CLIPSIBLINGS. Both answer screen rectangles,
+// each cut to the client area of the parent: a child is never visible
+// outside it. MFC places its docked toolbars two pixels into the frame of
+// the dock bar, and the dock bar's window DC must still paint that frame.
+namespace {
+bool ClippedChildRect(const Window &child, const Window &parent, Gdi::RECT &r)
+{
+    const auto at = Origin(child), base = Origin(parent);
+    const int left = base.x + ClientLeft(parent), top = base.y + ClientTop(parent);
+    const auto client = Client(parent);
+    r = {at.x > left ? at.x : left, at.y > top ? at.y : top,
+         at.x + child.width < left + client.right ? at.x + child.width : left + client.right,
+         at.y + child.height < top + client.bottom ? at.y + child.height : top + client.bottom};
+    return r.left < r.right && r.top < r.bottom;
+}
+}
 unsigned VisibleChildRects(HWND h, Gdi::RECT *out, unsigned capacity)
 {
     auto *w=Find(h);if(!w)return 0;unsigned count=0;
     for(HWND child=w->first;child;)
     {
         const auto *c=Find(child);if(!c)break;
-        if(c->visible&&!(c->style&0x20000000))
+        Gdi::RECT r;
+        if(c->visible&&!(c->style&0x20000000)&&ClippedChildRect(*c,*w,r))
         {
-            const auto at=Origin(*c);
-            if(count<capacity)out[count]={at.x,at.y,at.x+c->width,at.y+c->height};
+            if(count<capacity)out[count]=r;
             ++count;
         }
         child=c->next;
@@ -3535,14 +3558,20 @@ unsigned VisibleChildRects(HWND h, Gdi::RECT *out, unsigned capacity)
 unsigned SiblingsAboveRects(HWND h, Gdi::RECT *out, unsigned capacity)
 {
     auto *w=Find(h);if(!w)return 0;unsigned count=0;
+    const auto *parent=Find(w->parent);
     for(HWND sibling=w->previous;sibling;)
     {
         const auto *above=Find(sibling);if(!above)break;
+        Gdi::RECT r;
         if(above->visible&&!(above->style&0x20000000))
         {
             const auto at=Origin(*above);
-            if(count<capacity)out[count]={at.x,at.y,at.x+above->width,at.y+above->height};
-            ++count;
+            r={at.x,at.y,at.x+above->width,at.y+above->height};
+            if(!parent||ClippedChildRect(*above,*parent,r))
+            {
+                if(count<capacity)out[count]=r;
+                ++count;
+            }
         }
         sibling=above->previous;
     }

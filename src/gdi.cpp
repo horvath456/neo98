@@ -2358,6 +2358,16 @@ static bool TextOutput(HDC handle, int x, int y, unsigned options, const RECT *r
 {
     auto *c = DC(handle); RECT origin, opaque;
     if(c&&c->device_draw&&(options&0x10))return false;
+    // GDI orders the rectangle first. MFC's CDC::FillSolidRect passes a
+    // negative width or height for the right and bottom lines of
+    // Draw3dRect and of its control bars' borders.
+    RECT ordered;
+    if (rect && (rect->right < rect->left || rect->bottom < rect->top))
+    {
+        ordered = {rect->left < rect->right ? rect->left : rect->right, rect->top < rect->bottom ? rect->top : rect->bottom,
+                   rect->left < rect->right ? rect->right : rect->left, rect->top < rect->bottom ? rect->bottom : rect->top};
+        rect = &ordered;
+    }
     // The text and its opaque rectangle go into the bounds.
     if (c && (c->current.bounds_flags & 0x0a))
     {
@@ -2370,8 +2380,7 @@ static bool TextOutput(HDC handle, int x, int y, unsigned options, const RECT *r
         return c->device_draw->text_out(c->device_context, handle, x, y, options, rect, text, length, advances);
     if (!c || (!text && length) || length > 4096 || options & ~0x16u ||
         !Rectangle(c->current, x, y, 0, 0, origin)) return false;
-    if (rect && (rect->right < rect->left || rect->bottom < rect->top ||
-        (long long)rect->right - rect->left > 32767 || (long long)rect->bottom - rect->top > 32767 ||
+    if (rect && ((long long)rect->right - rect->left > 32767 || (long long)rect->bottom - rect->top > 32767 ||
         !Rectangle(c->current, rect->left, rect->top, rect->right - rect->left, rect->bottom - rect->top, opaque))) return false;
     BitmapAccess access(Find(c->current.bitmap, BitmapObject), true);
     auto &bitmap = Find(c->current.bitmap, BitmapObject)->bitmap;

@@ -361,9 +361,25 @@ unsigned Application::EraseBackground(unsigned hwnd, unsigned dc)
         unsigned color = brush - 1;
         brush = Api("GetSysColorBrush", &color);
     }
+    // USER fills the clip box of the DC it is handed, so a window DC clipped
+    // to the frame gets its frame filled: MFC's control bars (WordPad's
+    // toolbars) erase their borders that way. A class with CS_PARENTDC
+    // fills its client rectangle instead, in the DC's logical units; the
+    // clip box of the parent's DC would cover the parent.
     Gdi::RECT rect;
-    if (!User::GetClientRect(hwnd, &rect))
-        return 0;
+    if (User::ClassAccess(hwnd, -26, 0, 2) & 0x80)
+    {
+        if (!User::GetClientRect(hwnd, &rect) || !Gdi::LogicalRect(dc, rect))
+            return 0;
+    }
+    else
+    {
+        const int kind = Gdi::GetClipBox(dc, &rect);
+        if (!kind)
+            return 0;
+        if (kind == 1)   // NULLREGION: nothing to fill, and nothing failed
+            return 1;
+    }
     const auto result = Gdi::FillRect(dc, &rect, brush);
     if (result)
         User::DrawingChanged(dc);
