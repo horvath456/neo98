@@ -684,6 +684,9 @@ bool Application::DisplayModeOf(unsigned devmode, int &width, int &height, int &
 namespace
 {
 int host_display_width = 0, host_display_height = 0;
+// The size SetHostDisplay gave, kept while the guest's own choice has taken
+// the desktop over; zero while the host gives none.
+int host_own_width = 0, host_own_height = 0;
 bool host_display_pending = false;
 // A window the user picked outside the guest (Mission Control, the window
 // menu of the Mac): it comes to the foreground like a window picked on the
@@ -752,11 +755,15 @@ void Application::SetHostDisplay(int width, int height, bool apply)
 {
     if (width > 0 && height > 0 && User::SetScreenPanel(width, height))
     {
-        host_display_width = width;
-        host_display_height = height;
+        host_display_width = host_own_width = width;
+        host_display_height = host_own_height = height;
     }
-    else host_display_width = host_display_height = 0;
+    else host_display_width = host_display_height = host_own_width = host_own_height = 0;
     host_display_pending = apply;
+}
+void Application::OfferHostScreen(int width, int height)
+{
+    if (!host_own_width) User::SetScreenPanel(width, height);
 }
 void Application::HostDisplay(int &width, int &height)
 {
@@ -952,17 +959,17 @@ bool Application::WriteRegistryDisplayMode(int width, int height, int depth)
     char resolution[32], bits[16];
     const unsigned r = unsigned(snprintf(resolution, sizeof resolution, "%d,%d", width, height)) + 1;
     const unsigned b = unsigned(snprintf(bits, sizeof bits, "%d", depth)) + 1;
-    // The size of the host's screen is the host's and is not stored; another
-    // size is the guest's own choice, and the host's screen gives way to it.
-    int panel_width = 0, panel_height = 0;
-    User::ScreenPanel(panel_width, panel_height);
-    // Choosing the host's size again gives the desktop back to the host: a
-    // desktop set to 800x600 and back to the host's 1024x700 has the host's
-    // size as its desktop again, not as a mode of a program.
-    if (panel_width && width == panel_width && height == panel_height)
+    // The size the host gives the desktop (the seamless view, neo98-kms
+    // --desktop) is the host's and is not stored; another size is the
+    // guest's own choice, and the host's screen gives way to it. Choosing the
+    // host's size again gives the desktop back to the host: a desktop set to
+    // 800x600 and back to the host's 1024x700 has the host's size as its
+    // desktop again, not as a mode of a program. The size the host only
+    // offers (OfferHostScreen) is stored like any other.
+    if (host_own_width && width == host_own_width && height == host_own_height)
     {
-        host_display_width = panel_width;
-        host_display_height = panel_height;
+        host_display_width = host_own_width;
+        host_display_height = host_own_height;
         return !registry.Set(key, "BitsPerPixel", 1, bits, b);
     }
     host_display_width = host_display_height = 0;

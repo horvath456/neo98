@@ -348,11 +348,17 @@ static Layout LayoutFor(SDL_Window *window, SDL_Renderer *renderer)
         layout.output_w = layout.window_w;
         layout.output_h = layout.window_h;
     }
-    int w = layout.window_w, h = layout.window_h;
+    // In full screen the picture keeps clear of the camera housing at the
+    // top of a built-in display; the canvas of the size the Mac offers for
+    // full screen (FullscreenArea) then fills the rest exactly.
+    const bool full = (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP;
+    int top = full ? HostSeamless::SafeTop(window) : 0;
+    if (top < 0 || top >= layout.window_h) top = 0;
+    int w = layout.window_w, h = layout.window_h - top;
     if (w < 1 || h < 1) { w = canvas_w; h = canvas_h; }
     if ((long long)w * canvas_h > (long long)h * canvas_w) w = (int)((long long)h * canvas_w / canvas_h);
     else h = (int)((long long)w * canvas_h / canvas_w);
-    layout.guest = {(layout.window_w - w) / 2, (layout.window_h - h) / 2, w, h};
+    layout.guest = {(layout.window_w - w) / 2, top + (layout.window_h - top - h) / 2, w, h};
     return layout;
 }
 // Window point to canvas pixel; false outside the guest area.
@@ -395,6 +401,21 @@ static SDL_Rect UsableArea(SDL_Window *window)
         return held;
     held = usable;
     return usable;
+}
+// The desktop size that fills the screen in full screen, one canvas pixel
+// per point: the whole display less the camera housing (HostSeamless::
+// SafeTop). The display driver offers it as a mode, 1470x923 on a 13-inch
+// MacBook Air. NEO98_HOST_SCREEN stands in for the display in the tests.
+static SDL_Rect FullscreenArea(SDL_Window *window)
+{
+    SDL_Rect bounds{0, 0, 0, 0};
+    const int display = window ? SDL_GetWindowDisplayIndex(window) : 0;
+    if (SDL_GetDisplayBounds(display < 0 ? 0 : display, &bounds) != 0) bounds = {0, 0, 0, 0};
+    if (const char *screen = getenv("NEO98_HOST_SCREEN"); screen && *screen)
+        sscanf(screen, "%dx%d", &bounds.w, &bounds.h);
+    const int top = HostSeamless::SafeTop(window);
+    if (top > 0 && top < bounds.h) { bounds.y += top; bounds.h -= top; }
+    return bounds;
 }
 static void WindowSizeFor(SDL_Window *window, int scale, int &width, int &height)
 {
@@ -2258,6 +2279,12 @@ int main(int real_argc, char **real_argv)
         seamless_display = hw != 0;
         if (!seamless_display) seamless = false;
     }
+    // Without a desktop size of the host's, the size that fills the screen
+    // in full screen is a mode of the display like any other.
+    if (!seamless_display && !desktop_w) {
+        const SDL_Rect full = FullscreenArea(window);
+        X86::Application::OfferHostScreen(full.w, full.h);
+    }
     // The picture of the Glide driver at its own resolution (User::Overlay), made when one appears and again when its size changes.
     SDL_Texture *overlay = nullptr;
     int overlay_width = 0, overlay_height = 0;
@@ -2626,8 +2653,11 @@ int main(int real_argc, char **real_argv)
         int hw = 0, hh = 0;
         X86::Application::HostDisplay(hw, hh);
         if (hw) {
-            // Back to the size the registry names.
+            // Back to the size the registry names, with the full-screen size
+            // a mode again in place of the seamless one.
             X86::Application::SetHostDisplay(0, 0, true);
+            const SDL_Rect full = FullscreenArea(window);
+            X86::Application::OfferHostScreen(full.w, full.h);
             nudge();
         }
         if (overlay_on) set_overlay(false, UsableArea(window), why);
