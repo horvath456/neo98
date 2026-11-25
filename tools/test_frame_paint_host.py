@@ -11,6 +11,8 @@ tools/frame_paint_fixture.c draws three things on the host:
   rectangle (green);
 - a dock whose child reaches into the dock's frame: the child is cut to the
   dock's client, so the dock's window DC paints its whole frame (yellow).
+- a dialog with DS_3DLOOK turns the WS_BORDER of its edit into the sunken
+  WS_EX_CLIENTEDGE, as the Shortcut page's fields have it.
 
 Then WordPad (MFC 4.2): the borders of its two toolbars and of the dock bar
 around them are painted, so no pixel of the teal desktop shows through
@@ -94,10 +96,11 @@ def main():
     shots = {'fixture': out / 'fixture.ppm', 'wordpad': out / 'wordpad.ppm'}
     for shot in shots.values():
         shot.unlink(missing_ok=True)
-    fixture_code, _ = run(binary, out, 'fixture', exe,
-                          ['0:wait=Frame paint', '0:idle=2000', f'1:shot={shots["fixture"]}', '2:menu=quit'])
+    fixture_code, fixture_log = run(binary, out, 'fixture', exe,
+                                    ['0:wait=FramePaint', '0:wait=|Edge sunken', '0:idle=2000',
+                                     f'1:shot={shots["fixture"]}', '2:menu=quit'])
     wordpad_code, wordpad_log = run(binary, out, 'wordpad', Path('C:\\Program Files\\Accessories\\WORDPAD.EXE'),
-                                    ['0:wait=Document - WordPad', '0:idle=3000', '1:windows=1',
+                                    ['0:wait=|Document - WordPad', '0:idle=3000', '1:windows=1',
                                      f'1:shot={shots["wordpad"]}', '2:menu=quit'])
     frame = re.search(r'^NEO98 HOST seamless item id=\S+ frame=(-?\d+),(-?\d+),(\d+),(\d+) .*title=Document - WordPad$',
                       wordpad_log, re.M)
@@ -113,12 +116,16 @@ def main():
         # toolbars and the ruler follow.
         figures['wordpad_teal'] = count(shots['wordpad'], TEAL, (x + 4, y + 40, x + width - 4, y + 130))
     checks = {
-        'the fixture ran': fixture_code == 0 and shots['fixture'].exists(),
+        'the fixture ran': (fixture_code == 0 and shots['fixture'].exists()
+                            and 'input wait=FramePaint reached' in fixture_log),
         'the frame from WM_NCCALCSIZE outlives the show and is erased red (200x60 less 188x48)':
             figures.get('red') == 200 * 60 - 188 * 48,
         'ExtTextOut fills a rectangle of negative width': figures.get('green') == 30 * 20,
         "the dock's window DC paints its whole frame above the bar": figures.get('yellow') == 300 * 4,
-        'WordPad ran': wordpad_code == 0 and shots['wordpad'].exists() and frame is not None,
+        'WS_BORDER of a control in a DS_3DLOOK dialog becomes WS_EX_CLIENTEDGE':
+            'input wait=|Edge sunken reached' in fixture_log,
+        'WordPad ran': (wordpad_code == 0 and shots['wordpad'].exists() and frame is not None
+                        and 'input wait=|Document - WordPad reached' in wordpad_log),
         'no desktop shows through the toolbar area of WordPad': figures.get('wordpad_teal') == 0,
     }
     (out / 'results.json').write_text(json.dumps({'figures': figures, 'checks': checks}, indent=2) + '\n')
