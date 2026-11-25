@@ -10,7 +10,8 @@ keyboard because your keyboard driver does not support this feature."
 
 On neo98-kms over a private copy of drive C:, with the picture of a 1024x768
 desktop in memory: Keyboard Properties opens without that message, Apply
-takes the speed, and the sheet closes with OK.
+takes the speed, and the sheet closes with OK. The steps wait for the sheet
+and for a quiet machine, not for a time.
 
     build/analysis-venv/bin/python tools/test_keyboard_speed_host.py [--no-build] [--keep] [--kms KMS]
 """
@@ -52,9 +53,11 @@ def main():
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
     # Repeat rate is the second slider of the page; End moves it to Fast.
-    # Alt+A is Apply, Enter is OK.
-    steps = ['0:wait=#32770', '4:shot={out}/speed.png', '5:key=09', '6:key=09', '7:key=23', '8:alt=41',
-             '10:shot={out}/applied.png', '11:key=0d', '14:quit=1']
+    # Alt+A is Apply, Enter is OK. Each step waits for the sheet or a quiet
+    # machine; OK ends RUNDLL32 and with it the host.
+    steps = ['0:wait=#32770|Keyboard Properties', '0:idle=1000', '0:shot={out}/speed.png', '0.3:key=09',
+             '0.6:key=09', '0.9:key=23', '0.9:idle=500', '1.2:alt=41', '1.2:idle=1000', '1.2:shot={out}/applied.png',
+             '1.5:key=0d']
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:1024x768',
                NEO98_HOST_INPUT=';'.join(steps).replace('{out}', str(WORK)))
     for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
@@ -63,8 +66,8 @@ def main():
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '1024x768',
                                  '--exe', 'C:\\WINDOWS\\RUNDLL32.EXE',
                                  '--command', 'rundll32.exe shell32.dll,Control_RunDLL main.cpl,@1',
-                                 '--time-limit', '30'], cwd=ROOT, env=env, capture_output=True, text=True,
-                                timeout=120)
+                                 '--time-limit', '120'], cwd=ROOT, env=env, capture_output=True, text=True,
+                                timeout=180)
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
@@ -74,11 +77,14 @@ def main():
     stops = [line for line in text.splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
     boxes = [line for line in text.splitlines() if line.startswith('MessageBox caption=')]
+    timed_out = [line for line in text.splitlines() if 'timed out after' in line]
     checks = {
+        f'every wait came: {timed_out}': not timed_out,
         'Keyboard Properties opens without a stop': not stops and (WORK / 'speed.png').is_file(),
         f'no message that the driver cannot change the speed: {boxes}':
             not any('cannot change the speed' in line for line in boxes),
         'Apply and OK take the speed without a message': not boxes and (WORK / 'applied.png').is_file(),
+        f'OK closes the sheet, which ends the run before the time limit: {result.returncode}': result.returncode == 0,
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():
