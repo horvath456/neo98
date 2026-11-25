@@ -10,7 +10,11 @@ and read the buttons at a flat address, and File Manager's buttons were
 blank. The strip has two images and the program asks for three, as File
 Manager asks for fourteen of thirteen; Windows enlarges such a strip with the
 face colour, where the native toolbar refused the whole strip. A second
-toolbar gets strip and buttons from CreateToolbarEx itself.
+toolbar gets strip and buttons from CreateToolbarEx itself. A third, hidden
+one takes strings with TB_ADDSTRING, from a list behind a far pointer and from
+a string of the program, answers TB_GETBUTTONTEXT, and wraps its buttons into
+two rows and back into one with TB_SETROWS; the last two had stopped the
+run as not ported.
 
     build/analysis-venv/bin/python tools/test_win16_toolbar_host.py [--no-build]
 
@@ -54,6 +58,13 @@ def strip():
     return header + colours + row * 15
 
 
+def strings():
+    """String table 1 of the program: string 1, '|' between the strings."""
+    texts = [b''] * 16
+    texts[1] = b'|Three|Four|'
+    return b''.join(bytes([len(text)]) + text for text in texts)
+
+
 def pixels(path):
     """The host writes binary PPM (P6): magic, size, depth, then RGB rows."""
     magic, size, depth, body = Path(path).read_bytes().split(b'\n', 3)
@@ -81,7 +92,7 @@ def main():
     (drive / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
     win16_fixture.assemble(ROOT / 'tools/toolbar_win16_fixture.asm', out / 'TOOLBR16.EXE', 'TOOLBR16',
                            neo98.tool_environment(), modules=('KERNEL', 'USER', 'COMMCTRL'),
-                           resources=[(2, 1, strip())])
+                           resources=[(2, 1, strip()), (6, 1, strings())])
     shutil.copyfile(out / 'TOOLBR16.EXE', drive / 'TOOLBR16.EXE')
     shot = out / 'toolbars.ppm'
     steps = ['0:wait=Toolbar16|Toolbar16', '2:shot=' + str(shot), '1:menu=quit']
@@ -99,13 +110,24 @@ def main():
     data = written.read_bytes() if written else b''
     shutil.rmtree(drive, ignore_errors=True)
     image = pixels(shot) if shot.exists() else None
-    complete = len(data) >= 64 and image is not None
+    complete = len(data) >= 136 and image is not None
     added, count = struct.unpack_from('<hH', data) if complete else (None, None)
     button = struct.unpack_from('<hhBBIh', data, 4) if complete else ()
     top = [struct.unpack_from('<4h', data, 16 + i * 8) for i in range(3)] if complete else []
     top_origin = struct.unpack_from('<2h', data, 40) if complete else (0, 0)
     bottom = [struct.unpack_from('<4h', data, 44 + i * 8) for i in range(2)] if complete else []
     bottom_origin = struct.unpack_from('<2h', data, 60) if complete else (0, 0)
+    text = {}
+    if complete:
+        (text['first'], text['second'], text['one']) = struct.unpack_from('<hhh', data, 64)
+        text['one_text'] = data[70:86].split(b'\0')[0].decode()
+        text['none'], text['four'] = struct.unpack_from('<hh', data, 86)
+        text['four_text'] = data[90:106].split(b'\0')[0].decode()
+        text['missing'], text['unbuffered'], text['rows'], text['set_two'] = struct.unpack_from('<hhhh', data, 106)
+        text['rect_two'] = struct.unpack_from('<4h', data, 114)
+        text['rows_two'], text['set_one'] = struct.unpack_from('<hh', data, 122)
+        text['rect_one'] = struct.unpack_from('<4h', data, 126)
+        text['rows_one'], = struct.unpack_from('<h', data, 134)
     sized = complete and all(r[2] - r[0] >= 16 and r[3] - r[1] >= 15 for r in top + bottom)
     colours = [centre(image, r, top_origin) for r in top] if complete and sized else []
     bottom_colours = [centre(image, r, bottom_origin) for r in bottom] if complete and sized else []
@@ -121,10 +143,26 @@ def main():
         f'the third image, beyond the strip, is transparent: {colours[2:]}': colours[2:] == [FACE],
         f'CreateToolbarEx with strip and buttons shows both images: {bottom_colours}':
             bottom_colours == [RED, GREEN],
+        f'TB_ADDSTRING of a far list and of a string resource answers 0 and 2: '
+        f'{text.get("first")}, {text.get("second")}': (text.get('first'), text.get('second')) == (0, 2),
+        f'TB_GETBUTTONTEXT answers "One" and "Four" with their lengths: {text.get("one")} '
+        f'{text.get("one_text")!r} {text.get("four")} {text.get("four_text")!r}':
+            (text.get('one'), text.get('one_text'), text.get('four'), text.get('four_text')) == (3, 'One', 4, 'Four'),
+        f'TB_GETBUTTONTEXT of no string, of no button and without a buffer: {text.get("none")} '
+        f'{text.get("missing")} {text.get("unbuffered")}':
+            (text.get('none'), text.get('missing'), text.get('unbuffered')) == (-1, -1, 3),
+        f'TB_SETROWS wraps one row into two and the rectangle has both: {text.get("rows")} -> '
+        f'{text.get("set_two")} {text.get("rect_two")} {text.get("rows_two")}':
+            complete and text['rows'] == 1 and text['set_two'] == 1 and text['rows_two'] == 2 and
+            text['rect_two'][3] > 2 * 15 and text['rect_two'][2] > 0,
+        f'TB_SETROWS back to one row: {text.get("set_one")} {text.get("rect_one")} {text.get("rows_one")}':
+            complete and text['set_one'] == 1 and text['rows_one'] == 1 and
+            text['rect_one'][2] > text['rect_two'][2] and text['rect_one'][3] < text['rect_two'][3],
     }
     (out / 'results.json').write_text(json.dumps({'added': added, 'count': count, 'button': button,
                                                   'top': top, 'top_origin': top_origin, 'bottom': bottom,
-                                                  'bottom_origin': bottom_origin, 'checks': checks}, indent=1))
+                                                  'bottom_origin': bottom_origin, 'text': text, 'checks': checks},
+                                                 indent=1))
     for name, passed in checks.items():
         print('ok  ' if passed else 'FAIL', name, flush=True)
     if not all(checks.values()):

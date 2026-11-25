@@ -15,6 +15,7 @@
 #include "win98_win87em.h"
 #include "x86_app.h"
 #include <stdio.h>
+#include <string.h>
 namespace X86
 {
 namespace Win16U = Win98Win16User;
@@ -804,7 +805,8 @@ void Application::Win16ToolbarButtonOut(unsigned source, unsigned target)
 // toolbar empty with CreateToolbarEx and then adds the strip and the buttons
 // with these messages; before they were translated, the native toolbar found
 // no bitmap and read the 16-bit buttons at a flat address, and the buttons
-// stayed blank.
+// stayed blank. TB_SAVERESTORE, TB_ADDSTRING, TB_SETROWS and
+// TB_GETBUTTONTEXT carry strings and a rectangle in their 16-bit form.
 bool Application::Win16ToolbarSend(unsigned hwnd, unsigned message, unsigned wparam, unsigned lparam,
                                    unsigned &result)
 {
@@ -887,24 +889,272 @@ bool Application::Win16ToolbarSend(unsigned hwnd, unsigned message, unsigned wpa
         result = send(20, 0);
         return true;
     case 0x41a: // TB_SAVERESTORE(save, names)
-        // The 16-bit form names a section and an INI file (File Manager:
-        // "Settings" of WINFILE.INI) where the native toolbar takes a
-        // TBSAVEPARAMS with a registry key. The INI form is not ported: the
-        // toolbar neither saves nor restores, and answers so. File Manager
-        // then adds its standard buttons.
-        result = 0;
-        return true;
-    case 0x427: // TB_SETROWS(rows, rect)
-    case 0x42d: // TB_GETBUTTONTEXT(command, text)
+        return Win16ToolbarSaveRestore(hwnd, (wparam & 0xffff) != 0, flat, result);
+    case 0x41c: // TB_ADDSTRING(instance, strings)
     {
-        char text[120];
-        snprintf(text, sizeof text, "Win16 COMMCTRL toolbar message %04x is not ported yet", message);
-        Fail(text);
+        // Without an instance lParam points to the strings, each ended by a
+        // zero and the list by a second one. With one it is string
+        // LOWORD(lParam) of that module, and its first character separates
+        // the strings that follow it, as the 16-bit COMMCTRL reads it.
+        if (!(wparam & 0xffff))
+        {
+            result = send(0, flat);
+            return true;
+        }
+        const unsigned block = Allocate(0x404);
+        const unsigned length = block ? Win16LoadStringInto(wparam & 0xffff, lparam & 0xffff, block, 0x400) : 0;
+        result = ~0u;
+        if (length)
+        {
+            char text[0x404] = {};
+            Read(block, text, length + 1);
+            const char separator = text[0];
+            for (unsigned i = 1; i < length; ++i)
+                text[i - 1] = text[i] == separator ? 0 : text[i];
+            text[length - 1] = text[length] = 0;
+            Store(block, text, length + 1);
+            result = send(0, block);
+        }
+        if (block)
+            Free(block);
         return true;
     }
+    case 0x427: // TB_SETROWS(rows, rect)
+    {
+        // wParam has no room for fLarger on the 16-bit side; the rectangle
+        // comes back in words.
+        const unsigned block = Allocate(16);
+        if (!block)
+        {
+            last_error = 8;
+            return true;
+        }
+        result = send(wparam & 0xffff, block);
+        if (flat)
+            for (unsigned i = 0; i < 4; ++i)
+                Win16Word(flat + i * 2, Read32(block + i * 4) & 0xffff);
+        Free(block);
+        return true;
+    }
+    case 0x42d: // TB_GETBUTTONTEXT(command, text)
+        result = send((int)(short)wparam, flat);
+        return true;
     default:
         return false;
     }
+}
+// TB_SAVERESTORE of a 16-bit program names two far strings, an INI section and
+// an INI file (File Manager: "Settings" and its WINFILE.INI). The 16-bit
+// COMMCTRL of Windows 98 keeps the state in neither. Its SaveRestore writes
+// the registry: under the key
+// HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ToolbarState
+// a binary value named by the section, one dword per button (the command, -1
+// for a separator, -2 for a hidden one), and the file name goes unused.
+// Saving is the registry form of the toolbar with a TBSAVEPARAMS. Restoring
+// reads the value and leaves the toolbar as it is unless the value is binary,
+// longer than one record and shorter than 2 KiB. Then the toolbar gets one
+// separator per separator record and asks the parent for its buttons between
+// TBN_BEGINADJUST and TBN_ENDADJUST (TBN_ADJUSTINFO); a button the parent no
+// longer offers is left out, every separator stays. It answers whether a
+// button is left.
+bool Application::Win16ToolbarSaveRestore(unsigned hwnd, bool save, unsigned names, unsigned &result)
+{
+    static const char key[] = "Software\\Microsoft\\Windows\\CurrentVersion\\ToolbarState";
+    result = 0;
+    const unsigned name = names ? Read32(names) : 0;
+    const unsigned section = name >> 16 ? Win16Linear(name >> 16, name & 0xffff) : 0;
+    Toolbar *t = ToolbarOf(hwnd);
+    if (!section || !t)
+        return true;
+    char value[260];
+    snprintf(value, sizeof value, "%s", ReadString(section));
+    if (save)
+    {
+        const unsigned block = Allocate(12 + sizeof key + strlen(value) + 1);
+        if (!block)
+        {
+            last_error = 8;
+            return true;
+        }
+        Write32(block, 0x80000001u);
+        Write32(block + 4, block + 12);
+        Write32(block + 8, block + 12 + sizeof key);
+        Store(block + 12, key, sizeof key);
+        Store(block + 12 + sizeof key, value, strlen(value) + 1);
+        const unsigned a[] = {hwnd, 0x41a, 1, block};
+        result = Api("SendMessageA", a);
+        Free(block);
+        return true;
+    }
+    unsigned records[512], count = 0;
+    {
+        bool created = false;
+        unsigned opened = 0, node = 0;
+        if (registry.Open(0x80000001u, key, false, opened, created))
+            return true;
+        const Registry::Value *stored = nullptr;
+        if (!registry.Key(opened, node) && !registry.store.Query(node, value, stored) && stored->type == 3 &&
+            stored->size > 4 && stored->size < 0x800)
+        {
+            count = stored->size / 4;
+            memcpy(records, stored->data, count * 4);
+        }
+        registry.Close(opened);
+        if (!count)
+            return true;
+    }
+    // The buttons in their 20-byte form: separators at once, buttons once
+    // the parent has offered their command.
+    const unsigned buttons = Allocate(count * 20 + 20);
+    if (!buttons)
+    {
+        last_error = 8;
+        return true;
+    }
+    bool filled[512] = {};
+    for (unsigned i = 0; i < count; ++i)
+    {
+        const unsigned at = buttons + i * 20;
+        for (unsigned k = 0; k < 20; k += 4)
+            Write32(at + k, 0);
+        if (records[i] & 0x80000000u)
+        {
+            const unsigned char pair[2] = {static_cast<unsigned char>(records[i] == ~0u ? 0 : 8), 1};
+            Store(at + 8, pair, 2); // fsState (hidden for -2), fsStyle TBSTYLE_SEP
+            filled[i] = true;
+        }
+        else
+            Write32(at + 4, (int)(short)(records[i] & 0xffff));
+    }
+    const unsigned parent = Read32(t->object + 4), id = User::ControlID(hwnd) & 0xffff;
+    auto adjust = [&](unsigned code) {
+        if (parent && User::IsWindow(hwnd))
+            CallWindow(parent, 0x111, id | code << 16, hwnd);
+    };
+    adjust(0x204); // TBN_BEGINADJUST
+    const unsigned offered = buttons + count * 20;
+    for (unsigned index = 0; index < 0x2000 && ToolbarButtonInfo(hwnd, index, offered, 0, 0); ++index)
+    {
+        unsigned char pair[2] = {};
+        Read(offered + 8, pair, 2);
+        const unsigned command = Read32(offered + 4);
+        if ((pair[1] & 1) && !command)
+            continue;
+        for (unsigned i = 0; i < count; ++i)
+            if (!(records[i] & 0x80000000u) && Read32(buttons + i * 20 + 4) == command)
+            {
+                for (unsigned k = 0; k < 20; k += 4)
+                    Write32(buttons + i * 20 + k, Read32(offered + k));
+                filled[i] = true;
+                break;
+            }
+    }
+    adjust(0x206); // TBN_ENDADJUST
+    unsigned kept = 0;
+    for (unsigned i = 0; i < count; ++i)
+        if (filled[i])
+        {
+            if (kept != i)
+                for (unsigned k = 0; k < 20; k += 4)
+                    Write32(buttons + kept * 20 + k, Read32(buttons + i * 20 + k));
+            ++kept;
+        }
+    if (ToolbarOf(hwnd))
+    {
+        auto send = [&](unsigned message, unsigned wp, unsigned lp) {
+            const unsigned a[] = {hwnd, message, wp, lp};
+            return Api("SendMessageA", a);
+        };
+        for (unsigned n = send(0x418, 0, 0); n; --n) // TB_BUTTONCOUNT, TB_DELETEBUTTON
+            send(0x416, n - 1, 0);
+        if (kept)
+            send(0x414, kept, buttons); // TB_ADDBUTTONS
+        send(0x421, 0, 0); // TB_AUTOSIZE
+        User::InvalidateRect(hwnd, nullptr, true);
+        result = kept >= 1;
+    }
+    Free(buttons);
+    return true;
+}
+// The toolbar of the 16-bit COMMCTRL tells its parent with WM_COMMAND, never
+// with WM_NOTIFY: wParam is the toolbar's identifier and lParam the
+// notification code in the high word with a word beside it. TBN_BEGINDRAG
+// (201h) and TBN_ENDDRAG (203h) carry the command of the button,
+// TBN_ADJUSTINFO (205h), TBN_QUERYINSERT (208h) and TBN_QUERYDELETE (209h)
+// an index, TBN_BEGINADJUST (204h), TBN_ENDADJUST (206h), TBN_RESET (207h),
+// TBN_TOOLBARCHANGE (20Ah) and TBN_CUSTHELP (20Bh) the toolbar. TBN_ADJUSTINFO
+// is TBN_GETBUTTONINFO: the parent answers a global block with a 16-bit
+// TBBUTTON and the text of the button behind it. Every other notification of
+// the toolbar has no 16-bit form and stays away from a 16-bit parent. Answers
+// false when the parent is not a 16-bit window.
+bool Application::Win16ToolbarNotify(unsigned toolbar, unsigned parent, unsigned code, unsigned note,
+                                     unsigned &answer)
+{
+    if (!Win16Process() || !Win16IsMark(User::Procedure(parent)))
+        return false;
+    answer = 0;
+    const unsigned id = User::ControlID(toolbar) & 0xffff, item = Read32(note + 12);
+    auto command = [&](unsigned word, unsigned code16) {
+        return CallWindow(parent, 0x111, id | code16 << 16, word & 0xffff) & 0xffff;
+    };
+    switch (code)
+    {
+    case 0xfffffd43: command(item, 0x201); break;           // TBN_BEGINDRAG
+    case 0xfffffd42: command(item, 0x203); break;           // TBN_ENDDRAG
+    case 0xfffffd41: command(toolbar, 0x204); break;        // TBN_BEGINADJUST
+    case 0xfffffd40: command(toolbar, 0x206); break;        // TBN_ENDADJUST
+    case 0xfffffd3f: command(toolbar, 0x207); break;        // TBN_RESET
+    case 0xfffffd3e: answer = command(item, 0x208); break;  // TBN_QUERYINSERT
+    case 0xfffffd3d: answer = command(item, 0x209); break;  // TBN_QUERYDELETE
+    case 0xfffffd3c: command(toolbar, 0x20a); break;        // TBN_TOOLBARCHANGE
+    case 0xfffffd3b: command(toolbar, 0x20b); break;        // TBN_CUSTHELP
+    case 0xfffffd44:                                        // TBN_GETBUTTONINFOA
+    {
+        const unsigned handle = command(item, 0x205);       // TBN_ADJUSTINFO
+        const auto *block = handle ? Win16GlobalBlock(handle) : nullptr;
+        if (!block || !block->memory || block->size < 12)
+            break;
+        Win16ToolbarButtonIn(block->memory, note + 16);
+        const unsigned text = Read32(note + 40), capacity = Read32(note + 36);
+        if (text && capacity)
+        {
+            unsigned n = 0;
+            for (unsigned char c = 0; n + 1 < capacity && 12 + n < block->size; ++n)
+            {
+                Read(block->memory + 12 + n, &c, 1);
+                if (!c)
+                    break;
+                Store(text + n, &c, 1);
+            }
+            const unsigned char zero = 0;
+            Store(text + n, &zero, 1);
+        }
+        answer = 1;
+        break;
+    }
+    default:
+        break;
+    }
+    return true;
+}
+// The Customize Toolbar dialog of a 16-bit toolbar is template 200 (C8h) of
+// COMMCTRL.DLL, run with COMMCTRL's instance over the parent of the toolbar.
+unsigned Application::Win16ToolbarCustomizeDialog(unsigned owner, unsigned toolbar)
+{
+    const unsigned module = Win16SystemModule("COMMCTRL");
+    const Win98Ne::Image *image = module ? Win16SystemImage(module) : nullptr;
+    unsigned offset = 0, bytes = 0;
+    if (!image || !image->ResourceAt(Win16U::ResourceDialog, 0x8000 | 200, nullptr, offset, bytes) || !offset)
+    {
+        Fail("Win16 COMMCTRL.DLL has no Customize Toolbar dialog (template 200)");
+        return 0;
+    }
+    return Win16DialogFrom(image->Data() + offset, bytes, module, owner, ToolbarCustomizeToken, toolbar, true);
+}
+// A string of COMMCTRL.DLL of the tree ("Separator" is 400h).
+unsigned Application::Win16CommonControlString(unsigned id, unsigned buffer, unsigned capacity)
+{
+    return Win16LoadStringInto(Win16SystemModule("COMMCTRL"), id, buffer, capacity);
 }
 // MenuHelp of the 16-bit COMMCTRL (ordinal 2): the help line of a menu item
 // in the simple part of a status bar. The body ends in `retf 12h` and does

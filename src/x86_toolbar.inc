@@ -138,7 +138,9 @@ struct Application::ToolbarMemory {
  unsigned ButtonNotify(unsigned t,unsigned command,unsigned code){Scratch note(*this,60);Win98ToolbarInput::Zero(*this,note.address,60);Write32(note.address+12,command);return Notify(t,code,note.address);}
  unsigned Parent(unsigned hwnd){return User::Parent(hwnd);}
  void ClientRect(unsigned hwnd,unsigned p){Gdi::RECT r={};User::GetClientRect(hwnd,&r);app.Store(p,&r,sizeof r);}
- unsigned Notify(unsigned t,unsigned code,unsigned note){Write32(note,Read32(t));Write32(note+4,User::ControlID(Read32(t)));Write32(note+8,code);if(unsigned parent=Read32(t+4))return app.CallWindow(parent,0x4e,Read32(note+4),note);return 0;}
+ // A 16-bit parent hears the toolbar's notifications as WM_COMMAND, the way
+ // the toolbar of the 16-bit COMMCTRL sends them (src/win16_shell.cpp).
+ unsigned Notify(unsigned t,unsigned code,unsigned note){Write32(note,Read32(t));Write32(note+4,User::ControlID(Read32(t)));Write32(note+8,code);if(unsigned parent=Read32(t+4)){unsigned answer=0;if(app.Win16ToolbarNotify(Read32(t),parent,code,note,answer))return answer;return app.CallWindow(parent,0x4e,Read32(note+4),note);}return 0;}
 };
 // Native single-line FNT measurement provider. Original Width/Cache/SetSize
 // remain the common geometry kernels; full COMCTL DrawText wrapping is absent.
@@ -220,7 +222,8 @@ void Application::ReleaseToolbar(Toolbar&t){
  ToolbarMemory e(*this,t);unsigned p=Read32(t.object+0x30),n=Read32(t.object+0x84);
  if(n>e.SizeLocal(p)/28)n=e.SizeLocal(p)/28;
  for(unsigned i=0;i<n;++i){unsigned text=Read32(p+i*28+16);if(text!=0xffffffff&&(text&0xffff0000))e.SetString(p+i*28+16,0);}
- if(p)e.FreeLocal(p);if(unsigned strips=Read32(t.object+0x54))e.FreeLocal(strips);if(t.strip_images)ImageApi("ImageList_Destroy",&t.strip_images);if(unsigned groups=Read32(t.object+0xc4))e.FreeLocal(groups);if(unsigned bitmap=Read32(t.object+0x2c))e.DeleteBitmap(bitmap);e.FreeLocal(t.object);t={};
+ if(p)e.FreeLocal(p);if(unsigned strips=Read32(t.object+0x54))e.FreeLocal(strips);
+ if(unsigned table=Read32(t.object+0x58)){for(unsigned i=0,n=Read32(t.object+0x5c);i<n;++i)if(unsigned text=Read32(table+i*4))e.FreeLocal(text);e.FreeLocal(table);}if(t.strip_images)ImageApi("ImageList_Destroy",&t.strip_images);if(unsigned groups=Read32(t.object+0xc4))e.FreeLocal(groups);if(unsigned bitmap=Read32(t.object+0x2c))e.DeleteBitmap(bitmap);e.FreeLocal(t.object);t={};
 }
 // The shared measurement DC is created on first use and selects the caller's
 // font, which is also the original object's font field at +0x4C. Like the
@@ -263,6 +266,18 @@ unsigned Application::ToolbarMessage(unsigned hwnd,unsigned message,unsigned wp,
  }
  if(!t)return 0;
  if(message==0x82){if(t->active)t->destroy_pending=true;else ReleaseToolbar(*t);return 0;}
+ // A double click beside the buttons of a CCS_ADJUSTABLE toolbar opens the
+ // Customize Toolbar dialog at that place; TB_CUSTOMIZE opens it at the end.
+ // The dialog is the one of the 16-bit COMMCTRL (src/x86_toolbar_customize.inc).
+ if(message==0x203&&!t->active&&Win16Process()&&(Read32(t->object+8)&0x20)){
+  ToolbarMemory e(*this,*t);if(t->layout_pending)LayoutToolbar(*t);
+  const unsigned index=Win98ToolbarPaint::Hit(e,t->object,short(lp),short(lp>>16));
+  if(int(index)<0)return ToolbarCustomize(hwnd,~index);
+ }
+ if(message==0x41b){if(t->active){last_error=170;return 0;}return ToolbarCustomize(hwnd,Read32(t->object+0x84));}
+ if(message==0x427){if(t->active){last_error=170;return 0;}return ToolbarSetRows(*t,wp&65535,(wp>>16)!=0,lp);}
+ if(message==0x42d)return ToolbarButtonText(*t,wp,lp);
+ if(message==0x41c){if(t->active){last_error=170;return ~0u;}return ToolbarAddStrings(*t,wp,lp);}
  if(message==0x200||message==0x201||message==0x202||message==0x203||message==0x215||message==0x2a3||message==0x900){
   ToolbarMemory e(*this,*t);unsigned object=t->object;
   // Hold the original object until all synchronous parent callbacks unwind.
@@ -434,3 +449,4 @@ unsigned Application::ToolbarMessage(unsigned hwnd,unsigned message,unsigned wp,
  return DefaultWindowMessage(hwnd,message,wp,lp);
 }
 }
+#include "x86_toolbar_customize.inc"

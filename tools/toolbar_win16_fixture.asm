@@ -9,12 +9,24 @@
 ;         button and TB_GETITEMRECT of all three ask the toolbar back.
 ; bottom  CreateToolbarEx (CCS_BOTTOM) with the strip and two buttons in the
 ;         call itself, bitmap size 16 by 15.
+; text    a hidden toolbar (CCS_NORESIZE) with four buttons on strings:
+;         TB_ADDSTRING of a list behind a far pointer ("One", "Two") and of
+;         string 1 of the program ("|Three|Four|", '|' separates),
+;         TB_GETBUTTONTEXT of the buttons on "One" and "Four", of the one
+;         without a string, of a command no button has and without a buffer,
+;         then TB_GETROWS, TB_SETROWS to two rows with its rectangle, TB_GETROWS
+;         and TB_SETROWS back to one row.
 ;
 ; The program writes the answers as words into C:\TOOLBR16.TXT: the index
 ; TB_ADDBITMAP answered, the button count, the twelve bytes of TB_GETBUTTON,
 ; the three item rectangles of the top toolbar and its client origin on the
-; screen, then the two item rectangles of the bottom toolbar and its origin.
-; Then it runs its message loop until the host quits.
+; screen, then the two item rectangles of the bottom toolbar and its origin,
+; then the answers of the text toolbar: the two TB_ADDSTRING indices, the
+; length and the sixteen bytes of the text of "One", the lengths for the
+; button without a string, for "Four" with its sixteen bytes, for the missing
+; command and without a buffer, the rows before, TB_SETROWS(2) with its
+; rectangle, the rows after, TB_SETROWS(1) with its rectangle and the rows
+; after that. Then it runs its message loop until the host quits.
 ; tools/test_win16_toolbar_host.py; the New Executable is made as for
 ; tools/layer_win16_fixture.asm, with the bitmap as a resource.
         bits 16
@@ -133,6 +145,48 @@ code_start:
         push ds
         push word bottom_origin
         API 2, 28                       ; ClientToScreen
+        ; The text toolbar, hidden, with its buttons but without strings.
+        push word [window]
+        push word 0x4000                ; WS_CHILD
+        push word 0x000c                ; CCS_NORESIZE CCS_NOPARENTALIGN
+        push word 3                     ; identifier
+        push word 2                     ; two bitmaps
+        push word [instance]
+        push word 1                     ; bitmap 1
+        push ds
+        push word text_buttons
+        push word 4                     ; four buttons
+        push word 0
+        push word 0                     ; the default button size
+        push word 16
+        push word 15                    ; bitmap size
+        push word 12
+        API 3, 20                       ; CreateToolbarEx
+        mov bx, ax
+        SEND 0x41c, 0, ds, word strings ; TB_ADDSTRING of "One", "Two"
+        mov [string_first], ax
+        SEND 0x41c, [instance], word 0, word 1 ; TB_ADDSTRING of string 1
+        mov [string_second], ax
+        SEND 0x42d, 200, ds, word text_one ; TB_GETBUTTONTEXT
+        mov [length_one], ax
+        SEND 0x42d, 203, ds, word text_none
+        mov [length_none], ax
+        SEND 0x42d, 202, ds, word text_four
+        mov [length_four], ax
+        SEND 0x42d, 999, ds, word text_none
+        mov [length_missing], ax
+        SEND 0x42d, 200, word 0, word 0
+        mov [length_unbuffered], ax
+        SEND 0x428, 0, word 0, word 0   ; TB_GETROWS
+        mov [rows_before], ax
+        SEND 0x427, 2, ds, word rect_two ; TB_SETROWS
+        mov [set_two], ax
+        SEND 0x428, 0, word 0, word 0
+        mov [rows_two], ax
+        SEND 0x427, 1, ds, word rect_one
+        mov [set_one], ax
+        SEND 0x428, 0, word 0, word 0
+        mov [rows_one], ax
         push word [window]
         API 2, 124                      ; UpdateWindow
         push ds
@@ -211,6 +265,26 @@ buttons  dw 0, 100
          db 4, 0
          dd 0
          dw -1
+; The text toolbar: images 0 and 1 on the strings 0, 1 and 3, the last
+; button on no string.
+text_buttons:
+         dw 0, 200
+         db 4, 0
+         dd 0
+         dw 0
+         dw 1, 201
+         db 4, 0
+         dd 0
+         dw 1
+         dw 0, 202
+         db 4, 0
+         dd 0
+         dw 3
+         dw 1, 203
+         db 4, 0
+         dd 0
+         dw -1
+strings  db 'One', 0, 'Two', 0, 0
 added    dw 0                           ; TB_ADDBITMAP
 count    dw 0                           ; TB_BUTTONCOUNT
 got      times 12 db 0                  ; TB_GETBUTTON of the second button
@@ -218,7 +292,24 @@ top_rects times 24 db 0                 ; TB_GETITEMRECT of the top toolbar
 top_origin dw 0, 0
 bottom_rects times 16 db 0              ; TB_GETITEMRECT of the bottom toolbar
 bottom_origin dw 0, 0
+string_first dw 0                       ; the text toolbar
+string_second dw 0
+length_one dw 0
+text_one times 16 db 0
+length_none dw 0
+length_four dw 0
+text_four times 16 db 0
+length_missing dw 0
+length_unbuffered dw 0
+rows_before dw 0
+set_two  dw 0
+rect_two times 8 db 0
+rows_two dw 0
+set_one  dw 0
+rect_one times 8 db 0
+rows_one dw 0
 results_end:
+text_none times 16 db 0
          times 64 db 0
 data_end:
 

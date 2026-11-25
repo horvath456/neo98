@@ -1020,7 +1020,28 @@ private:
     unsigned KernelPathApi(ApiName, const unsigned *);
     void FreeKernelPaths();
     void KernelPathLock(bool acquire, unsigned id);
-    struct Toolbar { unsigned hwnd=0,object=0,active=0,strip_images=0; bool destroy_pending=false,layout_pending=false,accessibility_pending=false; } toolbars[64];
+    struct ToolbarMemory;
+    // `customize` is the Customize Toolbar dialog while it runs and
+    // `customize_position` the place it opened at (TB_CUSTOMIZE).
+    struct Toolbar { unsigned hwnd=0,object=0,active=0,strip_images=0,customize=0,customize_position=0; bool destroy_pending=false,layout_pending=false,accessibility_pending=false; } toolbars[64];
+    Toolbar *ToolbarOf(unsigned hwnd);
+    // The Customize Toolbar dialog of the toolbar, src/x86_toolbar_customize.inc.
+    static constexpr unsigned ToolbarCustomizeToken = 0x7100004d;
+    unsigned ToolbarCustomize(unsigned hwnd, unsigned position);
+    unsigned ToolbarCustomizeMessage(unsigned dialog, unsigned message, unsigned wp, unsigned lp);
+    bool ToolbarCustomizeLists(unsigned dialog, unsigned toolbar, unsigned position);
+    void ToolbarCustomizeMove(unsigned dialog, unsigned from, unsigned from_index, unsigned to, int to_index,
+                              unsigned select_next);
+    void ToolbarCustomizeButtons(unsigned dialog);
+    void ToolbarCustomizeDraw(unsigned dialog, unsigned item);
+    int ToolbarInsertPlace(unsigned toolbar, int index, int limit, unsigned directions);
+    unsigned ToolbarItemNotify(unsigned toolbar, unsigned code, unsigned index);
+    bool ToolbarButtonInfo(unsigned toolbar, unsigned index, unsigned button, unsigned text, unsigned capacity);
+    // TB_SETROWS and TB_GETBUTTONTEXT of the toolbar.
+    void ToolbarWrap(ToolbarMemory &e, unsigned object, int width, Gdi::RECT &rect, unsigned *rows);
+    unsigned ToolbarSetRows(Toolbar &t, unsigned rows, bool larger, unsigned rect);
+    unsigned ToolbarButtonText(Toolbar &t, unsigned command, unsigned text);
+    unsigned ToolbarAddStrings(Toolbar &t, unsigned instance, unsigned strings);
     // One shared measurement DC for every toolbar. A per-toolbar compatible DC
     // costs five GDI handles out of the 255 the eight-bit handle index allows,
     // so it ran the object table dry long before this pool. The DC selects a
@@ -1028,7 +1049,6 @@ private:
     unsigned toolbar_font_dc=0;
     unsigned ToolbarFontDC(unsigned font);
     void ToolbarFontRelease();
-    struct ToolbarMemory;
     struct TabEnvironment;
     struct TooltipEnvironment;
     unsigned TooltipMessage(unsigned,unsigned,unsigned,unsigned);
@@ -2133,6 +2153,10 @@ private:
     unsigned Win16MenuSelectTo16(unsigned message, unsigned wparam, unsigned lparam, unsigned word);
     void Win16MenuHelp(unsigned message, unsigned wparam, unsigned lparam, unsigned menu, unsigned instance,
                        unsigned status, unsigned ids);
+    bool Win16ToolbarNotify(unsigned toolbar, unsigned parent, unsigned code, unsigned note, unsigned &answer);
+    bool Win16ToolbarSaveRestore(unsigned hwnd, bool save, unsigned names, unsigned &result);
+    unsigned Win16ToolbarCustomizeDialog(unsigned owner, unsigned toolbar);
+    unsigned Win16CommonControlString(unsigned id, unsigned buffer, unsigned capacity);
     bool Win16CommonControlCall(unsigned ordinal, const Win16Frame &frame, unsigned &result, unsigned &words);
     // The property sheet of the 16-bit COMMCTRL, src/win16_property_sheet.cpp.
     struct Win16SheetPage;

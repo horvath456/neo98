@@ -1445,6 +1445,7 @@ unsigned Application::DialogProcedure(unsigned hwnd, unsigned message, unsigned 
                  : procedure==0x71000049?app.Win16PrintDialogMessage(hwnd,message,wp,lp,false) // COMMDLG
                  : procedure==0x7100004a?app.Win16PrintDialogMessage(hwnd,message,wp,lp,true)  // COMMDLG
                  : procedure==0x71000058?app.FaultBoxMessage(hwnd,message,wp,lp)
+                 : procedure==Application::ToolbarCustomizeToken?app.ToolbarCustomizeMessage(hwnd,message,wp,lp)
                  : procedure==0x71000013?app.SerialUiMessage(hwnd,message,wp,lp)
                  : procedure==0x71000014?app.SerialUiAdvancedMessage(hwnd,message,wp,lp)
                  : procedure==0x71000041?app.PifPageMessage(hwnd,message,wp,lp)
