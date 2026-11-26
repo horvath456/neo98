@@ -87,6 +87,8 @@ Setup works the same way as on the Mac: choose your CD image, type in your produ
 
 **Seamless mode.** **View → Seamless** hides the Windows desktop and puts every program in its own window.
 
+**Full screen.** **View → Fullscreen** (Control-Command-F) fills the whole screen, up to the camera housing of a MacBook. The menu bar and the Dock stay hidden there, so the top and the bottom of the Windows desktop can be clicked; Control-Shift-M shows the menu bar and hides it again.
+
 **Game machines.** When you open a game from Finder, Neo98 asks whether to run it normally or in a game machine. A game machine has its own window and keeps the game's files, settings and saves apart from your other programs. **Machine → Save state** (Shift-Command-S) freezes the game exactly where it is, and you can continue from there later.
 
 **The mouse.** Some games capture the mouse pointer. Press Control-Option to get it back.
