@@ -860,6 +860,26 @@ int main(int argc, char **argv)
     auto start = std::chrono::steady_clock::now();
     auto last_present = start - std::chrono::milliseconds(16);
     bool texture_dirty = true, display_dirty = true;
+    // A new canvas size (a display mode, the desktop's size): the window
+    // follows it, as the Mac window does. False when SDL has no texture of
+    // that size.
+    auto follow_canvas = [&] {
+        if (texture_width == width && texture_height == height)
+            return true;
+        texture.reset(SDL_CreateTexture(renderer.get(), SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width,
+                                        height));
+        if (!texture)
+        {
+            fprintf(stderr, "%s\n", SDL_GetError());
+            return false;
+        }
+        frame_window(width, height, false);
+        texture_width = width;
+        texture_height = height;
+        SDL_RenderSetLogicalSize(renderer.get(), width, height);
+        texture_dirty = true;
+        return true;
+    };
     LinuxHost::mask_shot = [&](const std::string &path) {
         const bool okay = seamless_enabled && seamless.WriteMask(path, menu, User::Pixels());
         printf("NEO98 HOST seamless mask %s %s\n", path.c_str(), okay ? "written" : "refused");
@@ -1239,6 +1259,12 @@ int main(int argc, char **argv)
     bool was_waiting = false, hang_now = false;
     unsigned hang_seconds_shown = 0;
     const bool headless = SDL_GetCurrentVideoDriver() && !strcmp(SDL_GetCurrentVideoDriver(), "dummy");
+    // The window has the canvas the machine starts with before the guest
+    // runs, as on the Mac: a program that sets another desktop size at once
+    // changes it, and the host says both.
+    User::PixelsSize(width, height);
+    if (!follow_canvas())
+        return 1;
     while (running && !interrupted && !quit_requested && !session.Finished())
     {
         if (deadline && *deadline &&
@@ -2181,23 +2207,8 @@ int main(int argc, char **argv)
                 SDL_Delay(1);
             continue;
         }
-        if (texture_width != width || texture_height != height)
-        {
-            texture.reset(SDL_CreateTexture(renderer.get(), SDL_PIXELFORMAT_ARGB8888,
-                                            SDL_TEXTUREACCESS_STREAMING, width, height));
-            if (!texture)
-            {
-                fprintf(stderr, "%s\n", SDL_GetError());
-                return 1;
-            }
-            // A new canvas size (a display mode, the desktop's size): the
-            // window follows it, as the Mac window does.
-            frame_window(width, height, false);
-            texture_width = width;
-            texture_height = height;
-            SDL_RenderSetLogicalSize(renderer.get(), width, height);
-            texture_dirty = true;
-        }
+        if (!follow_canvas())
+            return 1;
 #ifdef NEO98_WITH_HOST_MEDIA
         // The video in Media Center 98's window : where
         // the program painted the key colour, Kodi's picture from the
