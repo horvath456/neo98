@@ -43,7 +43,16 @@ void Application::RequestOpen(const char *guest_path)
     {
         User::NoteHostPress(window);
         User::PostMessage(window, 0, 0, 0);
+        return;
     }
+    // No taskbar and no window in front, as after the program in front ended
+    // without a shell to take the foreground: every window gets the WM_NULL,
+    // so the first process wakes on whichever it waits. Before, the open
+    // waited for the next key or click.
+    unsigned windows[User::WindowCapacity], count = 0;
+    if (User::WindowSnapshot(0, windows, User::WindowCapacity, count))
+        for (unsigned i = 0; i < count; ++i)
+            if (User::IsWindow(windows[i])) User::PostMessage(windows[i], 0, 0, 0);
 }
 #else
 // Unsupported hosts do not receive desktop file requests.

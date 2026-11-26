@@ -16,6 +16,9 @@ does:
   ScanDisk's own words (SHELL.DLL string 10320 or 10351) that the drives,
   host folders without a block driver, cannot be checked; SCANDSKW ends
   without a stop and without a report.
+- DRVSPACE.EXE once more, closed with Alt+F4, leaves no window in front;
+  SCANDSKW.EXE opened then, with nothing chosen, still starts at once: the
+  open wakes the first program even without a foreground window.
 
     build/analysis-venv/bin/python tools/test_disk_tools_host.py [--no-build]
 
@@ -72,6 +75,10 @@ def main():
              '0:choose=Untitled - Notepad', '1:idle=500',
              f'1:open={program("SCANDSKW.EXE")}', '0:wait=#32770|ScanDisk', '1:idle=1000',
              f'0:shot={out / "scandskw.bmp"}', '0:key=0d', '2:idle=1000',
+             f'0:open={program("DRVSPACE.EXE")}', '0:wait=|DriveSpace 3', '1:idle=1000',
+             '0:keydown=12', '0:key=73', '0:keyup=12', '2:idle=2000',
+             '0:tops=1', f'0:open={program("SCANDSKW.EXE")}', '0:wait=#32770|ScanDisk', '1:idle=1000',
+             '0:key=0d', '2:idle=1000',
              '0:wait=Notepad', '1:menu=quit']
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_INPUT=';'.join(steps))
     for key in ('NEO98_HOST_ATTACHED', 'NEO98_HOST_MENU', 'NEO98_KEYMAP'):
@@ -89,7 +96,10 @@ def main():
         except subprocess.TimeoutExpired:
             code = 'timeout'
     text = log_path.read_text(errors='replace')
-    waits = dict((w, s) for w, s in re.findall(r'^NEO98 HOST input wait=(.*) (reached|timed out)', text, re.M))
+    found = re.findall(r'^NEO98 HOST input wait=(.*) (reached|timed out)', text, re.M)
+    waits, first = dict(found), {}
+    for name, state in found:
+        first.setdefault(name, state)
     boxes = re.findall(r'FAULT BOX (\w+): (.*)$', text, re.M)
     reports = re.findall(r'CRASHREPORT (\S+)', text)
     checks = {
@@ -98,9 +108,12 @@ def main():
             'for real mode INT 21h AX=440dh' not in text and 'Win16 DOS3Call function 44h' not in text,
         'after OK DEFRAG shows its own error box, not the drive dialog again':
             waits.get(f'#32770|{ERROR_TITLE}') == 'reached',
-        'DRVSPACE shows its window': waits.get('|DriveSpace 3') == 'reached',
+        'DRVSPACE shows its window': first.get('|DriveSpace 3') == 'reached',
         'neither DEFRAG nor DRVSPACE stops': not any(t in ('Defrag', 'Drvspace') for t, _ in boxes),
-        'SCANDSKW says that ScanDisk cannot check the drives': waits.get('#32770|ScanDisk') == 'reached',
+        'SCANDSKW says that ScanDisk cannot check the drives': first.get('#32770|ScanDisk') == 'reached',
+        'opened again after DRVSPACE ended, with nothing chosen, SCANDSKW says it at once':
+            text.count('NEO98 HOST input wait=|DriveSpace 3 reached') == 2
+            and text.count('NEO98 HOST input wait=#32770|ScanDisk reached') == 2,
         'no program stops and no report': not boxes and not reports,
         'Notepad is still there and the host ended in order':
             waits.get('Notepad') == 'reached' and code == 0 and 'NEO98 HOST failed' not in text,
