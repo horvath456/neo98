@@ -4,6 +4,13 @@
 
 Exercises SDL -> USER -> guest WM_MOUSEMOVE at scales 1 and 2. Four-component
 motion=x,y,dx,dy supplies an SDL event captured before the latest guest warp.
+
+At scale 2 the hosts differ in the unit of the distance. The macOS host hands
+on SDL's distance, which the logical size of the renderer turns into canvas
+pixels and keeps the half pixel of; the Linux host hands on the hand's
+distance in points of the window, as mickeys independent of the size of the
+window (40952217b8), so a step of 2 points reaches the guest as 2 and there
+is no half pixel to keep. Each host is checked by its own rule.
 """
 import os
 from pathlib import Path
@@ -39,10 +46,12 @@ def main():
         steps=['0:wait=HOST_MOUSE_DELTA|delta ready','0:idle=1200']
         # Old absolute positions at four edges, but the hand moved only one
         # canvas pixel; zero-motion focus-entry samples must add nothing.
+        points=sys.platform!='darwin'  # the Linux host: the distance in points of the window
         for x,y,dx,dy in [(0,250,-1,0),(250,0,0,-1),(799*scale,250,1,0),(250,599*scale,0,1),(0,0,0,0)]:
+            ex,ey=(dx*scale,dy*scale) if points else (dx,dy)
             steps+=['0:key=5a','0:wait=HOST_MOUSE_DELTA|delta ready',
-                    f'0:motion={x},{y},{dx*scale},{dy*scale}','0:idle=120','0:key=50',f'0:wait=HOST_MOUSE_DELTA|delta {dx},{dy}']
-        if scale==2:
+                    f'0:motion={x},{y},{dx*scale},{dy*scale}','0:idle=120','0:key=50',f'0:wait=HOST_MOUSE_DELTA|delta {ex},{ey}']
+        if scale==2 and not points:
             # A half canvas pixel is kept across a timer's SetCursorPos.
             steps+=['0:key=5a','0:wait=HOST_MOUSE_DELTA|delta ready','0:motion=0,250,-1,0','0:idle=120','0:motion=0,250,-1,0','0:idle=120','0:key=50','0:wait=HOST_MOUSE_DELTA|delta -1,0']
         # Once the guest stops warping, ordinary absolute input still applies.
@@ -56,5 +65,6 @@ def main():
         text=log.read_text()
         assert run.returncode==0 and 'timed out' not in text and 'deadline' not in text,text[-3000:]
         assert 'wait=HOST_MOUSE_DELTA|delta -10,-10 reached' in text,text[-3000:]
-        print(f'MOUSE DELTA PASS scale {scale}: four edges, zero motion, fractions, absolute desktop input')
+        what='four edges, zero motion, '+('distance in window points' if scale==2 and points else 'fractions')
+        print(f'MOUSE DELTA PASS scale {scale}: {what}, absolute desktop input')
 if __name__=='__main__':main()
