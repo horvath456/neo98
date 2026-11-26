@@ -4873,17 +4873,27 @@ int main(int real_argc, char **real_argv)
     // It goes into the log with where the time went, the guest's slices,
     // the GPU's flush and the rest of the turn.
     auto turn_start = std::chrono::steady_clock::now();
-    double turn_guest_ms = 0, turn_flush_ms = 0;
+    double turn_guest_ms = 0, turn_flush_ms = 0, turn_events_ms = 0, turn_present_ms = 0;
+    bool turn_canvas = false;
+    const auto since = [](std::chrono::steady_clock::time_point start) {
+        return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    };
+    // From 100 ms on, which the sound already notices (Sound::Mixer::Beat):
+    // the guest's slices, the GPU's flush, the events of the Mac, the
+    // present of the picture, whether the canvas changed size, and the rest.
     const auto turn_over = [&]() {
         const auto now = std::chrono::steady_clock::now();
         const double ms = std::chrono::duration<double, std::milli>(now - turn_start).count();
-        if (ms >= 250) {
-            printf("NEO98 HOST slow turn ms=%.0f guest_ms=%.0f gpu_ms=%.0f other_ms=%.0f sound_holds=%llu\n", ms,
-                   turn_guest_ms, turn_flush_ms, ms - turn_guest_ms - turn_flush_ms, Sound::Shared().StallHolds());
+        if (ms >= 100) {
+            printf("NEO98 HOST slow turn ms=%.0f guest_ms=%.0f gpu_ms=%.0f events_ms=%.0f present_ms=%.0f canvas=%d "
+                   "other_ms=%.0f sound_holds=%llu\n",
+                   ms, turn_guest_ms, turn_flush_ms, turn_events_ms, turn_present_ms, turn_canvas ? 1 : 0,
+                   ms - turn_guest_ms - turn_flush_ms - turn_events_ms - turn_present_ms, Sound::Shared().StallHolds());
             fflush(stdout);
         }
         turn_start = now;
-        turn_guest_ms = turn_flush_ms = 0;
+        turn_guest_ms = turn_flush_ms = turn_events_ms = turn_present_ms = 0;
+        turn_canvas = false;
     };
     while (running) {
         turn_over();
@@ -4908,7 +4918,7 @@ int main(int real_argc, char **real_argv)
                 const auto pump_start = std::chrono::steady_clock::now();
                 a->Pump();
                 Sound::Shared().Beat();
-                turn_guest_ms += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - pump_start).count();
+                turn_guest_ms += since(pump_start);
                 // Nothing to run anywhere: every thread of every process waits.
                 if (!a->SystemRunnable()) break;
             }
@@ -4917,7 +4927,7 @@ int main(int real_argc, char **real_argv)
             if (gpu_backend) {
                 const auto flush_start = std::chrono::steady_clock::now();
                 gpu_backend->Flush();
-                turn_flush_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - flush_start).count();
+                turn_flush_ms = since(flush_start);
             }
             pacing.EndRun(*a);
             pacing.Turn(*a);
@@ -5825,6 +5835,7 @@ int main(int real_argc, char **real_argv)
         if (scroll_log.Due(SDL_GetTicks64())) scroll_log_line();
         static bool close_asked = false;
         watch_pointer(window);
+        const auto events_start = std::chrono::steady_clock::now();
         while (SDL_PollEvent(&ev)) {
             if (ev.type == SDL_USEREVENT && ev.user.code == int(ScriptMouse) && ev.user.data1 &&
                 !strncmp(static_cast<const char *>(ev.user.data1), "scroll:", 7)) {
@@ -6129,6 +6140,7 @@ int main(int real_argc, char **real_argv)
             default: break;
             }
         }
+        turn_events_ms += since(events_start);
         // The mouse in the Mac windows of the guest's windows, in screen
         // pixels of the guest.
         if (overlay_on && seamless_windows) {
@@ -6246,6 +6258,7 @@ int main(int real_argc, char **real_argv)
                 follow_canvas(view_w, view_h);
             } else if (!text_view) follow_canvas(frame_w, frame_h);
             if (pixels && (frame_w != texture_w || frame_h != texture_h)) {
+                turn_canvas = true;
                 SDL_DestroyTexture(texture);
                 texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, frame_w, frame_h);
                 if (texture) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
@@ -6683,7 +6696,9 @@ int main(int real_argc, char **real_argv)
                             }
                     }
                 }
+                const auto present_start = std::chrono::steady_clock::now();
                 SDL_RenderPresent(renderer);
+                turn_present_ms += since(present_start);
                 pacing.Frame();
             }
         }
