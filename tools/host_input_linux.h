@@ -21,9 +21,10 @@ inline std::function<void(bool trackpad, double up, double right, bool first, bo
 inline std::function<void(const std::string &)> host_shot;
 inline std::function<void(const std::string &)> mask_shot;
 // The steps the host itself takes as the macOS host does, through its own
-// mouse path: pause=0/1, hand=dx,dy, press=x,y and release=x,y (window
-// points). True when the host took the step.
-inline std::function<bool(const std::string &action, int x, int y)> host_step;
+// mouse path: hand=dx,dy, motion=x,y[,dx,dy], press=x,y and release=x,y
+// (window points). The value is the step's text after the =, x and y its
+// first two numbers. True when the host took the step.
+inline std::function<bool(const std::string &action, const std::string &value, int x, int y)> host_step;
 // pause=1 and pause=0, wstate=... and state=...: the steps that act on the
 // machine as a whole, which the host serves (tools/neo98_linux.cpp).
 inline std::function<void(const std::string &action, const std::string &value)> machine_step;
@@ -207,7 +208,7 @@ class Script
             if (native && !native_input(step.action, step.value)) return;
             Next(real);
             if (native) {}
-            else if (host_step && host_step(step.action, step.x, step.y)) {}
+            else if (host_step && host_step(step.action, step.value, step.x, step.y)) {}
             else if (step.action == "shot")
             {
                 if (session.Screenshot(step.value)) Say("NEO98 HOST screenshot %s\n", step.value.c_str());

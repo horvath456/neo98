@@ -971,13 +971,14 @@ int main(int argc, char **argv)
     // The steps of the input script the macOS host takes through its own
     // mouse (tools/neo98_host.cpp; pause= is a machine step, below): hand=dx,dy moves
     // the pointer of the window by that much and sends the movement as a
-    // real mouse does; press= and release= are the left button at a point of
-    // the window.
+    // real mouse does; motion=x,y is the hand on the mouse at a point of the
+    // window; press= and release= are the left button at a point of the
+    // window.
     // A movement of the mouse: the position in canvas pixels and the
     // distance in points of the window (deliver_motion, below).
     bool script_cursor = true;
     std::function<void(int, int, int, int)> deliver_motion;
-    LinuxHost::host_step = [&](const std::string &action, int x, int y) {
+    LinuxHost::host_step = [&](const std::string &action, const std::string &value, int x, int y) {
         if (action == "cursor") { script_cursor = x != 0; return true; }
         if (machine_paused && (action == "key" || action == "type" || action == "ctrl" ||
                                action == "keydown" || action == "keyup" || action == "click" ||
@@ -998,6 +999,29 @@ int main(int argc, char **argv)
                 deliver_motion(int(logical_x), int(logical_y), x, y);
             }
             SDL_WarpMouseInWindow(window.get(), px + x, py + y);
+            return true;
+        }
+        if (action == "motion")
+        {
+            // As on the Mac: an SDL motion event in points of the window,
+            // which SDL's logical size turns into canvas pixels as it does a
+            // real one. Its distance runs from the point of the window where
+            // the guest's pointer was last put; motion=x,y,dx,dy names the
+            // distance too, as an event SDL queued before the guest's last
+            // warp carries it.
+            SDL_Event motion{};
+            motion.type = SDL_MOUSEMOTION;
+            motion.motion.windowID = SDL_GetWindowID(window.get());
+            motion.motion.which = ScriptMouse;
+            motion.motion.x = x;
+            motion.motion.y = y;
+            int window_x = 0, window_y = 0;
+            SDL_RenderLogicalToWindow(renderer.get(), float(last_mouse_x), float(last_mouse_y), &window_x, &window_y);
+            motion.motion.xrel = x - window_x;
+            motion.motion.yrel = y - window_y;
+            sscanf(value.c_str(), "%d,%d,%d,%d", &motion.motion.x, &motion.motion.y, &motion.motion.xrel,
+                   &motion.motion.yrel);
+            SDL_PushEvent(&motion);
             return true;
         }
         if (action == "windows")
