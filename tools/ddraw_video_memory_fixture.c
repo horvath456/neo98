@@ -1,7 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* Video memory comes back when a surface goes: more surfaces than the heap
  * holds are made and released one after the other, and at the end the free
- * count is what it was at the start. */
+ * count is what it was at the start.
+ *
+ * Video memory is the display driver's. Without a GPU backend the host's
+ * driver gives DirectDraw no driver of its own, as a card without one did:
+ * DirectDraw emulates everything (DDCAPS_NOHARDWARE) and has no video
+ * memory at all. The fixture says so instead of failing. */
 #define CINTERFACE
 #define COBJMACROS
 #include <windows.h>
@@ -31,6 +36,20 @@ void mainCRTStartup(void)
     require(DirectDrawCreate(0, &first, 0) == DD_OK, 2);
     require(IDirectDraw_QueryInterface(first, &IID_IDirectDraw2, (void **)&dd) == DD_OK, 3);
     require(IDirectDraw2_SetCooperativeLevel(dd, 0, DDSCL_NORMAL) == DD_OK, 5);
+    {
+        DDCAPS driver, emulation;
+        ZeroMemory(&driver, sizeof driver);
+        ZeroMemory(&emulation, sizeof emulation);
+        driver.dwSize = emulation.dwSize = sizeof driver;
+        require(IDirectDraw2_GetCaps(dd, &driver, &emulation) == DD_OK, 10);
+        if (driver.dwCaps & DDCAPS_NOHARDWARE)
+        {
+            OutputDebugStringA("DDRAW VIDEO MEMORY none: DirectDraw has no driver of its own");
+            IDirectDraw2_Release(dd);
+            IDirectDraw_Release(first);
+            ExitProcess(0);
+        }
+    }
     before = available(dd, &total);
     require(total && before, 6);
     while (made < 2 * total)
