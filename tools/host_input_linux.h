@@ -4,6 +4,7 @@
 #include "linux_session.h"
 #include "../src/usb_keys.h"
 #include "host_menu_linux.h"
+#include "guest_screen_scale.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdarg>
@@ -106,6 +107,18 @@ class Script
         if (modifiers & 4) app.RawKey(0xa4, 0, false, 0x38, false);
         if (modifiers & 2) app.RawKey(0xa2, 0, false, 0x1d, false);
         if (modifiers & 1) app.RawKey(0xa0, 0, false, 0x2a, false);
+    }
+    // The points of down=, up=, move=, click=, dblclick= and rclick= are
+    // canvas pixels, those of shot=, as on the Mac (tools/neo98_host.cpp,
+    // CanvasToGuest). The guest has its own pixels only while a program has
+    // set a mode of another size than the desktop's; the canvas keeps the
+    // desktop's, and a click at its centre is one at the mode's centre.
+    static void CanvasToGuest(int &x, int &y)
+    {
+        int guest_width = 0, guest_height = 0, depth = 0, canvas_width = 0, canvas_height = 0;
+        User::ScreenMode(guest_width, guest_height, depth);
+        User::PixelsSize(canvas_width, canvas_height);
+        GuestScreenScale::CanvasToGuest(x, y, guest_width, guest_height, canvas_width, canvas_height);
     }
     static void Say(const char *format, ...) __attribute__((format(printf, 1, 2)))
     {
@@ -486,16 +499,20 @@ class Script
                 // release= are the left button of the host's mouse, which
                 // the Linux host hands to the guest the same way.
                 if (step.action != "move") held = step.action == "down" || step.action == "press" ? 1 : 0;
-                app.MouseButtons(step.x, step.y, held);
+                int x = step.x, y = step.y;
+                CanvasToGuest(x, y);
+                app.MouseButtons(x, y, held);
                 Say("NEO98 HOST input %s %d,%d\n", step.action.c_str(), step.x, step.y);
             }
             else if (step.action == "click" || step.action == "dblclick" || step.action == "rclick" || step.action == "move")
             {
                 const unsigned button = step.action == "rclick" ? 2 : 1;
                 const unsigned presses = step.action == "dblclick" ? 2 : step.action == "move" ? 0 : 1;
-                app.MouseButtons(step.x, step.y, 0);
+                int x = step.x, y = step.y;
+                CanvasToGuest(x, y);
+                app.MouseButtons(x, y, 0);
                 for (unsigned i = 0; i < presses; ++i)
-                { app.MouseButtons(step.x, step.y, button); app.MouseButtons(step.x, step.y, 0); }
+                { app.MouseButtons(x, y, button); app.MouseButtons(x, y, 0); }
                 Say("NEO98 HOST input %s %d,%d\n", step.action.c_str(), step.x, step.y);
             }
             else fprintf(stderr, "Unknown Linux test input: %s\n", step.action.c_str());
