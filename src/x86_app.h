@@ -3604,6 +3604,9 @@ private:
     void StoreError();   // and back
     void WithdrawFastGate(Import &item, unsigned gate, const char *why);
     unsigned import_count = 0, pending = 0, api_calls = 0, callbacks = 0, depth = 0, native_turns = 0;
+    // The calls Dispatch made and the turns of Pump, in every process (the
+    // slow call of the log).
+    static inline unsigned long long dispatched_calls = 0, pump_serial = 0;
     unsigned hal_presents = 0;   // HalPresents
     // A turn of a thread and the directed turn of the receiver of a
     // SendMessage (src/x86_app.cpp, HandSendOver).
