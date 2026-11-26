@@ -2,17 +2,21 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """The size that fills the Mac's screen in full screen is a mode like any other.
 
-The host runs headless with NEO98_HOST_SCREEN=1470x956 and
-NEO98_HOST_SAFE_TOP=33, a 13-inch MacBook Air with its camera housing. Out
-of the seamless view the display driver offers 1470x923, the screen less the
-housing. tools/host_screen_mode_fixture.c finds it among the modes and stores
-it with CDS_UPDATEREGISTRY:
-- the change succeeds, the screen and the host's canvas are 1470x923 and the
-  registry holds Resolution 1470,923 (before, the size of the host's screen
+The host runs headless with NEO98_HOST_SCREEN=1470x956, a 13-inch MacBook Air.
+In full screen the host's window covers the whole screen, up to the top edge
+beside the camera housing (a window without a frame, not a Space of its own,
+which macOS keeps below the menu bar). Out of the seamless view the display
+driver offers 1470x956, the whole screen. tools/host_screen_mode_fixture.c
+finds it among the modes and stores it with CDS_UPDATEREGISTRY:
+- the change succeeds, the screen and the host's canvas are 1470x956 and the
+  registry holds Resolution 1470,956 (before, the size of the host's screen
   was never stored, and choosing it in Display Properties did nothing);
-- in full screen the picture keeps clear of the housing: it starts 33 points
-  or more below the top of the window;
-- started again on the same C: and registry, the desktop is 1470x923 from the
+- in full screen the picture fills the window with its proportions kept and
+  nothing kept free at the top: SDL's dummy driver gives a window of
+  1024x768, and the canvas shows centred at 0,51 1024x665
+  (tools/test_guest_screen_scale_native.cpp has the window of the Mac's
+  screen filled exactly);
+- started again on the same C: and registry, the desktop is 1470x956 from the
   start.
 
     build/analysis-venv/bin/python tools/test_host_screen_mode.py [--no-build]
@@ -44,7 +48,7 @@ win98_c.use_pristine()  # tests start from setup's C:, never the user's
 
 def run(binary, out, name, steps):
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_INPUT=';'.join(steps),
-               NEO98_HOST_SCREEN='1470x956', NEO98_HOST_SAFE_TOP='33',
+               NEO98_HOST_SCREEN='1470x956',
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))
     for key in ('NEO98_HOST_ATTACHED', 'NEO98_HOST_MENU'):
         env.pop(key, None)
@@ -72,23 +76,24 @@ def main():
     binary = ROOT / 'build/native-app/neo98-host'
     if '--no-build' not in sys.argv:
         binary = build_host()
-    first_code, first = run(binary, out, 'host-1', ['0:wait=|offered 1 stored 0 1470x923', '0:idle=500',
+    first_code, first = run(binary, out, 'host-1', ['0:wait=|offered 1 stored 0 1470x956', '0:idle=500',
                                                     '1:menu=fullscreen', '2:idle=500', '3:menu=quit'])
     registry = (out / 'registry').read_bytes() if (out / 'registry').exists() else b''
-    second_code, second = run(binary, out, 'host-2', ['0:wait=|screen 1470x923', '0:idle=500', '1:menu=quit'])
+    second_code, second = run(binary, out, 'host-2', ['0:wait=|screen 1470x956', '0:idle=500', '1:menu=quit'])
     shutil.rmtree(out / 'drive-c', ignore_errors=True)
     view = re.search(r'^NEO98 HOST view scale=\d+ fullscreen=1 window=(\d+)x(\d+) guest=(-?\d+),(-?\d+),(\d+)x(\d+)$',
                      first, re.M)
     checks = {
-        'the mode is offered and stored, the screen is 1470x923':
-            'input wait=|offered 1 stored 0 1470x923 reached' in first,
-        "the host's canvas follows": re.search(r'^NEO98 HOST canvas 1470x923 ', first, re.M) is not None,
-        'the registry holds Resolution 1470,923': b'1470,923' in registry,
-        'in full screen the picture starts below the camera housing': view is not None and int(view.group(4)) >= 33,
+        'the mode is offered and stored, the screen is 1470x956':
+            'input wait=|offered 1 stored 0 1470x956 reached' in first,
+        "the host's canvas follows": re.search(r'^NEO98 HOST canvas 1470x956 ', first, re.M) is not None,
+        'the registry holds Resolution 1470,956': b'1470,956' in registry,
+        'in full screen the picture fills the window, centred, nothing kept free at the top':
+            view is not None and view.groups() == ('1024', '768', '0', '51', '1024', '665'),
         'the first start ended': first_code == 0,
-        'the restart has the desktop in 1470x923 from the start':
-            'input wait=|screen 1470x923 reached' in second
-            and re.search(r'^NEO98 HOST canvas 1470x923 ', second, re.M) is not None,
+        'the restart has the desktop in 1470x956 from the start':
+            'input wait=|screen 1470x956 reached' in second
+            and re.search(r'^NEO98 HOST canvas 1470x956 ', second, re.M) is not None,
         'the restart ended': second_code == 0,
     }
     (out / 'results.json').write_text(json.dumps({'checks': checks}, indent=2) + '\n')

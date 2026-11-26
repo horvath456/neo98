@@ -348,17 +348,11 @@ static Layout LayoutFor(SDL_Window *window, SDL_Renderer *renderer)
         layout.output_w = layout.window_w;
         layout.output_h = layout.window_h;
     }
-    // In full screen the picture keeps clear of the camera housing at the
-    // top of a built-in display; the canvas of the size the Mac offers for
-    // full screen (FullscreenArea) then fills the rest exactly.
-    const bool full = (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN_DESKTOP) == SDL_WINDOW_FULLSCREEN_DESKTOP;
-    int top = full ? HostSeamless::SafeTop(window) : 0;
-    if (top < 0 || top >= layout.window_h) top = 0;
-    int w = layout.window_w, h = layout.window_h - top;
-    if (w < 1 || h < 1) { w = canvas_w; h = canvas_h; }
-    if ((long long)w * canvas_h > (long long)h * canvas_w) w = (int)((long long)h * canvas_w / canvas_h);
-    else h = (int)((long long)w * canvas_h / canvas_w);
-    layout.guest = {(layout.window_w - w) / 2, top + (layout.window_h - top - h) / 2, w, h};
+    // In full screen the window covers the whole screen (StartVideo), so the
+    // canvas of the size the Mac offers for full screen (FullscreenArea)
+    // fills it exactly.
+    GuestScreenScale::PictureInWindow(layout.window_w, layout.window_h, canvas_w, canvas_h, layout.guest.x,
+                                      layout.guest.y, layout.guest.w, layout.guest.h);
     return layout;
 }
 // Window point to canvas pixel; false outside the guest area.
@@ -403,9 +397,10 @@ static SDL_Rect UsableArea(SDL_Window *window)
     return usable;
 }
 // The desktop size that fills the screen in full screen, one canvas pixel
-// per point: the whole display less the camera housing (HostSeamless::
-// SafeTop). The display driver offers it as a mode, 1470x923 on a 13-inch
-// MacBook Air. NEO98_HOST_SCREEN stands in for the display in the tests.
+// per point: the whole display, up to its top edge beside the camera housing
+// of a built-in display (StartVideo). The display driver offers it as a
+// mode, 1470x956 on a 13-inch MacBook Air. NEO98_HOST_SCREEN stands in for
+// the display in the tests.
 static SDL_Rect FullscreenArea(SDL_Window *window)
 {
     SDL_Rect bounds{0, 0, 0, 0};
@@ -413,8 +408,6 @@ static SDL_Rect FullscreenArea(SDL_Window *window)
     if (SDL_GetDisplayBounds(display < 0 ? 0 : display, &bounds) != 0) bounds = {0, 0, 0, 0};
     if (const char *screen = getenv("NEO98_HOST_SCREEN"); screen && *screen)
         sscanf(screen, "%dx%d", &bounds.w, &bounds.h);
-    const int top = HostSeamless::SafeTop(window);
-    if (top > 0 && top < bounds.h) { bounds.y += top; bounds.h -= top; }
     return bounds;
 }
 static void WindowSizeFor(SDL_Window *window, int scale, int &width, int &height)
@@ -953,6 +946,12 @@ static bool StartVideo()
     // A window in full screen stays below the menu bar, which comes when the
     // pointer reaches the top of the screen (HostMenu::FullScreenBars).
     SDL_SetHint("SDL_ALLOW_TOPMOST", "0");
+    // Full screen is a window without a frame over the whole screen, not a
+    // Space of its own: macOS keeps a window in a full-screen Space below the
+    // menu bar on a display with a camera housing (1470x923 of 1470x956 on a
+    // 13-inch MacBook Air), with a black band at the top. The picture goes up
+    // to the top edge beside the housing, which covers a little of it.
+    SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "0");
     // SDL3 (under sdl2-compat) tells AppKit that the application wants no
     // momentum of the trackpad (AppleMomentumScrollSupported = NO) unless
     // this hint says otherwise; then the Mac sends nothing after the fingers

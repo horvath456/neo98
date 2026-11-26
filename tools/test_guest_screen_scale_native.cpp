@@ -120,10 +120,29 @@ int main()
         GuestScreenScale::WindowForCanvas(800, 600, 2, 0, 0, w, h);
         assert(w == 1600 && h == 1200);
     }
+    // Full screen on a 13-inch MacBook Air (1470x956 points). The window in
+    // full screen covers the whole screen, up to the top edge beside the
+    // camera housing, and the canvas of the screen's size fills it to the
+    // last point. Before, macOS kept the window in full screen below the menu
+    // bar (1470x923), the camera housing was taken off once more and the mode
+    // offered was 1470x924: the picture came out 1417x891 at 26,32, with black
+    // bars on the left, the right and above.
+    {
+        int x = -1, y = -1, w = 0, h = 0;
+        GuestScreenScale::PictureInWindow(1470, 956, 1470, 956, x, y, w, h);
+        assert(x == 0 && y == 0 && w == 1470 && h == 956);
+        // A 4:3 desktop in that full screen keeps its proportions, centred.
+        GuestScreenScale::PictureInWindow(1470, 956, 1024, 768, x, y, w, h);
+        assert(x == 98 && y == 0 && w == 1274 && h == 956);
+        // A wide canvas in a narrow window: bars above and below.
+        GuestScreenScale::PictureInWindow(800, 600, 1470, 956, x, y, w, h);
+        assert(x == 0 && y == 40 && w == 800 && h == 520);
+    }
 
     printf("GUEST SCREEN SCALE native 800x600 is the identity, Moorhuhn's 640x480 "
            "centre (320,240) becomes the canvas centre (400,300), the unconverted "
            "gap is 80,60 (sqrt 100) matching every corner stays on its own "
-           "screen, the canvas follows the desktop size, the window fits the Mac screen\n");
+           "screen, the canvas follows the desktop size, the window fits the Mac screen, "
+           "the full-screen size fills the window in full screen\n");
     return 0;
 }

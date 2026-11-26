@@ -87,4 +87,27 @@ inline void WindowForCanvas(int canvas_width, int canvas_height, int scale, int 
         }
     }
 }
+
+// Where the canvas shows in a window of window_width x window_height
+// points: at the largest size that keeps its aspect ratio, centred. In full
+// screen the window covers the whole Mac screen, up to its top edge beside
+// the camera housing of a built-in display, so a canvas of the screen's size
+// fills it exactly.
+inline void PictureInWindow(int window_width, int window_height, int canvas_width, int canvas_height, int &x, int &y,
+                            int &width, int &height)
+{
+    int w = window_width, h = window_height;
+    if (w < 1 || h < 1) { w = canvas_width; h = canvas_height; }
+    if (canvas_width > 0 && canvas_height > 0)
+    {
+        if ((long long)w * canvas_height > (long long)h * canvas_width)
+            w = (int)((long long)h * canvas_width / canvas_height);
+        else
+            h = (int)((long long)w * canvas_height / canvas_width);
+    }
+    x = (window_width - w) / 2;
+    y = (window_height - h) / 2;
+    width = w;
+    height = h;
+}
 } // namespace GuestScreenScale

@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 /* The mode the host offers for full screen (tools/test_host_screen_mode.py).
 
-   The fixture looks for 1470x923x32 among the modes of the display and
+   The fixture looks for 1470x956x32 among the modes of the display and
    stores it with CDS_UPDATEREGISTRY, as the Settings page of Display
    Properties does. Its title says what it found: "offered N stored R WxH"
    with N 1 when the mode is listed, R the answer of ChangeDisplaySettings
@@ -24,14 +24,14 @@ void mainCRTStartup(void)
     int offered = 0;
     mode.dmSize = sizeof mode;
     for (DWORD i = 0; EnumDisplaySettingsA(0, i, &mode); ++i)
-        if (mode.dmPelsWidth == 1470 && mode.dmPelsHeight == 923 && mode.dmBitsPerPel == 32) offered = 1;
+        if (mode.dmPelsWidth == 1470 && mode.dmPelsHeight == 956 && mode.dmBitsPerPel == 32) offered = 1;
     const int width = GetSystemMetrics(SM_CXSCREEN), height = GetSystemMetrics(SM_CYSCREEN);
-    if (width == 1470 && height == 923)
+    if (width == 1470 && height == 956)
         wsprintfA(title, "screen %dx%d", width, height);
     else
     {
         mode.dmSize = sizeof mode;
-        mode.dmPelsWidth = 1470; mode.dmPelsHeight = 923; mode.dmBitsPerPel = 32;
+        mode.dmPelsWidth = 1470; mode.dmPelsHeight = 956; mode.dmBitsPerPel = 32;
         mode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL;
         const LONG result = ChangeDisplaySettingsA(&mode, CDS_UPDATEREGISTRY);
         wsprintfA(title, "offered %d stored %ld %dx%d", offered, result, GetSystemMetrics(SM_CXSCREEN),

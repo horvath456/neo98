@@ -279,18 +279,6 @@ void LayersOpaque(NSView *view, bool opaque)
 
 namespace HostSeamless
 {
-int SafeTop(SDL_Window *window)
-{
-    if (const char *test = getenv("NEO98_HOST_SAFE_TOP"); test && *test) return atoi(test);
-    @autoreleasepool
-    {
-        NSWindow *native = Native(window);
-        NSScreen *screen = native ? native.screen : nil;
-        if (!screen) return 0;
-        if (@available(macOS 12.0, *)) return int(ceil(screen.safeAreaInsets.top));
-        return 0;
-    }
-}
 bool Transparent(SDL_Window *window, bool on)
 {
     @autoreleasepool
