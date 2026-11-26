@@ -55,6 +55,105 @@ static void Test16(unsigned green_bits)
         assert(values[y * 257 + 256] == 0xa5a5);
     }
 }
+// D3DFMT_Q8W8V8U8: four signed bytes u, v, w and q, each biased to 128 for
+// zero in the texture the GPU samples; -128 is -1 like -127.
+static void TestSignedBytesDecode()
+{
+    const unsigned texel = 0x807f0081u; // q -128, w 127, v 0, u -127
+    Gpu::Surface surface;
+    surface.bits = reinterpret_cast<unsigned char *>(const_cast<unsigned *>(&texel));
+    surface.width = surface.height = 1;
+    surface.pitch = 4;
+    surface.bit_count = 32;
+    surface.r_mask = 0xff;
+    surface.g_mask = 0xff00;
+    surface.b_mask = 0xff0000;
+    surface.a_mask = 0xff000000u;
+    surface.bump = true;
+    assert(surface.SignedBytes());
+    std::vector<unsigned char> decoded;
+    assert(HostVulkan::Texture::Decode(surface, decoded));
+    assert(decoded[0] == 1 && decoded[1] == 128 && decoded[2] == 255 && decoded[3] == 1);
+    puts("VULKAN SIGNED BYTES DECODE PASS: u, v, w and q of Q8W8V8U8 biased");
+}
+// Pixel shader 1.0 runs like 1.1, and a Q8W8V8U8 texture reaches a shader
+// with all four channels signed, as on the Mac.
+static void TestSignedBytesShader(Gpu::Backend &gpu)
+{
+    assert(gpu.SignedByteTextures());
+    if (!gpu.PixelShaders())
+    {
+        puts("VULKAN SIGNED BYTES SHADER SKIP: no pixel shaders (libshaderc.so.1)");
+        return;
+    }
+    struct Textured
+    {
+        float x, y, z, rhw;
+        unsigned color;
+        float u, v;
+    };
+    const Textured triangle[] = {{4, 4, 0, 1, 0xffffffff, .5f, .5f},
+                                 {60, 4, 0, 1, 0xffffffff, .5f, .5f},
+                                 {4, 60, 0, 1, 0xffffffff, .5f, .5f}};
+    std::vector<unsigned> pixels(64 * 64);
+    Gpu::Surface surface;
+    surface.bits = reinterpret_cast<unsigned char *>(pixels.data());
+    surface.width = surface.height = 64;
+    surface.pitch = 256;
+    surface.bit_count = 32;
+    surface.r_mask = 0xff0000;
+    surface.g_mask = 0xff00;
+    surface.b_mask = 0xff;
+    // u +1, v -1, w -1, q +1.
+    std::vector<unsigned> texels(4, 0x7f81817fu);
+    Gpu::Surface texture = surface;
+    texture.bits = reinterpret_cast<unsigned char *>(texels.data());
+    texture.width = texture.height = 2;
+    texture.pitch = 8;
+    texture.r_mask = 0xff;
+    texture.g_mask = 0xff00;
+    texture.b_mask = 0xff0000;
+    texture.a_mask = 0xff000000u;
+    texture.bump = true;
+    texture.owner = 1;
+    texture.handle = 9;
+    texture.generation = 1;
+    Gpu::State state;
+    state.viewport_width = state.viewport_height = 64;
+    state.render[22] = 1;
+    Gpu::Draw draw;
+    draw.primitive = Gpu::TriangleList;
+    draw.fvf = 0x144;
+    draw.stride = sizeof(Textured);
+    draw.vertices = reinterpret_cast<const unsigned char *>(triangle);
+    draw.vertex_count = 3;
+    draw.primitive_count = 1;
+    auto run = [&](bool textured) {
+        assert(gpu.Begin(surface, nullptr));
+        gpu.Clear(1, 0xff000000, 1, 0, nullptr, 0, state);
+        if (textured) gpu.SetTexture(0, &texture);
+        gpu.Draw(draw, state);
+        gpu.End();
+        gpu.Sync(surface, false);
+        return pixels[16 * 64 + 16] & 0xffffff;
+    };
+    // ps.1.0: mov r0, c0.
+    const unsigned version_1_0[] = {0xffff0100u, 1, 0x800f0000u, 0xa0e40000u, 0xffff};
+    state.pixel_shader = {version_1_0, 5, 101};
+    state.ps_constants[0][1] = state.ps_constants[0][3] = 1;
+    assert(run(false) == 0x00ff00);
+    // ps.1.1: tex t0; mov r0, t0. Red is u; green and blue are v and w,
+    // -1 and clamped to 0, where unsigned bytes would give a half or a
+    // little more.
+    const unsigned sample[] = {0xffff0101u, 0x42, 0xb00f0000u, 1, 0x800f0000u, 0xb0e40000u, 0xffff};
+    state.pixel_shader = {sample, 7, 102};
+    const unsigned color = run(true);
+    if (color != 0xff0000) fprintf(stderr, "Q8W8V8U8 through ps.1.1: %06x\n", color);
+    assert(color == 0xff0000);
+    gpu.Release(surface.bits, pixels.size() * 4);
+    gpu.Release(texture.bits, texels.size() * 4);
+    puts("VULKAN SIGNED BYTES SHADER PASS: ps.1.0, and u, v, w of Q8W8V8U8 signed in ps.1.1");
+}
 static void TestBatches(Gpu::Backend &gpu)
 {
     std::vector<unsigned> pixels(64, 0), other(64, 0);
@@ -370,12 +469,14 @@ int main()
 {
     Test16(5);
     Test16(6);
+    TestSignedBytesDecode();
     auto *gpu = HostVulkan::Install();
     if (!gpu)
     {
         fprintf(stderr, "No Vulkan device is available for this test.\n");
         return 77;
     }
+    TestSignedBytesShader(*gpu);
     TestClippedSky(*gpu);
     TestBatches(*gpu);
     TestLargerDepth(*gpu);

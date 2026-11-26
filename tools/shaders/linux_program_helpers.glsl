@@ -21,7 +21,8 @@ vec4 shader_sample(uint stage,vec4 c,bool projected){
     if(projected&&p>0u&&p<=4u&&c[p-1u]!=0)uv.xy/=c[p-1u];
     if(kind==2u)uv=cube_coords(c.xyz);
     vec4 v=kind==3u?fetch_volume(int(stage),c.xyz):fetch_texture(int(stage),uv);
-    if((u.stages[stage].z&512u)!=0u)v.xy=(v.xy*255-128)/127;
+    if((u.stages[stage].z&1024u)!=0u)v=(v*255-128)/127;
+    else if((u.stages[stage].z&512u)!=0u)v.xy=(v.xy*255-128)/127;
     return v;
 }
 vec4 shader_sample2(uint stage,vec4 c,uint mode){
@@ -37,7 +38,8 @@ vec4 shader_sample2(uint stage,vec4 c,uint mode){
     case 5u:v=mode==1u?texture(images[5],uv,c.w):textureLod(images[5],uv,c.w);break;
     case 6u:v=mode==1u?texture(images[6],uv,c.w):textureLod(images[6],uv,c.w);break;
     case 7u:v=mode==1u?texture(images[7],uv,c.w):textureLod(images[7],uv,c.w);break;}
-    if((u.stages[stage].z&512u)!=0u)v.xy=(v.xy*255-128)/127;
+    if((u.stages[stage].z&1024u)!=0u)v=(v*255-128)/127;
+    else if((u.stages[stage].z&512u)!=0u)v.xy=(v.xy*255-128)/127;
     return v;
 }
 vec4 texbem(uint stage,vec4 coords,vec4 bump,bool luminance){vec4 m=u.bumps[stage];vec2 uv=coords.xy+vec2(bump.x*m.x+bump.y*m.z,bump.x*m.y+bump.y*m.w);vec4 v=shader_sample(stage,vec4(uv,0,1),false);if(luminance)v.rgb*=saturate(bump.z*u.luminance[stage].x+u.luminance[stage].y);return v;}

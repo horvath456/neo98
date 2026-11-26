@@ -183,6 +183,16 @@ inline bool Decode(const Gpu::Surface &s, std::vector<unsigned char> &out)
                 p[2] = c & 255;
                 p[3] = s.palette_alpha ? c >> 24 : 255;
             }
+            else if (s.SignedBytes())
+            {
+                // Q8W8V8U8 keeps all four bytes, u, v, w and q, each with
+                // 128 for zero; -128 is -1 like -127, as on the Mac.
+                for (unsigned channel = 0; channel < 4; ++channel)
+                {
+                    const int byte = static_cast<signed char>(value >> (8 * channel));
+                    p[channel] = static_cast<unsigned char>(byte == -128 ? 1 : byte + 128);
+                }
+            }
             else if (s.bump)
             {
                 p[0] = static_cast<unsigned char>(Signed(value, s.r_mask));

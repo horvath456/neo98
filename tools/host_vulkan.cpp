@@ -932,8 +932,10 @@ class Vulkan final : public Gpu::Backend
             u.stages[i][0] = s[1];
             u.stages[i][1] = s[4];
             u.stages[i][2] = textured[i] ? (volume ? 3 : bound[i].faces ? 2 : 1) : 0;
+            // A bump map: du and dv are signed (512); Q8W8V8U8: all four
+            // channels are (1024).
             if (textured[i] && bound[i].bump)
-                u.stages[i][2] |= 512;
+                u.stages[i][2] |= bound[i].SignedBytes() ? 1024 | 512 : 512;
             if (textured[i] && bound[i].color_key && state.render[41])
                 u.stages[i][2] |= 256;
             u.stages[i][3] = (s[24] & 256) ? s[24] & 255 : 0;
@@ -1340,6 +1342,9 @@ class Vulkan final : public Gpu::Backend
         return value;
     }
     bool CompressedTextures() const override { return true; }
+    // Q8W8V8U8 decodes to four biased bytes (Texture::Decode), and the
+    // programmable sampling makes them signed again.
+    bool SignedByteTextures() const override { return true; }
     bool TransformAndLight() const override { return true; }
     bool DriverModel8() const override { return !getenv("NEO98_D3D_DX7_DRIVER"); }
     bool DriverModel9() const override { return DriverModel8() && !getenv("NEO98_D3D_DX8_DRIVER"); }

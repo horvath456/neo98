@@ -318,7 +318,7 @@ class Backend
     // Whether it answers the DirectX 9 runtime as a driver of that model
     // (D3DCAPS9, declarations and shader functions of their own).
     virtual bool DriverModel9() const = 0;
-    // Whether the backend draws with pixel shaders 1.1 to 1.4 (State::pixel_shader).
+    // Whether the backend draws with pixel shaders 1.0 to 1.4 (State::pixel_shader).
     virtual bool PixelShaders() const = 0;
     // Whether the backend runs vertex shaders 1.1 (State::vertex_shader, Draw::shader_inputs).
     virtual bool VertexShaders() const = 0;
