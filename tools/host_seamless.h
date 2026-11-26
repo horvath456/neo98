@@ -587,9 +587,4 @@ void ClickThrough(SDL_Window *window, bool on);
 bool Pointer(SDL_Window *window, int &x, int &y);
 // The application is the active one: the keyboard is the guest's.
 bool Active();
-// What the camera housing of a built-in display takes from the top of the
-// screen the window is on, in points (NSScreen.safeAreaInsets, macOS 12);
-// 0 on a screen without one and without an NSWindow (SDL's dummy driver).
-// NEO98_HOST_SAFE_TOP=points stands in for it in the tests.
-int SafeTop(SDL_Window *window);
 } // namespace HostSeamless

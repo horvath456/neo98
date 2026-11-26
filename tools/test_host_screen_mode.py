@@ -2,21 +2,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 """The size that fills the host's screen in full screen is a mode like any other.
 
-On the Mac the host runs headless with NEO98_HOST_SCREEN=1470x956 and
-NEO98_HOST_SAFE_TOP=33, a 13-inch MacBook Air with its camera housing. Out
-of the seamless view the display driver offers 1470x923, the screen less the
-housing. On Linux the host runs in an X server of the test's own (Xvfb)
-whose screen is 1470x923, and the driver offers the whole screen: in full
-screen the menu bar and the status line make way.
-tools/host_screen_mode_fixture.c finds the mode among the modes and stores
-it with CDS_UPDATEREGISTRY:
-- the change succeeds, the screen and the host's canvas are 1470x923 and the
-  registry holds Resolution 1470,923 (before, the size of the host's screen
+On the Mac the host runs headless with NEO98_HOST_SCREEN=1470x956, a 13-inch
+MacBook Air. In full screen its window covers the whole screen, up to the top
+edge beside the camera housing (a window without a frame, not a Space of its
+own, which macOS keeps below the menu bar), and out of the seamless view the
+display driver offers 1470x956, the whole screen. On Linux the host runs in
+an X server of the test's own (Xvfb) whose screen is 1470x956, and the driver
+offers the whole screen: in full screen the menu bar and the status line make
+way. tools/host_screen_mode_fixture.c finds the mode among the modes and
+stores it with CDS_UPDATEREGISTRY:
+- the change succeeds, the screen and the host's canvas are 1470x956 and the
+  registry holds Resolution 1470,956 (before, the size of the host's screen
   was never stored, and choosing it in Display Properties did nothing);
-- on the Mac, in full screen the picture keeps clear of the housing: it
-  starts 33 points or more below the top of the window (other hosts have
-  no housing, and the check is skipped there);
-- started again on the same C: and registry, the desktop is 1470x923 from the
+- on the Mac, in full screen the picture fills the window with its
+  proportions kept and nothing kept free at the top: SDL's dummy driver
+  gives a window of 1024x768, and the canvas shows centred at 0,51 1024x665
+  (tools/test_guest_screen_scale_native.cpp has the window of the Mac's
+  screen filled exactly; the check is skipped on other hosts);
+- started again on the same C: and registry, the desktop is 1470x956 from the
   start.
 
     build/analysis-venv/bin/python tools/test_host_screen_mode.py [--no-build]
@@ -75,7 +78,7 @@ def run(binary, out, name, steps, display=None):
     env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_HOST_INPUT=';'.join(steps),
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))
     if MAC:
-        env.update(SDL_VIDEODRIVER='dummy', NEO98_HOST_SCREEN='1470x956', NEO98_HOST_SAFE_TOP='33')
+        env.update(SDL_VIDEODRIVER='dummy', NEO98_HOST_SCREEN='1470x956')
     else:
         # The screen is the X server's, not one NEO98_HOST_SCREEN names.
         env.update(SDL_VIDEODRIVER='x11', GDK_BACKEND='x11', DISPLAY=display)
@@ -109,12 +112,12 @@ def main():
     binary = ROOT / 'build/native-app/neo98-host'
     if '--no-build' not in sys.argv:
         binary = build_host()
-    server, display = (None, None) if MAC else private_screen(1470, 923)
+    server, display = (None, None) if MAC else private_screen(1470, 956)
     try:
-        first_code, first = run(binary, out, 'host-1', ['0:wait=|offered 1 stored 0 1470x923', '0:idle=500',
+        first_code, first = run(binary, out, 'host-1', ['0:wait=|offered 1 stored 0 1470x956', '0:idle=500',
                                                         '1:menu=fullscreen', '2:idle=500', '3:menu=quit'], display)
         registry = (out / 'registry').read_bytes() if (out / 'registry').exists() else b''
-        second_code, second = run(binary, out, 'host-2', ['0:wait=|screen 1470x923', '0:idle=500', '1:menu=quit'],
+        second_code, second = run(binary, out, 'host-2', ['0:wait=|screen 1470x956', '0:idle=500', '1:menu=quit'],
                                   display)
     finally:
         if server:
@@ -124,22 +127,22 @@ def main():
     view = re.search(r'^NEO98 HOST view scale=\d+ fullscreen=1 window=(\d+)x(\d+) guest=(-?\d+),(-?\d+),(\d+)x(\d+)$',
                      first, re.M)
     checks = {
-        'the mode is offered and stored, the screen is 1470x923':
-            'input wait=|offered 1 stored 0 1470x923 reached' in first,
-        "the host's canvas follows": re.search(r'^NEO98 HOST canvas 1470x923 ', first, re.M) is not None,
-        'the registry holds Resolution 1470,923': b'1470,923' in registry,
-        'in full screen the picture starts below the camera housing':
-            (view is not None and int(view.group(4)) >= 33) if MAC else None,
+        'the mode is offered and stored, the screen is 1470x956':
+            'input wait=|offered 1 stored 0 1470x956 reached' in first,
+        "the host's canvas follows": re.search(r'^NEO98 HOST canvas 1470x956 ', first, re.M) is not None,
+        'the registry holds Resolution 1470,956': b'1470,956' in registry,
+        'in full screen the picture fills the window, centred, nothing kept free at the top':
+            (view is not None and view.groups() == ('1024', '768', '0', '51', '1024', '665')) if MAC else None,
         'the first start ended': first_code == 0,
-        'the restart has the desktop in 1470x923 from the start':
-            'input wait=|screen 1470x923 reached' in second
-            and re.search(r'^NEO98 HOST canvas 1470x923 ', second, re.M) is not None,
+        'the restart has the desktop in 1470x956 from the start':
+            'input wait=|screen 1470x956 reached' in second
+            and re.search(r'^NEO98 HOST canvas 1470x956 ', second, re.M) is not None,
         'the restart ended': second_code == 0,
     }
     (out / 'results.json').write_text(json.dumps({'checks': checks}, indent=2) + '\n')
     for name, okay in checks.items():
         print(f"{'skip' if okay is None else 'ok  ' if okay else 'FAIL'} {name}"
-              + (' (a camera housing is the Mac\'s)' if okay is None else ''))
+              + (' (the dummy window is the Mac\'s)' if okay is None else ''))
     if not all(okay is not False for okay in checks.values()):
         print(f'HOST SCREEN MODE FAIL; see {out}')
         return 1
