@@ -28,6 +28,9 @@ namespace LinuxGtk
 inline GtkWidget *shell = nullptr, *canvas = nullptr, *status = nullptr, *window_menu = nullptr;
 inline SDL_Window *desktop = nullptr;
 inline bool ready = false, updating = false, seamless = false, embedded = false;
+// The shell covers the screen (GDK_WINDOW_STATE_FULLSCREEN, as the window
+// manager has made it, not as asked).
+inline bool full_screen = false;
 inline bool menu_updated = false;
 inline bool redraw = false;
 inline bool persistent_settings = true;
@@ -461,6 +464,26 @@ inline void FocusCanvas()
     if (SDL_GetWindowWMInfo(desktop, &info) && info.subsystem == SDL_SYSWM_X11)
         XSetInputFocus(info.info.x11.display, info.info.x11.window, RevertToParent, CurrentTime);
 }
+// In full screen the menu bar and the status line make way, so the canvas
+// is the whole screen and the desktop mode of the screen's size fills it one
+// pixel per point (tools/neo98_linux.cpp, FullscreenArea), as on the Mac,
+// whose menu bar hides in full screen too. Ctrl+Shift+M brings the menu bar
+// back (HostMenu::ShowLinux), and a choice in it hides it again.
+inline void Bars(bool shown)
+{
+    if (!embedded || !menu_bar || !status)
+        return;
+    if (shown)
+    {
+        gtk_widget_show(menu_bar);
+        gtk_widget_show(status);
+    }
+    else
+    {
+        gtk_widget_hide(menu_bar);
+        gtk_widget_hide(status);
+    }
+}
 inline bool Create(SDL_Window *window)
 {
     desktop = window;
@@ -515,6 +538,20 @@ inline bool Create(SDL_Window *window)
     g_signal_connect(shell, "focus-in-event", G_CALLBACK(+[](GtkWidget *, GdkEvent *, gpointer) -> gboolean {
                          FocusCanvas();
                          return FALSE;
+                     }),
+                     nullptr);
+    g_signal_connect(shell, "window-state-event",
+                     G_CALLBACK(+[](GtkWidget *, GdkEventWindowState *event, gpointer) -> gboolean {
+                         if (event->changed_mask & GDK_WINDOW_STATE_FULLSCREEN)
+                         {
+                             full_screen = (event->new_window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
+                             Bars(!full_screen);
+                         }
+                         return FALSE;
+                     }),
+                     nullptr);
+    g_signal_connect(menu_bar, "deactivate", G_CALLBACK(+[](GtkMenuShell *, gpointer) {
+                         if (full_screen) gtk_widget_hide(menu_bar);
                      }),
                      nullptr);
     GtkTargetEntry drop_target{const_cast<char *>("text/uri-list"), 0, 1};

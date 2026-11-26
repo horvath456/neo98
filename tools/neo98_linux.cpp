@@ -179,6 +179,22 @@ std::string GuestPath(const std::string &path, const std::map<char, std::string>
     }
     return {};
 }
+// The desktop size that fills the screen in full screen, one canvas pixel
+// per point: the whole display, since the menu bar and the status line make
+// way in full screen (LinuxGtk::Bars). The display driver offers it as a
+// mode like any other, as on the Mac (tools/neo98_host.cpp, FullscreenArea).
+// Before the window exists it is the first display, where the window opens.
+// NEO98_HOST_SCREEN=WxH stands in for the display of SDL's dummy driver.
+SDL_Rect FullscreenArea(SDL_Window *window)
+{
+    SDL_Rect bounds{0, 0, 0, 0};
+    const int display = window ? SDL_GetWindowDisplayIndex(window) : 0;
+    if (SDL_GetDisplayBounds(display < 0 ? 0 : display, &bounds) != 0)
+        bounds = {0, 0, 0, 0};
+    if (const char *screen = getenv("NEO98_HOST_SCREEN"); screen && *screen)
+        sscanf(screen, "%dx%d", &bounds.w, &bounds.h);
+    return bounds;
+}
 } // namespace
 #ifdef NEO98_WITH_HOST_MEDIA
 // One frame with Kodi's video under the guest's picture :
@@ -339,6 +355,14 @@ int main(int argc, char **argv)
             SDL_GetDisplayBounds(0, &usable);
         X86::Application::SetHostDisplay(usable.w, usable.h, false);
         X86::Application::SetHostWorkArea(!options.seamless_taskbar);
+    }
+    // Without a desktop size of the host's, the size that fills the screen
+    // in full screen is a mode of the display like any other, there before
+    // the first program reads the registry's mode.
+    else if (!options.desktop_width)
+    {
+        const SDL_Rect full = FullscreenArea(nullptr);
+        X86::Application::OfferHostScreen(full.w, full.h);
     }
     std::vector<std::pair<std::string, std::string>> dos_failures;
     X86::Application::SetDosFailureHook(&dos_failures, [](void *context, const char *path, const char *error) {
@@ -777,14 +801,38 @@ int main(int argc, char **argv)
                offered_width ? "offered" : "refused");
         fflush(stdout);
     }
+    // Where SDL's logical size puts a canvas in a window: as large as it
+    // fits with its proportions, in the middle.
+    auto guest_area = [](int canvas_width, int canvas_height, int window_width, int window_height) {
+        const double fit = std::min(double(window_width) / canvas_width, double(window_height) / canvas_height);
+        const int guest_width = int(canvas_width * fit), guest_height = int(canvas_height * fit);
+        return SDL_Rect{(window_width - guest_width) / 2, (window_height - guest_height) / 2, guest_width,
+                        guest_height};
+    };
+    // A new canvas size, as the Mac host reports it: in full screen the
+    // window keeps the screen, and the canvas of the screen's size fills it.
+    auto canvas_line = [&](int canvas_width, int canvas_height, int window_width, int window_height) {
+        const SDL_Rect guest = guest_area(canvas_width, canvas_height, window_width, window_height);
+        printf("NEO98 HOST canvas %dx%d window=%dx%d guest=%d,%d,%dx%d\n", canvas_width, canvas_height,
+               window_width, window_height, guest.x, guest.y, guest.w, guest.h);
+        fflush(stdout);
+    };
     // The window for a canvas, as on the Mac (tools/neo98_host.cpp,
     // WindowSizeFor): the canvas at the chosen scale, a smaller scale where
     // that does not fit the usable area of the display, and else as large as
     // the area allows with the proportions of the canvas. The dummy driver of
     // the tests has a 1024x768 display; NEO98_HOST_SCREEN=WxH names another.
     auto frame_window = [&](int canvas_width, int canvas_height, bool view_changed) {
-        if (menu.fullscreen || seamless_enabled)
+        if (seamless_enabled)
             return;
+        if (menu.fullscreen)
+        {
+            int window_width = 0, window_height = 0;
+            SDL_GetWindowSize(window.get(), &window_width, &window_height);
+            if (!view_changed)
+                canvas_line(canvas_width, canvas_height, window_width, window_height);
+            return;
+        }
         SDL_Rect usable{0, 0, 0, 0};
         const int display = SDL_GetWindowDisplayIndex(window.get());
         if (SDL_GetDisplayUsableBounds(display < 0 ? 0 : display, &usable))
@@ -801,12 +849,12 @@ int main(int argc, char **argv)
                canvas_width, canvas_height);
         if (view_changed)
         {
-            const double fit = std::min(double(window_width) / canvas_width, double(window_height) / canvas_height);
-            const int guest_width = int(canvas_width * fit), guest_height = int(canvas_height * fit);
+            const SDL_Rect guest = guest_area(canvas_width, canvas_height, window_width, window_height);
             printf("NEO98 HOST view scale=%u fullscreen=0 window=%dx%d guest=%d,%d,%dx%d\n", unsigned(menu.scale),
-                   window_width, window_height, (window_width - guest_width) / 2, (window_height - guest_height) / 2,
-                   guest_width, guest_height);
+                   window_width, window_height, guest.x, guest.y, guest.w, guest.h);
         }
+        else
+            canvas_line(canvas_width, canvas_height, window_width, window_height);
         fflush(stdout);
     };
     auto start = std::chrono::steady_clock::now();
@@ -1078,6 +1126,13 @@ int main(int argc, char **argv)
         menu.seamless = value;
         const auto area = seamless.Area(window.get());
         X86::Application::SetHostDisplay(value ? area.w : 0, value ? area.h : 0, true);
+        // Back to the size the registry names, with the full-screen size a
+        // mode again in place of the seamless one.
+        if (!value)
+        {
+            const SDL_Rect full = FullscreenArea(window.get());
+            X86::Application::OfferHostScreen(full.w, full.h);
+        }
         X86::Application::SetHostWorkArea(value && !menu.seamless_taskbar);
         show_seamless(value);
         fprintf(stderr, "NEO98 seamless=%d\n", value);
@@ -1330,6 +1385,17 @@ int main(int argc, char **argv)
                                                   event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED ||
                                                   event.window.event == SDL_WINDOWEVENT_RESTORED))
                 display_dirty = true;
+            // The window has the screen: where the picture is in it, as the
+            // Mac host says it for the menu's full screen.
+            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED &&
+                event.window.windowID == SDL_GetWindowID(window.get()) && menu.fullscreen && !seamless_enabled &&
+                width > 0 && height > 0)
+            {
+                const SDL_Rect guest = guest_area(width, height, event.window.data1, event.window.data2);
+                printf("NEO98 HOST view scale=%u fullscreen=1 window=%dx%d guest=%d,%d,%dx%d\n", unsigned(menu.scale),
+                       event.window.data1, event.window.data2, guest.x, guest.y, guest.w, guest.h);
+                fflush(stdout);
+            }
             if (event.type == SDL_QUIT)
                 running = false;
             else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)

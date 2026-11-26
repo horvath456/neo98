@@ -95,6 +95,13 @@ inline std::string Describe()
 }
 inline void ShowLinux()
 {
+    // In full screen the menu bar has made way (LinuxGtk::Bars): the key
+    // shows it, and hides it again.
+    if (LinuxGtk::full_screen && LinuxGtk::embedded && !LinuxGtk::seamless && LinuxGtk::menu_bar)
+    {
+        gtk_widget_set_visible(LinuxGtk::menu_bar, !gtk_widget_get_visible(LinuxGtk::menu_bar));
+        return;
+    }
     LinuxGtk::Show();
 }
 }
