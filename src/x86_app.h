@@ -4119,6 +4119,7 @@ private:
     unsigned cursor_count = 0;
     unsigned cursor = 0;
     unsigned CurrentCursor();
+    unsigned QueueCursor(unsigned thread_id);
     // The sixteen OEM cursors USER loads at startup, in the order of its own
     // table at segment 21: resource 100+index. See win98_cursor.h.
     unsigned system_cursors[16] = {};

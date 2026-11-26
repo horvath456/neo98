@@ -424,6 +424,11 @@ bool BeginScrollTrack(HWND, unsigned vertical, int x, int y);
 // provider rasters the original USER.EXE AND/XOR masks at the hotspot.
 using CursorDraw = bool (*)(void *, Gdi::HDC, int x, int y, unsigned cursor);
 void SetCursorProvider(void *, CursorDraw);
+// The cursor a thread of a process last set (SetCursor, DefWindowProc
+// WM_SETCURSOR), ~0u while it has set none. Win98 keeps it in the message
+// queue and shows the one of the queue under the pointer (PointerMoved).
+using QueueCursor = unsigned (*)(void *, unsigned thread);
+void SetQueueCursorProvider(QueueCursor);
 void ShowPointer(bool);        // compose the cursor at all; off by default
 bool PointerComposited();
 unsigned SetPointerShape(unsigned cursor);
