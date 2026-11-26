@@ -15,9 +15,10 @@ tools/frame_paint_fixture.c draws three things on the host:
   WS_EX_CLIENTEDGE, as the Shortcut page's fields have it.
 - a group box is framed etched, grey over white, as in Display Properties.
 
-Then WordPad (MFC 4.2): the borders of its two toolbars and of the dock bar
-around them are painted, so no pixel of the teal desktop shows through
-anywhere in its toolbar area.
+Then WordPad (MFC 4.2), on a plain teal desktop: the borders of its two
+toolbars and of the dock bar around them are painted, so no pixel of the
+desktop shows through anywhere in its toolbar area. Its frame comes from the
+window list of tops=1, which both hosts print.
 
     build/analysis-venv/bin/python tools/test_frame_paint_host.py [--no-build]
 
@@ -43,6 +44,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import neo98  # noqa: E402
 from native_app import ROOT, build_host  # noqa: E402
 import win98_c  # noqa: E402
+from test_support import write_plain_desktop_registry  # noqa: E402
 win98_c.use_pristine()  # tests start from setup's C:, never the user's
 
 RED, GREEN, YELLOW, TEAL = b'\xff\x00\x00', b'\x00\xff\x00', b'\xff\xff\x00', b'\x00\x80\x80'
@@ -61,7 +63,7 @@ def count(path, colour, box=None):
                for y in range(max(y0, 0), min(y1, height)) for x in range(max(x0, 0), min(x1, width)))
 
 
-def run(binary, out, name, exe, steps):
+def run(binary, out, name, exe, steps, registry=None):
     drive = out / 'drive-c'
     shutil.rmtree(drive, ignore_errors=True)
     subprocess.run(['cp', *(['-c'] if sys.platform == 'darwin' else ['--reflink=auto']), '-R',
@@ -74,7 +76,8 @@ def run(binary, out, name, exe, steps):
         env.pop(key, None)
     program = 'C:\\' + exe.name if exe.exists() else str(exe)
     command = [str(binary), '-', 'C:\\WINDOWS\\FONTS\\VGAFIX.FON', '--system-tree', '--exe', program, '--quiet',
-               '--drive-c', str(drive), '--no-registry-file', '--crash-report-dir', str(out / 'reports')]
+               '--drive-c', str(drive), *(['--registry', str(registry)] if registry else ['--no-registry-file']),
+               '--crash-report-dir', str(out / 'reports')]
     log_path = out / f'{name}.log'
     with log_path.open('w') as log:
         code = subprocess.run(command, cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT,
@@ -100,10 +103,16 @@ def main():
     fixture_code, fixture_log = run(binary, out, 'fixture', exe,
                                     ['0:wait=FramePaint', '0:wait=|Edge sunken', '0:wait=|Group etched', '0:idle=2000',
                                      f'1:shot={shots["fixture"]}', '2:menu=quit'])
+    # The desktop of setup's C: may still be the wallpaper of its first
+    # start; teal shows what would come through.
+    registry = out / 'plain-desktop.registry'
+    write_plain_desktop_registry(registry)
     wordpad_code, wordpad_log = run(binary, out, 'wordpad', Path('C:\\Program Files\\Accessories\\WORDPAD.EXE'),
-                                    ['0:wait=|Document - WordPad', '0:idle=3000', '1:windows=1',
-                                     f'1:shot={shots["wordpad"]}', '2:menu=quit'])
-    frame = re.search(r'^NEO98 HOST seamless item id=\S+ frame=(-?\d+),(-?\d+),(\d+),(\d+) .*title=Document - WordPad$',
+                                    ['0:wait=|Document - WordPad', '0:idle=3000', '1:tops=1',
+                                     f'1:shot={shots["wordpad"]}', '2:menu=quit'], registry)
+    # The window list both hosts print for tops=1: its frame is GetWindowRect,
+    # left, top, right and bottom on the guest's screen.
+    frame = re.search(r'^NEO98 HOST top id=\S+ visible=1 frame=(-?\d+),(-?\d+),(-?\d+),(-?\d+) .*title=Document - WordPad$',
                       wordpad_log, re.M)
     figures = {}
     if shots['fixture'].exists():
@@ -112,10 +121,12 @@ def main():
         figures.update(red=count(shots['fixture'], RED, client), green=count(shots['fixture'], GREEN, client),
                        yellow=count(shots['fixture'], YELLOW, client))
     if shots['wordpad'].exists() and frame:
-        x, y, width, height = (int(v) for v in frame.groups())
+        left, top, right, bottom = (int(v) for v in frame.groups())
         # The menu bar ends about 40 pixels below the top of the frame; the two
         # toolbars and the ruler follow.
-        figures['wordpad_teal'] = count(shots['wordpad'], TEAL, (x + 4, y + 40, x + width - 4, y + 130))
+        figures['wordpad_teal'] = count(shots['wordpad'], TEAL, (left + 4, top + 40, right - 4, top + 130))
+        # The same rows beside the window: the desktop there is teal.
+        figures['desktop_teal'] = count(shots['wordpad'], TEAL, (0, top + 40, left, top + 130))
     checks = {
         'the fixture ran': (fixture_code == 0 and shots['fixture'].exists()
                             and 'input wait=FramePaint reached' in fixture_log),
@@ -128,6 +139,7 @@ def main():
         'a group box has an etched frame': 'input wait=|Group etched reached' in fixture_log,
         'WordPad ran': (wordpad_code == 0 and shots['wordpad'].exists() and frame is not None
                         and 'input wait=|Document - WordPad reached' in wordpad_log),
+        'the desktop beside WordPad is teal': figures.get('desktop_teal', 0) > 0,
         'no desktop shows through the toolbar area of WordPad': figures.get('wordpad_teal') == 0,
     }
     (out / 'results.json').write_text(json.dumps({'figures': figures, 'checks': checks}, indent=2) + '\n')
