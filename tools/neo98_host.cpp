@@ -4869,7 +4869,26 @@ int main(int real_argc, char **real_argv)
     // on (tools/host_state.h).
     if (HostState::loaded) machine_pause(true, "state loaded");
     pacing.Start();
+    // A turn of this loop that takes long is a stand of the whole machine:
+    // every Windows thread and the sound streams wait (Sound::Mixer::Beat).
+    // It goes into the log with where the time went, the guest's slices,
+    // the GPU's flush and the rest of the turn.
+    auto turn_start = std::chrono::steady_clock::now();
+    double turn_guest_ms = 0, turn_flush_ms = 0;
+    const auto turn_over = [&]() {
+        const auto now = std::chrono::steady_clock::now();
+        const double ms = std::chrono::duration<double, std::milli>(now - turn_start).count();
+        if (ms >= 250) {
+            printf("NEO98 HOST slow turn ms=%.0f guest_ms=%.0f gpu_ms=%.0f other_ms=%.0f sound_holds=%llu\n", ms,
+                   turn_guest_ms, turn_flush_ms, ms - turn_guest_ms - turn_flush_ms, Sound::Shared().StallHolds());
+            fflush(stdout);
+        }
+        turn_start = now;
+        turn_guest_ms = turn_flush_ms = 0;
+    };
     while (running) {
+        turn_over();
+        Sound::Shared().Beat();
         hardware.Pump(*a,game_machine_folder.empty());
 #ifdef NEO98_WITH_HOST_MEDIA
         media.Pump();
@@ -4887,13 +4906,20 @@ int main(int real_argc, char **real_argv)
             while (std::chrono::steady_clock::now() < slice_end) {
                 // Pump of a first process that has ended still runs the others.
                 if ((a->Status() == X86::Application::Exited || a->Status() == X86::Application::Failed) && !game_goes_on()) break;
+                const auto pump_start = std::chrono::steady_clock::now();
                 a->Pump();
+                Sound::Shared().Beat();
+                turn_guest_ms += std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - pump_start).count();
                 // Nothing to run anywhere: every thread of every process waits.
                 if (!a->SystemRunnable()) break;
             }
             // Retained offscreen work must also reach the GPU when the guest
             // yields without a DirectDraw present. Keep logical batches open.
-            if (gpu_backend) gpu_backend->Flush();
+            if (gpu_backend) {
+                const auto flush_start = std::chrono::steady_clock::now();
+                gpu_backend->Flush();
+                turn_flush_ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - flush_start).count();
+            }
             pacing.EndRun(*a);
             pacing.Turn(*a);
             pacing.Stall(*a);
@@ -4976,10 +5002,11 @@ int main(int real_argc, char **real_argv)
                 next += std::chrono::seconds(1);
                 struct rusage used{};
                 getrusage(RUSAGE_SELF, &used);
-                printf("NEO98 HOST stats t=%.2f presents=%u sound=%llu audible=%llu cpu=%.2f\n",
+                printf("NEO98 HOST stats t=%.2f presents=%u sound=%llu audible=%llu cpu=%.2f sound_holds=%llu\n",
                        std::chrono::duration<double>(std::chrono::steady_clock::now() - host_start).count(), a->HalPresents(),
                        Sound::Shared().RenderedFrames(), Sound::Shared().AudibleFrames(),
-                       (double)(used.ru_utime.tv_sec + used.ru_stime.tv_sec) + (used.ru_utime.tv_usec + used.ru_stime.tv_usec) / 1e6);
+                       (double)(used.ru_utime.tv_sec + used.ru_stime.tv_sec) + (used.ru_utime.tv_usec + used.ru_stime.tv_usec) / 1e6,
+                       Sound::Shared().StallHolds());
                 fflush(stdout);
 #if defined(__APPLE__)
                 HostMetal::LogStatistics();

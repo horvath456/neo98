@@ -18,6 +18,7 @@
 // with WHDR_ENDLOOP; the blocks in between do not finish until
 // the last pass is over, which is what Windows promises.
 #include "sound.h"
+#include <chrono>
 #include <new>
 namespace Sound
 {
@@ -627,10 +628,30 @@ void Mixer::Hold(bool hold)
     Unlock();
 }
 
+namespace
+{
+long long SteadyNanoseconds()
+{
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now().time_since_epoch())
+        .count();
+}
+} // namespace
+
+void Mixer::Beat() { last_beat.store(SteadyNanoseconds(), std::memory_order_relaxed); }
+
+bool Mixer::Stalled() const
+{
+    const long long beat = last_beat.load(std::memory_order_relaxed);
+    return beat && SteadyNanoseconds() - beat > (long long)StallMilliseconds * 1000000;
+}
+
 void Mixer::Render(short *out, unsigned frames)
 {
     for (unsigned i = 0; i < frames * OutputChannels; ++i) out[i] = 0;
-    if (held && faded) return;
+    // A machine that stands is held like a paused one (Beat).
+    const bool hold = held || Stalled();
+    if (hold && faded) return;
+    if (hold && !held) stall_holds.fetch_add(1, std::memory_order_relaxed);
     for (auto &source : sources)
     {
         if (!source.open || source.paused) continue;
@@ -777,15 +798,15 @@ void Mixer::Render(short *out, unsigned frames)
     }
     // The block that ends at a pause falls to silence, the first one after
     // it rises from silence.
-    if (held != faded && frames)
+    if (hold != faded && frames)
     {
         for (unsigned f = 0; f < frames; ++f)
         {
-            const unsigned gain = held ? frames - 1 - f : f + 1;
+            const unsigned gain = hold ? frames - 1 - f : f + 1;
             for (unsigned c = 0; c < OutputChannels; ++c)
                 out[f * OutputChannels + c] = (short)((int)out[f * OutputChannels + c] * (int)gain / (int)frames);
         }
-        faded = held;
+        faded = hold;
     }
 }
 
