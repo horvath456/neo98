@@ -76,7 +76,9 @@ def main():
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_INPUT=';'.join(steps))
     for key in ('NEO98_HOST_ATTACHED', 'NEO98_HOST_MENU', 'NEO98_KEYMAP'):
         env.pop(key, None)
-    command = [str(binary), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree',
+    # The system font of the drive itself: build/generated is not in every
+    # checkout.
+    command = [str(binary), '-', 'C:\\WINDOWS\\FONTS\\VGAFIX.FON', '--system-tree',
                '--exe', 'C:\\WINDOWS\\NOTEPAD.EXE', '--drive-c', str(drive_c), '--no-registry-file',
                '--crash-report-dir', str(out / 'reports')]
     log_path = out / 'host.log'

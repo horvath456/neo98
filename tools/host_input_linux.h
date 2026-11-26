@@ -459,6 +459,15 @@ class Script
             {
                 const unsigned h = User::FindWindow(nullptr, step.value.c_str());
                 X86::Application::RequestForeground(h);
+                // A thread of the guest serves the choice when it next asks
+                // for a message; WM_NULL wakes them all, as the macOS host's
+                // nudge does. Unserved, the foreground stayed empty, and an
+                // open= after it woke nobody (X86::Application::RequestOpen)
+                // until the next key.
+                unsigned windows[User::WindowCapacity], count = 0;
+                if (User::WindowSnapshot(0, windows, User::WindowCapacity, count))
+                    for (unsigned i = 0; i < count; ++i)
+                        if (User::IsWindow(windows[i])) User::PostMessage(windows[i], 0, 0, 0);
                 Say("NEO98 HOST seamless choose %s hwnd=%x\n", step.value.c_str(), h);
             }
             else if (step.action == "trace")
