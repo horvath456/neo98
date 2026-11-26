@@ -24,6 +24,8 @@ NSMenuItem *com_items[4], *cdrom_info, *drive_info, *eject_item, *scale_items[2]
     *seamless_icons_item, *seamless_dock_item, *wheel_focus_item;
 NSMenu *windows_menu;
 std::vector<std::pair<unsigned, std::string>> listed_windows;
+// The menu bar shows in full screen (FullScreenMenuBar) until a choice in it.
+bool full_screen_menu = false;
 bool online_state = true, listen_lan = false, wifi_state = false, microphone_state = true;
 
 void Push(HostMenu::Action action, int value = 0, const std::string &path = std::string())
@@ -584,6 +586,12 @@ bool Install()
         Item(windows, @"Start menu", @"start-menu", nil);
         [NSApp setMainMenu:bar];
         installed = true;
+        // A choice in the menu bar that Ctrl+Shift+M showed in full screen, or
+        // a menu closed without one, hides it again.
+        [NSNotificationCenter.defaultCenter addObserverForName:NSMenuDidEndTrackingNotification
+                                                        object:nil
+                                                         queue:nil
+                                                    usingBlock:^(NSNotification *) { full_screen_menu = false; }];
         // The delegate is SDL's; it gets the Dock menu added.
         if (id delegate = NSApp.delegate; delegate && ![delegate respondsToSelector:@selector(applicationDockMenu:)])
             class_addMethod([delegate class], @selector(applicationDockMenu:), (IMP)DockMenuOfDelegate, "@@:@");
@@ -697,13 +705,29 @@ void FullScreenBars(bool fullscreen)
 {
     if (!installed)
         return;
-    const NSApplicationPresentationOptions hidden =
-                                               NSApplicationPresentationHideMenuBar | NSApplicationPresentationHideDock,
-                                           reveal = NSApplicationPresentationAutoHideMenuBar |
-                                                    NSApplicationPresentationAutoHideDock;
-    const NSApplicationPresentationOptions now = NSApp.presentationOptions;
-    if (fullscreen ? (now & hidden) != 0 || (now & reveal) != reveal : (now & reveal) != 0)
-        NSApp.presentationOptions = fullscreen ? reveal : NSApplicationPresentationDefault;
+    if (!fullscreen)
+        full_screen_menu = false;
+    const NSApplicationPresentationOptions bars = NSApplicationPresentationHideMenuBar |
+                                                  NSApplicationPresentationHideDock |
+                                                  NSApplicationPresentationAutoHideMenuBar |
+                                                  NSApplicationPresentationAutoHideDock;
+    const NSApplicationPresentationOptions now = NSApp.presentationOptions,
+                                           wanted = !fullscreen ? NSApplicationPresentationDefault
+                                                    : full_screen_menu ? NSApplicationPresentationHideDock
+                                                                       : NSApplicationPresentationHideMenuBar |
+                                                                             NSApplicationPresentationHideDock;
+    // Out of full screen only what was said here is taken back.
+    if (fullscreen ? now == wanted : (now & bars) == 0)
+        return;
+    NSApp.presentationOptions = wanted;
+    printf("NEO98 HOST bars menu=%s dock=%s\n", (wanted & NSApplicationPresentationHideMenuBar) ? "hidden" : "shown",
+           (wanted & NSApplicationPresentationHideDock) ? "hidden" : "shown");
+    fflush(stdout);
+}
+
+void FullScreenMenuBar()
+{
+    full_screen_menu = !full_screen_menu;
 }
 
 void Pump()

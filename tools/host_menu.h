@@ -102,11 +102,18 @@ bool Installed();
 void Update(const State &state);
 // Hands queued Cocoa events to AppKit when SDL's own event loop does not.
 void Pump();
-// In full screen the menu bar and the Dock stay away until the pointer
-// reaches the edge of the screen, as in any Mac app in full screen. SDL hides
-// both for good whenever its window takes the keyboard, so the host says it
-// again every turn of its loop.
+// In full screen the menu bar and the Dock are hidden for good, so the
+// picture reaches every edge of the screen and the pointer works in all of
+// it. A menu bar that hides by itself comes back whenever the pointer is in
+// its strip, and on a display with a camera housing that is the whole strip
+// beside the housing: the top of the Windows desktop could not be clicked.
+// The Dock would come over the taskbar the same way. Ctrl+Shift+M shows the
+// menu bar (FullScreenMenuBar). The host says it every turn of its loop, and
+// prints "NEO98 HOST bars menu=... dock=..." when that changes something.
 void FullScreenBars(bool fullscreen);
+// Ctrl+Shift+M in full screen, as on Linux: the menu bar shows, and hides
+// again with the key once more, a choice in it, or the end of full screen.
+void FullScreenMenuBar();
 // The next queued request, oldest first.
 bool Next(Request &request);
 // Queues a request the host makes itself (a disc image opened in the Finder).

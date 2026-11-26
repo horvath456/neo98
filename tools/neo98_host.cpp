@@ -4641,6 +4641,16 @@ int main(int real_argc, char **real_argv)
         const bool command = (key.keysym.mod & KMOD_GUI) != 0, shift = (key.keysym.mod & KMOD_SHIFT) != 0,
                    control = (key.keysym.mod & KMOD_CTRL) != 0;
         const auto sym = key.keysym.sym;
+        // Ctrl+Shift+M in full screen shows the menu bar, which is hidden
+        // there (HostMenu::FullScreenBars), and hides it again, as on Linux.
+        if (control && shift && !command && !(key.keysym.mod & KMOD_ALT) && sym == SDLK_m &&
+            HostMenu::Installed() && (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)) {
+            if (key.type == SDL_KEYDOWN && !key.repeat) {
+                HostMenu::FullScreenMenuBar();
+                HostMenu::FullScreenBars(true);
+            }
+            return true;
+        }
         // Cmd+X, Cmd+C, Cmd+V: the menu "Edit" where there is one.
         if (command && !shift && !control && !(key.keysym.mod & KMOD_ALT) && (sym == SDLK_x || sym == SDLK_c || sym == SDLK_v)) {
             if (key.type == SDL_KEYDOWN && !HostMenu::Installed()) guest_chord(sym == SDLK_x ? 'X' : sym == SDLK_c ? 'C' : 'V');
@@ -5504,12 +5514,20 @@ int main(int real_argc, char **real_argv)
                 // usage. Unlike key= it takes the way of a real key, so the
                 // host knows it as held.
                 if (s.action == "sdlkey") {
+                    // The modifiers held by earlier steps go with the key,
+                    // as SDL gives them with a real one.
+                    static const Uint16 modifiers[8] = {KMOD_LCTRL, KMOD_LSHIFT, KMOD_LALT, KMOD_LGUI,
+                                                        KMOD_RCTRL, KMOD_RSHIFT, KMOD_RALT, KMOD_RGUI};
+                    static Uint16 held = 0;
+                    if (s.x >= 0xe0 && s.x <= 0xe7)
+                        held = s.y ? Uint16(held | modifiers[s.x - 0xe0]) : Uint16(held & ~modifiers[s.x - 0xe0]);
                     SDL_Event key{};
                     key.type = s.y ? SDL_KEYDOWN : SDL_KEYUP;
                     key.key.windowID = SDL_GetWindowID(window);
                     key.key.state = s.y ? SDL_PRESSED : SDL_RELEASED;
                     key.key.keysym.scancode = SDL_Scancode(s.x);
                     key.key.keysym.sym = SDL_GetKeyFromScancode(SDL_Scancode(s.x));
+                    key.key.keysym.mod = held;
                     SDL_PushEvent(&key);
                     printf("NEO98 HOST input sdlkey %d %s\n", s.x, s.y ? "down" : "up");
                     fflush(stdout);
