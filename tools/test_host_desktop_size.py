@@ -115,11 +115,13 @@ def main():
         return result.returncode, log_path.read_text(errors='replace')
 
     # 1. 1024x768 on a 1000x700 screen, a 640x480 program mode, then a
-    # 640x480 desktop.
+    # 640x480 desktop. The blue of the new desktop is looked for beside the
+    # click at 320,240: USER draws its pointer there, with the tip on that
+    # pixel, once the desktop is rebuilt.
     first = ['0:wait=|s1', '0:idle=500', '0:wait=900,700,ff0000', f'0:shot={out / "a.ppm"}',
              '0:motion=466,350', '0:wait=|s1 move 511,384',
              '0:click=900,700', '0:wait=|s2 640x480', '0:idle=500',
-             '0:click=512,384', '0:wait=|s3 at 320,240', '0:idle=500', '0:wait=320,240,0000ff',
+             '0:click=512,384', '0:wait=|s3 at 320,240', '0:idle=500', '0:wait=300,220,0000ff',
              f'0:shot={out / "b.ppm"}', '0:motion=100,50', '0:wait=|s3 move 100,50', '0:menu=quit']
     code, log = run(first, '1000x700', 'host-1.log')
     canvases = re.findall(r'^NEO98 HOST canvas (\d+)x(\d+) window=(\d+)x(\d+)', log, re.M)
