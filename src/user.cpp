@@ -1130,7 +1130,7 @@ static HWND CaptureClickFor(const InputPacket &p)
 Win98ButtonLayout::Metrics ButtonMetrics()
 {
     return {int(settings.Word(0x338)),int(settings.Word(0x33a)),int(settings.Word(0x2e8)),
-            int(settings.Word(0x2ea)),13};
+            int(settings.Word(0x2ea)),CheckCell()};
 }
 // the content rectangle of the kind and the caption inside it.
 // A check box or radio button keeps its caption in place while it is pressed;
@@ -1342,13 +1342,15 @@ void PaintControlContent(HWND h, Window &w, Gdi::HDC dc)
                     // places the 13x13 cell ([9B4h], [9B6h]): centred
                     // by default, at the right with BS_LEFTTEXT, and for BS_TOP
                     // or BS_BOTTOM inside a line of 5/4 of the text height.
+                    // The cell is larger with CheckBoxesFollowFontSize, and
+                    // the Marlett cells are drawn at that size.
                     unsigned state=(w.check&3)?0x400u:0u;
                     if(w.pressed)state|=0x200;
                     if(!IsEnabled(h))state|=0x100;
                     if(kind==4||kind==9)state|=4;
                     else if((kind==5||kind==6)&&(w.check&3)==2)state|=8;
                     if(w.style&0x8000)state|=0xc000;
-                    const int cell=13;
+                    const int cell=CheckCell();
                     int top=(client.bottom-cell)/2;
                     const unsigned vertical=(w.style>>8)&0xc;
                     if(vertical==4||vertical==8){
@@ -5050,6 +5052,9 @@ bool SavesBits(HWND h, const Window &w)
 }
 }
 unsigned GetDoubleClickTime() { return double_click_time; }
+static int check_cell = 13;
+int CheckCell() { return check_cell; }
+void SetCheckCell(int pixels) { check_cell = pixels < 13 ? 13 : pixels > 64 ? 64 : pixels; dirty = true; }
 void SetDoubleClickTime(unsigned time) { double_click_time = !time ? 500 : time > 5000 ? 5000 : time; }
 unsigned PhysicalMouseButtons() { return mouse_buttons; }
 bool PhysicalKeyDown(unsigned key) { return input.Down(key); }

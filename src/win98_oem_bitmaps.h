@@ -29,6 +29,10 @@ struct Metrics {
     int menu_extra = 0;         // 0d12h
     int menu_bias = 0;          // 0bd8h
     int menu_scroll = 9;        // 0722h
+    // The check box and radio button cells: 13, a constant of USER of Windows
+    // 95 and 98 at every font size, larger only with the Neo98 setting
+    // CheckBoxesFollowFontSize (docs/FONT-SIZE.md).
+    int check = 13;
 };
 
 struct Cell { int x = 0, y = 0, cx = 0, cy = 0; };
@@ -70,7 +74,7 @@ inline void Size(const Metrics &m, unsigned index, int &cx, int &cy)
         return;
     case 4:                                     // DFC_BUTTON
         if ((state & 8) && !(state & 0x0400)) { cx = 0; cy = (int)index - 8; return; }
-        cx = cy = 13;
+        cx = cy = m.check;
         return;
     default:                                    // the plain colour-index fills
         if (state & 1) { cx = Word(m.size_x * 4); cy = m.size_y; }

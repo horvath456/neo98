@@ -599,6 +599,11 @@ unsigned PopupWindowForMenu(HMENU);
 bool MenuIdleTarget(HWND &owner, HWND &popup);
 unsigned GetDoubleClickTime();
 void SetDoubleClickTime(unsigned);
+// The cell of a check box or radio button: 13 pixels, as USER of Windows 95
+// and 98 fixes it at every font size, or 13 x dpi / 96 with the Neo98 setting
+// CheckBoxesFollowFontSize (docs/FONT-SIZE.md).
+int CheckCell();
+void SetCheckCell(int pixels);
 // Hardware state is captured immediately; routing may run later on a GUI fiber.
 struct InputPacket
 {
