@@ -556,7 +556,13 @@ unsigned ServePopupPaints(){
   if(!dc){delete[] pixels;v.painted_generation=generation;continue;}
   v.painting=true;
   Gdi::SetViewportOrgEx(dc,-r.left,-r.top);
-  Fill(dc,{r.left,r.top,r.right,r.bottom},0xc0c0c0);Edge(dc,{r.left,r.top,r.right,r.bottom});
+  // A popup is painted in the system colours of the menu: COLOR_MENU,
+  // COLOR_MENUTEXT, COLOR_HIGHLIGHT and COLOR_HIGHLIGHTTEXT for the selected
+  // item, COLOR_GRAYTEXT for a greyed one, and the two shades of a button
+  // for the separator. They were a fixed grey and navy, so a scheme of
+  // Display Properties never reached the menus.
+  const unsigned*const system_colors=Win98Frame::SystemColors();
+  Fill(dc,{r.left,r.top,r.right,r.bottom},system_colors[4]);Edge(dc,{r.left,r.top,r.right,r.bottom});
   MenuOwnerEnvironment environment;
 Gdi::SelectObject(dc,system_font);
  const unsigned popup_window=v.popup.window;
@@ -584,10 +590,10 @@ Gdi::SelectObject(dc,system_font);
    m=FindMenu(v.popup.menu);if(!m)break;
    if(i.type&0x100)continue;}
 
-  if(i.type&0x800){Fill(dc,{x+5,y+3,right-5,y+4},0x808080);Fill(dc,{x+5,y+4,right-5,y+5},0xffffff);continue;}
+  if(i.type&0x800){Fill(dc,{x+5,y+3,right-5,y+4},system_colors[16]);Fill(dc,{x+5,y+4,right-5,y+5},system_colors[20]);continue;}
   const bool selected=int(n)==v.popup.selected;
-  if(selected)Fill(dc,{x,y,right,y+i.height},0x000080);
-  const unsigned color=(i.state&3)?0x808080u:selected?0xffffffu:0u;
+  if(selected)Fill(dc,{x,y,right,y+i.height},system_colors[13]);
+  const unsigned color=(i.state&3)?system_colors[17]:selected?system_colors[14]:system_colors[7];
   unsigned short mark=0;MG::S dy=0;bool radio=false;
   switch(OD::CheckMark(environment,i,mark,dy,radio)){
   case 1:MenuGlyph(dc,x+5,y+(int(i.height)-7)/2,radio?MenuBullet:MenuCheck,color);break;

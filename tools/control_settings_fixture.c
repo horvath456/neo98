@@ -8,6 +8,9 @@
 //                     starts itself as "child"; writes C:\SET.TXT
 //   CTLSET.EXE child  what a second process sees at once: C:\CHILD.TXT
 //   CTLSET.EXE get    what a new session starts with: C:\GET.TXT
+//   CTLSET.EXE menu   sets the colours of the menu and of the selection
+//                     with SetSysColors and opens a window with a menu bar,
+//                     until a key of the menu ends it
 //   CTLSET.EXE keys SPEED DELAY
 //                     sets the typematic values without storing them, opens
 //                     a window and writes the times of the WM_KEYDOWN of one
@@ -91,6 +94,8 @@ static LRESULT CALLBACK procedure(HWND window, UINT message, WPARAM wparam, LPAR
             ++key_repeats;
     }
     if (message == WM_KEYUP && wparam == 'A')
+        PostQuitMessage(0);
+    if (message == WM_COMMAND && LOWORD(wparam) == 7)
         PostQuitMessage(0);
     return DefWindowProcA(window, message, wparam, lparam);
 }
@@ -237,6 +242,29 @@ void mainCRTStartup(void)
     {
         read_all();
         save("C:\\GET.TXT");
+    }
+    else if (has(command, "menu"))
+    {
+        int elements[2] = {COLOR_MENU, COLOR_HIGHLIGHT};
+        COLORREF colours[2] = {RGB(10, 200, 30), RGB(200, 10, 30)};
+        MSG message;
+        HMENU bar = CreateMenu(), popup = CreatePopupMenu();
+        HWND shown;
+        SetSysColors(2, elements, colours);
+        AppendMenuA(popup, MF_STRING, 6, "&First");
+        AppendMenuA(popup, MF_STRING, 6, "&Second");
+        AppendMenuA(popup, MF_STRING, 6, "&Third");
+        AppendMenuA(popup, MF_STRING, 7, "&Quit");
+        AppendMenuA(bar, MF_POPUP, (UINT_PTR)popup, "&Menu");
+        shown = window(1);
+        SetMenu(shown, bar);
+        SetWindowPos(shown, 0, 0, 0, 300, 200, SWP_NOZORDER);
+        SetForegroundWindow(shown);
+        while (GetMessageA(&message, 0, 0, 0) > 0)
+        {
+            TranslateMessage(&message);
+            DispatchMessageA(&message);
+        }
     }
     else if (has(command, "keys"))
     {

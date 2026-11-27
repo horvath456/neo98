@@ -22,6 +22,8 @@ private copy of drive C:, with the picture of the desktop in memory:
   keys   a held key repeats after the set delay at the set speed: twice, with
          a slow and a fast setting, the times of its WM_KEYDOWN measured in
          the guest
+  menu   a popup menu is painted in COLOR_MENU, its selected item in
+         COLOR_HIGHLIGHT, as SetSysColors has just set them
 
     build/analysis-venv/bin/python tools/test_control_settings_host.py [--no-build] [--keep] [--kms KMS]
 """
@@ -142,6 +144,13 @@ def main():
         codes = [session('set'), session('get')]
         result = {name: values(win98_c.path(f'C:\\{name}.TXT', drive)) for name in ('SET', 'CHILD', 'GET')}
         slow, fast = held(12, 3, 2.6), held(31, 0, 1.5)
+        # ALT+M opens the menu with its first item selected. The script waits
+        # for a pixel of that item and for one of the item below it, and
+        # says so when one does not come; Q ends the program.
+        at = len(logs)
+        session('menu', ['0:wait=ControlSettings', '0:idle=500', '0:alt=4d', '0:wait=60,52,c80a1e',
+                         '0:wait=60,90,0ac81e', '0.2:key=51'])
+        menu_log = logs[at]
     finally:
         (WORK / 'log.txt').write_text('\n'.join(logs))
         if not args.keep:
@@ -180,6 +189,9 @@ def main():
         checks[f'{name}: every WM_KEYDOWN after the first is marked as a repeat: '
                f'{found.get("repeats")} of {found.get("key downs")}'] = (
             found.get('key downs', 0) > 1 and found.get('repeats') == found.get('key downs') - 1)
+    late = [line for line in menu_log.splitlines() if 'timed out after' in line]
+    checks[f'a popup menu is painted in the colours SetSysColors set for it: {late}'] = (
+        not late and menu_log.count('NEO98 KMS input wait=') == 3)
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():
         print(('ok  ' if passed else 'FAIL'), name, flush=True)
