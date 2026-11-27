@@ -7850,7 +7850,23 @@ unsigned Application::Api(ApiName name, const unsigned *a)
         Store(a[1], &r, sizeof r);
         return 1;
     }
-    API(GetDialogBaseUnits) return (13 << 16) | 6;
+    API(GetDialogBaseUnits)
+    {
+        // USER keeps the cell of the System font: its height and the
+        // average width USER measures (the 52 letters over 26,
+        // halved and rounded, for a proportional font): 8 by 16 with
+        // VGASYS.FON, 10 by 20 with the 8514SYS.FON of "Large Fonts".
+        const unsigned dc = User::GetDC(0);
+        const auto old = Gdi::SelectObject(dc, system);
+        Gdi::SIZE extent = {};
+        Gdi::TEXTMETRICA metrics = {};
+        Gdi::GetTextExtentPoint32A(dc, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &extent);
+        Gdi::GetTextMetricsA(dc, &metrics);
+        Gdi::SelectObject(dc, old);
+        User::ReleaseDC(0, dc);
+        const unsigned width = (metrics.tmPitchAndFamily & 1) ? (extent.cx / 26 + 1) / 2 : metrics.tmAveCharWidth;
+        return (unsigned(metrics.tmHeight) << 16) | (width & 0xffff);
+    }
     API(GetNextDlgTabItem) return User::NextDialogItem(a[0], a[1], a[2] != 0);
     API(GetNextDlgGroupItem) return User::NextDialogItem(a[0], a[1], a[2] != 0, true);
     API(DefDlgProcA) return DialogProcedure(a[0], a[1], a[2], a[3]);

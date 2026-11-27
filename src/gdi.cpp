@@ -1226,7 +1226,15 @@ unsigned DeviceCaps(HDC handle,unsigned index)
         unsigned Direct(unsigned index){return Win98DcInformation::Caps32(*this,signature,0,index);}
     } display{c->signature};
     // Native framebuffer driver capabilities. Hardware values are not original code.
-    display.Set(0,0x400);display.Set(2,1);display.Set(4,211);display.Set(6,158);
+    // GDI.EXE replaces dpHorzSize and dpVertSize of the driver by the pixels
+    // over the physical dots per inch of HKCC\Display\Settings, in
+    // millimetres, and dpLogPixelsX and dpLogPixelsY by the logical ones
+    // (src/gdi_display_dpi.h): 211 by 158 mm and 96 for 800 by 600 at the
+    // "Small Fonts" of Windows.
+    const auto &dpi=Dpi();
+    display.Set(0,0x400);display.Set(2,1);
+    display.Set(4,unsigned(DpiMulDiv(display_width,254,dpi.physical_x)/10));
+    display.Set(6,unsigned(DpiMulDiv(display_height,254,dpi.physical_y)/10));
     display.Set(8,unsigned(display_width));display.Set(10,unsigned(display_height));
     display.Set(12,unsigned(display_depth));display.Set(14,1);
     display.Set(20,0);display.Set(22,0);display.Set(26,0xffff);
@@ -1244,7 +1252,7 @@ unsigned DeviceCaps(HDC handle,unsigned index)
     // gamma table nor a ResetDC path. dpCaps2 at 96 is
     // printer and colour management and stays zero.
     display.Set(94,0x10);
-    display.Set(38,palettized?0x2a81u|0x100u:0x2a81u);display.Set(88,96);display.Set(90,96);
+    display.Set(38,palettized?0x2a81u|0x100u:0x2a81u);display.Set(88,unsigned(dpi.logical_x));display.Set(90,unsigned(dpi.logical_y));
     return Win98DcInformation::Query(display,index);
 }
 

@@ -142,7 +142,10 @@ unsigned Application::FontCreateApi(ApiName name,const unsigned*a){
         // or retain glyph overhangs. Only standalone tests keep cells.
         const bool marlett=FaceEqual(physical,"Marlett");
         if(marlett&&!GdiFonts::Installed("MARLETT.TTF"))AddFontResourceFile("MARLETT.TTF");
-        const auto*face=GdiFonts::Match(physical,height,Win98FontCreate::Word(logical+8),italic,logical[13]);
+        // PROOF_QUALITY keeps GDI from enlarging a raster size.
+        U scale=1;
+        const auto*face=GdiFonts::Match(physical,height,Win98FontCreate::Word(logical+8),italic,logical[13],
+                                        logical[16]==2?nullptr:&scale);
         if(escapement && (!face || !face->truetype)){free(logical);last_error=50;return 0;}
         if(marlett&&!face){
 #ifndef NEO98_RUNTIME_CONTENT
@@ -164,7 +167,7 @@ unsigned Application::FontCreateApi(ApiName name,const unsigned*a){
                 else last_error=8;
                 free(logical);return f.handle;
             }
-            f.handle=Gdi::CreateFontView(face->font.data,face->font.length);
+            f.handle=CreateRasterFont(*face,scale);
             // a raster face below FW_BOLD is made bold when
             // the request is 550 or more.
             const unsigned requested=Win98FontCreate::Word(logical+8);
@@ -179,8 +182,8 @@ unsigned Application::FontCreateApi(ApiName name,const unsigned*a){
             const auto*face=GdiFonts::RoleFace(GdiFonts::FixedRole);
             f.handle=face?Gdi::CreateFontView(face->font.data,face->font.length):Gdi::CreateFontMemory(font_bytes,font_size);
         }
-        else if(const auto*face=GdiFonts::Match("MS Sans Serif",height?height:13,400,false,1)){
-            f.handle=Gdi::CreateFontView(face->font.data,face->font.length);
+        else if(const auto*face=GdiFonts::Match("MS Sans Serif",height?height:13,400,false,1,&scale)){
+            f.handle=CreateRasterFont(*face,scale);
             if(f.handle&&Win98FontCreate::Word(logical+8)>=550&&Win98FontCreate::Word(face->font.data+0x53)<700)
                 simulate_bold=true;
         }
