@@ -94,6 +94,8 @@ struct DirectArena
         return uint64_t(now.tv_sec) * 1000000 + uint64_t(now.tv_nsec) / 1000;
     }
     // NEO98_NATIVE_STATS: one line per second in which processors changed.
+    // ldt: the descriptors of 16-bit code the LDT of the host holds at the
+    // moment, those of the guest with descriptors that ran last.
     void Report(uint64_t now)
     {
         static const bool wanted = getenv("NEO98_NATIVE_STATS") != nullptr;
@@ -101,11 +103,14 @@ struct DirectArena
         static uint64_t reported = 0;
         if (!wanted || now - reported < 1000000)
             return;
+        unsigned held = 0;
+        for (unsigned slot = 0; slot < 4096; ++slot)
+            held += ldt.valid[slot];
         fprintf(stderr,
-                "DIRECT SWITCH pid=%ld switches=%llu maps=%llu descriptors=%llu microseconds=%llu in %.2f s\n",
+                "DIRECT SWITCH pid=%ld switches=%llu maps=%llu descriptors=%llu microseconds=%llu in %.2f s ldt=%u\n",
                 long(getpid()), cost.switches - last.switches, cost.map_calls - last.map_calls,
                 cost.descriptor_calls - last.descriptor_calls, cost.microseconds - last.microseconds,
-                reported ? double(now - reported) / 1e6 : 0.0);
+                reported ? double(now - reported) / 1e6 : 0.0, held);
         last = cost;
         reported = now;
     }
