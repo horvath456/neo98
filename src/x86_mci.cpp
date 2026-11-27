@@ -71,6 +71,7 @@ constexpr unsigned ModeStop = 525, ModePlay = 526, ModePause = 529;
 constexpr unsigned FormatMilliseconds = 0, FormatBytes = 8, FormatSamples = 9;
 
 // The commands. MCI_OPEN is 803h and the block runs on from there.
+constexpr unsigned OpenDriverMessage = 0x801, CloseDriverMessage = 0x802;
 constexpr unsigned Open = 0x803, Close = 0x804, Play = 0x806, Seek = 0x807;
 constexpr unsigned Stop = 0x808, Pause = 0x809, Info = 0x80a, GetDevCaps = 0x80b;
 constexpr unsigned Set = 0x80d, SysInfo = 0x810, Break = 0x811, AskStatus = 0x814, Resume = 0x855;
@@ -1326,10 +1327,23 @@ unsigned Application::MciDriverString(void *opaque, const void *word_list, char 
     }
     Store(base, parsed.block, sizeof parsed.block);
     if ((parsed.flags & Wait) && device.break_enabled) User::GetAsyncKeyState(device.break_key);
-    const unsigned result = Win16SendDriverMessage(device.driver, parsed.message, parsed.flags, far);
+    // "close" is MCI_CLOSE_DRIVER for the driver and then CloseDriver, as
+    // for MCI_CLOSE of the command interface (MciDriverCommand). MCIAVI ends
+    // the thread that plays the film on this message and frees what the
+    // film took; without it the thread waited on for the rest of the process.
+    const bool closing = parsed.message == Close;
+    const unsigned result = Win16SendDriverMessage(device.driver, closing ? CloseDriverMessage : parsed.message,
+                                                   parsed.flags, far);
     if (state == Failed) return 0;
     unsigned error = result & 0xffff;
     answer[0] = 0;
+    if (closing)
+    {
+        Win16GlobalFree(memory);
+        Win16CloseDriver(device.driver, 0, 0, true);
+        device = MciDevice{};
+        return error;
+    }
     if (!error && parsed.result_kind == TableString)
     {
         const char *returned = ReadString(base + 0x500);
@@ -1456,8 +1470,8 @@ unsigned Application::MciSendString(ApiName name, const unsigned *a)
         }
         if (!identifier) return DeviceTypeRequired;
         // A device of a 16-bit driver: its command table says what the words
-        // mean. Closing goes the common way, which also lets the driver go.
-        if (auto *device = DeviceOfIdentifier(identifier); device && ((device->driver && !Same(verb, "close")) || Same(verb, "break")))
+        // mean, "close" among them (the table CORE of MMSYSTEM).
+        if (auto *device = DeviceOfIdentifier(identifier); device && (device->driver || Same(verb, "break")))
         {
             const unsigned result = MciDriverString(device, &words, answer, sizeof answer, a[3]);
             if (result) return result;
@@ -1605,7 +1619,6 @@ unsigned Application::MciDeviceIdentifier(ApiName name, const unsigned *a)
 
 namespace
 {
-constexpr unsigned OpenDriverMessage = 0x801, CloseDriverMessage = 0x802;
 // The field kinds of a 32-bit parameter block, one character each:
 // d DWORD, copied in and back
 // w HWND or UINT: a WORD and a reserved WORD in the 16-bit block
