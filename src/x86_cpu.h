@@ -132,6 +132,9 @@ enum class TraceKind
 struct SwitchCost
 {
     unsigned long long switches, map_calls, descriptor_calls, microseconds;
+    // The calls the host made to change the protection of pages of the
+    // guest that stands at the addresses (Cpu::Protect), at any time.
+    unsigned long long protect_calls;
 };
 class Cpu
 {

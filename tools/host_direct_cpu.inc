@@ -1036,13 +1036,28 @@ class DirectCpu final : public NativeCpu
         if (error || (prot & ~7u))
             return error ? error : CpuError::Argument;
         layout_stale = true;
-        for (uint64_t at = address; at < uint64_t(address) + size; at += Page)
+        const uint64_t end = uint64_t(address) + size;
+        for (uint64_t at = address; at < end; at += Page)
         {
             rights[at / Page] = prot | Mapped;
             Access(unsigned(at / Page));
-            if (Arena().owner == this &&
-                mprotect(reinterpret_cast<void *>(uintptr_t(at)), Page, Protection(unsigned(at), prot)))
+        }
+        if (Arena().owner != this)
+            return CpuError::Ok;
+        // One call for every run of pages that get the same protection from
+        // the host: all of the range, unless gate pages or watched pages lie
+        // in it. A call for each page made a VirtualProtect of a megabyte
+        // 256 system calls.
+        for (uint64_t at = address; at < end;)
+        {
+            const int host = Protection(unsigned(at), prot);
+            uint64_t stop = at + Page;
+            while (stop < end && Protection(unsigned(stop), prot) == host)
+                stop += Page;
+            if (mprotect(reinterpret_cast<void *>(uintptr_t(at)), stop - at, host))
                 return CpuError::Map;
+            ++Arena().cost.protect_calls;
+            at = stop;
         }
         return CpuError::Ok;
     }

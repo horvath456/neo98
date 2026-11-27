@@ -523,6 +523,29 @@ int main()
         for (Guest *guest : all)
             guest->Look(all, exact_flat);
 
+    // The rights of a megabyte changed while the guest stands at the
+    // addresses: one call for the range, not one for each of its 256 pages.
+    if (counted)
+    {
+        constexpr unsigned Block = 0x2000000, BlockPages = 256;
+        flat.Run({Pages}, {}, {});
+        okay(flat.cpu->Map(Block, BlockPages * Page, Prot::Read | Prot::Write));
+        SwitchCost before = {}, after = {};
+        flat.cpu->SwitchCosts(before);
+        okay(flat.cpu->Protect(Block, BlockPages * Page, Prot::Read));
+        flat.cpu->SwitchCosts(after);
+        CHECK(after.protect_calls - before.protect_calls == 1, "%llu calls to protect a megabyte",
+              after.protect_calls - before.protect_calls);
+        CHECK(flat.Access(0xa3, Block + 100 * Page) == CpuError::WriteProtected,
+              "a page in the middle of the megabyte is still writable");
+        okay(flat.cpu->Protect(Block + 16 * Page, 2 * Page, Prot::Read | Prot::Write));
+        CHECK(flat.Access(0xa3, Block + 17 * Page) == CpuError::Ok && flat.Access(0xa3, Block + 18 * Page) == CpuError::WriteProtected,
+              "two pages of the megabyte made writable again");
+        okay(flat.cpu->Unmap(Block, BlockPages * Page));
+        for (Guest *guest : all)
+            guest->Look(all, exact_flat);
+    }
+
     // A selector the guest freed while ES still held it: 16-bit code frees a
     // block and leaves the selector in the register. The run starts all the
     // same, with the null selector there, as Windows loads it when it finds
