@@ -35,6 +35,12 @@ side knows them by: those `LoadIcon`, `LoadCursor` and `GetClassWord` give
 16-bit call accepts. `GetClassInfoEx` answers the small icon the class was
 registered with; it answered none.
 
+Behind its window Character Map names the keystroke of the character under
+the mouse with `VkKeyScan` of the 16-bit keyboard driver (KEYBOARD.129),
+which the port did not carry: the press on a character ended the program.
+It answers what `VkKeyScanA` answers, the virtual key in the low byte and
+the shift state in the high one (`tools/test_win16_ordinals_host.py`).
+
 `tools/test_win16_class_ex_host.py` registers a class with
 `RegisterClassEx` from a 16-bit fixture (`tools/class_ex_win16_fixture.asm`),
 creates a window of it, uses its window bytes and reads the class back with

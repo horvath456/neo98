@@ -22,8 +22,8 @@ namespace Win16U = Win98Win16User;
 
 // ------------------------------------------------------------------ KEYBOARD
 // KEYBOARD.DRV of the tree exports these under the names the resident name
-// table carries: 5 ANSITOOEM, 6 OEMTOANSI, 131 MAPVIRTUALKEY, 133
-// GETKEYNAMETEXT.
+// table carries: 5 ANSITOOEM, 6 OEMTOANSI, 129 VKKEYSCAN, 131 MAPVIRTUALKEY,
+// 133 GETKEYNAMETEXT.
 bool Application::Win16KeyboardCall(unsigned ordinal, const Win16Frame &frame, unsigned &result,
                                     unsigned &words)
 {
@@ -49,6 +49,16 @@ bool Application::Win16KeyboardCall(unsigned ordinal, const Win16Frame &frame, u
                        length = frame.Word(0);
         const unsigned a[] = {source, target, length};
         result = source && target ? Api(ordinal == 134 ? "CharToOemBuffA" : "OemToCharBuffA", a) : 0;
+        return true;
+    }
+    case 129: // VkKeyScan(character): the virtual key in the low byte and
+              // the shift state in the high one, -1 for a character no key
+              // types. Character Map names the keystroke of the character
+              // under the mouse with it.
+    {
+        words = 1;
+        const unsigned a[] = {frame.Word(0) & 0xffu};
+        result = Api("VkKeyScanA", a) & 0xffffu;
         return true;
     }
     case 131: // MapVirtualKey(code, kind)
