@@ -70,6 +70,29 @@ int main()
         assert(cameras == devices && (status.camera_id != 0) == (devices != 0));
         assert(!(status.features & AH_CAMERA) == !devices);
         assert(!platform->asking_camera);
+        // The removable volumes the host offers Windows are those Finder
+        // shows, never the hidden ones macOS mounts itself, such as the
+        // runtimes of the iOS Simulator; those had become removable drives.
+        unsigned shown = 0, hidden = 0;
+        for (NSURL *url in [NSFileManager.defaultManager
+                 mountedVolumeURLsIncludingResourceValuesForKeys:@[NSURLVolumeIsRemovableKey, NSURLVolumeIsEjectableKey,
+                                                                   NSURLVolumeIsBrowsableKey]
+                                                         options:0])
+        {
+            NSNumber *removable = nil, *ejectable = nil, *browsable = nil;
+            [url getResourceValue:&removable forKey:NSURLVolumeIsRemovableKey error:nil];
+            [url getResourceValue:&ejectable forKey:NSURLVolumeIsEjectableKey error:nil];
+            [url getResourceValue:&browsable forKey:NSURLVolumeIsBrowsableKey error:nil];
+            if (!removable.boolValue && !ejectable.boolValue) continue;
+            bool listed = false;
+            for (const auto &item : media)
+                if (item.second.path == url.path.UTF8String) listed = true;
+            printf("volume %s: %s, %s\n", url.path.UTF8String, browsable.boolValue ? "shown" : "hidden",
+                   listed ? "offered" : "not offered");
+            assert(listed == (bool)browsable.boolValue);
+            ++(browsable.boolValue ? shown : hidden);
+        }
+        printf("removable volumes: %u shown, %u hidden\n", shown, hidden);
     }
     puts("CAMERA FRAMES PASS");
     return 0;
