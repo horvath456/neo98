@@ -63,7 +63,10 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
         metrics[5] = metrics[6] = metrics[19] = metrics[80] = metrics[81] = 1;
         metrics[7] = metrics[8] = metrics[43] = 3;
         metrics[11] = metrics[12] = metrics[13] = metrics[14] = 32;
-        metrics[36] = metrics[37] = metrics[68] = metrics[69] = 4;
+        // The box of a double click is 4 pixels, that of the start of a drag
+        // 2, without DoubleClickWidth and DragWidth in the registry (USER).
+        metrics[36] = metrics[37] = 4;
+        metrics[68] = metrics[69] = 2;
         metrics[38] = metrics[39] = 75;
         metrics[45] = metrics[46] = 2;
         metrics[47] = metrics[57] = 160;

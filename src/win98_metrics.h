@@ -119,4 +119,15 @@ inline void ApplyNonClientMetrics(Environment &e, const NonClient &n)
     e.SetWord(0x352, U(e.Word(0x2ee)) * 2 + caption_height);
     Recompute(e);
 }
+// MINIMIZEDMETRICS as USER keeps it: the width of a minimized window with
+// its frame (SM_CXMINIMIZED), the cells minimized windows are arranged in
+// (SM_CXMINSPACING, SM_CYMINSPACING: the window and the gap) and SM_ARRANGE.
+inline void ApplyMinimizedMetrics(Environment &e, int width, int horizontal_gap, int vertical_gap, U arrange)
+{
+    const U wide = U(width + int(e.Word(0x2ec)) * 2) & 0xffff;
+    e.SetWord(0x350, wide);
+    e.SetWord(0x33c, (wide + U(horizontal_gap)) & 0xffff);
+    e.SetWord(0x33e, (e.Word(0x352) + U(vertical_gap)) & 0xffff);
+    e.SetWord(0x34e, arrange & 0xffff);
+}
 } // namespace Win98Metrics

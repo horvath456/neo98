@@ -117,18 +117,32 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
         void RecomputeMetrics() override { Win98Metrics::Recompute(s); }
         void RepositionWindows(const Win98ParametersWrite::Rect &) override
         {
-            // USER walks every top-level window. The native provider re-applies
-            // the reconstructed maximized rectangle to the windows that are maximized.
+            // USER walks the windows of the top level that are no tool
+            // windows and places each one anew with DeferWindowPos and one
+            // EndDeferWindowPos, SWP_NOZORDER and SWP_NOACTIVATE: a window is
+            // asked with WM_WINDOWPOSCHANGING, gets WM_NCCALCSIZE and is told
+            // with WM_WINDOWPOSCHANGED and WM_SIZE. The provider does this
+            // for the windows that are maximized, with the reconstructed
+            // maximized rectangle; the others stay where they are.
             unsigned windows[User::WindowCapacity], count = 0;
             if (!User::WindowSnapshot(0, windows, User::WindowCapacity, count))
                 return;
-            for (unsigned i = 0; i < count; ++i)
-                if (User::IsWindow(windows[i]) && (User::Style(windows[i]) & 0x01000000))
-                {
-                    Gdi::RECT m;
-                    if (User::MaximizedRect(windows[i], m))
-                        User::MoveWindow(windows[i], m.left, m.top, m.right - m.left, m.bottom - m.top);
-                }
+            unsigned positions[64][7], moved = 0;
+            for (unsigned i = 0; i < count && moved < 64; ++i)
+            {
+                const unsigned hwnd = windows[i];
+                if (!User::IsWindow(hwnd) || !(User::Style(hwnd) & 0x01000000) || (User::ExtendedStyle(hwnd) & 0x80))
+                    continue;
+                Gdi::RECT m, now = {};
+                if (!User::MaximizedRect(hwnd, m) || !User::GetWindowRect(hwnd, &now) ||
+                    (m.left == now.left && m.top == now.top && m.right == now.right && m.bottom == now.bottom))
+                    continue;
+                const unsigned entry[7] = {hwnd, 0, unsigned(m.left), unsigned(m.top), unsigned(m.right - m.left),
+                                           unsigned(m.bottom - m.top), 0x14};
+                memcpy(positions[moved++], entry, sizeof entry);
+            }
+            if (moved)
+                app.PositionWindows(moved, positions);
         }
         // USER's two writers store the sizes and fonts of a window's
         // parts and of the icon grid under HKCU\Control Panel\Desktop\
@@ -219,19 +233,32 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
                 NarrowFont(m + offsets[i], narrow);
                 s.SetFont(handles[i], narrow);
             }
+            // What the windows that are open are measured against: the
+            // sizing border (SM_CXFRAME, SM_CYFRAME), the heights the caption
+            // and the menu bar were set to (SM_CYSIZE, SM_CYMENUSIZE) and the
+            // size of a minimized window.
+            const int frame_x = app.SystemMetric(32), frame_y = app.SystemMetric(33);
+            const int caption = Signed32(m, 0x14) - app.SystemMetric(31), menu = Signed32(m, 0x9c) - app.SystemMetric(55);
+            const int minimized_x = app.SystemMetric(57), minimized_y = app.SystemMetric(58);
             User::ApplyNonClientMetrics(
                 {unsigned(Signed32(m, 4)), unsigned(Signed32(m, 8)), unsigned(Signed32(m, 0xc)),
                  unsigned(Signed32(m, 0x10)), unsigned(Signed32(m, 0x14)), unsigned(Signed32(m, 0x54)),
                  unsigned(Signed32(m, 0x58)), unsigned(Signed32(m, 0x98)), unsigned(Signed32(m, 0x9c))});
+            // USER: the windows that are open get the new frame at once, the
+            // minimized ones their new size, and the whole screen is painted
+            // again (RDW_INVALIDATE, RDW_ERASE, RDW_ALLCHILDREN, RDW_FRAME).
+            const int dx = app.SystemMetric(32) - frame_x, dy = app.SystemMetric(33) - frame_y;
+            app.RecalculateFrames(0, dx || dy ? 3 : 2, dx, dy, caption, menu);
+            const int wider = app.SystemMetric(57) - minimized_x, higher = app.SystemMetric(58) - minimized_y;
+            if (wider || higher)
+                app.RecalculateFrames(0, 4, wider, higher, 0, 0);
+            User::RedrawWindow(User::GetDesktopWindow(), nullptr, 0, 0x485);
         }
         void ApplyMinimizedMetrics(const unsigned char *m) override
         {
             // Inverse of the implemented read branch for action 43.
-            const unsigned width = unsigned(Signed32(m, 4) + int(s.Word(0x2ec)) * 2) & 0xffff;
-            s.SetWord(0x350, (unsigned short)width);
-            s.SetWord(0x33c, (unsigned short)((width + unsigned(Signed32(m, 8))) & 0xffff));
-            s.SetWord(0x33e, (unsigned short)((s.Word(0x352) + unsigned(Signed32(m, 0xc))) & 0xffff));
-            s.SetWord(0x34e, (unsigned short)Signed32(m, 0x10));
+            Win98Metrics::ApplyMinimizedMetrics(s, Signed32(m, 4), Signed32(m, 8), Signed32(m, 0xc),
+                                                unsigned(Signed32(m, 0x10)));
         }
         void ApplyIconMetrics(const unsigned char *m) override
         {

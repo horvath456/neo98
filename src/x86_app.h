@@ -2680,6 +2680,7 @@ private:
     static Icon *SharedIcons();
     void FreeIcons();
     Icon *FindIcon(unsigned);
+    unsigned IconHandle(unsigned);
     struct ImageList {bool used=false;unsigned generation=1,width=0,height=0,count=0,background=0xffffffff;WinImage::Image *items[128]={};} image_lists[16];
     ImageList *FindImageList(unsigned);
     static ImageList *SharedImageLists();
@@ -2727,6 +2728,7 @@ private:
     unsigned LocaleInfo(const unsigned *);
     unsigned NlsExtendedApi(ApiName,const unsigned *);
     const char *LocaleValue(unsigned,unsigned);
+    const char *LocaleOverride(unsigned,unsigned);
     unsigned DateTimeFormatApi(ApiName, const unsigned *);
     unsigned NumberFormatApi(ApiName,const unsigned *);
     void FreeLocale();
@@ -4324,6 +4326,7 @@ private:
     unsigned DrawTextApi(ApiName,const unsigned *);
     unsigned PositionApi(ApiName, const unsigned *);
     unsigned PositionWindows(unsigned count, unsigned (*args)[7],unsigned region_window=0,unsigned region=0);
+    void RecalculateFrames(unsigned parent, unsigned flags, int dx, int dy, int caption, int menu, unsigned depth = 0);
     unsigned PositionSend(unsigned hwnd, unsigned message, unsigned wp, unsigned lp, unsigned block = 0);
     unsigned ComputerNameApi(ApiName, const unsigned *);
     unsigned RegistryApi(ApiName, const unsigned *);

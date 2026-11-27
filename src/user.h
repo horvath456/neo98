@@ -561,6 +561,13 @@ bool DrawMenuBar(HWND, bool layout=true);
 int DrawMenuBarTemp(HWND owner, Gdi::HDC dc, Gdi::RECT rect, HMENU menu, Gdi::HFONT font); // USER
 HMENU SystemMenuRoot(HWND);
 bool SetSystemMenuRoot(HWND, HMENU);
+void PrepareSystemMenu(HWND);
+// The frame parts a window has now, as USER keeps them: 1 a menu bar, 2 and 4
+// the scroll bars, 8 a caption.
+unsigned FrameParts(HWND);
+// The sizing border has changed by dx, dy: the place a window keeps for the
+// way back from the minimized or the maximized state moves with it.
+void ShiftSavedPlacement(HWND, int dx, int dy);
 HMENU GetSubMenu(HMENU, unsigned index);
 unsigned SetMenuFlags(HMENU, unsigned item, unsigned flags, bool by_position, unsigned mask);
 using MenuSend=unsigned(*)(void*,unsigned,unsigned,unsigned,unsigned);

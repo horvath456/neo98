@@ -2645,6 +2645,15 @@ void RelayoutFrame(HWND h)
     dirty = true;
 }
 bool ModernWindow(HWND h) { auto *w = Find(h); return w && (w->nonclient_flags & 0x00400000) != 0; }
+unsigned FrameParts(HWND h) { auto *w = Find(h); return w ? w->nonclient_flags & 15u : 0; }
+void ShiftSavedPlacement(HWND h, int dx, int dy)
+{
+    auto *w = Find(h);
+    if (!w) return;
+    if (w->maximum_position_saved) { w->maximum_position.x -= dx; w->maximum_position.y -= dy; }
+    if ((w->style & 0x20000000u) && w->normal_saved)
+        w->normal = {w->normal.left - dx, w->normal.top - dy, w->normal.right + dx, w->normal.bottom + dy};
+}
 bool SetOwnerField(HWND h, HWND value)
 {
     auto *w = Find(h);
@@ -5654,8 +5663,12 @@ static void RouteMouse(const InputPacket &packet, void *context, InputFocus call
         if (w->nonclient_flags & 8)
         {
             bool hit_button = false;
+            // A caption button is pressed where the window says it is: the
+            // answer of its WM_NCHITTEST for the point names the button. A
+            // procedure that answers HTCAPTION over a box gets a press on
+            // the caption, as under Windows, which asks before every press.
             for (unsigned i = 0; i < w->button_slots && !hit_button; ++i)
-                if (Inside(w->button_slot[i].rect, x - p.x, y - p.y))
+                if (Inside(w->button_slot[i].rect, x - p.x, y - p.y) && route_hit == w->button_slot[i].hit)
                 {
                     w->pressed_hit = w->button_slot[i].hit;
                     w->pressed_inside = true;

@@ -2,6 +2,7 @@
 // KERNEL32 4.10.2222 ANSI date/time formatting.
 #pragma once
 #include "win98_time.h"
+#include <cstring>
 namespace Win98DateTime {
 using U=unsigned;using Time=Win98Time::SystemTime;
 struct Output {
@@ -56,6 +57,14 @@ template<class E> U DateFormat(E&e,const Time&t,const char*format,Output&o){
         else{e.Era(o,t);day_before=false;}
     }o.Byte(0);return o.size;
 }
-// false and any non-one callback value stop successfully.
-template<class E> U Enumerate(E&e,const char*const*formats,U count){for(U i=0;i<count;++i){U result=0;if(!e.Callback(formats[i],result))return 0;if(result!=1)return 1;}return 1;}
+// false and any non-one callback value stop successfully. `own` is the
+// picture the user has set for the user's locale: KERNEL32 hands it out
+// first and leaves out the picture of the locale that equals it (compared
+// as lstrcmp does), so the list of a program begins with the one in use.
+template<class E> U Enumerate(E&e,const char*const*formats,U count,const char*own=nullptr){
+    U result=0;
+    if(own){if(!e.Callback(own,result))return 0;if(result!=1)return 1;}
+    for(U i=0;i<count;++i){if(own&&!strcmp(own,formats[i]))continue;if(!e.Callback(formats[i],result))return 0;if(result!=1)return 1;}
+    return 1;
+}
 }

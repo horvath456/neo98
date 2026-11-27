@@ -247,6 +247,13 @@ void Application::LoadWindowMetrics()
     sizes.menu_width = unsigned(size("MenuWidth", 18, true));
     sizes.menu_height = unsigned(size("MenuHeight", 18, true));
     User::ApplyNonClientMetrics(sizes);
+    // USER, the minimized windows: MinWidth (154 pixels without it),
+    // MinHorzGap, MinVertGap and MinArrange, where SPI_SETMINIMIZEDMETRICS
+    // stores them. The bit of SM_ARRANGE that hides minimized windows is not
+    // part of the stored value.
+    Win98Metrics::ApplyMinimizedMetrics(settings, size("MinWidth", 154, true), size("MinHorzGap", 0, true),
+                                        size("MinVertGap", 0, true),
+                                        unsigned(size("MinArrange", 0, false)) | (settings.Word(0x34e) & 8u));
     // USER, the grid of icons: IconSpacing and IconVerticalSpacing,
     // or 75 pixels at 96 dots per inch scaled to the font size (and by
     // IconSpacingFactor percent across), at least an icon.

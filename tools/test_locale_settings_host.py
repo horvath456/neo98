@@ -20,6 +20,25 @@ copy of drive C:
   tt h:mm:ss and M/d/yy: 12 hours, no zero, the marker first, the month
   first and "/"
 
+EnumTimeFormatsA and EnumDateFormatsA of the user's locale hand out the
+picture the user has set first and leave it out of the list of the locale
+that follows. Regional Settings fills its "Time style" and date style boxes
+from them and selects the entry that begins with the picture in use
+(CB_FINDSTRING): with the locale's order alone, "H:mm:ss" selected
+"h:mm:ss tt", the first entry, every time the page was opened again. A
+picture that is not one of the locale's is one entry more; the list of
+another locale has only its own.
+
+A separator set alone rewrites its picture: LOCALE_STIME puts the new
+separator between the fields H, h, m and s of the time format and leaves
+what leads to the marker t or to a quote, LOCALE_SDATE replaces the first
+separator of the short date and every later one that equals it. Regional
+Settings sets only the separator when only that box was changed and counts
+on this. A separator has at most three characters, no digit and none of the
+letters of its picture (ERROR_INVALID_PARAMETER). LOCALE_STIMEFORMAT stores
+"sTime" as well, what stands between its first two fields, and nothing for
+a picture without such a pair.
+
     build/analysis-venv/bin/python tools/test_locale_settings_host.py [--no-build] [--keep] [--kms KMS]
 """
 import sys as _sys
@@ -45,12 +64,42 @@ import win98_c  # noqa: E402
 
 BINARY = ROOT / 'build/native-app/neo98-kms'
 WORK = ROOT / 'build/locale-settings'
+# The lists of English (United States) and the time formats of German
+# (Germany) in LOCALE.NLS, in its order.
+TIMES = ['h:mm:ss tt', 'hh:mm:ss tt', 'H:mm:ss', 'HH:mm:ss']
+SHORT = ['M/d/yy', 'M/d/yyyy', 'MM/dd/yy', 'MM/dd/yyyy', 'yy/MM/dd', 'yyyy-MM-dd', 'dd-MMM-yy']
+LONG = ['dddd, MMMM dd, yyyy', 'MMMM dd, yyyy', 'dddd, dd MMMM, yyyy', 'dd MMMM, yyyy']
+GERMAN = ['HH:mm:ss', 'H:mm:ss', 'H.mm', "H.mm' Uhr '"]
+
+
+def listed(own, locale):
+    """What an enumeration writes: the user's picture, then the locale's without it."""
+    return ''.join(picture + '|' for picture in [own] + [picture for picture in locale if picture != own])
+
+
 EUROPEAN = {'time format': 'HH:mm:ss', '24 hours': '1', 'hour zero': '1', 'marker first': '0',
             'short date': 'dd.MM.yyyy', 'date order': '1', 'date separator': '.', 'time': '15:04:05',
-            'date': '03.02.2001'}
+            'date': '03.02.2001', 'time formats': listed('HH:mm:ss', TIMES),
+            'short dates': listed('dd.MM.yyyy', SHORT), 'long dates': listed(LONG[0], LONG),
+            'other locale': listed(GERMAN[0], GERMAN)}
 AMERICAN = {'time format': 'tt h:mm:ss', '24 hours': '0', 'hour zero': '0', 'marker first': '1',
             'short date': 'M/d/yy', 'date order': '0', 'date separator': '/', 'time': 'PM 3:04:05',
-            'date': '2/3/01'}
+            'date': '2/3/01', 'time formats': listed('tt h:mm:ss', TIMES),
+            'short dates': listed('M/d/yy', SHORT), 'long dates': listed(LONG[0], LONG),
+            'other locale': listed(GERMAN[0], GERMAN)}
+
+
+SEPARATORS = {
+    'separator of h:mm:ss tt': ':',
+    'time separator .': '1 0', 'time format with .': 'h.mm.ss tt', 'time with .': '3.04.05 PM',
+    'date separator -': '1 0', 'short date with -': 'M-d-yy', 'date with -': '2-3-01',
+    'date separator . of two': '1 0', 'short date of two separators': 'dd.MM-yyyy',
+    "separator of tt h:mm' Uhr 'ss": ':',
+    'time separator empty': '1 0', 'time format without separator': "tt hmm' Uhr 'ss",
+    'time separator h': '0 87', 'time separator 1': '0 87', 'date separator of four': '0 87',
+    'date separator M': '0 87',
+    'separator of HHmm': '',
+}
 
 
 def main():
@@ -91,7 +140,8 @@ def main():
         return dict(line.split('=', 1) for line in (written.read_text().splitlines() if written else ()) if '=' in line)
 
     try:
-        runs = {name: session(name.split()[0]) for name in ('set', 'get after set', 'back', 'get after back')}
+        runs = {name: session(name.split()[0]) for name in ('set', 'get after set', 'back', 'get after back',
+                                                            'separators')}
     finally:
         (WORK / 'log.txt').write_text('\n'.join(logs))
         if not args.keep:
@@ -114,6 +164,8 @@ def main():
         f'tt h:mm:ss and M/d/yy, at once: {differing(runs["back"], AMERICAN)}': not differing(runs['back'], AMERICAN),
         f'tt h:mm:ss and M/d/yy in a new session: {differing(runs["get after back"], AMERICAN)}':
             not differing(runs['get after back'], AMERICAN),
+        f'a separator rewrites its picture, a picture names its separator: '
+        f'{differing(runs["separators"], SEPARATORS)}': not differing(runs['separators'], SEPARATORS),
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():

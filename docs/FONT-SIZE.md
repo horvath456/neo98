@@ -45,7 +45,16 @@ to the size, so every size above 108 uses the fonts of 120.
   per inch and 23 at 120. `SystemParametersInfo` with
   `SPI_SETNONCLIENTMETRICS` or `SPI_SETICONMETRICS` and `SPIF_UPDATEINIFILE`
   stores them there the same way. A caption, a small caption and a menu bar
-  are never lower than their font and one edge.
+  are never lower than their font and one edge. The windows that are open
+  get the new sizes at once: every window is given its frame anew
+  (`SetWindowPos` with `SWP_FRAMECHANGED`, so it gets `WM_NCCALCSIZE` and
+  `WM_WINDOWPOSCHANGED`), one with a sizing border grows by the change of
+  the border on every side, and a window gets taller by the change of its
+  caption and of its menu bar, so the client area keeps its size
+  (`tools/test_frame_metrics_host.py`).
+- Minimized windows: `MinWidth`, `MinHorzGap` and `MinVertGap` of the same
+  key, in twips, and `MinArrange`, where `SPI_SETMINIMIZEDMETRICS` stores
+  them; 154 pixels wide without them.
 - The spacing of icons, 75 pixels at 96 dots per inch.
 - Scroll bars, and with them the button of a drop-down combo box, which is
   as wide as a scroll bar.

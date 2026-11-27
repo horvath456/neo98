@@ -287,7 +287,17 @@ unsigned Application::ComboBoxMessage(unsigned hwnd,unsigned message,unsigned wp
   values[0]=3;values[1]=User::ControlID(hwnd);if(message==0x2b)values[5]=hwnd;else if(message==0x2d)values[3]=hwnd;else if(message==0x39)values[2]=hwnd;
   Store(lp,values,size);return CallWindow(b->Parent(),message,values[1],lp);
  }
- case 0x111:{unsigned code=wp>>16;if(lp==b->list){if(code==1||code==2||code==3||code==65534){Win98ComboMouse::ListCommand(*b,s.flags,code);}else if(code==4)b->Notify(3);else if(code==5)b->Notify(4);}else if(lp==b->edit&&!b->syncing){if(code==0x300||code==0x400){char text[8192];User::GetWindowText(b->edit,text,sizeof text);User::SetWindowText(hwnd,text);b->Notify(code==0x300?5:6);}else if(code==0x100){if(!(s.flags&4)){b->Edit(0xb1,0,~0u);s.flags|=4;b->Notify(3);}}else if(code==0x200){s.flags&=~4u;b->Notify(4);}}return 0;}
+ case 0x111:{unsigned code=wp>>16;if(lp==b->list){if(code==1||code==2||code==3||code==65534){Win98ComboMouse::ListCommand(*b,s.flags,code);}else if(code==4)b->Notify(3);else if(code==5)b->Notify(4);}else if(lp==b->edit&&!b->syncing){if(code==0x300||code==0x400){char text[8192];User::GetWindowText(b->edit,text,sizeof text);User::SetWindowText(hwnd,text);b->Notify(code==0x300?5:6);
+   // USER, after CBN_EDITCHANGE: the list follows the text. No item is
+   // selected any more (CB_GETCURSEL answers CB_ERR for typed text), and
+   // the caret and the top of the list go to the first item that begins
+   // with the text, to the first item when none does.
+   if(code==0x300&&User::IsWindow(hwnd)&&FindComboBox(hwnd)==b){
+    unsigned item=~0u;const unsigned n=unsigned(strlen(text));
+    if(n)if(const unsigned p=Allocate(n+1)){Store(p,text,n+1);item=b->List(0x18f,~0u,p);Free(p);}
+    if(item==~0u)item=0;
+    b->List(0x186,~0u,0);b->List(0x19e,item,0);b->List(0x197,item,0);
+   }}else if(code==0x100){if(!(s.flags&4)){b->Edit(0xb1,0,~0u);s.flags|=4;b->Notify(3);}}else if(code==0x200){s.flags&=~4u;b->Notify(4);}}return 0;}
  case 0x201:case 0x203:
   if(s.flags&2){if(s.flags&0x80)b->Close(true);else{s.flags|=0x20;b->Pressed(true);b->Drop(true);if(b->Alive())User::CaptureOperation(1,hwnd);}}return 0;
  case 0x200:if((s.flags&0x20)&&(s.flags&0x80)){
