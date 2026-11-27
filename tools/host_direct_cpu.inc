@@ -26,6 +26,32 @@ struct DirectArena
     unsigned signal_number = 0;
     struct sigaction previous[NSIG] = {};
     bool ldt_valid[8192] = {};
+    // Cpu::SwitchCosts. counting is set while one processor takes the place
+    // of another, so the calls a running guest causes stay out of the sum.
+    SwitchCost cost = {};
+    bool counting = false;
+    static uint64_t Microseconds()
+    {
+        timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        return uint64_t(now.tv_sec) * 1000000 + uint64_t(now.tv_nsec) / 1000;
+    }
+    // NEO98_NATIVE_STATS: one line per second in which processors changed.
+    void Report(uint64_t now)
+    {
+        static const bool wanted = getenv("NEO98_NATIVE_STATS") != nullptr;
+        static SwitchCost last = {};
+        static uint64_t reported = 0;
+        if (!wanted || now - reported < 1000000)
+            return;
+        fprintf(stderr,
+                "DIRECT SWITCH pid=%ld switches=%llu maps=%llu descriptors=%llu microseconds=%llu in %.2f s\n",
+                long(getpid()), cost.switches - last.switches, cost.map_calls - last.map_calls,
+                cost.descriptor_calls - last.descriptor_calls, cost.microseconds - last.microseconds,
+                reported ? double(now - reported) / 1e6 : 0.0);
+        last = cost;
+        reported = now;
+    }
 
     bool Initialize()
     {
@@ -87,6 +113,7 @@ struct DirectArena
                 empty.read_exec_only = empty.seg_not_present = 1;
                 if (syscall(SYS_modify_ldt, 0x11, &empty, sizeof empty))
                     return false;
+                cost.descriptor_calls += counting;
                 ldt_valid[slot] = false;
             }
         return true;
@@ -99,9 +126,12 @@ struct DirectArena
         const uint64_t starts[] = {DirectMinimum, DirectBridgeAddress + Page};
         const uint64_t ends[] = {DirectBridgeAddress, AddressBytes};
         for (unsigned i = 0; i < 2; ++i)
+        {
             if (mmap(reinterpret_cast<void *>(uintptr_t(starts[i])), ends[i] - starts[i], PROT_NONE,
                      MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0) == MAP_FAILED)
                 return false;
+            cost.map_calls += counting;
+        }
         owner = nullptr;
         return ClearLdt();
     }
@@ -349,6 +379,8 @@ class DirectCpu final : public NativeCpu
     {
         ++injected_syscalls;
         const long result = syscall(number, a, b, c, d, e, f);
+        if (number == SYS_modify_ldt)
+            Arena().cost.descriptor_calls += Arena().counting;
         if (number == SYS_modify_ldt && result == 0 && a == 0x11)
         {
             const auto &desc = *reinterpret_cast<const user_desc *>(b);
@@ -427,6 +459,7 @@ class DirectCpu final : public NativeCpu
                      overlay ? at : map.offset + at - map.address) == MAP_FAILED)
                 return false;
             ++low_maps;
+            Arena().cost.map_calls += Arena().counting;
             at = stop;
         }
         return true;
@@ -752,6 +785,12 @@ class DirectCpu final : public NativeCpu
         instruction_traces.push_back({begin, hook, context});
         return CpuError::Ok;
     }
+    bool SwitchCosts(SwitchCost &out) const override
+    {
+        std::lock_guard<std::recursive_mutex> lock(Arena().mutex);
+        out = Arena().cost;
+        return true;
+    }
     void RequestStop() override
     {
         requested = true;
@@ -900,14 +939,34 @@ class DirectCpu final : public NativeCpu
                 ++count;
                 continue;
             }
-            if (unsigned error = Activate())
-                return error;
-            {
-                RenderProfile::Scope profile(RenderProfile::NativeLdt);
-                if (unsigned error = SyncLdt()) return error;
-            }
             user_regs_struct r;
             {
+                // The change from another processor to this one: its pages
+                // at the guest's addresses, then its descriptors, those of
+                // its segment registers last.
+                auto &arena = Arena();
+                struct Change
+                {
+                    DirectArena &arena;
+                    const uint64_t began;
+                    ~Change()
+                    {
+                        if (!began)
+                            return;
+                        const uint64_t now = DirectArena::Microseconds();
+                        arena.counting = false;
+                        ++arena.cost.switches;
+                        arena.cost.microseconds += now - began;
+                        arena.Report(now);
+                    }
+                } change{arena, arena.owner != this ? DirectArena::Microseconds() : 0};
+                arena.counting = change.began != 0;
+                if (unsigned error = Activate())
+                    return error;
+                {
+                    RenderProfile::Scope profile(RenderProfile::NativeLdt);
+                    if (unsigned error = SyncLdt()) return error;
+                }
                 RenderProfile::Scope profile(RenderProfile::NativeRegisters);
                 if (unsigned error = PrepareRegisters(r)) return error;
             }

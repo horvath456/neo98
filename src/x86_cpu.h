@@ -123,6 +123,16 @@ enum class TraceKind
     Instruction,
     Block,
 };
+// What it has cost a backend whose processors take turns in one place of the
+// host (the direct backend of Linux x64, which runs each guest at its own
+// 32-bit addresses) to change from one processor to the next: the number of
+// changes, the system calls they made for mappings and for descriptors, and
+// their time. The numbers are those of all processors of the backend
+// together.
+struct SwitchCost
+{
+    unsigned long long switches, map_calls, descriptor_calls, microseconds;
+};
 class Cpu
 {
   public:
@@ -256,6 +266,8 @@ class Cpu
     // across a yield has nothing to keep.
     virtual void *DetachFrame() { return nullptr; }
     virtual void AttachFrame(void *) {}
+    // False for a backend whose processors do not share a place.
+    virtual bool SwitchCosts(SwitchCost &) const { return false; }
     virtual unsigned AddTrace(TraceKind, unsigned begin, unsigned end, TraceHook, void *context) = 0;
 
     // Saved states (src/x86_state.h). A state
