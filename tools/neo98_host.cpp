@@ -4869,34 +4869,10 @@ int main(int real_argc, char **real_argv)
     if (HostState::loaded) machine_pause(true, "state loaded");
     pacing.Start();
     // A turn of this loop that takes long is a stand of the whole machine:
-    // every Windows thread and the sound streams wait (Sound::Mixer::Beat).
-    // It goes into the log with where the time went, the guest's slices,
-    // the GPU's flush and the rest of the turn.
-    auto turn_start = std::chrono::steady_clock::now();
-    double turn_guest_ms = 0, turn_flush_ms = 0, turn_events_ms = 0, turn_present_ms = 0;
-    bool turn_canvas = false;
-    const auto since = [](std::chrono::steady_clock::time_point start) {
-        return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-    };
-    // From 100 ms on, which the sound already notices (Sound::Mixer::Beat):
-    // the guest's slices, the GPU's flush, the events of the Mac, the
-    // present of the picture, whether the canvas changed size, and the rest.
-    const auto turn_over = [&]() {
-        const auto now = std::chrono::steady_clock::now();
-        const double ms = std::chrono::duration<double, std::milli>(now - turn_start).count();
-        if (ms >= 100) {
-            printf("NEO98 HOST slow turn ms=%.0f guest_ms=%.0f gpu_ms=%.0f events_ms=%.0f present_ms=%.0f canvas=%d "
-                   "other_ms=%.0f sound_holds=%llu\n",
-                   ms, turn_guest_ms, turn_flush_ms, turn_events_ms, turn_present_ms, turn_canvas ? 1 : 0,
-                   ms - turn_guest_ms - turn_flush_ms - turn_events_ms - turn_present_ms, Sound::Shared().StallHolds());
-            fflush(stdout);
-        }
-        turn_start = now;
-        turn_guest_ms = turn_flush_ms = turn_events_ms = turn_present_ms = 0;
-        turn_canvas = false;
-    };
+    // every Windows thread and the sound streams wait. The beats tell the
+    // mixer that the machine still goes; without them it holds the sound
+    // (Sound::Mixer::Beat).
     while (running) {
-        turn_over();
         Sound::Shared().Beat();
         hardware.Pump(*a,game_machine_folder.empty());
 #ifdef NEO98_WITH_HOST_MEDIA
@@ -4915,20 +4891,14 @@ int main(int real_argc, char **real_argv)
             while (std::chrono::steady_clock::now() < slice_end) {
                 // Pump of a first process that has ended still runs the others.
                 if ((a->Status() == X86::Application::Exited || a->Status() == X86::Application::Failed) && !game_goes_on()) break;
-                const auto pump_start = std::chrono::steady_clock::now();
                 a->Pump();
                 Sound::Shared().Beat();
-                turn_guest_ms += since(pump_start);
                 // Nothing to run anywhere: every thread of every process waits.
                 if (!a->SystemRunnable()) break;
             }
             // Retained offscreen work must also reach the GPU when the guest
             // yields without a DirectDraw present. Keep logical batches open.
-            if (gpu_backend) {
-                const auto flush_start = std::chrono::steady_clock::now();
-                gpu_backend->Flush();
-                turn_flush_ms = since(flush_start);
-            }
+            if (gpu_backend) gpu_backend->Flush();
             pacing.EndRun(*a);
             pacing.Turn(*a);
             pacing.Stall(*a);
@@ -5835,7 +5805,6 @@ int main(int real_argc, char **real_argv)
         if (scroll_log.Due(SDL_GetTicks64())) scroll_log_line();
         static bool close_asked = false;
         watch_pointer(window);
-        const auto events_start = std::chrono::steady_clock::now();
         while (SDL_PollEvent(&ev)) {
             if (ev.type == SDL_USEREVENT && ev.user.code == int(ScriptMouse) && ev.user.data1 &&
                 !strncmp(static_cast<const char *>(ev.user.data1), "scroll:", 7)) {
@@ -6140,7 +6109,6 @@ int main(int real_argc, char **real_argv)
             default: break;
             }
         }
-        turn_events_ms += since(events_start);
         // The mouse in the Mac windows of the guest's windows, in screen
         // pixels of the guest.
         if (overlay_on && seamless_windows) {
@@ -6258,7 +6226,6 @@ int main(int real_argc, char **real_argv)
                 follow_canvas(view_w, view_h);
             } else if (!text_view) follow_canvas(frame_w, frame_h);
             if (pixels && (frame_w != texture_w || frame_h != texture_h)) {
-                turn_canvas = true;
                 SDL_DestroyTexture(texture);
                 texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, frame_w, frame_h);
                 if (texture) SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_NONE);
@@ -6696,9 +6663,7 @@ int main(int real_argc, char **real_argv)
                             }
                     }
                 }
-                const auto present_start = std::chrono::steady_clock::now();
                 SDL_RenderPresent(renderer);
-                turn_present_ms += since(present_start);
                 pacing.Frame();
             }
         }
