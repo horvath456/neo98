@@ -439,6 +439,13 @@ unsigned Application::LaunchChild(const unsigned *a,const char *override_applica
             for(unsigned i=0;i<ChildCapacity&&at>0&&at<(int)sizeof text;++i)at+=snprintf(text+at,sizeof text-at," %u:%s/r%u/%.12s",i,children[i].done?"done":"live",children[i].references,children[i].app?children[i].app->program_name:"-");
             log(text);}
         last_error=8;return 0;}
+    // The session has a table of its processes as well. A start it has no
+    // room for fails the way a start without memory fails on Windows 98,
+    // with ERROR_NOT_ENOUGH_MEMORY, before anything of the child exists; it
+    // used to reach the loader, which then called the program a bad image.
+    if(!SessionHasRoom()){
+        if(log)log("CreateProcess failed: the session has no room for another process");
+        last_error=8;return 0;}
     unsigned free_handles=0;for(auto &h:kernel_handles)if(!h.kind)++free_handles;if(free_handles<2){last_error=8;return 0;}
     auto *storage=malloc(sizeof(Application));if(!storage){last_error=8;return 0;}
     auto *child=new(storage)Application(log);

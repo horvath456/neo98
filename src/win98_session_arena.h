@@ -25,7 +25,15 @@ constexpr U PageSize = 0x1000u;
 // MiB, MPR for 200000h.
 constexpr U BlockLimit = 0x4000000u;
 constexpr unsigned BlockCapacity = 96;
-constexpr unsigned HolderCapacity = 20;
+// How many processes a session has room for: the tables of the processes
+// that hold a block (src/x86_session_arena.cpp, src/x86_gdi.cpp) and of the
+// processes of the session are plain arrays of this length. Win98 has no
+// such number; a new process fails there when the memory for it runs out.
+// The 64 child processes the port has records for
+// (Application::ChildCapacity), the first process, and a few that have
+// ended and are still being taken apart. CreateProcess refuses a start
+// beyond it with ERROR_NOT_ENOUGH_MEMORY (Application::SessionHasRoom).
+constexpr unsigned HolderCapacity = 72;
 constexpr unsigned NameBytes = 80;
 enum Kind : unsigned char
 {

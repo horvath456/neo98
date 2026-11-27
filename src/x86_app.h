@@ -536,6 +536,8 @@ private:
     static SessionBlock session_blocks[96];
     static Win98SessionArena::Plan session_plan;
     static Application *session_processes[Win98SessionArena::HolderCapacity];
+    // Whether the session can take one more process.
+    static bool SessionHasRoom();
     void JoinSession();
     void LeaveSession();
     void PublishSessionBlock(SessionBlock &);

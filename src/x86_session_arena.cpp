@@ -264,6 +264,12 @@ void Application::JoinSession()
             return;
         }
 }
+bool Application::SessionHasRoom()
+{
+    for (const auto *entry : session_processes)
+        if (!entry) return true;
+    return false;
+}
 void Application::LeaveSession()
 {
     for (auto *&entry : session_processes)
