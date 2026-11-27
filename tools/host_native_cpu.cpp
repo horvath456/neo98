@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 #include <sys/prctl.h>
 #include <sys/ptrace.h>
+#include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/time.h>
 #include <time.h>
@@ -158,6 +159,16 @@ struct NativeContext
     user_fpregs_struct fp = {};
     DescriptorTable gdtr, ldtr;
 };
+// What a Linux LDT holds, by slot: the descriptors of the guest's LDT in the
+// lower half, translated descriptors of its GDT in the upper one
+// (NativeCpu::Selector). The ptrace mode has an LDT for each guest, that of
+// its child process; the direct mode has the one of the host process, which
+// all its processors share (DirectArena).
+struct HostLdt
+{
+    unsigned long long value[8192] = {};
+    bool valid[8192] = {};
+};
 class NativeCpu : public Cpu
 {
   protected:
@@ -169,8 +180,8 @@ class NativeCpu : public Cpu
     struct Shared { unsigned address, size; unsigned char *host; };
     std::vector<Shared> shared;
     std::vector<Shared> state_shared;
-    unsigned long long descriptors[8192] = {};
-    bool descriptor_valid[8192] = {};
+    std::unique_ptr<HostLdt> own_ldt;
+    HostLdt *host_ldt = nullptr;
     unsigned long long ldt_snapshot[4096] = {};
     unsigned ldt_snapshot_base = 0, ldt_snapshot_count = 0;
     NativeContext state;
@@ -720,7 +731,7 @@ class NativeCpu : public Cpu
         // Reserve the upper half of the Linux LDT for guest GDT descriptors.
         const unsigned slot = index + ((value & 4) ? 0 : 4096);
         if (slot >= 8192 || ((value & 4) && index >= 4096) || !(desc & (1ull << 47))) return ~0u;
-        if (descriptor_valid[slot] && descriptors[slot] == desc) return slot * 8 + 7;
+        if (host_ldt->valid[slot] && host_ldt->value[slot] == desc) return slot * 8 + 7;
         user_desc native = {};
         native.entry_number = slot;
         native.base_addr = ((desc >> 16) & 0xffffff) | ((desc >> 32) & 0xff000000);
@@ -733,7 +744,7 @@ class NativeCpu : public Cpu
         memcpy(scratch, &native, sizeof native);
         // The scratch mapping was inherited from the parent before fork.
         if (Syscall(SYS_modify_ldt, 0x11, reinterpret_cast<unsigned long>(scratch), sizeof native)) return ~0u;
-        descriptors[slot] = desc; descriptor_valid[slot] = true;
+        host_ldt->value[slot] = desc; host_ldt->valid[slot] = true;
         return slot * 8 + 7;
     }
     unsigned SyncLdt()
@@ -751,12 +762,12 @@ class NativeCpu : public Cpu
             {
                 if (Selector(selector, desc & (1ull << 43)) == ~0u) return CpuError::Mode;
             }
-            else if (descriptor_valid[index])
+            else if (host_ldt->valid[index])
             {
                 user_desc empty = {}; empty.entry_number = index; empty.read_exec_only = empty.seg_not_present = 1;
                 memcpy(scratch, &empty, sizeof empty);
                 if (Syscall(SYS_modify_ldt, 0x11, reinterpret_cast<unsigned long>(scratch), sizeof empty)) return CpuError::Mode;
-                descriptor_valid[index] = false;
+                host_ldt->valid[index] = false;
             }
         }
         if (table)
@@ -784,7 +795,7 @@ class NativeCpu : public Cpu
         r.gs = Selector(state.regs[Reg::Gs], false);
         auto segment_base = [&](unsigned selector) -> unsigned long long {
             if (!(selector & 4) || (selector >> 3) >= 8192) return 0;
-            const auto desc = descriptors[selector >> 3];
+            const auto desc = host_ldt->value[selector >> 3];
             return ((desc >> 16) & 0xffffff) | ((desc >> 32) & 0xff000000);
         };
         r.fs_base = segment_base(r.fs); r.gs_base = segment_base(r.gs);
@@ -981,6 +992,9 @@ class NativeCpu : public Cpu
     }
     unsigned Open()
     {
+        own_ldt.reset(new (std::nothrow) HostLdt);
+        if (!own_ldt) return CpuError::NoMemory;
+        host_ldt = own_ldt.get();
         fd = syscall(SYS_memfd_create, "neo98-native", 0);
         if (fd < 0 || ftruncate(fd, AddressBytes)) return CpuError::NoMemory;
         void *mapped = mmap(nullptr, AddressBytes, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
