@@ -282,8 +282,15 @@ unsigned Application::User32GateApi(ApiName name, const unsigned *a)
 unsigned Application::PlaySoundEvent(unsigned id)
 {
     const char *alias = SoundEventName(id);
+    // FFFFh is the speaker only while no play routine is registered, that is
+    // without a wave device. With one, USER looks the event's string up like
+    // any other and has none for FFFFh, so nothing sounds: KERNEL32's Beep
+    // is quiet on a machine with a sound card and no default sound.
     if (id == 0xffff)
     {
+        const unsigned none = 0;
+        if (WaveOutApi("waveOutGetNumDevs", &none))
+            return 0;
         Sound::Speaker::Tone(748, 40);
         return 1;
     }

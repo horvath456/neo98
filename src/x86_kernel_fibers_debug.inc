@@ -227,12 +227,13 @@ unsigned Application::MiscFamilyApi(ApiName name, const unsigned *a)
     API_CASE("_DebugPrintf") API_CASE("dprintf") return 0; // retail body returns 0 without output.
     API_CASE("Beep")
     {
-        // plays USER32 PlaySoundEvent(0x91), then 0xFFFF, and answers 1
-        // whatever happens; neither call reads the frequency or the duration.
-        // Both end in the speaker routine USER, the same one MessageBeep
-        // reaches, so this is the same tone: 748 Hz for the length of its delay
-        // loop.
-        Sound::Speaker::Tone(748, 40);
+        // KERNEL32 plays the event of the default sound (PlaySoundEvent of
+        // USER32 with 91h) and, when that does not sound, the event FFFFh,
+        // which is the speaker routine of USER, the one MessageBeep reaches:
+        // 748 Hz for the length of its delay loop. It answers 1 whatever
+        // happens; neither call reads the frequency or the duration.
+        if (!PlaySoundEvent(0x91))
+            PlaySoundEvent(0xffff);
         return 1;
     }
     API_CASE("ContinueDebugEvent") API_CASE("WaitForDebugEvent") return DebugApi(name,a);

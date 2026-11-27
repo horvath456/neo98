@@ -250,6 +250,9 @@ bool Application::FaultBox(unsigned code, unsigned address, const unsigned *d, c
     while (slot < 8 && fault_box_frames[slot]) ++slot;
     if (slot == 8) return false;
     fault_box_frames[slot] = held;
+    // KERNEL32 plays "Program error" (AppGPFault, the event USER names with
+    // string 9Bh) right before it makes the box.
+    PlaySoundEvent(0x9b);
     const unsigned hwnd = CreateDialogTemplate(dialog_template, template_size, 0, FaultBoxToken, 0, true);
     frame.hwnd = hwnd;
     const bool kept = hwnd && PushHostFrame(HostFaultBox, hwnd, slot, depth, code);
