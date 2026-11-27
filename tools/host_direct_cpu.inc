@@ -548,6 +548,10 @@ class DirectCpu final : public NativeCpu
             order.push_back(&map);
         std::sort(order.begin(), order.end(),
                   [](const DirectMapping *a, const DirectMapping *b) { return a->address < b->address; });
+        // Away from the gate pages and without a write watch the protection
+        // of a page is its rights, and a run ends where the rights change.
+        const unsigned gate_first = gate ? gate_begin / Page : 1, gate_last = gate ? gate_end / Page : 0;
+        auto plain = [&](unsigned page) { return !write_hook && (page < gate_first || page > gate_last); };
         for (const auto *map : order)
         {
             const uint64_t end = uint64_t(map->address) + map->size;
@@ -557,9 +561,14 @@ class DirectCpu final : public NativeCpu
                 const bool overlay = GatePage(p) && execute_gate_code;
                 const int prot = Protection(unsigned(at), rights[p]);
                 uint64_t stop = at + Page;
-                while (stop < end && (GatePage(unsigned(stop / Page)) && execute_gate_code) == overlay &&
-                       prot == Protection(unsigned(stop), rights[stop / Page]))
-                    stop += Page;
+                for (const bool simple = plain(p); stop < end; stop += Page)
+                {
+                    const unsigned q = unsigned(stop / Page);
+                    if (simple && plain(q) ? rights[q] != rights[p]
+                                           : (GatePage(q) && execute_gate_code) != overlay ||
+                                                 prot != Protection(unsigned(stop), rights[q]))
+                        break;
+                }
                 const DirectRun run{unsigned(at), unsigned(stop - at), prot, overlay,
                                     overlay ? nullptr : map->backing.get(),
                                     overlay ? at : map->offset + at - map->address};
