@@ -66,6 +66,7 @@ field TrueTypeMachine::(anonymous namespace)::State@truetype_machine.cpp::cpu cu
 # ---- What the host installs ----
 var X86::Application::crash_context host                         # the crash reporter of the host
 var X86::Application::gpu_backend host                           # the picture backend of the host (Metal)
+var X86::Application::guest_clock_storage host                   # the host's file for the distance of the guest clock to its own; the loading host has attached its own
 var X86::(anonymous namespace)::host_cursor_context host         # the host's cursor provider
 var X86::(anonymous namespace)::host_cursor_move host            # the host's cursor callback, a function of the host program; the loading host has set its own
 var X86::(anonymous namespace)::dos_failure_context host         # the host's list of DOS failures

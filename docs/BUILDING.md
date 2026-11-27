@@ -59,6 +59,12 @@ programs always use Unicorn.
 Programs that write to drive C: really change it. When you experiment, point
 `--drive-c` at a copy.
 
+Windows starts with the date and time of your computer. When you set the
+clock in Windows, Neo98 remembers how far it is from your computer's clock, in
+the file `win98-c.clock` next to drive C:, and Windows has that date again at
+the next start. To go back to your computer's time, delete that file or start
+once with `--host-clock`.
+
 ## Tests
 
 The tests live in `tools/` as `test_*.py` files, and each one can run on its

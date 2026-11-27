@@ -12,6 +12,7 @@
 #include "../src/win98_wininit.h"
 #include "../src/profile_files.h"
 #include "registry_file.h"
+#include "clock_file.h"
 #include "system_tree_host.h"
 #include "host_comm.h"
 #include "host_net.h"
@@ -90,7 +91,7 @@ inline bool Parse(int argc, char **argv, Options &out)
         else if (option == "--no-pause-unfocused") out.pause_unfocused = false;
         else if (option == "--wheel-focus") out.wheel_focus = true;
         else if (option == "--wheel-pointer") out.wheel_focus = false;
-        else if (option == "--ram-drive" || option == "--no-registry-file" || option == "--setup-linux") {}
+        else if (option == "--ram-drive" || option == "--no-registry-file" || option == "--setup-linux" || option == "--host-clock") {}
         else if (option == "--exe" || option == "--open-host" || option == "--activate-program" || option == "--quit-program" || option == "--command" || option == "--font" || option == "--time-limit" || option == "--game-machine" || option == "--load-state" ||
                  option == "--scale" || option == "--screenshot" || option == "--crash-report-dir" || option == "--printer-output" ||
                  option == "--state-save" || option == "--state-load" || option == "--native-module" || option == "--directory")
@@ -127,7 +128,7 @@ inline bool Parse(int argc, char **argv, Options &out)
             out.desktop_width = width; out.desktop_height = height;
         }
         else if (option == "--system-tree") { if (i + 1 < argc && argv[i + 1][0] != '-') ++i; }
-        else if (option == "--drive-c" || option == "--drive" || option == "--drive-readonly" || option == "--drive-below" || option == "--cdrom" || option == "--registry")
+        else if (option == "--drive-c" || option == "--drive" || option == "--drive-readonly" || option == "--drive-below" || option == "--cdrom" || option == "--registry" || option == "--clock")
         { if (!next()) return false; }
         else if (option[0] != '-' || option == "-")
         {
@@ -153,6 +154,7 @@ inline void Help(bool window)
            "  --command LINE        Guest command line\n"
            "  --directory PATH      Guest directory the program starts in\n"
            "  --time-limit SECONDS  Stop after this interval; otherwise wait for guest exit\n"
+           "  --host-clock          Start at the host's date and time; forget what Windows set\n"
            "  --offline             Disconnect guest networking\n"
            "  --wifi                Expose host Wi-Fi in Windows\n"
            "  --no-microphone       Disable the Windows microphone\n"
@@ -302,6 +304,8 @@ class Session
         HostWindowsData::RegisterStateData();
 #endif
         RegistryFile::Attach(argc, argv, drives.drive_c ? drives.drive_c : root);
+        // The date and time set in an earlier run, beside the journal.
+        ClockFile::Attach(argc, argv, drives.ram ? nullptr : drives.drive_c ? drives.drive_c : root);
         if (!HostRegistry::Start(stderr)) return false;
         // What the macOS host does at the start of the machine: the end of an
         // imported setup, WININIT.EXE before the first Windows process, the

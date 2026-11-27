@@ -51,6 +51,7 @@
 #include <functional>
 #include "host_volume.h"
 #include "registry_file.h"
+#include "clock_file.h"
 #include "host_registry.h"
 #include "printer_port_host.h"
 #include "system_tree_host.h"
@@ -1242,10 +1243,10 @@ static std::vector<std::string> AppCommandLine(int argc, char **argv, std::strin
     // The Finder and `open` may add arguments of their own (-psn_..., -NSxyz
     // YES); only the options of this host pass, anything else is left out.
     static const char *const with_value[] = {"--exe", "--command", "--scale", "--drive", "--drive-readonly", "--drive-below", "--cdrom",
-                                             "--drive-c", "--registry", "--crash-report-dir", "--printer-output",
+                                             "--drive-c", "--registry", "--clock", "--crash-report-dir", "--printer-output",
                                              "--native-module", "--seed-manifest", "--desktop", "--directory", "--net-listen"};
     static const char *const flags[] = {"--fullscreen", "--seamless", "--seamless-no-taskbar", "--seamless-taskbar", "--seamless-layer", "--seamless-icons", "--seamless-no-dock", "--offline", "--wifi", "--no-microphone", "--pause-unfocused", "--quiet", "--pacing", "--ram-drive",
-                                        "--no-registry-file"};
+                                        "--no-registry-file", "--host-clock"};
     for (size_t i = 0; i < given.size(); ++i) {
         // The machine of a game machine is its own folder; --machine beside
         // --game-machine NAME only said whose game machine it is.
@@ -1685,7 +1686,7 @@ int main(int real_argc, char **real_argv)
         if (real_argc > 1 && (!strcmp(real_argv[1], "--help") || !strcmp(real_argv[1], "-h"))) {
             printf("Neo98: without arguments, starts the machine from %s.\n"
                    "Options: --machine FOLDER --exe GUESTPATH --command LINE --scale N --desktop WxH --fullscreen --offline --net-listen ADDRESS\n"
-                   "          --drive X=FOLDER --cdrom PATH --registry FILE\n"
+                   "          --drive X=FOLDER --cdrom PATH --registry FILE --clock FILE --host-clock\n"
                    "Game machines: --game-machine NAME|FOLDER, --game-machine-create PROGRAM [--game-machine-name NAME]\n"
                    "          [--game-machine-arguments TEXT], --game-machine-list, --game-machine-delete NAME,\n"
                    "          --game-machine-open FILE (open as game machine, as in Finder)\n"
@@ -1917,6 +1918,9 @@ int main(int real_argc, char **real_argv)
     if (RegistryFile::Attach(argc, argv, drive_root))
         printf("NEO98 HOST registry %s\n",
                static_cast<RegistryFile::File *>(Registry::Attached())->Path());
+    // The date and time set in an earlier run, beside the journal
+    // (tools/clock_file.h); StartGuestClock below adds it to the Mac's time.
+    ClockFile::Attach(argc, argv, drive_root);
     // Win98 reads its registry from the hives of the disk when it starts; the
     // journal above goes on top (tools/host_registry.h).
     HostRegistry::Start();
@@ -1978,11 +1982,11 @@ int main(int real_argc, char **real_argv)
         if (!strcmp(argv[i], "--ram-drive")) continue;
         if (!strcmp(argv[i], "--drive-c") || !strcmp(argv[i], "--drive") || !strcmp(argv[i], "--drive-readonly") ||
             !strcmp(argv[i], "--drive-below") || !strcmp(argv[i], "--cdrom") ||
-            !strcmp(argv[i], "--registry")) {
+            !strcmp(argv[i], "--registry") || !strcmp(argv[i], "--clock")) {
             if (++i == argc) return 2;
             continue;
         }
-        if (!strcmp(argv[i], "--no-registry-file")) continue;
+        if (!strcmp(argv[i], "--no-registry-file") || !strcmp(argv[i], "--host-clock")) continue;
         if (!strcmp(argv[i], "--native-module")) { if (++i == argc) return 2; native_modules.push_back(argv[i]); continue; }
         if (!strcmp(argv[i], "--seed-manifest")) { if (++i == argc) return 2; manifests.push_back(argv[i]); continue; }
         if (!strcmp(argv[i], "--command")) { if (++i == argc) return 2; command = argv[i]; continue; }

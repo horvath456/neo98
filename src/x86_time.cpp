@@ -8,7 +8,10 @@ namespace X86
 {
 struct Application::TimezoneEnvironment {
     Application &app;
-    struct Shared { Win98Timezone::State state; unsigned long long anchor=0,local=0; bool started=false,loaded=false; };
+    // host_local and host_anchor are the host's local time the clock was
+    // started from and the moment of that start: what the guest clock would
+    // show had nobody set it (GuestClockOffset).
+    struct Shared { Win98Timezone::State state; unsigned long long anchor=0,local=0,host_local=0,host_anchor=0; bool started=false,loaded=false,hosted=false; };
     static Shared &System(){static Shared value;return value;}
     Shared &shared;
     static Shared&Initialized(){auto&shared=System();if(!shared.started){shared.started=true;shared.anchor=Application::HostNow();Win98Time::SystemTime initial={1998,6,4,25,12,0,0,0};Win98Time::SystemToFile(initial,shared.local);}return shared;}
@@ -32,7 +35,8 @@ struct Application::TimezoneEnvironment {
     U SetLocalFields(const Win98Time::SystemTime&time){
         // DOS validates the date and time and stores hundredths. This is a guest clock.
         Q value;if(!Win98Time::SystemToFile(time,value)||!time.day){Error(87);return 0;}
-        shared.local=value-value%100000;shared.anchor=Application::HostNow();return 1;
+        shared.local=value-value%100000;shared.anchor=Application::HostNow();
+        Application::KeepGuestClock();return 1;
     }
     void SetLocal(Q value){Win98Time::SystemTime time;Win98Time::FileToSystem(value,time);SetLocalFields(time);}
     // The original publishes the persisted timezone once, at KERNEL32 startup:
@@ -113,6 +117,36 @@ void Application::StartGuestClock(const unsigned short fields[8]){
     Win98Time::SystemTime local={fields[0],fields[1],fields[2],fields[3],fields[4],fields[5],fields[6],fields[7]};
     Win98Time::Q value=0;if(!Win98Time::SystemToFile(local,value))return;
     shared.started=true;shared.anchor=Application::HostNow();shared.local=value-value%100000;
+    shared.hosted=true;shared.host_local=shared.local;shared.host_anchor=shared.anchor;
+    // What was set in an earlier session is still set, and the clock ran on
+    // meanwhile with the host's: the stored distance to the host's clock.
+    long long offset=0;
+    if(guest_clock_storage&&guest_clock_storage->Load(offset)){
+        const long long moved=(long long)shared.local+offset*10000;
+        if(moved>0)shared.local=(unsigned long long)moved-(unsigned long long)moved%100000;
+    }
+}
+// A PC keeps the time Windows sets in its battery clock, which runs on while
+// the machine is off. The port has the host's clock for that and must not set
+// it, so it keeps the distance between the two: SetLocalTime, SetSystemTime
+// and the daylight change of KERNEL32 ordinal 99 all end in SetLocalFields
+// above, which hands the new distance to the storage of the host (a file
+// beside drive C:, tools/clock_file.h). The next StartGuestClock adds it to
+// the host's time. Without a storage, and in a runner that never starts the
+// clock from the host, nothing is kept.
+Application::ClockStorage *Application::guest_clock_storage = nullptr;
+void Application::AttachGuestClock(ClockStorage *storage){guest_clock_storage=storage;}
+long long Application::GuestClockOffset(){
+    auto&shared=TimezoneEnvironment::System();
+    if(!shared.hosted)return 0;
+    // Both clocks run with HostNow, so the distance is the one of their starts.
+    const long long guest=(long long)shared.local-(long long)(shared.anchor*10);
+    const long long host=(long long)shared.host_local-(long long)(shared.host_anchor*10);
+    return (guest-host)/10000;
+}
+void Application::KeepGuestClock(){
+    if(!guest_clock_storage||!TimezoneEnvironment::System().hosted||guest_clock_frozen)return;
+    guest_clock_storage->Save(GuestClockOffset());
 }
 void Application::ConfigureTimeZoneBias(int minutes){TimezoneEnvironment e(*this);e.shared.state={};e.shared.state.zone.bias=unsigned(minutes);e.shared.state.minutes=unsigned(minutes);e.shared.state.bias=Win98Time::MinutesBias(unsigned(minutes)).ticks;e.shared.state.flag=1;}
 unsigned long long Application::CurrentFileTime(){TimezoneEnvironment e(*this);return e.Local()+e.shared.state.bias;}

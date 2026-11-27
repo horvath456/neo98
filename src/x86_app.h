@@ -120,6 +120,21 @@ class Application final : private Pe32::AddressSpace
     void ConfigureTimeZoneBias(int minutes);
     // The local time the guest clock starts from, SYSTEMTIME order.
     static void StartGuestClock(const unsigned short fields[8]);
+    // Where the host keeps the distance between the guest clock and its own,
+    // in milliseconds, over the end of a run (src/x86_time.cpp). Load answers
+    // false when nothing is stored.
+    struct ClockStorage
+    {
+        virtual ~ClockStorage() {}
+        virtual bool Load(long long &milliseconds) = 0;
+        virtual bool Save(long long milliseconds) = 0;
+    };
+    static void AttachGuestClock(ClockStorage *storage);
+    // Guest clock minus the host's local clock, in milliseconds; 0 as long as
+    // nobody set the clock.
+    static long long GuestClockOffset();
+    static void KeepGuestClock();
+    static ClockStorage *guest_clock_storage;
     static bool guest_clock_frozen;
     bool ConfigureKeyboardLayout(const char *map); // Installed physical provider: DE or US, before Start.
     // VkKeyScan of the installed layout: shift state (1 SHIFT, 2 CTRL, 4 ALT)
