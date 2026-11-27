@@ -33,7 +33,9 @@ side knows them by: those `LoadIcon`, `LoadCursor` and `GetClassWord` give
 (aliases of the native handles, `Win16ImageAlias`). `GetClassInfo` and
 `GetClassInfoEx` used to write the low word of the native handle, which no
 16-bit call accepts. `GetClassInfoEx` answers the small icon the class was
-registered with; it answered none.
+registered with; it answered none. Its result is the atom of the class, as
+USER's (the plain `GetClassInfo` answers TRUE), and it leaves `cbSize` as
+the program set it.
 
 Behind its window Character Map names the keystroke of the character under
 the mouse with `VkKeyScan` of the 16-bit keyboard driver (KEYBOARD.129),

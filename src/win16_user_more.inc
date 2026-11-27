@@ -557,14 +557,18 @@ bool Application::Win16UserMore(unsigned ordinal, const Win16Frame &frame, unsig
             Win16Word(out + 4, style);
             Win16Word(out + 6, 0);
             // The small icon RegisterClassEx kept, as the word of the
-            // 16-bit side.
+            // 16-bit side, and the answer of USER: the Ex form answers the
+            // atom of the class, the plain one TRUE.
             unsigned small_icon = 0;
             if (const unsigned scratch = Win16Scratch())
             {
                 Write32(scratch, 48); // sizeof WNDCLASSEXA
                 const unsigned a[] = {arg(0), klass, scratch};
-                if (Api("GetClassInfoExA", a))
+                if (const unsigned atom = Api("GetClassInfoExA", a))
+                {
                     small_icon = Win16ImageAlias(Read32(scratch + 44), 0, false, 0, nullptr);
+                    result = atom & 0xffff;
+                }
             }
             Win16Word(out + Win16U::ClassExBase + Win16U::ClassBytes, small_icon);
         }

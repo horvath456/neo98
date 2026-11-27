@@ -86,7 +86,7 @@ def main():
         f'the window has its six window bytes: {window_word:#06x}': window_word == 0x5a17,
         f'GetClassWord answers the style: {class_style:#06x}': class_style == 0x000b,
         f'GetClassWord answers the class bytes: {class_bytes}': class_bytes == 4,
-        f'GetClassInfoEx finds the class: {info_result}': info_result != 0,
+        f'GetClassInfoEx answers the atom of the class: {info_result:#06x}': info_result == atom != 0,
         f'its style is the dword of WNDCLASSEX: {style:#010x}': style == 0x0000000b,
         f'its procedure is a far pointer of the program: {procedure_segment:04x}:{procedure_offset:04x}':
             procedure_segment != 0 and procedure_offset != 0,
