@@ -43,6 +43,7 @@ inline unsigned OriginalGdiCharsetInfo[3][14] = {};
 
 inline Win98LocalizedBytes<1024> OriginalSystemMenu1;
 inline Win98LocalizedBytes<1024> OriginalSystemMenu2;
+inline Win98LocalizedBytes<1024> OriginalEditMenu;
 
 
 
@@ -390,6 +391,7 @@ template<class Visit> void VisitWindowsRuntimeData(Visit visit)
     visit("OriginalGdiCharsetInfo", &OriginalGdiCharsetInfo, sizeof OriginalGdiCharsetInfo);
     visit("OriginalSystemMenu1", OriginalSystemMenu1.bytes, OriginalSystemMenu1.size);
     visit("OriginalSystemMenu2", OriginalSystemMenu2.bytes, OriginalSystemMenu2.size);
+    visit("OriginalEditMenu", OriginalEditMenu.bytes, OriginalEditMenu.size);
     visit("Win98UserResources::DefaultIcon10", &Win98UserResources::DefaultIcon10, sizeof Win98UserResources::DefaultIcon10);
     visit("Win98UserResources::DefaultIcon12", &Win98UserResources::DefaultIcon12, sizeof Win98UserResources::DefaultIcon12);
     visit("Win98UserResources::DefaultIcon14", &Win98UserResources::DefaultIcon14, sizeof Win98UserResources::DefaultIcon14);

@@ -35,13 +35,14 @@ def generate():
         if not kind:break
         for _ in range(count):
             offset,length,flags,id,_,_=struct.unpack_from('<6H',data,at);at+=12
-            if kind==0x8004 and id in (0x8001,0x8002):
+            if kind==0x8004 and id in (0x8001,0x8002,0x8003):
                 raw=data[offset<<align:(offset+length)<<align];native=convert(raw);menus[id&32767]=native
                 manifest.append({'resource':id&32767,'original_bytes':len(raw),'original_sha256':hashlib.sha256(raw).hexdigest(),
                     'native_bytes':len(native),'native_sha256':hashlib.sha256(native).hexdigest()})
-    assert set(menus)=={1,2}
+    assert set(menus)=={1,2,3}
     text='// Local Win98 USER.EXE menu resources; ANSI labels converted to UTF-16.\n'
-    for id,menu in sorted(menus.items()):text+=f'static const unsigned char OriginalSystemMenu{id}[] = {{'+','.join(map(str,menu))+'};\n'
+    # Menus 1 and 2 are the system menus of a window and of an MDI child, menu 3 the context menu of the edit control.
+    for id,menu in sorted(menus.items()):text+=f'static const unsigned char {"OriginalEditMenu" if id==3 else f"OriginalSystemMenu{id}"}[] = {{'+','.join(map(str,menu))+'};\n'
     out=ROOT/'build/generated/user_menus.h'
     if not out.exists()or out.read_text()!=text:out.write_text(text)
     report={'source_sha256':EXPECTED,'menus':manifest,'conversion':'Resource header/item flags and IDs preserved; CP1252 labels encoded as UTF-16LE; alignment padding omitted.'}

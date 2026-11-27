@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
     if (memcmp(OriginalGdiCharsetInfo, Expected::OriginalGdiCharsetInfo, sizeof OriginalGdiCharsetInfo)) { std::cerr << "Mismatch: OriginalGdiCharsetInfo\n"; return 1; }
     if ((OriginalSystemMenu1.size != sizeof Expected::OriginalSystemMenu1 || memcmp(OriginalSystemMenu1.bytes, Expected::OriginalSystemMenu1, sizeof Expected::OriginalSystemMenu1))) { std::cerr << "Mismatch: OriginalSystemMenu1\n"; return 1; }
     if ((OriginalSystemMenu2.size != sizeof Expected::OriginalSystemMenu2 || memcmp(OriginalSystemMenu2.bytes, Expected::OriginalSystemMenu2, sizeof Expected::OriginalSystemMenu2))) { std::cerr << "Mismatch: OriginalSystemMenu2\n"; return 1; }
+    if ((OriginalEditMenu.size != sizeof Expected::OriginalEditMenu || memcmp(OriginalEditMenu.bytes, Expected::OriginalEditMenu, sizeof Expected::OriginalEditMenu))) { std::cerr << "Mismatch: OriginalEditMenu\n"; return 1; }
     if (memcmp(Win98UserResources::DefaultIcon10, Expected::Win98UserResources::DefaultIcon10, sizeof Win98UserResources::DefaultIcon10)) { std::cerr << "Mismatch: DefaultIcon10\n"; return 1; }
     if (memcmp(Win98UserResources::DefaultIcon12, Expected::Win98UserResources::DefaultIcon12, sizeof Win98UserResources::DefaultIcon12)) { std::cerr << "Mismatch: DefaultIcon12\n"; return 1; }
     if (memcmp(Win98UserResources::DefaultIcon14, Expected::Win98UserResources::DefaultIcon14, sizeof Win98UserResources::DefaultIcon14)) { std::cerr << "Mismatch: DefaultIcon14\n"; return 1; }

@@ -3056,6 +3056,7 @@ private:
     unsigned SetCaretBlink(unsigned milliseconds);
     unsigned CaretApi(ApiName,const unsigned*);
     void CaretPulse();void FreeCarets();void CaretWindowDestroyed(unsigned);
+    unsigned EditContextMenu(unsigned hwnd, unsigned lp); // src/x86_edit_menu.cpp
     unsigned DrawCaret(unsigned,unsigned);
     bool CaretPaintBracket(unsigned,bool);
     void XorCaret(const Win98Caret::State&);

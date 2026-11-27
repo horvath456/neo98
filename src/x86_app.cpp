@@ -6895,6 +6895,11 @@ unsigned Application::Edit(unsigned hwnd, unsigned message, unsigned wp, unsigne
     // The EDIT procedure hands WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP and
     // WM_SYSCHAR to DefWindowProc, which opens the menu
     // of the window from the keyboard.
+    // WM_CONTEXTMENU opens the menu of the control (src/x86_edit_menu.cpp).
+    // The right button itself is DefWindowProc's, which turns its release
+    // into that message.
+    if (message == 0x7b)
+        return EditContextMenu(hwnd, lp);
     if (message == 0x101 || message == 0x104 || message == 0x105 || message == 0x106)
     {
         const unsigned answer = User::EditMessage(hwnd, message, wp, lp);
@@ -6931,8 +6936,6 @@ unsigned Application::Edit(unsigned hwnd, unsigned message, unsigned wp, unsigne
     case 0x200:
     case 0x201:
     case 0x202:
-    case 0x204:
-    case 0x205:
     case 0x207:
     case 0x208:
     case 0x300:

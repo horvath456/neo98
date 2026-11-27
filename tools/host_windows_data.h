@@ -240,7 +240,8 @@ template<class Read> bool Load(Read read, std::string &error) {
         std::memset(const_cast<unsigned char *>(r.data), 0, r.size);
         std::memcpy(const_cast<unsigned char *>(r.data), found.data(), found.size()); *r.length = unsigned(found.size());
     }
-    if (!copy(OriginalSystemMenu1, menu(find(user, 4, 1))) || !copy(OriginalSystemMenu2, menu(find(user, 4, 2)))) return invalid("USER.EXE menus");
+    if (!copy(OriginalSystemMenu1, menu(find(user, 4, 1))) || !copy(OriginalSystemMenu2, menu(find(user, 4, 2))) ||
+        !copy(OriginalEditMenu, menu(find(user, 4, 3)))) return invalid("USER.EXE menus");
     Reader usr{data};
     if (!copy(Win98UserResources::StripCalls, usr.segment(21, 0xb87, 364)) || !usr.ok) return invalid("USER.EXE OEM strip");
     const auto &group = find(user, 14, 105); Reader icons{group};

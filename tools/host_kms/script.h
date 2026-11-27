@@ -185,14 +185,16 @@ class Script
             int x = 0, y = 0;
             if (sscanf(step.value.c_str(), "%d,%d", &x, &y) == 2) app.MouseButtons(x, y, held);
         }
-        else if (step.action == "click" || step.action == "dblclick" || step.action == "move")
+        else if (step.action == "click" || step.action == "dblclick" || step.action == "rclick" || step.action == "move")
         {
+            // rclick= is a click of the right button, as the other hosts have it.
             int x = 0, y = 0;
             if (sscanf(step.value.c_str(), "%d,%d", &x, &y) == 2)
             {
                 app.MouseButtons(x, y, 0);
-                const unsigned clicks = step.action == "dblclick" ? 2 : step.action == "click" ? 1 : 0;
-                for (unsigned i = 0; i < clicks; ++i) { app.MouseButtons(x, y, 1); app.MouseButtons(x, y, 0); }
+                const unsigned button = step.action == "rclick" ? 2 : 1;
+                const unsigned clicks = step.action == "dblclick" ? 2 : step.action == "move" ? 0 : 1;
+                for (unsigned i = 0; i < clicks; ++i) { app.MouseButtons(x, y, button); app.MouseButtons(x, y, 0); }
             }
         }
         else if (step.action == "drag")

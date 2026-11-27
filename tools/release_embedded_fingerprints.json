@@ -90,6 +90,12 @@
     "sha256": "ba3945d5d37ef7bb2e9cc7a4778a93b3a222c3b2ee563ba912d4cb6a149fd278"
   },
   {
+    "header": "build/generated/user_menus.h",
+    "symbol": "OriginalEditMenu",
+    "bytes": 132,
+    "sha256": "1353d5cae8a5d1fe961c9d6aa989ba9a76c16db8538bdb89867b7ba9643b3248"
+  },
+  {
     "header": "build/generated/atom_upper.h",
     "symbol": "OriginalAtomUpper",
     "bytes": 128,
