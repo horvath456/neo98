@@ -24,6 +24,13 @@ started again, ended, and started a third time. Checked, in bytes:
   before them, and the second round leaves no more than the first
   the third 32 cost what the first did
 
+And what a process costs at every change from one process to the next, the
+calls that map its runs of pages (one for every run of pages with one
+protection): a program that calls into 32 separate pages it allocated as
+data has no more runs at its end than one that only wrote to them. Every
+readable page is executable on the native processor; while it became so page
+by page, at the first jump into it, each such page split a run in three.
+
     build/analysis-venv/bin/python tools/test_process_cost_host.py [--no-build] [--kms KMS]
 
 With --table the numbers of a scenario are printed instead, stage by stage:
@@ -197,6 +204,22 @@ def report(name, stages, measured):
                 f'{key} {value / 1048576:.1f}' for key, value in sorted(m['mappings'].items(), key=lambda item: -item[1])[:8]))
 
 
+def runs_of(kms, drive, mode):
+    """The runs of pages of the fixture in `mode` at its end, as the native
+    processor reports them (NEO98_NATIVE_STATS), and its exit code."""
+    env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:800x600',
+               NEO98_NATIVE_STATS='1')
+    for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD', 'NEO98_HOST_INPUT'):
+        env.pop(variable, None)
+    done = subprocess.run([str(kms), '--drive-c', str(drive), '--desktop', '800x600', '--exe', 'C:\\PCOST.EXE',
+                           '--command', f'PCOST.EXE {mode}', '--time-limit', '120'], cwd=ROOT, env=env,
+                          capture_output=True, text=True, timeout=180)
+    (WORK / f'{mode}.log').write_text(done.stdout + done.stderr)
+    found = [int(line.rsplit('runs=', 1)[1]) for line in (done.stdout + done.stderr).splitlines()
+             if line.startswith('DIRECT STATS') and 'runs=' in line]
+    return max(found, default=0), done.returncode
+
+
 def held(m):
     """What a stage costs the host: resident pages, and the pages of memory
     files that are mapped nowhere at the moment (the prepared gates of the
@@ -227,6 +250,8 @@ def main():
             return
         stages = SCENARIOS['again']
         m = run(args.kms, drive, stages, args.settle, WORK / 'again.log')
+        plain, plain_code = runs_of(args.kms, drive, 'plain')
+        jump, jump_code = runs_of(args.kms, drive, 'jump')
     finally:
         shutil.rmtree(drive, ignore_errors=True)
         win98_c.journal(drive).unlink(missing_ok=True)
@@ -248,6 +273,8 @@ def main():
             ended_again - ended < 4 * MB,
         f'the third {PROGRAMS} cost {(third - ended_again) / MB:.1f} MB, the first {(first - alone) / MB:.1f}: '
         f'within 16 of each other': abs((third - ended_again) - (first - alone)) < 16 * MB,
+        f'a program that calls into 32 pages of data has {jump} runs of pages at its end, one that only writes them '
+        f'{plain} (exit {jump_code} and {plain_code})': plain > 0 and jump_code == 0 and plain_code == 0 and jump <= plain + 1,
         f'no file of private pages is left of an ended program: {len(m[3]["files"].get("neo98-direct", []))} files '
         f'with the fixture alone, {len(m[1]["files"].get("neo98-direct", []))} before':
             len(m[3]['files'].get('neo98-direct', [])) == len(m[1]['files'].get('neo98-direct', [])),

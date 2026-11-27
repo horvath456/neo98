@@ -2630,7 +2630,13 @@ bool Application::execute_on_demand = true;
 unsigned Application::HostProtection(unsigned base, unsigned size, unsigned permissions)
 {
     permissions &= (unsigned)Prot::All;
-    if (!execute_on_demand)
+    // The native processor of Linux has no such write path, and there the
+    // rule only costs: the guests take turns at the same addresses, a change
+    // from one to the next maps every run of pages with one protection with
+    // a call of its own, and every page that got the execute right alone
+    // splits a run in three. A readable page is executable there from the
+    // start, as it is for the guest.
+    if (!execute_on_demand || (cpu && cpu->Backend() == CpuBackend::Native))
         return GuestProtection(permissions);
     // PAGE_NOACCESS stays unreadable, and an unreadable page is not executable.
     if (!(permissions & Prot::Read))

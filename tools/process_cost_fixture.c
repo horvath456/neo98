@@ -3,8 +3,12 @@
 // can be read while they run (tools/test_process_cost_host.py).
 //
 //   PCOST.EXE C:\PCOST.LST
-//   PCOST.EXE child         the smallest program with a window: it registers a
+//   PCOST.EXE child        the smallest program with a window: it registers a
 //                          class, makes a window and waits for messages
+//   PCOST.EXE plain        allocates 64 pages of data, writes a RET at the
+//                          start of every second one and ends
+//   PCOST.EXE jump         the same, and calls each of those 32 pages before
+//                          it ends: code in memory that was allocated as data
 //
 // Every line of the list is a command line to start, and a line "---" ends a
 // stage: the fixture waits until the programs of the stage are idle, writes
@@ -64,6 +68,18 @@ void mainCRTStartup(void)
         ++command;
     while (*command == ' ')
         ++command;
+    if (!lstrcmpA(command, "plain") || !lstrcmpA(command, "jump"))
+    {
+        unsigned char *pages = (unsigned char *)VirtualAlloc(0, 64 * 4096, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        int result = pages ? 0 : 3;
+        for (i = 0; pages && i < 64; i += 2)
+        {
+            pages[i * 4096] = 0xc3;
+            if (command[0] == 'j')
+                ((void (*)(void))(pages + i * 4096))();
+        }
+        ExitProcess(result);
+    }
     if (!lstrcmpA(command, "child"))
     {
         WNDCLASSA c = {0};

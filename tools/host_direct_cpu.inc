@@ -926,13 +926,14 @@ class DirectCpu final : public NativeCpu
             Arena().ResetMappings();
         if (bytes)
             ReleaseLdt();
+        // runs: the mmap calls it takes to put this guest at the addresses.
         if (getenv("NEO98_NATIVE_STATS"))
             fprintf(stderr,
                     "DIRECT STATS pid=%ld entries=%llu gates=%llu signals=%llu low_maps=%llu syscalls=%llu "
-                    "mirror_bytes=%llu host_tsc_traps=%llu\n",
+                    "mirror_bytes=%llu host_tsc_traps=%llu runs=%zu\n",
                     long(getpid()), (unsigned long long)entries, (unsigned long long)direct_gates,
                     (unsigned long long)signals, (unsigned long long)low_maps, injected_syscalls,
-                    mirror_bytes, direct_host_tsc_traps.load(std::memory_order_relaxed));
+                    mirror_bytes, direct_host_tsc_traps.load(std::memory_order_relaxed), bytes ? Layout().size() : 0);
     }
     unsigned Open()
     {
