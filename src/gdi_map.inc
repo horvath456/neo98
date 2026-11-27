@@ -4,8 +4,11 @@ namespace {
 struct MappingDevice
 {
     const Context *dc=nullptr;
-    // Explicit native display profile: equal 96-DPI axes. The original body
-    // consumes driver-supplied WORD extents; no physical monitor is inferred.
+    // The original body consumes the WORD extents of GDIINFO+30h. For the
+    // display GDI.EXE writes them itself when it has read the font size
+    // (src/gdi_display_dpi.h): the window extent is the unit, 254 for a tenth
+    // of a millimetre, and the viewport extent the physical dots per inch of
+    // HKCC\Display\Settings, so a logical inch is an inch of the font size.
     // A printer DC has the extents its driver wrote into GDIINFO+28h.
     Win98DcMap::Units DeviceUnits(unsigned mode)
     {
@@ -15,7 +18,7 @@ struct MappingDevice
             return {{word(0),word(2)},{word(4),word(6)}};
         }
         static constexpr int unit[]={1,254,2540,100,1000,1440};
-        return {{unit[mode-1],unit[mode-1]},{96,-96}};
+        return {{unit[mode-1],unit[mode-1]},{Dpi().physical_x,-Dpi().physical_y}};
     }
     Win98DcMap::Point DeviceAspect() { return {1,1}; }
     bool ObjectAffectsMapping() { return false; } // No mapped-pen realization yet.

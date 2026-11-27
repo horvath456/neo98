@@ -168,14 +168,101 @@ unsigned Application::AddFontResourceFile(const char *path)
     return Install(path) ? faces_of() : 0;
 }
 
-// Win98 GDI loads the three system fonts SYSTEM.INI [boot] names (fonts.fon,
-// fixedfon.fon, oemfonts.fon), then every font of the registry keys
+// The font size of the display (src/gdi_display_dpi.h). GDI.EXE reads the
+// four numbers of HKEY_CURRENT_CONFIG\Display\Settings once, when the display
+// driver is enabled; a change through Display Properties therefore holds
+// from the next start of Windows. A value is a string of digits (what Setup
+// and Display Properties write), a DWORD or binary; one that is missing keeps
+// the driver's 96.
+void Application::LoadDisplayDpi()
+{
+    static bool loaded = false;
+    if (loaded)
+        return;
+    loaded = true;
+    auto &registry = Registry::System();
+    U key = Registry::Missing;
+    bool created = false;
+    if (registry.Open(registry.roots[5], "Display\\Settings", false, key, created))
+        return;
+    auto number = [&](const char *name) {
+        const Registry::Value *value = nullptr;
+        if (registry.Query(key, name, value) || !value || value->size > 0x14)
+            return 96;
+        if (value->type == 3 || value->type == 4)
+            return value->size >= 2 && value->data ? int(value->data[0] | value->data[1] << 8) : 0;
+        if (value->type != 1)
+            return 96;
+        int result = 0;
+        for (U i = 0; i < value->size && value->data[i] >= '0' && value->data[i] <= '9'; ++i)
+            result = (result * 10 + (value->data[i] - '0')) & 0xffff;
+        return result;
+    };
+    const int logical_x = number("DPILogicalX"), logical_y = number("DPILogicalY");
+    Gdi::SetDpi(logical_x, logical_y, number("DPIPhysicalX"), number("DPIPhysicalY"));
+}
+
+// A raster face as a GDI font, enlarged by a whole factor when the mapper
+// chose that (GdiFonts::Match).
+unsigned Application::CreateRasterFont(const GdiFonts::Face &face, unsigned scale)
+{
+    if (scale < 2)
+        return Gdi::CreateFontView(face.font.data, face.font.length);
+    U length = 0;
+    unsigned char *image = GdiFonts::ScaledFnt(face, scale, length);
+    if (!image)
+        return Gdi::CreateFontView(face.font.data, face.font.length);
+    const U font = Gdi::CreateFontMemory(image, length);
+    free(image);
+    return font;
+}
+
+// A font of NONCLIENTMETRICS for USER's own drawing (User::MetricFont): the
+// physical font the mapper gives a LOGFONT16, without a logical font object
+// of a process. A face the installation does not have is MS Sans Serif, as
+// for CreateFontIndirect (src/x86_font_create.cpp).
+unsigned Application::CreateMetricFont(const unsigned char *logfont)
+{
+    auto word = [&](U at) { return U(logfont[at] | logfont[at + 1] << 8); };
+    const int height = short(word(0));
+    const U weight = word(8);
+    const bool italic = logfont[10] != 0, underline = logfont[11] != 0, strikeout = logfont[12] != 0;
+    char name[33] = {};
+    memcpy(name, logfont + 18, 32);
+    U scale = 1;
+    const auto *face = GdiFonts::Match(name, height, weight, italic, logfont[13], &scale);
+    if (!face)
+        face = GdiFonts::Match("MS Sans Serif", height ? height : 13, 400, false, 1, &scale);
+    if (!face)
+        return 0;
+    if (face->truetype)
+    {
+        const auto *font = GdiTrueType::Realize(face->truetype, height, 0, weight, italic, underline, strikeout);
+        return font ? Gdi::CreateFontOutline(font->view) : 0;
+    }
+    const U plain = Application::CreateRasterFont(*face, scale);
+    const bool bold = weight >= 550 && (face->font.data[0x53] | face->font.data[0x54] << 8) < 700;
+    if (!plain || !(italic || underline || strikeout || bold))
+        return plain;
+    const U variant = Gdi::CreateFontVariant(plain, italic, underline, strikeout, bold);
+    Gdi::DeleteObject(plain);
+    return variant;
+}
+
+// Win98 GDI loads the three system fonts (fonts.fon, fixedfon.fon,
+// oemfonts.fon) by the names HKEY_CURRENT_CONFIG\Display\Settings holds for
+// them, or SYSTEM.INI [boot] when the key has none, or VGASYS.FON, VGAFIX.FON
+// and VGAOEM.FON; then every font of the registry keys
 // HKEY_CURRENT_CONFIG\Display\Fonts and
 // HKLM\Software\Microsoft\Windows\CurrentVersion\Fonts and of WIN.INI [fonts].
+// Display Properties writes the system fonts and Display\Fonts for the font
+// size it sets: the 96-dpi set (VGASYS, SSERIFE...) or the 120-dpi set
+// (8514SYS, SSERIFF...), whichever number is nearer.
 // Standalone comparison runners keep built-in SSERIFE.FON for
 // runs without the Win98 tree. Release hosts require the installed files.
 void Application::LoadInstalledFonts()
 {
+    LoadDisplayDpi();
     Win98Frame::SetFontProvider([](int height)->Gdi::HFONT{
         if(!GdiFonts::Installed("MARLETT.TTF"))Install("MARLETT.TTF");
         const auto *face=GdiFonts::Match("Marlett",height,400,false,2);
@@ -198,13 +285,32 @@ void Application::LoadInstalledFonts()
         });
         free(ini);
     }
+    auto &registry = Registry::System();
+    {
+        static const char *const names[3] = {"fonts.fon", "fixedfon.fon", "oemfonts.fon"};
+        static const char *const fallback[3] = {"vgasys.fon", "vgafix.fon", "vgaoem.fon"};
+        U key = Registry::Missing;
+        bool created = false;
+        const bool open = !registry.Open(registry.roots[5], "Display\\Settings", false, key, created);
+        for (U i = 0; i < 3; ++i)
+        {
+            const Registry::Value *value = nullptr;
+            if (open && !registry.Query(key, names[i], value) && value && value->type == 1 && value->data &&
+                value->size && value->size < sizeof boot[i])
+            {
+                memset(boot[i], 0, sizeof boot[i]);
+                memcpy(boot[i], value->data, value->size);
+            }
+            if (!boot[i][0])
+                snprintf(boot[i], sizeof boot[i], "%s", fallback[i]);
+        }
+    }
     for (U i = 0; i < 3; ++i)
         if (Install(boot[i]) || GdiFonts::Installed(Leaf(boot[i])))
             GdiFonts::SetRole(GdiFonts::Role(i), Leaf(boot[i]));
     // USER.EXE names HKEY_CURRENT_CONFIG\Display\Fonts, the raster fonts of
     // the display resolution (SSERIFE.FON and its siblings); KRNL386.EXE names
     // HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Fonts, the rest.
-    auto &registry = Registry::System();
     const struct { U root; const char *path; } keys[2] = {
         {registry.roots[5], "Display\\Fonts"},
         {registry.roots[2], "Software\\Microsoft\\Windows\\CurrentVersion\\Fonts"}};
@@ -240,8 +346,11 @@ void Application::LoadInstalledFonts()
         free(ini);
     }
 #ifdef NEO98_RUNTIME_CONTENT
-    // Also support an installation whose optional registry font list is empty.
-    Install("SSERIFE.FON");
+    // Also support an installation whose optional registry font list is
+    // empty: MS Sans Serif of the set Display Properties would install for
+    // the font size, the one whose number is nearer.
+    if (!GdiFonts::Match("MS Sans Serif", 0, 400, false, 0))
+        Install(Gdi::Dpi().logical_y > 108 ? "SSERIFF.FON" : "SSERIFE.FON");
 #else
     if (!GdiFonts::RoleFace(GdiFonts::SystemRole))
     {
@@ -265,7 +374,10 @@ void Application::LoadInstalledFonts()
 // OEM_FIXED_FONT, ANSI_FIXED_FONT and ANSI_VAR_FONT are the logical fonts GDI.EXE
 // keeps: {12, 8, OEM_CHARSET, fixed, "Terminal"},
 // {12, 9, fixed, "Courier"} and {12, 9, variable, "MS Sans Serif"}, realized by
-// the mapper. DEFAULT_GUI_FONT shares ANSI_VAR_FONT.
+// the mapper; their heights are pixels and do not follow the font size of the
+// display. DEFAULT_GUI_FONT is made from GDI.EXE's string resources, 8 points
+// of MS Sans Serif: lfHeight = -(8 * dpLogPixelsY + 36) / 72, -11 at 96 dots
+// per inch and -13 at 120. Without the Win98 tree it shares ANSI_VAR_FONT.
 bool Application::InstallStockFonts()
 {
     LoadInstalledFonts();
@@ -277,21 +389,31 @@ bool Application::InstallStockFonts()
         system_face = ansi_var;
     const auto *oem = GdiFonts::RoleFace(GdiFonts::OemRole);
     const auto *ansi_fixed = GdiFonts::Match("Courier", 12, 400, false, 0);
-    Stock stocks[5] = {{fixed_face, 0, 0, 0, 0, nullptr},
+    const int gui_height = -((8 * Gdi::Dpi().logical_y + 36) / 72);
+    const auto *gui = GdiFonts::RoleFace(GdiFonts::SystemRole)
+                          ? GdiFonts::Match("MS Sans Serif", gui_height, 400, false, 0) : nullptr;
+    Stock stocks[6] = {{fixed_face, 0, 0, 0, 0, nullptr},
                        {system_face, 0, 0, 0, 0, nullptr},
                        {oem ? oem : fixed_face, 12, 8, 255, 1, "Terminal"},
                        {ansi_fixed ? ansi_fixed : fixed_face, 12, 9, 0, 1, "Courier"},
-                       {ansi_var ? ansi_var : system_face, 12, 9, 0, 2, "MS Sans Serif"}};
-    U handles[5] = {}, slots = 0;
-    for (U i = 0; i < 5; ++i)
+                       {ansi_var ? ansi_var : system_face, 12, 9, 0, 2, "MS Sans Serif"},
+                       {gui, gui_height, 0, 0, 0, "MS Sans Serif"}};
+    U handles[6] = {}, slots = 0;
+    for (U i = 0; i < 6; ++i)
     {
+        // The GUI font is a logical font of its own, whatever face it gets.
+        if (i == 5 && !gui)
+        {
+            handles[5] = handles[4];
+            continue;
+        }
         // A run without the Win98 tree has fewer faces than roles; a face that
         // already stands for an earlier stock object keeps its handle, so the
         // application keeps the logical-font slots it had before.
         U earlier = 0;
         while (earlier < i && stocks[earlier].face != stocks[i].face)
             ++earlier;
-        if (earlier < i)
+        if (earlier < i && i != 5)
         {
             handles[i] = handles[earlier];
             continue;
@@ -316,13 +438,13 @@ bool Application::InstallStockFonts()
         memset(slot.logfont, 0, sizeof slot.logfont);
         const int height = stocks[i].name ? stocks[i].height : metrics.tmHeight;
         const int width = stocks[i].name ? stocks[i].width : 0;
-        const int weight = stocks[i].name ? 0 : metrics.tmWeight;
+        const int weight = i == 5 ? 400 : stocks[i].name ? 0 : metrics.tmWeight;
         memcpy(slot.logfont, &height, 4);
         memcpy(slot.logfont + 4, &width, 4);
         memcpy(slot.logfont + 16, &weight, 4);
         slot.logfont[23] = stocks[i].name ? stocks[i].charset : metrics.tmCharSet;
-        slot.logfont[25] = stocks[i].name ? 2 : 0;
-        slot.logfont[26] = stocks[i].name ? 2 : 0;
+        slot.logfont[25] = stocks[i].name && i != 5 ? 2 : 0;
+        slot.logfont[26] = stocks[i].name && i != 5 ? 2 : 0;
         slot.logfont[27] = stocks[i].name ? stocks[i].pitch : 0;
         char face[32] = {};
         stocks[i].face->font.FaceName(face);
@@ -333,7 +455,8 @@ bool Application::InstallStockFonts()
     system = handles[1];
     stock[10] = handles[2];
     stock[11] = handles[3];
-    stock[12] = stock[17] = handles[4];
+    stock[12] = handles[4];
+    stock[17] = handles[5];
     stock[13] = stock[14] = system;
     stock[16] = fixed;
     return true;

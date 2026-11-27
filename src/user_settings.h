@@ -18,6 +18,16 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
     short saver[3] = {0, 0, 0};
     // SPI_SCREENSAVERRUNNING (61h) keeps it at DS:28Ch, inverted.
     bool saver_running = false;
+    // What USER measures of the fonts it makes for the parts of a window
+    // (USER): the height of the cell, the average width
+    // of a character, and for the menu font the external leading, the
+    // overhang and the ascent. The values here are those of MS Sans Serif 8
+    // at 96 dots per inch, which stand while no font has been made.
+    struct FontCell
+    {
+        short height = 13, average = 6, external = 0, overhang = 0, ascent = 11;
+    };
+    FontCell caption_cell = {13, 7, 0, 0, 11}, small_cell, menu_cell;
     unsigned mouse_speed = 10;
     bool gradient_captions = true;
     // DS:264h, the COOL.DLL module USER loads at start.
@@ -102,7 +112,7 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
         case 0x6ea:
             return 4;
         case 0xedc:
-            return 7; // Average caption-font width for the current native font profile.
+            return (unsigned short)caption_cell.average; // the average width of the caption font
         case 0x86a:
             return 6;
         case 0x86c:
@@ -163,4 +173,15 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
     }
 };
 Settings &SystemSettings();
+// A font of NONCLIENTMETRICS as a GDI font: the LOGFONT16 with its height in
+// pixels. The provider is the font mapper of the installation; without one
+// the built-in MS Sans Serif stands for every font.
+using MetricFontProvider = unsigned (*)(const unsigned char *logfont16);
+void SetMetricFontProvider(MetricFontProvider);
+// The fonts USER draws with: 0x501 menu, 0x502 caption, 0x503 small caption,
+// 0x507 the menu font made bold for a default item.
+unsigned MetricFont(unsigned handle);
+// USER: makes the fonts of the settings anew, measures them, holds the
+// sizes to them (Win98Metrics::HoldNonClient) and takes them over.
+void ApplyNonClientMetrics(Win98Metrics::NonClient);
 } // namespace User

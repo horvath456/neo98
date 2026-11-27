@@ -47,6 +47,13 @@ void AddSubstitute(const char *from, const char *to);
 const char *Substitute(const char *face);
 bool SameFace(const char *a, const char *b);
 // The physical font for a logical request, following the rules of
-// Null when no installed face carries the name.
-const Face *Match(const char *face, int height, unsigned weight, bool italic, unsigned charset);
+// Null when no installed face carries the name. With `scale` the mapper may
+// also choose a raster size enlarged by a whole factor, GDI's size synthesis,
+// and says by how much; without it only the sizes of the files stand.
+const Face *Match(const char *face, int height, unsigned weight, bool italic, unsigned charset,
+                  unsigned *scale = nullptr);
+// The FNT image of a raster face with every pixel `scale` times as wide and
+// as high, as GDI makes it for a size no file has. Allocated with malloc;
+// null when the face cannot be enlarged that far.
+unsigned char *ScaledFnt(const Face &, unsigned scale, unsigned &length);
 } // namespace GdiFonts

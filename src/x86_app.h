@@ -53,6 +53,7 @@ struct Record;
 }
 namespace Win98DisplayReposition { struct Rect; }
 struct AH_Status; // src/host_devices_abi.h
+namespace GdiFonts { struct Face; }
 namespace X86
 {
 class Application final : private Pe32::AddressSpace
@@ -1192,6 +1193,9 @@ private:
     struct WindowTextMemory;
     unsigned FontCreateApi(ApiName, const unsigned *);
     // src/x86_font_catalog.cpp: the fonts of the installation and the stock fonts.
+    static void LoadDisplayDpi();
+    static unsigned CreateMetricFont(const unsigned char *logfont16);
+    static unsigned CreateRasterFont(const GdiFonts::Face &, unsigned scale);
     void LoadInstalledFonts();
     bool InstallStockFonts();
     unsigned FontCharsetApi(ApiName, const unsigned *);

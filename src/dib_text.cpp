@@ -163,19 +163,27 @@ unsigned Font::Bits(unsigned index) const
 namespace { OutlineText outline_text = nullptr; }
 void SetOutlineText(OutlineText hook) { outline_text = hook; }
 #ifdef NEO98_RUNTIME_CONTENT
-// The host's catalogue owns the FNT resources read from C:\WINDOWS\FONTS.
+// The host's catalogue owns the FNT resources read from C:\WINDOWS\FONTS:
+// the sizes of MS Sans Serif, from SSERIFE.FON with the "Small Fonts" of
+// Windows and from SSERIFF.FON with its "Large Fonts".
 // Standalone tests keep their generated six-font fixture below.
+namespace {
+bool SansSerif(const GdiFonts::Face &face)
+{
+    return face.type == GdiFonts::Raster && GdiFonts::SameFace(face.name, "MS Sans Serif");
+}
+}
 unsigned FontCount()
 {
     unsigned count = 0;
     for (unsigned i = 0; i < GdiFonts::Count(); ++i)
-        if (GdiFonts::SameFace(GdiFonts::At(i)->file, "SSERIFE.FON")) ++count;
+        if (SansSerif(*GdiFonts::At(i))) ++count;
     return count;
 }
 Font OriginalFont(unsigned index)
 {
     for (unsigned i = 0; i < GdiFonts::Count(); ++i)
-        if (GdiFonts::SameFace(GdiFonts::At(i)->file, "SSERIFE.FON") && !index--)
+        if (SansSerif(*GdiFonts::At(i)) && !index--)
             return GdiFonts::At(i)->font;
     return {};
 }

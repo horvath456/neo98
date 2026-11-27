@@ -204,15 +204,20 @@ void PaintCaption(HWND h, const Window &w, Gdi::POINT p)
     if (!save) { dirty = true; return; }
     if (!SystemClipRect(screen, title.left, title.top, title.right, title.bottom))
     { Gdi::RestoreDC(screen, save); return; }
-    Gdi::SelectObject(screen, system_font);
+    // The caption font and the small caption font of NONCLIENTMETRICS
+    // (USER DS:1ACh and 1AEh) with the heights USER measured of them.
     Win98Caption::State state;
     for (unsigned i = 0; i < Win98Frame::ColorCount; ++i)
     { state.colors[i] = colors[i]; state.brushes[i] = i; }
     state.dither = CaptionEnvironment::Dither;
-    state.font = state.smallfont = system_font;
+    state.font = MetricFont(0x502);
+    state.smallfont = MetricFont(0x503);
+    Gdi::SelectObject(screen, state.font);
     Gdi::TEXTMETRICA metrics{};
-    state.height = state.smallheight =
-        Gdi::GetTextMetricsA(screen, &metrics) ? (int)metrics.tmHeight : 0;
+    state.height = Gdi::GetTextMetricsA(screen, &metrics) ? (int)metrics.tmHeight : 0;
+    Gdi::SelectObject(screen, state.smallfont);
+    state.smallheight = Gdi::GetTextMetricsA(screen, &metrics) ? (int)metrics.tmHeight : 0;
+    Gdi::SelectObject(screen, (w.extended & 0x80) ? state.smallfont : state.font);
     state.margin = settings.Word(0x338);        // SM_CXEDGE
     state.iconwidth = settings.Word(0x340);     // SM_CXSMICON
     state.iconheight = settings.Word(0x342);    // SM_CYSMICON
@@ -278,7 +283,7 @@ void PaintMenuBar(const Window &w, Gdi::POINT p)
         return;
     const unsigned *colors = Win98Frame::SystemColors();
     Fill(At(w.menu_bar, p), colors[Win98MenuDraw::ColorMenu]);
-    Gdi::SelectObject(screen, system_font);
+    Gdi::SelectObject(screen, MetricFont(0x501));
     Win98MenuDraw::Settings menu_settings;
     menu_settings.colors = colors;
     menu_settings.marker_x = settings.Word(0x366);
@@ -356,7 +361,7 @@ int DrawMenuBarTempBody(HWND owner, Gdi::HDC dc, Gdi::RECT rect, HMENU handle, G
     const unsigned *colors = Win98Frame::SystemColors();
     Fill(dc, rect, colors[Win98MenuDraw::ColorMenu]);
     const int save = Gdi::SaveDC(dc);
-    Gdi::SelectObject(dc, font ? font : system_font);
+    Gdi::SelectObject(dc, font ? font : MetricFont(0x501));
     Win98MenuDraw::Settings menu_settings;
     menu_settings.colors = colors;
     menu_settings.marker_x = settings.Word(0x366);

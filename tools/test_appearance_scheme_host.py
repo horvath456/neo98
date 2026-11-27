@@ -4,16 +4,19 @@
 
 The page Appearance applies a scheme with SystemParametersInfo:
 SPI_SETNONCLIENTMETRICS with the five fonts of the window frame, and the
-icon font. USER writes each font of these structures into WIN.INI with a
-second writer that narrows the LOGFONT of 32 bits first; the port read the
-face of the wide font where the narrow one has it and wrote empty names:
-"CaptionFont=" and the others in [WindowMetrics].
+icon font. USER stores each font of these structures under
+HKCU\\Control Panel\\Desktop\\WindowMetrics as the fifty bytes of a LOGFONT16
+with the height in points, through a second writer that narrows the LOGFONT
+of 32 bits first; the port read the face of the wide font where the narrow
+one has it and wrote empty names. (The test first looked for the faces in
+[WindowMetrics] of WIN.INI, where the port kept them then; Windows keeps
+nothing of this in WIN.INI.)
 
 On neo98-kms over a private copy of drive C:, with the picture of a 1024x768
 desktop in memory: Display Properties opens on Appearance, Down chooses the
-scheme after "Windows Standard", Apply applies it. Then WIN.INI names a face
-for every font of [WindowMetrics] and for IconFont of [Desktop]. The steps
-wait for the sheet and for a quiet machine, not for a time.
+scheme after "Windows Standard", Apply applies it. Then the registry has a
+face and a height in points for every font of the frame and for IconFont.
+The steps wait for the sheet and for a quiet machine, not for a time.
 
     build/analysis-venv/bin/python tools/test_appearance_scheme_host.py [--no-build] [--keep] [--kms KMS]
 """
@@ -24,6 +27,7 @@ if _sys.platform != 'linux':
 import argparse
 import os
 import shutil
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -37,18 +41,33 @@ BINARY = ROOT / 'build/native-app/neo98-kms'
 WORK = ROOT / 'build/appearance-scheme'
 APPLY = (421, 481)
 FONTS = ('CaptionFont', 'SmCaptionFont', 'MenuFont', 'StatusFont', 'MessageFont')
+# HKEY_CURRENT_USER is the key of the user under HKEY_USERS.
+METRICS = '\\Control Panel\\Desktop\\WindowMetrics'
 
 
-def section(text, name):
-    """The keys of one section of an INI file, the first of each name."""
-    values, inside = {}, False
-    for line in text.splitlines():
-        line = line.strip()
-        if line.startswith('['):
-            inside = line[1:].split(']')[0].lower() == name.lower()
-        elif inside and '=' in line:
-            key, value = line.split('=', 1)
-            values.setdefault(key.strip().lower(), value.strip())
+def stored(journal, wanted):
+    """The values the journal of the registry sets under a key that ends in `wanted`,
+    the last of each name (src/registry_persist.cpp: a record is its kind,
+    the path, for a value its name, and for a set value type, size and data)."""
+    data = journal.read_bytes() if journal.is_file() else b''
+    values, at = {}, 9
+
+    def text():
+        nonlocal at
+        length = struct.unpack_from('<H', data, at)[0]
+        at += 2 + length
+        return data[at - length:at].decode('cp1252')
+
+    while at < len(data):
+        kind = data[at]
+        at += 1
+        path = text()
+        name = text() if kind >= 3 else ''
+        if kind == 3:
+            _, size = struct.unpack_from('<II', data, at)
+            at += 8 + size
+            if path.lower().endswith(wanted.lower()):
+                values[name.lower()] = data[at - size:at]
     return values
 
 
@@ -84,8 +103,7 @@ def main():
                                  '--command', 'rundll32.exe shell32.dll,Control_RunDLL desk.cpl,,2',
                                  '--time-limit', '120'], cwd=ROOT, env=env, capture_output=True, text=True,
                                 timeout=180)
-        ini = win98_c.path('C:\\WINDOWS\\WIN.INI', drive)
-        text = ini.read_text(errors='replace') if ini else ''
+        metrics = stored(win98_c.journal(drive), METRICS)
     finally:
         if not args.keep:
             shutil.rmtree(drive, ignore_errors=True)
@@ -94,17 +112,27 @@ def main():
     (WORK / 'log.txt').write_text(log)
     stops = [line for line in log.splitlines()
              if 'no native provider' in line or 'CRASHREPORT' in line or 'not ported' in line]
-    metrics, desktop = section(text, 'WindowMetrics'), section(text, 'Desktop')
-    faces = {name: metrics.get(name.lower()) for name in FONTS}
+
+    def font(name):
+        """(points, face) of a stored LOGFONT16, or None."""
+        value = metrics.get(name.lower())
+        if not value or len(value) != 50:
+            return None
+        return struct.unpack_from('<h', value, 0)[0], value[18:].split(b'\0')[0].decode('cp1252')
+
+    faces = {name: font(name) for name in FONTS}
     timed_out = [line for line in log.splitlines() if 'timed out after' in line]
     checks = {
         f'every wait came, and the run ended before the time limit: {timed_out} {result.returncode}':
             not timed_out and result.returncode == 0,
         'Display Properties applies the scheme without a stop':
             not stops and (WORK / 'applied.png').is_file() and bool(metrics),
-        f'WIN.INI [WindowMetrics] names the face of every font: {faces}':
-            all(face and face[0].isascii() and face[0].isalpha() for face in faces.values()),
-        f'WIN.INI [Desktop] names the icon font: {desktop.get("iconfont")!r}': bool(desktop.get('iconfont')),
+        f'WindowMetrics has every font with its face and its height in points: {faces}':
+            all(entry and 4 <= entry[0] <= 72 and entry[1][:1].isalpha() for entry in faces.values()),
+        f'WindowMetrics has the icon font: {font("IconFont")!r}':
+            bool(font('IconFont')) and font('IconFont')[1][:1].isalpha(),
+        f'the sizes are stored in twips: CaptionHeight {metrics.get("captionheight")!r}':
+            metrics.get('captionheight', b'')[:1] == b'-',
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():

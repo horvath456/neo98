@@ -289,9 +289,9 @@ unsigned Application::PrintEngineEnumerate(unsigned face, unsigned callback, uns
             continue;
         if (filter[0] && !SameProfile(filter, physical))
             continue;
-        // The catalogue measures at 96 dots per inch; the engine answers at
-        // the device's.
-        auto scale = [](int value, int dpi) { return int((long long)value * dpi / 96); };
+        // The catalogue measures at the dots per inch of the display's font
+        // size, 96 with "Small Fonts"; the engine answers at the device's.
+        auto scale = [](int value, int dpi) { return int((long long)value * dpi / Gdi::Dpi().logical_y); };
         tm.tmHeight = scale(tm.tmHeight, dpi_y);
         tm.tmAscent = scale(tm.tmAscent, dpi_y);
         tm.tmDescent = scale(tm.tmDescent, dpi_y);

@@ -235,8 +235,9 @@ unsigned Application::CreateDialogTemplate(const unsigned char *data, unsigned l
         unsigned memory = Allocate(60);
         unsigned char logfont[60] = {};
         // USER: lfHeight = -MulDiv(points, LOGPIXELSY, 72), which
-        // rounds; 8 points at 96 dpi are 11 pixels, not 10.
-        int height = -(int)((definition->point * 96 + 36) / 72);
+        // rounds; 8 points at 96 dpi are 11 pixels, not 10, and 13 at the
+        // 120 of "Large Fonts" (src/gdi_display_dpi.h).
+        int height = -(int)((definition->point * unsigned(Gdi::Dpi().logical_y) + 36) / 72);
         memcpy(logfont, &height, 4);
         // USER: an extended template brings its own weight, a
         // standard one asks for FW_BOLD, the dialog font of Windows 3.x;

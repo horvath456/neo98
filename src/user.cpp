@@ -1888,6 +1888,106 @@ void DetachProcess(unsigned pid){DropExclusiveMode(pid);if(auto*p=Process(pid)){
  HandFallbacksOn(p->context,processes?processes->context:nullptr);
  class_store.LocalFree(p->owner);delete p;--process_count;}if(active_process==pid)BindTask(0,0);if(processes)return;property_cleanup=nullptr;property_context=nullptr;Shutdown();SetClipboardCallbacks(nullptr,nullptr,nullptr);SetCaretProvider(nullptr,nullptr,nullptr);SetCaretBracket(nullptr,nullptr);}
 Settings &SystemSettings() { return settings; }
+// The fonts of NONCLIENTMETRICS that USER draws with itself. USER
+// makes them when it starts and whenever SPI_SETNONCLIENTMETRICS brings new
+// ones, selects each into its screen DC and keeps the height of the cell and
+// the average width of a character (the 52 letters over 26, halved
+// and rounded, for a proportional font). From the menu font it also makes the
+// font of a default item, 200 heavier unless it is bold already.
+namespace {
+MetricFontProvider metric_font_provider = nullptr;
+Gdi::HFONT metric_fonts[4] = {}; // caption, small caption, menu, bold menu
+Settings::FontCell MeasureCell(Gdi::HFONT font)
+{
+    Settings::FontCell cell;
+    const int save = Gdi::SaveDC(screen);
+    if (!save)
+        return cell;
+    Gdi::SelectObject(screen, font);
+    Gdi::TEXTMETRICA metrics{};
+    Gdi::SIZE extent{};
+    if (Gdi::GetTextMetricsA(screen, &metrics))
+    {
+        cell.height = short(metrics.tmHeight);
+        cell.external = short(metrics.tmExternalLeading);
+        cell.overhang = short(metrics.tmOverhang);
+        cell.ascent = short(metrics.tmAscent);
+        cell.average = short(metrics.tmAveCharWidth);
+        if ((metrics.tmPitchAndFamily & 1) &&
+            Gdi::GetTextExtentPoint32A(screen, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &extent))
+            cell.average = short((extent.cx / 26 + 1) / 2);
+    }
+    Gdi::RestoreDC(screen, save);
+    return cell;
+}
+void RealizeMetricFonts()
+{
+    if (!metric_font_provider || !screen)
+        return;
+    static const unsigned handles[3] = {0x502, 0x503, 0x501};
+    Settings::FontCell *const cells[3] = {&settings.caption_cell, &settings.small_cell, &settings.menu_cell};
+    unsigned char logfont[50];
+    for (unsigned i = 0; i < 3; ++i)
+    {
+        if (!settings.Font(handles[i], logfont))
+            continue;
+        // A font that cannot be made leaves the one before it in use.
+        if (const Gdi::HFONT font = metric_font_provider(logfont))
+        {
+            if (metric_fonts[i])
+                Gdi::DeleteObject(metric_fonts[i]);
+            metric_fonts[i] = font;
+        }
+        if (metric_fonts[i])
+            *cells[i] = MeasureCell(metric_fonts[i]);
+    }
+    if (metric_fonts[3])
+        Gdi::DeleteObject(metric_fonts[3]);
+    metric_fonts[3] = 0;
+    if (settings.Font(0x501, logfont))
+    {
+        unsigned weight = logfont[8] | unsigned(logfont[9]) << 8;
+        if (weight < 700)
+        {
+            weight += 200;
+            logfont[8] = (unsigned char)weight;
+            logfont[9] = (unsigned char)(weight >> 8);
+            metric_fonts[3] = metric_font_provider(logfont);
+        }
+    }
+}
+void ReleaseMetricFonts()
+{
+    for (auto &font : metric_fonts)
+    {
+        if (font)
+            Gdi::DeleteObject(font);
+        font = 0;
+    }
+}
+} // namespace
+void SetMetricFontProvider(MetricFontProvider provider) { metric_font_provider = provider; }
+unsigned MetricFont(unsigned handle)
+{
+    const Gdi::HFONT font = handle == 0x502 ? metric_fonts[0] : handle == 0x503 ? metric_fonts[1]
+                          : handle == 0x501 ? metric_fonts[2]
+                          : handle == 0x507 ? (metric_fonts[3] ? metric_fonts[3] : metric_fonts[2]) : 0;
+    return font ? font : system_font;
+}
+void ApplyNonClientMetrics(Win98Metrics::NonClient sizes)
+{
+    RealizeMetricFonts();
+    Win98Metrics::HoldNonClient(settings, sizes,
+                                {settings.caption_cell.height, settings.small_cell.height,
+                                 settings.menu_cell.height + settings.menu_cell.external});
+    Win98Metrics::ApplyNonClientMetrics(settings, sizes);
+    // SM_CXMENUCHECK and SM_CYMENUCHECK, the square of a menu's check mark
+    // (USER): the border, the external leading and the height of the
+    // menu font, made even, less one.
+    const unsigned check = unsigned(((settings.Word(0x2ea) + settings.menu_cell.external +
+                                      settings.menu_cell.height) & ~1) - 1);
+    settings.metrics[71] = settings.metrics[72] = (unsigned short)check;
+}
 namespace { InstanceVersion instance_version = nullptr; }
 void SetInstanceVersionProvider(InstanceVersion provider) { instance_version = provider; }
 void ConfigureVersion(unsigned version) { settings.expected = version;if(auto*p=Process(active_process))p->version=version; }
@@ -1954,6 +2054,7 @@ void Shutdown()
     settings.wallpaper_bitmap = settings.wallpaper_style = 0;
     settings.wallpaper_checked = false;
     ResetPointerOverlay();
+    ReleaseMetricFonts();
     if (system_font) Gdi::DeleteObject(system_font); system_font = 0;
     delete[] published_frame; published_frame = nullptr;
     ReleaseScreen(); queued = focus = open_menu = press_owner = 0;for(auto&slot:capture_slots)slot={};capture_globals={};automatic_capture=false;capture_serial=0; class_store.Reset();
