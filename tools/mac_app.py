@@ -475,7 +475,10 @@ def build_app(build=True, target=APP):
                 subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, str(path)],
                                check=True, capture_output=True)
     # The program carries the entitlement of Hypervisor.framework: ARM64
-    # programs run in a machine of that framework (docs/ARM64-APPS.md).
+    # programs run in a machine of that framework (docs/ARM64-APPS.md). With
+    # the hardened runtime of a release, the camera and the microphone also
+    # need theirs: without them macOS answers every capture with nothing,
+    # whatever the user allowed.
     subprocess.run(['codesign', '--force', '--sign', identity, *signing_options, '--entitlements',
                     str(ROOT / 'tools/arm64_hypervisor.entitlements'), str(staging)], check=True, capture_output=True)
     subprocess.run(['codesign', '--verify', '--deep', '--strict', str(staging)], check=True, capture_output=True)

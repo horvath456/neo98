@@ -258,6 +258,11 @@ def main():
     signed = subprocess.run(['codesign', '-d', '--entitlements', '-', str(app)], capture_output=True, text=True)
     check('the signature carries the hypervisor entitlement',
           'com.apple.security.hypervisor' in signed.stdout + signed.stderr)
+    # The hardened runtime of a release gives the camera and the microphone
+    # only to a program that has their entitlements.
+    check('the signature carries the camera and microphone entitlements',
+          all(key in signed.stdout + signed.stderr
+              for key in ('com.apple.security.device.camera', 'com.apple.security.device.audio-input')))
     # Nothing of the installation is in the bundle: not the product
     # key, not the product id, not the registry image made from its hives.
     wanted = installation_values(machine / 'C')

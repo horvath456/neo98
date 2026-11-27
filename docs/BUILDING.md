@@ -182,5 +182,5 @@ NEO98_SIGN_IDENTITY='Developer ID Application: Your Name (TEAMID)' \
 ```
 
 The script signs the app with the hardened runtime and the entitlements in
-`tools/arm64_hypervisor.entitlements`, has Apple notarize it, and does the
-same for the disk image.
+`tools/arm64_hypervisor.entitlements` (Hypervisor.framework, the camera and
+the microphone), has Apple notarize it, and does the same for the disk image.
