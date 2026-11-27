@@ -7729,14 +7729,26 @@ unsigned Application::Api(ApiName name, const unsigned *a)
     API(MapWindowPoints) return CoordinatesApi(name,a);
     API(MessageBeep)
     {
-        // A type of -1 beeps the PC speaker. Every other type plays the sound
-        // registered for the event and falls back to the same beep when there
-        // is none. On Windows 98 the beep is a 748 Hz tone on the speaker.
-        // NEO98 carries no registered event sounds, so every type ends at that
-        // beep, and the answer is one whatever happened.
+        // USER: nothing at all while the beep is off (SPI_SETBEEP, "Beep" of
+        // HKCU\\Control Panel\\Sound). A type of -1 beeps the PC speaker.
+        // Every other type plays the sound the scheme has for its event:
+        // bits 4 to 7 of the type choose among the default sound, the hand,
+        // the question, the exclamation and the asterisk, anything above
+        // that is the default sound. Without a sound for the event it is
+        // the same beep. On Windows 98 the beep is a 748 Hz tone on the
+        // speaker; the answer is one whatever happened.
         // The length of the delay loop depends on the machine; it was a few
         // milliseconds on a fast Pentium and about forty on a 386, and this
         // port takes the upper figure so the tone is audible at all.
+        if (!BeepEnabled())
+            return 1;
+        if (a[0] != 0xffffffffu)
+        {
+            unsigned event = (a[0] & 0xf0) >> 4;
+            if (event >= 5) event = 0;
+            if (PlaySoundEvent(0x91 + event))
+                return 1;
+        }
         Sound::Speaker::Tone(748, 40);
         return 1;
     }

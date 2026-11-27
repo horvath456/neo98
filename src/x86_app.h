@@ -4335,6 +4335,9 @@ private:
     unsigned User32GateApi(ApiName, const unsigned *);
     unsigned PlaySoundEvent(unsigned id);
     bool ThreadHung(unsigned thread_id, unsigned milliseconds);
+    void PlayMenuSounds(); // src/x86_menu_tracking.cpp
+    static unsigned MenuShowDelayTime(); // src/x86_control_panel.inc
+    unsigned PlayEventSound(unsigned name, unsigned flags); // src/x86_wave_out.cpp
     unsigned DragDetect(unsigned hwnd, int x, int y);
     unsigned DragObject(unsigned parent, unsigned from, unsigned format, unsigned data, unsigned cursor);
     // Depth of keybd_event, mouse_event and SendInput: their input passes a

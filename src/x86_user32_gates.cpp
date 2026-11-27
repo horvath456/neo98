@@ -298,8 +298,11 @@ unsigned Application::PlaySoundEvent(unsigned id)
     if (!text)
         return 0;
     Store(text, alias, (unsigned)strlen(alias) + 1);
-    const unsigned play[3] = {text, 0, flags};
-    const unsigned result = Api("PlaySoundA", play);
+    // USER hands the event to the routine MMSYSTEM registered with it, not
+    // to PlaySound of WINMM, which refuses the bit 10000000h of these flags
+    // with everything else outside its own mask: so no event of USER ever
+    // sounded here.
+    const unsigned result = PlayEventSound(text, flags);
     Free(text);
     return result;
 }

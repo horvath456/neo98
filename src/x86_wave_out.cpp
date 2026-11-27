@@ -1044,6 +1044,26 @@ unsigned Application::PlaySessionSound(const char *alias, bool wait)
     return result;
 }
 
+// The sound of an event of USER (Application::PlaySoundEvent): the alias of
+// the scheme with the flags USER gives the play routine of MMSYSTEM. Bit
+// 10000000h belongs to that routine alone; the rest are flags of PlaySound.
+// One when the sound plays, nought without a file for the event
+// (SND_NODEFAULT is always among the flags) or while SND_NOSTOP keeps a
+// running one.
+unsigned Application::PlayEventSound(unsigned name, unsigned flags)
+{
+    const unsigned empty = 0;
+    if (!WaveOutApi("waveOutGetNumDevs", &empty)) return 0;
+    const unsigned answer = PlaySoundWorker(name, 0, flags & ~0x10000000u);
+    if (log)
+    {
+        char text[256];
+        snprintf(text, sizeof text, "SOUND event name=%s flags=%08x result=%u", ReadString(name), flags, answer);
+        log(text);
+    }
+    return answer == NoError;
+}
+
 void Application::PlayStartupSound()
 {
     PlaySessionSound("SystemStart", false);

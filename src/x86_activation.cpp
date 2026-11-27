@@ -1220,6 +1220,7 @@ unsigned Application::KeyMenuCommand(unsigned hwnd, unsigned lp)
     const bool kept = gate && PushHostFrame(HostBarMenu, 1);
     User::KeyMenu(target, system, lp & 0xffff);
     if (kept) PopHostFrame();
+    PlayMenuSounds();
     if (User::MenuBeepRequest())
     {
         const unsigned beep = 0;
@@ -1425,12 +1426,21 @@ unsigned Application::DefaultWindowMessage(unsigned hwnd, unsigned message, unsi
         {
         case 0xf060:
             Send(hwnd, 0x10, 0, 0); return 0;
+        // USER plays the event of each before it changes the window:
+        // "Minimize", "Maximize", and for SC_RESTORE "RestoreDown" from the
+        // maximized state and "RestoreUp" from the minimized one.
         case 0xf020:
+            PlaySoundEvent(0x97);
             ShowWindow(hwnd, 6); return 0;
         case 0xf030:
+            PlaySoundEvent(0x96);
             ShowWindow(hwnd, 3); return 0;
         case 0xf120:
+        {
+            const unsigned style = User::Style(hwnd);
+            PlaySoundEvent(!(style & 0x20000000u) && (style & 0x01000000u) ? 0x99 : 0x98);
             ShowWindow(hwnd, 9); return 0;
+        }
         }
     }
     // A nonclient right-button press applies only to the active window at

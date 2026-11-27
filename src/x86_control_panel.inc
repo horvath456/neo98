@@ -89,6 +89,9 @@ bool Application::BeepEnabled() { return User::SystemSettings().beep != 0; }
 // bits 5 and 6 the delay in quarters of a second less one. The controller
 // counts the rate the other way round, 0 the fastest: a period of
 // (8 + A) * 2^B * 4.17 ms with A the low three bits and B the next two, which
+// The time a pointer rests on an item before its submenu opens
+// (SPI_SETMENUSHOWDELAY), in milliseconds.
+unsigned Application::MenuShowDelayTime() { return User::SystemSettings().menu_show_delay; }
 // is 30 characters a second at one end and 2 at the other.
 unsigned Application::TypematicDelay(unsigned word) { return (((word >> 5) & 3) + 1) * 250000u; }
 unsigned Application::TypematicPeriod(unsigned word)

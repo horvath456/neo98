@@ -5,11 +5,20 @@ namespace X86 {
 // The system timer USER sets on a popup window for the submenu under a
 // resting pointer, and the delay of SPI_GETMENUSHOWDELAY on Win98 (400 ms,
 // "MenuShowDelay" of Control Panel\Desktop).
-static constexpr unsigned MenuShowTimer=0xfffe,MenuShowDelay=400;
+static constexpr unsigned MenuShowTimer=0xfffe;
+// USER plays the event "MenuPopup" when it shows a popup and "MenuCommand"
+// when an item is chosen, before the command goes out. The menu code notes
+// both; they sound here, on the program's side.
+void Application::PlayMenuSounds(){
+ const unsigned sounds=User::MenuSoundRequest();
+ if(sounds&1)PlaySoundEvent(0x9e);
+ if(sounds&2)PlaySoundEvent(0x9d);
+}
 unsigned Application::RunMenuLoop(){
  auto&t=threads[current_thread];const unsigned thread=current_thread;
  bool kept=false,idle_sent=false;unsigned menu_frame=~0u;
- const auto finish_turn=[&](){if(User::MenuBeepRequest()){const unsigned beep=0;Api("MessageBeep",&beep);}};
+ const unsigned MenuShowDelay=MenuShowDelayTime();
+ const auto finish_turn=[&](){PlayMenuSounds();if(User::MenuBeepRequest()){const unsigned beep=0;Api("MessageBeep",&beep);}};
  if(t.host_resume&&t.host_resume_at<t.host_frame_count&&t.host_frames[t.host_resume_at].kind==HostMenu){
   menu_frame=t.host_resume_at;idle_sent=t.host_frames[menu_frame].a!=0;
   kept=true;if(++t.host_resume_at>=t.host_frame_count)t.host_resume=false;
@@ -99,6 +108,7 @@ unsigned Application::MenuTrackingApi(ApiName name,const unsigned*a){
  const bool gate=TakeFresh();
  const bool kept=gate&&PushHostFrame(HostPopupMenu,a[1]);
  const unsigned result=User::TrackPopup(a[0],a[1],int(a[2]),int(a[3]),owner,rectangle);
+ PlayMenuSounds();
  if(kept)PopHostFrame();return result;
 }
 }

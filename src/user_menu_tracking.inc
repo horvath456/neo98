@@ -25,6 +25,10 @@ BarSession bar_session;
 // MessageBeep of the menu code, played by the caller
 // on the program's side.
 bool menu_beep=false;
+// The two sounds of the menu code, "MenuPopup" when a popup is shown and
+// "MenuCommand" when an item is chosen, for the caller to play as well: 1
+// and 2.
+unsigned menu_sounds=0;
 PopupView*PopupForWindow(unsigned h){for(auto&v:popup_views)if(v.used&&v.popup.window==h)return &v;return nullptr;}
 PopupView*PopupForMenu(unsigned h){for(auto&v:popup_views)if(v.used&&v.popup.menu==h)return &v;return nullptr;}
 PopupView*PopupForCore(MT::Popup&p){for(auto&v:popup_views)if(v.used&&&v.popup==&p)return &v;return nullptr;}
@@ -126,7 +130,7 @@ struct PopupEnvironment : MT::Environment {
  MT::W CurrentThread()override{return menu_thread?MT::W(menu_thread(CurrentContext(menu_context))):1;}MT::W WindowThread(unsigned h)override{return MT::W(User::WindowThread(h));}
  MT::Session*CurrentSession()override{return PopupSession();}bool IsWindow(unsigned h)override{return User::IsWindow(h);}bool IsMenu(unsigned h)override{return User::IsMenu(h);}
  MT::W MenuFlags(unsigned h)override{auto*m=FindMenu(h);return m?m->flags:0;}bool ButtonDown(MT::W button)override{return User::PhysicalKeyDown(button);}
- MT::Popup*CreatePopup(unsigned menu,unsigned owner,MT::Point at,bool owned)override{if(!FindMenu(menu)||!User::IsWindow(owner))return nullptr;FindMenu(menu)->flags|=1;for(auto&v:popup_views)if(!v.used){unsigned h=User::CreateWindow("#32768","",0x80000000,at.x,at.y,100,100,owned?owner:0,0,0,CurrentThread());if(!h)return nullptr;v=PopupView{};v.used=true;v.bar_menu=creating_bar;v.bar_index=creating_index;creating_bar=creating_index=0;v.popup.owner=owner;v.popup.menu=menu;v.popup.window=h;v.popup.signature=0x5550;v.geometry.popup_class=true;return &v.popup;}return nullptr;}
+ MT::Popup*CreatePopup(unsigned menu,unsigned owner,MT::Point at,bool owned)override{if(!FindMenu(menu)||!User::IsWindow(owner))return nullptr;FindMenu(menu)->flags|=1;menu_sounds|=1;for(auto&v:popup_views)if(!v.used){unsigned h=User::CreateWindow("#32768","",0x80000000,at.x,at.y,100,100,owned?owner:0,0,0,CurrentThread());if(!h)return nullptr;v=PopupView{};v.used=true;v.bar_menu=creating_bar;v.bar_index=creating_index;creating_bar=creating_index=0;v.popup.owner=owner;v.popup.menu=menu;v.popup.window=h;v.popup.signature=0x5550;v.geometry.popup_class=true;return &v.popup;}return nullptr;}
  MT::Session*BeginSession(MT::Popup&p,MT::W thread)override{if(popup_depth==8)return nullptr;auto&s=popup_sessions[popup_depth++];ClearPopupInput(&s);s={};s.current=&p;s.owner=p.owner;s.thread=thread;if(auto*v=PopupForCore(p))v->session=&s;return &s;}
  void FinishSession(MT::Session*s)override{if(s){ClearPopupInput(s);for(auto&v:popup_views)if(v.used&&v.session==s){CloseSubmenus(*s,v.popup);unsigned h=v.popup.window;ReleasePopupPixels(v);v.used=false;if(User::IsWindow(h))User::DestroyWindow(h);}}if(s&&popup_depth&&s==&popup_sessions[popup_depth-1]){*s={};--popup_depth;}dirty=true;}
  unsigned Send(unsigned h,MT::W message,MT::W wp,unsigned lp)override{
@@ -187,7 +191,7 @@ void OpenPopupChild(PopupView&opener,bool keyboard){PopupView*parent=&opener;aut
 }
 
 void ClosePopupParent(PopupView&v){if(!v.parent){MT::End(popup_environment);return;}auto*parent=PopupForWindow(v.parent);if(auto*s=PopupSession())popup_environment.CloseSubmenus(*s,parent?parent->popup:v.popup);if(parent)dirty=true;}
-void ActivatePopupItem(PopupView&v,bool keyboard){auto*m=FindMenu(v.popup.menu);auto*s=PopupSession();if(!s)return;int index=v.popup.selected;if(!m||index<0||unsigned(index)>=m->count){if(keyboard)MT::Close(popup_environment,*s,0,0,0);return;}const auto item=m->items[index];if(item.state&3){if(keyboard)MT::Close(popup_environment,*s,0,0,0);return;}if(item.submenu){OpenPopupChild(v,keyboard);return;}MT::Close(popup_environment,*s,(s->current->flags&4)?0x112:0x111,item.id,0);}
+void ActivatePopupItem(PopupView&v,bool keyboard){auto*m=FindMenu(v.popup.menu);auto*s=PopupSession();if(!s)return;int index=v.popup.selected;if(!m||index<0||unsigned(index)>=m->count){if(keyboard)MT::Close(popup_environment,*s,0,0,0);return;}const auto item=m->items[index];if(item.state&3){if(keyboard)MT::Close(popup_environment,*s,0,0,0);return;}if(item.submenu){OpenPopupChild(v,keyboard);return;}menu_sounds|=2;MT::Close(popup_environment,*s,(s->current->flags&4)?0x112:0x111,item.id,0);}
 }
 void SetMenuCallbacks(void*c,MenuSend send,MenuLoop loop,MenuThread thread){menu_context=c;menu_send=send;menu_loop=loop;menu_thread=thread;}
 // The check mark, the bullet of a radio item and the arrow of a submenu as
@@ -262,7 +266,7 @@ void BarExecute(bool keyboard){
  auto*m=BarMenu();if(!m||index<0||unsigned(index)>=m->count){BarEnd();return;}
  const auto item=m->items[index];
  if(item.submenu){if(item.state&3){menu_beep=true;BarEnd();return;}BarOpen(index,keyboard);return;}
- BarEnd();if(!(item.state&3))PostMessage(bar_session.owner,0x111,item.id,0);
+ BarEnd();if(!(item.state&3)){menu_sounds|=2;PostMessage(bar_session.owner,0x111,item.id,0);}
 }
 // on the bar: the items whose mnemonic is the character. One enabled
 // item executes, several are stepped through, only disabled ones end the
@@ -289,6 +293,7 @@ void BarCharacter(unsigned character){
 bool SystemIconSelected(HWND h){return bar_session.active&&bar_session.owner==h&&bar_session.index==BarSystem&&bar_session.system;}
 bool BarModeActive(){return bar_session.active&&bar_session.bar_only&&!bar_session.leave&&User::IsWindow(bar_session.owner);}
 bool MenuBeepRequest(){const bool beep=menu_beep;menu_beep=false;return beep;}
+unsigned MenuSoundRequest(){const unsigned sounds=menu_sounds;menu_sounds=0;return sounds;}
 // Handle keyboard input while the menu bar is active.
 bool BarInputMessage(const Message&m){
  if(m.message==0x100||m.message==0x104){
@@ -393,7 +398,7 @@ unsigned MouseMenu(HWND owner,int x,int y){
  for(unsigned j=0;j<w->menu_items&&j<m->count;++j)if(Inside(w->menu_item[j],x-o.x,y-o.y)){
   const auto&item=m->items[j];
   if(MenuFlags(item)&0x803)return 0;
-  if(!item.submenu){PostMessage(owner,0x111,item.id,0);return 0;}
+  if(!item.submenu){menu_sounds|=2;PostMessage(owner,0x111,item.id,0);return 0;}
   return TrackMenuBar(w->menu,j,o.x+w->menu_item[j].left,o.y+w->menu_item[j].bottom,owner);
  }
  return 0;
