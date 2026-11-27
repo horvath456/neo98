@@ -363,10 +363,61 @@ unsigned ContinueBarSession(){
 // One menu mode of a bar. index is the item to
 // select first, open whether its popup drops at once, character the letter
 // of ALT+letter (0 for ALT or F10 alone).
+// USER sets the states of a window's system menu from the window each time
+// the menu is about to be shown: when a menu loop of the window starts and
+// before the context menu of the caption. The states a program reads
+// between two openings are those of the last one.
+//   Restore   enabled for a minimized window and for a maximized one that
+//             has WS_MAXIMIZEBOX
+//   Move      grayed for a minimized window of the taskbar and for a
+//             maximized one that is as large as a maximized window is
+//   Size      enabled with WS_THICKFRAME, neither minimized nor maximized
+//   Minimize  enabled with WS_MINIMIZEBOX, not minimized
+//   Maximize  enabled with WS_MAXIMIZEBOX, not maximized
+// A dialog frame without the boxes (WS_DLGFRAME alone, or
+// WS_EX_DLGMODALFRAME) keeps its four size items, a tool window the three
+// of the boxes. The default item is Close, Restore for a minimized window.
+void PrepareSystemMenu(HWND h){
+ auto*w=Find(h);if(!w||h==Desktop||!(w->style&0x80000u))return;
+ auto*root=FindMenu(w->system_menu);if(!root||!root->count)return;
+ const HMENU menu=root->items[0].submenu;if(!FindMenu(menu))return;
+ const unsigned style=w->style,extended=w->extended;
+ const bool dialog=(style&0xc00000u)==0x400000u||(extended&1);
+ unsigned size=0,move=0,minimize=0,maximize=0,restore=3,chosen=0xf060;
+ if(style&0x20000000u){
+  restore=0;minimize=3;size=3;chosen=0xf120;
+  // A minimized window the taskbar shows has no place on the screen.
+  if(!(style&0x40000000u)&&((extended&0x40000u)||(!(extended&0x80u)&&!w->owner)))move=3;
+ }else if(!(style&0x20000u))minimize=3;
+ if(!(style&0x10000u))maximize=3;
+ else if(style&0x1000000u){
+  restore=0;move=3;
+  if(!(style&0x40000000u)){
+   // Smaller than a maximized window is (a program's WM_GETMINMAXINFO):
+   // it can still be moved.
+   // The work area and the frame that a maximized window has outside it.
+   Win98MinMax::Info limits{};
+   if(MinMaxDefaults(h,limits)){
+    const int wide=settings.work[2]-settings.work[0]+limits.max_size.x-(settings.monitor[2]-settings.monitor[0]);
+    const int high=settings.work[3]-settings.work[1]+limits.max_size.y-(settings.monitor[3]-settings.monitor[1]);
+    if(w->width<wide||w->height<high)move=0;
+   }
+  }
+  maximize=3;size=3;
+ }
+ if(!(style&0x40000u))size=3;
+ if(!dialog){
+  SetMenuFlags(menu,0xf000,size,false,3);
+  if(!(extended&0x80u)){SetMenuFlags(menu,0xf020,minimize,false,3);SetMenuFlags(menu,0xf030,maximize,false,3);SetMenuFlags(menu,0xf120,restore,false,3);}
+ }
+ SetMenuFlags(menu,0xf010,move,false,3);
+ SetMenuDefault(menu,chosen,false);
+}
 unsigned RunBarSession(HWND owner,HMENU bar,HMENU system,int index,bool keyboard,bool open,unsigned character){
  if(bar_session.active||PopupSession()||!menu_loop||!User::IsWindow(owner))return 0;
  if(bar&&!FindMenu(bar))bar=0;if(system&&!FindMenu(system))system=0;
  if(!bar&&!system)return 0;
+ if(system)PrepareSystemMenu(owner);
  bar_session=BarSession{};bar_session.active=true;bar_session.owner=owner;bar_session.bar=bar;bar_session.system=system;
  bar_session.index=index;bar_session.open=open;bar_session.keyboard=keyboard;
  BarSend(0x211,0,0);                 // WM_ENTERMENULOOP, not a TrackPopupMenu

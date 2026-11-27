@@ -1053,6 +1053,7 @@ unsigned Application::ContextMenuOfFrame(unsigned hwnd, unsigned lp)
     const unsigned menu = Api("GetSystemMenu", arguments);
     if (!menu)
         return 0;
+    User::PrepareSystemMenu(hwnd);
     User::SetMenuDefault(menu, command, false);
     User::TrackPopup(menu, 0x202, x, y, hwnd);
     return 0;

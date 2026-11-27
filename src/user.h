@@ -561,6 +561,7 @@ bool DrawMenuBar(HWND, bool layout=true);
 int DrawMenuBarTemp(HWND owner, Gdi::HDC dc, Gdi::RECT rect, HMENU menu, Gdi::HFONT font); // USER
 HMENU SystemMenuRoot(HWND);
 bool SetSystemMenuRoot(HWND, HMENU);
+void PrepareSystemMenu(HWND);
 HMENU GetSubMenu(HMENU, unsigned index);
 unsigned SetMenuFlags(HMENU, unsigned item, unsigned flags, bool by_position, unsigned mask);
 using MenuSend=unsigned(*)(void*,unsigned,unsigned,unsigned,unsigned);
