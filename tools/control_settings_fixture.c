@@ -144,6 +144,8 @@ static void read_all(void)
     line("menu show delay result", SystemParametersInfoA(SPI_GETMENUSHOWDELAY, 0, &value, 0));
     line("menu show delay", value);
     line("swapped", GetSystemMetrics(SM_SWAPBUTTON));
+    line("icon spacing", GetSystemMetrics(SM_CXICONSPACING));
+    line("icon vertical spacing", GetSystemMetrics(SM_CYICONSPACING));
     line("colour background", GetSysColor(COLOR_BACKGROUND));
     line("colour window", GetSysColor(COLOR_WINDOW));
     line("colour button face", GetSysColor(COLOR_BTNFACE));
@@ -189,6 +191,8 @@ void mainCRTStartup(void)
         line("set wheel lines", SystemParametersInfoA(SPI_SETWHEELSCROLLLINES, 5, 0, keep));
         line("set menu show delay", SystemParametersInfoA(SPI_SETMENUSHOWDELAY, 250, 0, keep));
         line("set mouse button swap", SystemParametersInfoA(SPI_SETMOUSEBUTTONSWAP, 1, 0, keep));
+        line("set icon spacing", SystemParametersInfoA(SPI_ICONHORIZONTALSPACING, 90, 0, keep));
+        line("set icon vertical spacing", SystemParametersInfoA(SPI_ICONVERTICALSPACING, 20, 0, keep));
         line("changes", changes);
         // The Keyboard page: SetCaretBlinkTime, and the value USER reads at
         // its next start.

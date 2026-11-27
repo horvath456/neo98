@@ -1220,6 +1220,7 @@ private:
     bool ScrollRegionCopy(unsigned dc, const Gdi::RECT &destination, unsigned region,
                           int logical_dx, int logical_dy);
     unsigned SystemParameters(const unsigned *);
+    unsigned SystemParametersService(const unsigned *a);
     unsigned FontSmoothingParameters(const unsigned *);
     void LoadUserStartSettings();
     // src/x86_control_panel.inc
@@ -4334,10 +4335,10 @@ private:
     // src/x86_user32_gates.cpp: the USER.EXE gates of phase 2 of branch dlls.
     unsigned User32GateApi(ApiName, const unsigned *);
     unsigned PlaySoundEvent(unsigned id);
-    bool ThreadHung(unsigned thread_id, unsigned milliseconds);
     void PlayMenuSounds(); // src/x86_menu_tracking.cpp
     static unsigned MenuShowDelayTime(); // src/x86_control_panel.inc
     unsigned PlayEventSound(unsigned name, unsigned flags); // src/x86_wave_out.cpp
+    bool ThreadHung(unsigned thread_id, unsigned milliseconds);
     unsigned DragDetect(unsigned hwnd, int x, int y);
     unsigned DragObject(unsigned parent, unsigned from, unsigned format, unsigned data, unsigned cursor);
     // Depth of keybd_event, mouse_event and SendInput: their input passes a

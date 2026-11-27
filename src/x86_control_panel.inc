@@ -19,6 +19,11 @@ constexpr char ControlMouse[] = "Control Panel\\Mouse";
 constexpr char ControlKeyboard[] = "Control Panel\\Keyboard";
 constexpr char ControlSound[] = "Control Panel\\Sound";
 constexpr char ControlColors[] = "Control Panel\\Colors";
+constexpr char ControlMetrics[] = "Control Panel\\Desktop\\WindowMetrics";
+// The dots per inch USER converts a stored size with (its word of the
+// display's LOGPIXELS): a size of WindowMetrics is twips when negative, 1440
+// to the inch, as LoadWindowMetrics in src/x86_user.cpp reads the others.
+constexpr int ControlDotsPerInch = 96;
 // The names of the system colours, strings 32 to 60 of USER; the colour of
 // index i is stored under the name i.
 const char *const ControlColorNames[29] = {
@@ -84,14 +89,14 @@ bool StoreControlNumber(const char *path, const char *name, int number)
 }
 } // namespace
 bool Application::BeepEnabled() { return User::SystemSettings().beep != 0; }
+// The time a pointer rests on an item before its submenu opens
+// (SPI_SETMENUSHOWDELAY), in milliseconds.
+unsigned Application::MenuShowDelayTime() { return User::SystemSettings().menu_show_delay; }
 // The typematic setting of the keyboard as the controller takes it: the
 // low five bits of the word are the speed, 0 the slowest and 31 the fastest,
 // bits 5 and 6 the delay in quarters of a second less one. The controller
 // counts the rate the other way round, 0 the fastest: a period of
 // (8 + A) * 2^B * 4.17 ms with A the low three bits and B the next two, which
-// The time a pointer rests on an item before its submenu opens
-// (SPI_SETMENUSHOWDELAY), in milliseconds.
-unsigned Application::MenuShowDelayTime() { return User::SystemSettings().menu_show_delay; }
 // is 30 characters a second at one end and 2 at the other.
 unsigned Application::TypematicDelay(unsigned word) { return (((word >> 5) & 3) + 1) * 250000u; }
 unsigned Application::TypematicPeriod(unsigned word)
@@ -164,6 +169,22 @@ void Application::LoadControlPanelSettings()
     for (const auto &metric : metrics)
         settings.SetWord(metric.offset,
                          (unsigned short)ControlNumber(ControlDesktop, metric.name, settings.Word(metric.offset)));
+    // The grid of the icons, system metrics 38 and 39: twips when negative,
+    // never below the size of an icon (metrics 11 and 12).
+    static const struct { const char *name; unsigned offset, least; } spacing[] = {
+        {"IconSpacing", 0x32a, 0x2f4}, {"IconVerticalSpacing", 0x32c, 0x2f6}};
+    for (const auto &entry : spacing)
+    {
+        int size = ControlNumber(ControlMetrics, entry.name, 0);
+        if (!size)
+            continue;
+        if (size < 0)
+            size = (-size * ControlDotsPerInch + 720) / 1440;
+        if (size < int(settings.Word(entry.least)))
+            size = settings.Word(entry.least);
+        if (size <= 0x7fff)
+            settings.SetWord(entry.offset, (unsigned short)size);
+    }
     // The beep is on unless the value starts with something else than the
     // 'Y' of the built-in "Yes", in either case.
     char beep[4];
@@ -248,6 +269,25 @@ bool Application::ControlPanelParameters(const unsigned *a, unsigned &result)
         settings.keyboard = (unsigned short)((value << 5) | (settings.keyboard & 0xff9fu));
         settings.typematic = true;
         return finish(ControlKeyboard, "KeyboardDelay", (short)value);
+    case 13: // SPI_ICONHORIZONTALSPACING
+    case 24: // SPI_ICONVERTICALSPACING
+    {
+        // With a pointer the action answers the spacing (the read branch);
+        // without one it sets it: nothing for 0, never below the size of an
+        // icon, and stored in twips, negative, under WindowMetrics.
+        if (a[2])
+            return false;
+        result = 1;
+        if (!value)
+            return true;
+        const unsigned least = settings.Word(action == 13 ? 0x2f4 : 0x2f6);
+        const unsigned size = value < least ? least : value;
+        settings.SetWord(action == 13 ? 0x32a : 0x32c, (unsigned short)size);
+        if (store && StoreControlNumber(ControlMetrics, action == 13 ? "IconSpacing" : "IconVerticalSpacing",
+                                        -int(size * 1440 / ControlDotsPerInch)) && (a[3] & 2))
+            BroadcastMessage(Win98Broadcast::Send, 0x1a, action, 0);
+        return true;
+    }
     case 28: // SPI_SETMENUDROPALIGNMENT
         settings.SetWord(0x32e, value ? 1 : 0);
         return finish(ControlDesktop, "MenuDropAlignment", (short)value);

@@ -12,6 +12,7 @@
 #include "win98_profile_struct.h"
 #include "x86_app.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 namespace X86
 {
@@ -308,7 +309,23 @@ unsigned Application::ScreenSaveParameters(const unsigned *a)
         BroadcastMessage(Win98Broadcast::Send, 0x1a, action, 0);
     return 1;
 }
+// NEO98_TRACE_SETTINGS=1 logs every call of SystemParametersInfo with its
+// answer, one line each: which actions a program (an applet of the Control
+// Panel) uses, and which of them the port refuses.
 unsigned Application::SystemParameters(const unsigned *a)
+{
+    static const bool trace = getenv("NEO98_TRACE_SETTINGS") != nullptr;
+    const unsigned result = SystemParametersService(a);
+    if (trace && log)
+    {
+        char text[160];
+        snprintf(text, sizeof text, "SETTINGS SystemParametersInfo action=%u param=%u pointer=%08x flags=%u result=%u",
+                 a[0], a[1], a[2], a[3], result);
+        log(text);
+    }
+    return result;
+}
+unsigned Application::SystemParametersService(const unsigned *a)
 {
     // This is a native Win32 adapter. The original USER32 fast-thunk machinery
     // is replaced, while the selected USER.EXE query branches run as ARM code.
