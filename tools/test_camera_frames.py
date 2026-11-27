@@ -5,7 +5,9 @@
 tools/test_camera_frames.mm: CopyFrame (tools/host_devices/platform.h) scales a picture of
 1280x720, 1920x1080, 1760x1328 or 1080x1920 down into the 640x480 frame Windows reads, keeping
 its proportions, instead of dropping it; on macOS the platform of tools/host_devices/macos.mm
-lists every camera AVFoundation has. No camera is opened and macOS is never asked for access.
+lists every camera AVFoundation has, and offers Windows the removable volumes Finder shows, not
+the hidden ones macOS mounts itself (the runtimes of the iOS Simulator). No camera is opened
+and macOS is never asked for access.
 
     build/analysis-venv/bin/python tools/test_camera_frames.py
 """

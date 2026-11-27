@@ -187,12 +187,17 @@ public:
         (void)error;
         }
         media.clear();
-        NSArray<NSURL*> *volumes=[NSFileManager.defaultManager mountedVolumeURLsIncludingResourceValuesForKeys:@[NSURLVolumeIsRemovableKey,NSURLVolumeIsEjectableKey,NSURLVolumeIsReadOnlyKey,NSURLVolumeNameKey,NSURLVolumeLocalizedFormatDescriptionKey,NSURLVolumeTotalCapacityKey] options:0];
+        // Only the volumes Finder shows: macOS mounts some removable ones
+        // hidden (MNT_DONTBROWSE), such as the runtimes of the iOS Simulator
+        // under /private/var/run/com.apple.security.cryptexd/mnt, and those
+        // are no medium of the user's.
+        NSArray<NSURL*> *volumes=[NSFileManager.defaultManager mountedVolumeURLsIncludingResourceValuesForKeys:@[NSURLVolumeIsRemovableKey,NSURLVolumeIsEjectableKey,NSURLVolumeIsBrowsableKey,NSURLVolumeIsReadOnlyKey,NSURLVolumeNameKey,NSURLVolumeLocalizedFormatDescriptionKey,NSURLVolumeTotalCapacityKey] options:NSVolumeEnumerationSkipHiddenVolumes];
         for(NSURL *url in volumes)
         {
-            NSNumber *removable=nil,*ejectable=nil,*readonly=nil;NSString *name=nil,*format=nil;
+            NSNumber *removable=nil,*ejectable=nil,*browsable=nil,*readonly=nil;NSString *name=nil,*format=nil;
             [url getResourceValue:&removable forKey:NSURLVolumeIsRemovableKey error:nil];[url getResourceValue:&ejectable forKey:NSURLVolumeIsEjectableKey error:nil];
-            if(!removable.boolValue&&!ejectable.boolValue)continue;
+            [url getResourceValue:&browsable forKey:NSURLVolumeIsBrowsableKey error:nil];
+            if((!removable.boolValue&&!ejectable.boolValue)||(browsable&&!browsable.boolValue))continue;
             [url getResourceValue:&readonly forKey:NSURLVolumeIsReadOnlyKey error:nil];[url getResourceValue:&name forKey:NSURLVolumeNameKey error:nil];[url getResourceValue:&format forKey:NSURLVolumeLocalizedFormatDescriptionKey error:nil];
             Medium m;m.path=String(url.path);m.image_source=ImageSource(m.path);m.id=Id("media:"+m.path);m.name=String(name);m.flags=AH_MEDIA_MOUNTED|(readonly.boolValue?AH_MEDIA_READONLY:0);
             if([format rangeOfString:@"UDF" options:NSCaseInsensitiveSearch].location!=NSNotFound||[format rangeOfString:@"ISO 9660" options:NSCaseInsensitiveSearch].location!=NSNotFound)m.flags|=AH_MEDIA_OPTICAL|AH_MEDIA_READONLY;
