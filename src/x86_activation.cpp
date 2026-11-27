@@ -1557,6 +1557,8 @@ unsigned Application::DefaultWindowMessage(unsigned hwnd, unsigned message, unsi
     if (message == 0x80) // WM_SETICON: ICON_SMALL 0 / ICON_BIG 1
     {
         const bool large = wp == 1;
+        // A program may give the icon as the word a handle is under Windows.
+        lp = IconHandle(lp);
         const unsigned previous = User::SetWindowIcon(hwnd, large, lp);
         // USER: a window that gets a big icon and carries no small one
         // gets a small one too. asks CopyImage for the same icon at

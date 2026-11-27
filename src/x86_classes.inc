@@ -46,7 +46,9 @@ unsigned Application::ClassApi(ApiName name,const unsigned*a) {
   if(!User::IsWindow(a[0])){last_error=1400;return 0;}
   const int index=(short)a[1];unsigned flags=(!strncmp(name,"Set",3)?1u:0u)|(strstr(name,"Long")?2u:0u);
   if(index<0&&(index< -34||index> -8||(index&1)||index== -22||index== -28||index== -30))return 0;
-  unsigned result=User::ClassAccess(a[0],index,(flags&1)?a[2]:0,flags);
+  // The cursor, the icon and the small icon may come as the word of a handle.
+  const bool image=index==-12||index==-14||index==-34;
+  unsigned result=User::ClassAccess(a[0],index,(flags&1)?(image?IconHandle(a[2]):a[2]):0,flags);
   if(index==-8)result=PublishClassMenu(result);
   return flags&2?result:result&65535;
  }
@@ -60,6 +62,7 @@ unsigned Application::ClassApi(ApiName name,const unsigned*a) {
   const bool native_proc=(f[2]>=0x71000001&&f[2]<=0x71000004)||f[2]==0x71000020||f[2]==0x71000021||f[2]==0x71000030||f[2]==0x71000031||f[2]==0x71000005||f[2]==0x71000006||f[2]==0x7100000a||(f[2]>=0x71000100&&f[2]<=0x71000112);
   if(f[2]&&!native_proc&&!virtual_memory.Executable(f[2]))return rejected("procedure");
   if(f[5]&&ModuleIndex(f[5])>=ModuleCapacity)return rejected("instance");
+  f[6]=IconHandle(f[6]);f[7]=IconHandle(f[7]);f[11]=IconHandle(f[11]);
   for(unsigned index=6;index<=7;++index)if(f[index]&&!FindIcon(f[index]))return rejected(index==6?"icon":"cursor");
   if(f[11]&&!FindIcon(f[11]))return rejected("small icon");
   const char*menu=f[9]>65535?ReadString(f[9]):nullptr;

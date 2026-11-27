@@ -38,13 +38,30 @@ void Application::FreeIcons() {
     icon=Icon{};icon.generation=generation;
   }
 }
+// Under Windows 9x an icon or cursor handle is a 16-bit handle of USER, and
+// programs written for it keep and pass one as a word: the Explorer of
+// Windows 95 sets the icon of a folder window with WM_SETICON and the low
+// word of the handle ImageList_GetIcon gave it. The handles here carry a tag
+// and the generation of their slot above bit 15, so the low word of one names
+// the icon as well: its slot, in which one icon lives at a time, and the six
+// bits of the generation that fit the word, which tell a word that has gone
+// stale from a live one.
 Application::Icon *Application::FindIcon(unsigned h) {
   auto *icons=SharedIcons();
   unsigned i = (h & 1023) - 1;
-  return (h & 0xf0000000) == 0x30000000 && i < 1023 && icons[i].data &&
-                 icons[i].generation == ((h >> 10) & 0x3ffff)
-             ? &icons[i]
-             : nullptr;
+  if (i >= 1023 || !icons[i].data) return nullptr;
+  if ((h & 0xf0000000) == 0x30000000)
+    return icons[i].generation == ((h >> 10) & 0x3ffff) ? &icons[i] : nullptr;
+  return !(h >> 16) && (icons[i].generation & 63) == (h >> 10) ? &icons[i] : nullptr;
+}
+// The whole handle of an icon given as its low word; any other value as it
+// is. What USER keeps and compares (the icons of a window and of a class,
+// the handle DestroyIcon retires) is the whole handle, so a program that
+// gave the word gets back what LoadIcon or CreateIcon answered.
+unsigned Application::IconHandle(unsigned h) {
+  if (!h || (h >> 16)) return h;
+  const auto *icon = FindIcon(h);
+  return icon ? 0x30000000 | (icon->generation << 10) | (h & 1023) : h;
 }
 unsigned Application::NewIcon(WinImage::Image *data, unsigned resource,
                               bool shared) {
@@ -563,7 +580,7 @@ unsigned Application::ImageApi(ApiName name, const unsigned *a) {
   API_CASE("GetIconInfo")return IconInfoApi(a);
   API_CASE("DestroyIcon") API_CASE("DestroyCursor"){
     if(!a[0]){last_error=6;return 0;}
-    ImageResources temporary(*this);return IR::Destroy(image_resources?*image_resources:temporary,a[0],4);
+    ImageResources temporary(*this);return IR::Destroy(image_resources?*image_resources:temporary,IconHandle(a[0]),4);
   }
   API_CASE("DrawIcon") API_CASE("DrawIconEx") {
     auto *icon = FindIcon(a[3]);
@@ -714,7 +731,7 @@ unsigned Application::ImageApi(ApiName name, const unsigned *a) {
 // GDI blit are native providers.
 unsigned Application::CopyImageApi(const unsigned *a)
 {
-  const unsigned handle=a[0],type=IW(a[1]);
+  const unsigned type=IW(a[1]),handle=type==Win98ImageCopy::Bitmap?a[0]:IconHandle(a[0]);
   unsigned flags=IW(a[4]);
   if(Win98ImageCopy::Validate(type,flags)){
     // and raise a 16-bit parameter error; the Win32 caller

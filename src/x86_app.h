@@ -2670,6 +2670,7 @@ private:
     static Icon *SharedIcons();
     void FreeIcons();
     Icon *FindIcon(unsigned);
+    unsigned IconHandle(unsigned);
     struct ImageList {bool used=false;unsigned generation=1,width=0,height=0,count=0,background=0xffffffff;WinImage::Image *items[128]={};} image_lists[16];
     ImageList *FindImageList(unsigned);
     static ImageList *SharedImageLists();
