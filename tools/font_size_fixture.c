@@ -12,11 +12,11 @@
    follows the size: the device capabilities, the sizes and fonts of
    NONCLIENTMETRICS and ICONMETRICS, system metrics, the stock fonts, the
    dialog base units, a dialog of 200 by 100 units in 8 point MS Sans Serif,
-   the mapping modes and DEVMODE.
+   the button of a combo box, the mapping modes and DEVMODE.
 
    tools/test_font_size_host.py */
-#define WINVER 0x0400
-#define _WIN32_WINNT 0x0400
+#define WINVER 0x0410
+#define _WIN32_WINNT 0x0410
 #include <windows.h>
 
 static HANDLE file;
@@ -290,6 +290,19 @@ void mainCRTStartup(void)
     logfont("arial10", &log);
     lstrcpyA(log.lfFaceName, "Courier");
     logfont("courier10", &log);
+
+    /* The button of a drop-down combo box is as wide as a scroll bar. */
+    {
+        COMBOBOXINFO info;
+        HWND parent = CreateWindowA("STATIC", "", WS_POPUP, 0, 0, 300, 200, NULL, NULL, NULL, NULL);
+        HWND combo = CreateWindowA("COMBOBOX", "", WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST, 10, 10, 200, 120,
+                                   parent, (HMENU)1, NULL, NULL);
+        ZeroMemory(&info, sizeof info);
+        info.cbSize = sizeof info;
+        if (combo && GetComboBoxInfo(combo, &info))
+            line("combo.button.width", info.rcButton.right - info.rcButton.left);
+        DestroyWindow(parent);
+    }
 
     units = GetDialogBaseUnits();
     line("GetDialogBaseUnits.x", LOWORD(units));

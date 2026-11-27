@@ -74,7 +74,7 @@ WANT = {
         'sans8.lfHeight': -11, 'sans8.height': 13, 'sans10.height': 16, 'sans24.height': 37,
         'arial10.lfHeight': -13, 'courier10.height': 13,
         'GetDialogBaseUnits.x': 8, 'GetDialogBaseUnits.y': 16, 'dialog.unit.x': 6, 'dialog.unit.y': 13,
-        'dialog.width': 300, 'dialog.height': 163, 'dialog.button.width': 75, 'dialog.button.height': 23,
+        'combo.button.width': 16, 'dialog.width': 300, 'dialog.height': 163, 'dialog.button.width': 75, 'dialog.button.height': 23,
     },
     '120': {
         'LOGPIXELSX': 120, 'LOGPIXELSY': 120, 'HORZSIZE': 169, 'VERTSIZE': 127, 'dmLogPixels': 120,
@@ -94,7 +94,7 @@ WANT = {
         'sans8.lfHeight': -13, 'sans8.height': 16, 'sans10.height': 20, 'sans24.height': 46,
         'arial10.lfHeight': -17, 'courier10.height': 16,
         'GetDialogBaseUnits.x': 10, 'GetDialogBaseUnits.y': 20, 'dialog.unit.x': 8, 'dialog.unit.y': 16,
-        'dialog.width': 400, 'dialog.height': 200, 'dialog.button.width': 100, 'dialog.button.height': 28,
+        'combo.button.width': 20, 'dialog.width': 400, 'dialog.height': 200, 'dialog.button.width': 100, 'dialog.button.height': 28,
     },
     '144': {
         'LOGPIXELSX': 144, 'LOGPIXELSY': 144, 'HORZSIZE': 141, 'VERTSIZE': 105, 'dmLogPixels': 144,
@@ -111,7 +111,7 @@ WANT = {
         'sans8.lfHeight': -16, 'sans8.height': 20, 'sans10.lfHeight': -20, 'sans10.height': 25,
         'sans24.lfHeight': -48, 'sans24.height': 60, 'arial10.lfHeight': -20, 'courier10.height': 20,
         'GetDialogBaseUnits.x': 10, 'GetDialogBaseUnits.y': 20, 'dialog.unit.x': 10, 'dialog.unit.y': 20,
-        'dialog.width': 500, 'dialog.height': 250, 'dialog.button.width': 125, 'dialog.button.height': 35,
+        'combo.button.width': 24, 'dialog.width': 500, 'dialog.height': 250, 'dialog.button.width': 125, 'dialog.button.height': 35,
     },
 }
 

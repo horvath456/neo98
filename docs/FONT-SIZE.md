@@ -47,6 +47,8 @@ to the size, so every size above 108 uses the fonts of 120.
   stores them there the same way. A caption, a small caption and a menu bar
   are never lower than their font and one edge.
 - The spacing of icons, 75 pixels at 96 dots per inch.
+- Scroll bars, and with them the button of a drop-down combo box, which is
+  as wide as a scroll bar.
 
 The stock fonts `ANSI_VAR_FONT`, `ANSI_FIXED_FONT` and `OEM_FIXED_FONT` ask
 for 12 pixels at every size; they get larger only because the fonts of 120
