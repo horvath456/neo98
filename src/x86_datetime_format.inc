@@ -30,7 +30,13 @@ unsigned Application::DateTimeFormatApi(ApiName name,const unsigned*a)
         struct E {Application&app;U callback,lease;
             bool Callback(const char*s,U&result){if(!app.Store(lease,s,strlen(s)+1))return false;result=app.Call(callback,&lease,1);return app.state!=Failed&&app.state!=Exited;}
         }e{*this,a[0],lease};
-        U result=Enumerate(e,list,count);Free(lease);return result;
+        // The user's own picture comes first (KERNEL32 keeps one for the
+        // time, the short date, the long date and the year and month). A
+        // copy: the callback may set another one meanwhile.
+        char own[81]={};
+        if(const char*set=LocaleOverride(locale,!date?0x1003:(flags&11)==2?0x20:(flags&11)==8?0x1006:0x1f))
+            if(*set&&strlen(set)<sizeof own)strcpy(own,set);
+        U result=Enumerate(e,list,count,*own?own:nullptr);Free(lease);return result;
     }
     Time time{};
     if(a[2]){if(date){if(!Read(a[2],&time,8))return 0;}else if(!Read(a[2]+8,&time.hour,8))return 0;}

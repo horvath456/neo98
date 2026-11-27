@@ -2717,6 +2717,7 @@ private:
     unsigned LocaleInfo(const unsigned *);
     unsigned NlsExtendedApi(ApiName,const unsigned *);
     const char *LocaleValue(unsigned,unsigned);
+    const char *LocaleOverride(unsigned,unsigned);
     unsigned DateTimeFormatApi(ApiName, const unsigned *);
     unsigned NumberFormatApi(ApiName,const unsigned *);
     void FreeLocale();

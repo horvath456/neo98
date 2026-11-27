@@ -26,14 +26,20 @@ const char *PictureField(const char *picture,const char *set){
     return picture;
 }
 }
+// What the user has set for a value of the user's locale, or null: the
+// string under HKCU\Control Panel\International.
+const char *Application::LocaleOverride(unsigned locale,unsigned field){
+    if(locale!=UserDefaultLocale()||(field&0x80000000u))return nullptr;
+    const char *name=LocaleOverrideName(field&0xffff);if(!name)return nullptr;
+    unsigned node;bool created=false;const Registry::Value *value=nullptr;
+    if(!registry.store.Open(registry.store.roots[1],"Control Panel\\International",false,node,created)&&
+       !registry.store.Query(node,name,value)&&value->type==1&&value->size&&value->data[value->size-1]==0)
+        return reinterpret_cast<const char*>(value->data);
+    return nullptr;
+}
 const char *Application::LocaleValue(unsigned locale,unsigned field){
     if(!Win98Locale::SystemInfo(locale,1))return nullptr;
-    if(locale==UserDefaultLocale() && !(field&0x80000000u))if(const char *name=LocaleOverrideName(field&0xffff)){
-        unsigned node;bool created=false;const Registry::Value *value=nullptr;
-        if(!registry.store.Open(registry.store.roots[1],"Control Panel\\International",false,node,created)&&
-           !registry.store.Query(node,name,value)&&value->type==1&&value->size&&value->data[value->size-1]==0)
-            return reinterpret_cast<const char*>(value->data);
-    }
+    if(const char *set=LocaleOverride(locale,field))return set;
     // LOCALE_SLANGUAGE: GetLocaleInfoA Windows 98 takes the name out of
     // KERNEL32's own string table, the LANGID as the string number,
     // the table VerLanguageNameA reads as well.
@@ -163,8 +169,16 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
             else if(type==47)formats(2);
         }
         if(single){values=&single;count=1;}
+        // The date picture the user has set comes first and is left out of
+        // the list of the locale, as in EnumDateFormatsA
+        // (src/x86_datetime_format.inc).
+        char own[81]={};
+        if(date)if(const char *set=LocaleOverride(lcid,(type&11)==2?0x20:(type&11)==8?0x1006:0x1f))
+            if(*set&&strlen(set)<sizeof own)strcpy(own,set);
         unsigned buffer=Allocate(256);if(!buffer)return bad(8);
-        for(unsigned i=0;i<count;++i){Store(buffer,values[i],strlen(values[i])+1);const unsigned args[]={buffer,1};if(!Call(a[0],args,extended?2:1)||state==Failed||state==Exited)break;}
+        const auto hand=[&](const char *value){Store(buffer,value,strlen(value)+1);const unsigned args[]={buffer,1};return Call(a[0],args,extended?2:1)&&state!=Failed&&state!=Exited;};
+        if(!*own||hand(own))
+            for(unsigned i=0;i<count;++i){if(*own&&!strcmp(own,values[i]))continue;if(!hand(values[i]))break;}
         Free(buffer);return state!=Failed&&state!=Exited;
     }
     if(API_IS(name,"GetCalendarInfoA")||API_IS(name,"SetCalendarInfoA")){

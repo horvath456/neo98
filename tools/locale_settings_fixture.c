@@ -6,7 +6,9 @@
 //                    short date dd.MM.yyyy, and what the locale answers then
 //   LOCSET.EXE back  the same with tt h:mm:ss and M/d/yy
 //   LOCSET.EXE get   what a new session answers
-// Each writes C:\LOCSET.TXT.
+// Each writes C:\LOCSET.TXT. The lists of EnumTimeFormatsA and
+// EnumDateFormatsA are part of it: the picture the user has set comes first
+// and is not repeated among those of the locale.
 #include <windows.h>
 
 static char text[2048];
@@ -18,6 +20,11 @@ static void field(const char *name, LCTYPE type)
     lstrcpyA(value, "?");
     GetLocaleInfoA(LOCALE_USER_DEFAULT, type, value, sizeof value);
     used += wsprintfA(text + used, "%s=%s\r\n", name, value);
+}
+static BOOL CALLBACK listed(LPSTR picture)
+{
+    used += wsprintfA(text + used, "%s|", picture);
+    return TRUE;
 }
 static int ends(const char *command, const char *word)
 {
@@ -54,6 +61,15 @@ void mainCRTStartup(void)
     used += wsprintfA(text + used, "time=%s\r\n", value);
     GetDateFormatA(LOCALE_USER_DEFAULT, DATE_SHORTDATE, &afternoon, 0, value, sizeof value);
     used += wsprintfA(text + used, "date=%s\r\n", value);
+    used += wsprintfA(text + used, "time formats=");
+    EnumTimeFormatsA(listed, LOCALE_USER_DEFAULT, 0);
+    used += wsprintfA(text + used, "\r\nshort dates=");
+    EnumDateFormatsA(listed, LOCALE_USER_DEFAULT, DATE_SHORTDATE);
+    used += wsprintfA(text + used, "\r\nlong dates=");
+    EnumDateFormatsA(listed, LOCALE_USER_DEFAULT, DATE_LONGDATE);
+    used += wsprintfA(text + used, "\r\nother locale=");
+    EnumTimeFormatsA(listed, MAKELCID(MAKELANGID(LANG_GERMAN, SUBLANG_GERMAN), SORT_DEFAULT), 0);
+    used += wsprintfA(text + used, "\r\n");
     file = CreateFileA("C:\\LOCSET.TXT", GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
     WriteFile(file, text, used, &written, 0);
     CloseHandle(file);
