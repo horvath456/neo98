@@ -2111,7 +2111,42 @@ void Normalize(char *text)
 }
 } // namespace
 namespace {unsigned next_process_identity=1,next_thread_identity=1;}
-unsigned Application::AllocateThreadIdentity(){return next_thread_identity<65536?next_thread_identity++:0;}
+// A thread identity is a word. The first 65535 threads of a session get a
+// fresh one each; after that the count starts again at one and passes over
+// the identities that threads of the session still have, as Windows gives
+// the identity of a thread that is gone to a later one. Counting on without
+// an end, every CreateThread failed once a session had started its 65535th
+// thread, which a program that starts a thread for every sound or film
+// reaches within days.
+unsigned Application::AllocateThreadIdentity()
+{
+    static bool around = false;
+    for (unsigned tried = 0; tried < 65535; ++tried)
+    {
+        const unsigned identity = next_thread_identity;
+        next_thread_identity = identity >= 65535 ? 1 : identity + 1;
+        if (identity >= 65535)
+            around = true;
+        bool taken = false;
+        if (around)
+            for (const Application *process : session_processes)
+            {
+                if (!process)
+                    continue;
+                for (const auto &thread : process->threads)
+                    if (thread.id == identity)
+                    {
+                        taken = true;
+                        break;
+                    }
+                if (taken)
+                    break;
+            }
+        if (!taken)
+            return identity;
+    }
+    return 0;
+}
 Application::Application(Logger logger) : log(logger)
 {
     process_id=next_process_identity++;
