@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+"""A time or date picture set in Regional Settings changes what follows from it.
+
+SetLocaleInfoA stores a value of the user's locale under
+HKCU\\Control Panel\\International. For the time format and the short date
+KERNEL32 also stores what follows from the picture: "iTime", "iTLZero" and
+"iTimePrefix", and "iDate" and "sDate". The port stored the picture alone,
+so after choosing a 24-hour style LOCALE_ITIME still said 12 hours, and
+Date/Time of the Control Panel, which asks for it, went on showing AM and
+PM. It also took LOCALE_ITIMEMARKPOSN for the format of negative numbers.
+
+tools/locale_settings_fixture.c in sessions of neo98-kms over one private
+copy of drive C:
+
+  HH:mm:ss and dd.MM.yyyy: 24 hours, a leading zero, no marker first, the day
+  first and "." between the fields, at once and in a new session; the time
+  and the date are formatted that way
+  LOCALE_IDATE itself cannot be set (ERROR_INVALID_FLAGS)
+  tt h:mm:ss and M/d/yy: 12 hours, no zero, the marker first, the month
+  first and "/"
+
+    build/analysis-venv/bin/python tools/test_locale_settings_host.py [--no-build] [--keep] [--kms KMS]
+"""
+import sys as _sys
+from test_support import skip as _skip
+if _sys.platform != 'linux':
+    _skip('this test requires the Linux host')
+if __name__ == '__main__':
+    import shutil as _shutil
+    if not _shutil.which('i686-w64-mingw32-gcc'):  # the fixture is built with it; docs/BUILDING.md
+        print('SKIP: needs i686-w64-mingw32-gcc')
+        _sys.exit(77)
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path[:0] = [str(ROOT / 'tools'), str(ROOT)]
+import native_app  # noqa: E402
+import win98_c  # noqa: E402
+
+BINARY = ROOT / 'build/native-app/neo98-kms'
+WORK = ROOT / 'build/locale-settings'
+EUROPEAN = {'time format': 'HH:mm:ss', '24 hours': '1', 'hour zero': '1', 'marker first': '0',
+            'short date': 'dd.MM.yyyy', 'date order': '1', 'date separator': '.', 'time': '15:04:05',
+            'date': '03.02.2001'}
+AMERICAN = {'time format': 'tt h:mm:ss', '24 hours': '0', 'hour zero': '0', 'marker first': '1',
+            'short date': 'M/d/yy', 'date order': '0', 'date separator': '/', 'time': 'PM 3:04:05',
+            'date': '2/3/01'}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--no-build', action='store_true')
+    parser.add_argument('--keep', action='store_true', help='keep the copy of the drive')
+    parser.add_argument('--kms', type=Path, default=BINARY)
+    args = parser.parse_args()
+    if not native_app.native_x64():
+        raise SystemExit('neo98-kms is a Linux x64 host.')
+    if not args.no_build:
+        native_app.build_kms_host(vulkan=False)
+    shutil.rmtree(WORK, ignore_errors=True)
+    WORK.mkdir(parents=True)
+    drive = WORK / 'c'
+    pristine = win98_c.use_pristine()
+    subprocess.run(['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
+    if win98_c.journal(pristine).is_file():
+        shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
+    subprocess.run(['i686-w64-mingw32-gcc', '-Os', str(ROOT / 'tools/locale_settings_fixture.c'), '-nostartfiles',
+                    '-nostdlib', '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32',
+                    '-o', str(drive / 'LOCSET.EXE')], check=True)
+    logs = []
+
+    def session(command):
+        env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:640x480')
+        for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD', 'NEO98_HOST_INPUT'):
+            env.pop(variable, None)
+        written = win98_c.path('C:\\LOCSET.TXT', drive)
+        if written:
+            written.unlink()
+        result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '640x480',
+                                 '--exe', 'C:\\LOCSET.EXE', '--command', 'LOCSET.EXE ' + command,
+                                 '--time-limit', '60'], cwd=ROOT, env=env, capture_output=True, text=True,
+                                timeout=120)
+        logs.append(f'---- {command}: {result.returncode}\n{result.stdout}{result.stderr}')
+        written = win98_c.path('C:\\LOCSET.TXT', drive)
+        return dict(line.split('=', 1) for line in (written.read_text().splitlines() if written else ()) if '=' in line)
+
+    try:
+        runs = {name: session(name.split()[0]) for name in ('set', 'get after set', 'back', 'get after back')}
+    finally:
+        (WORK / 'log.txt').write_text('\n'.join(logs))
+        if not args.keep:
+            shutil.rmtree(drive, ignore_errors=True)
+            win98_c.journal(drive).unlink(missing_ok=True)
+            Path(str(drive) + '.clock').unlink(missing_ok=True)
+
+    def differing(found, wanted):
+        return {name: (found.get(name), value) for name, value in wanted.items() if found.get(name) != value}
+
+    first = runs['set']
+    checks = {
+        f'both pictures are taken: {first.get("set time")} {first.get("set date")}':
+            first.get('set time') == '1' and first.get('set date') == '1',
+        f'LOCALE_IDATE itself is refused with ERROR_INVALID_FLAGS: {first.get("set order")} '
+        f'{first.get("set order error")}': first.get('set order') == '0' and first.get('set order error') == '1004',
+        f'HH:mm:ss and dd.MM.yyyy, at once: {differing(first, EUROPEAN)}': not differing(first, EUROPEAN),
+        f'HH:mm:ss and dd.MM.yyyy in a new session: {differing(runs["get after set"], EUROPEAN)}':
+            not differing(runs['get after set'], EUROPEAN),
+        f'tt h:mm:ss and M/d/yy, at once: {differing(runs["back"], AMERICAN)}': not differing(runs['back'], AMERICAN),
+        f'tt h:mm:ss and M/d/yy in a new session: {differing(runs["get after back"], AMERICAN)}':
+            not differing(runs['get after back'], AMERICAN),
+    }
+    failed = [name for name, passed in checks.items() if not passed]
+    for name, passed in checks.items():
+        print(('ok  ' if passed else 'FAIL'), name, flush=True)
+    print(f'Log in {WORK}', flush=True)
+    if failed:
+        raise SystemExit(f'{len(failed)} of {len(checks)} checks failed')
+    print(f'locale settings host: all {len(checks)} checks passed', flush=True)
+
+
+if __name__ == '__main__':
+    main()

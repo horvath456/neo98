@@ -8,10 +8,22 @@ const char *LocaleOverrideName(unsigned field){
     case 0x19:return "iCurrDigits";case 0x1b:return "iCurrency";case 0x1c:return "iNegCurr";
     case 0x1d:return "sDate";case 0x1e:return "sTime";case 0x1f:return "sShortDate";case 0x20:return "sLongDate";
     case 0x23:return "iTime";case 0x28:return "s1159";case 0x29:return "s2359";
-    case 0x50:return "sPositiveSign";case 0x51:return "sNegativeSign";case 0x1005:return "iNegNumber";
+    case 0x50:return "sPositiveSign";case 0x51:return "sNegativeSign";case 0x1010:return "iNegNumber";
     case 0x1006:return "sYearMonth";case 0x1009:return "iCalendarType";case 0x100c:return "iFirstDayOfWeek";
-    case 0x100d:return "iFirstWeekOfYear";case 0x1003:return "sTimeFormat";default:return nullptr;
+    case 0x100d:return "iFirstWeekOfYear";case 0x1003:return "sTimeFormat";
+    // Not set by a program: SetLocaleInfoA derives them from the short date
+    // and from the time format and stores them beside those.
+    case 0x21:return "iDate";case 0x25:return "iTLZero";case 0x1005:return "iTimePrefix";default:return nullptr;
     }
+}
+// The first character of `set` in a picture of a date or a time, outside
+// text in single quotes; the end of the picture when there is none.
+const char *PictureField(const char *picture,const char *set){
+    for(bool quoted=false;*picture;++picture){
+        if(*picture=='\''){quoted=!quoted;continue;}
+        if(!quoted&&strchr(set,*picture))return picture;
+    }
+    return picture;
 }
 }
 const char *Application::LocaleValue(unsigned locale,unsigned field){
@@ -92,15 +104,40 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
     API_CASE("SetLocaleInfoA"){
         if(locale(a[0])!=UserDefaultLocale()||!a[2])return bad(87);
         unsigned field=a[1]&~0x40000000u;const char *key=LocaleOverrideName(field);if(!key)return bad(1004);
+        // KERNEL32 has no branch for the three derived values.
+        if(field==0x21||field==0x25||field==0x1005)return bad(1004);
         const char *value=ReadString(a[2]);const unsigned size=strlen(value);
         if(size>80)return bad(87);
         if(key[0]=='i'){
             unsigned number=0;if(!size||size>2)return bad(87);for(unsigned i=0;i<size;++i){if(value[i]<'0'||value[i]>'9')return bad(87);number=number*10+value[i]-'0';}
-            const unsigned maximum=field==0x100c?6:field==0x100d?2:field==0x1c?15:field==0x1b?3:field==0x1005?4:field==0x11||field==0x19?9:1;
+            const unsigned maximum=field==0x100c?6:field==0x100d?2:field==0x1c?15:field==0x1b?3:field==0x1010?4:field==0x11||field==0x19?9:1;
             if(number>maximum||(field==0x1009&&number!=1))return bad(87);
         }
         unsigned node;bool created=false;unsigned error=registry.store.Open(registry.store.roots[1],"Control Panel\\International",true,node,created);
-        if(!error)error=registry.store.Set(node,key,1,value,size+1);return error?bad(error):1;
+        if(!error)error=registry.store.Set(node,key,1,value,size+1);
+        // KERNEL32 keeps the values that follow from a picture beside it.
+        // LOCALE_STIMEFORMAT: "iTime" (1 for the 24 hours of H), "iTLZero"
+        // (1 for two hour digits) and "iTimePrefix" (1 when the AM/PM
+        // marker comes first). LOCALE_SSHORTDATE: "iDate" (0 month, 1 day,
+        // 2 year first) and "sDate", what stands between the first two
+        // fields. The Date/Time page and 16-bit programs read these.
+        const auto derive=[&](const char *name,const char *text){if(!error)error=registry.store.Set(node,name,1,text,unsigned(strlen(text))+1);};
+        if(field==0x1003){
+            const char *hour=PictureField(value,"Hh");
+            derive("iTime",*hour=='H'?"1":"0");
+            derive("iTLZero",*hour&&hour[1]==*hour?"1":"0");
+            derive("iTimePrefix",*PictureField(value,"Hhmst")=='t'?"1":"0");
+        }
+        if(field==0x1f){
+            const char *first=PictureField(value,"dMy");
+            derive("iDate",*first=='d'?"1":*first=='y'?"2":"0");
+            const char *after=first;while(*after&&*after==*first)++after;
+            const char *next=PictureField(after,"dMy");
+            char separator[8]={};unsigned used=0;
+            for(const char *p=after;p<next&&used+1<sizeof separator;++p)if(*p!='\'')separator[used++]=*p;
+            if(*first&&*next&&used)derive("sDate",separator);
+        }
+        return error?bad(error):1;
     }
     default:
         break;
