@@ -52,6 +52,39 @@ bool Face::Open(const char *file)
     return face != nullptr;
 }
 
+bool Face::OpenFamily(const char *family)
+{
+    if (!GdiTrueType::Available() || !family || !*family) return false;
+    auto same = [](const char *a, const char *b) {
+        while (*a && (*a | 32) == (*b | 32)) ++a, ++b;
+        return !*a && !*b;
+    };
+    auto regular = [&]() -> const GdiTrueType::Face * {
+        for (unsigned i = 0; i < GdiTrueType::FaceCount(); ++i)
+        {
+            const auto *candidate = GdiTrueType::FaceAt(i);
+            if (candidate && same(candidate->family, family) && !candidate->italic && candidate->weight <= 500)
+                return candidate;
+        }
+        return nullptr;
+    };
+    face = regular();
+    if (!face)
+    {
+        // Not installed in this process yet: the files Windows has the two
+        // faces of MS-DOS windows in.
+        static const struct { const char *family, *file; } files[] = {
+            {"Courier New", "COUR.TTF"}, {"Lucida Console", "LUCON.TTF"}};
+        for (const auto &known : files)
+            if (same(known.family, family))
+            {
+                const auto *installed = GdiTrueType::Install(known.file);
+                if (installed && same(installed->family, family)) face = installed;
+            }
+    }
+    return face != nullptr;
+}
+
 // A cell of `width` x `height`: the font realized for that cell, the glyph
 // at its own origin from the left edge of the cell on the baseline.
 const unsigned char *Face::Glyph(unsigned character, unsigned width, unsigned height)

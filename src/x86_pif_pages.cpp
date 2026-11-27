@@ -898,8 +898,12 @@ void Application::PifFontList(unsigned hwnd, const unsigned char *fnt)
         for (unsigned i = 0; i < count; ++i) add(cells[i][0], cells[i][1], false);
     }
     if (flags & 8)
+    {
         // The TrueType list (ds:0x550 after filled it).
-        for (unsigned h : DosVmTrueType::Heights) add(DosVmTrueType::WidthFor(h), h, true);
+        unsigned cells[32][2];
+        const unsigned count = DosVmTrueTypeCells(cells, 32);
+        for (unsigned i = 0; i < count; ++i) add(cells[i][0], cells[i][1], true);
+    }
     char automatic[32];
     PifPagesString(3330, automatic, sizeof automatic);
     const unsigned at = ui.SendText(1055, LbInsertString, 0, automatic);

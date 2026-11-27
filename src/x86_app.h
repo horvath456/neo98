@@ -1947,6 +1947,8 @@ private:
     bool DosVmLoadFont();
     bool DosVmOpenWoaFont(unsigned &handle, char *found = nullptr, unsigned found_capacity = 0);
     bool DosVmLoadTrueType();
+    void DosVmTrueTypeFace(char *name, unsigned capacity);
+    unsigned DosVmTrueTypeCells(unsigned (*cells)[2], unsigned capacity);
     bool DosVmTextPicture();
     bool DosVmZoomed() const;
     unsigned DosVmFace(unsigned columns,unsigned rows,bool zoomed);

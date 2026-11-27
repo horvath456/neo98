@@ -34,6 +34,8 @@
 #include "user.h"
 #define NEO98_DOS_VOODOO 1
 #endif
+#include "user_settings.h"
+#include "registry.h"
 
 namespace X86
 {
@@ -793,15 +795,97 @@ bool Application::DosVmCreateWindow()
     return true;
 }
 
-// LUCON.TTF of the tree for a TrueType size of the Font page.
+// The TrueType face of MS-DOS windows, as PIFMGR.DLL of Windows 95 and of
+// Windows 98 finds it. The name it carries is "Courier New". When Windows has
+// its extension (SystemParametersInfo with SPI_GETWINDOWSEXTENSION: COOL.DLL,
+// which Plus! brought to Windows 95 and Windows 98 has from the start),
+// PIFMGR calls ordinal 3 of the extension with the name, and that overwrites
+// it with the value Font of Software\Microsoft\Windows\CurrentVersion\MS-DOS
+// Emulation, of HKEY_LOCAL_MACHINE and then of HKEY_CURRENT_USER (32 bytes at
+// most). Windows 98 has "Lucida Console" there. A Windows 95 without Plus!
+// has neither the extension nor LUCON.TTF and draws its TrueType sizes with
+// Courier New.
+void Application::DosVmTrueTypeFace(char *name, unsigned capacity)
+{
+    snprintf(name, capacity, "%s", "Courier New");
+    if (!User::SystemSettings().Word(0x264)) return;
+    auto &registry = Registry::System();
+    for (unsigned root : {2u, 1u})
+    {
+        unsigned key = Registry::Missing;
+        bool created = false;
+        const Registry::Value *value = nullptr;
+        if (registry.Open(registry.roots[root], "Software\\Microsoft\\Windows\\CurrentVersion\\MS-DOS Emulation", false,
+                          key, created) ||
+            registry.Query(key, "Font", value) || !value || !value->data || !value->size || value->size > 32 ||
+            !value->data[0])
+            continue;
+        unsigned length = 0;
+        while (length < value->size && length + 1 < capacity && value->data[length]) ++length;
+        memcpy(name, value->data, length);
+        name[length] = 0;
+    }
+}
+
+// The TrueType sizes of MS-DOS windows as PIFMGR.DLL lists them: the cell
+// heights of TTInitialSizes in [NonWindowsApp] of SYSTEM.INI (the setup of
+// Windows 98 writes sixteen, 4 to 22) or, without that line, the eight
+// PIFMGR carries (12 13 14 15 16 18 20 22: Windows 95), each with the cell
+// Windows measured for it and keeps in [TTFontDimenCache] ("0 15=9 15": the
+// height asked for and the cell the face gave; with Courier New "0 15=7 15").
+// A height Windows has not measured yet gets the width Lucida Console has.
+// Answers the number of cells written, width and height each.
+unsigned Application::DosVmTrueTypeCells(unsigned (*cells)[2], unsigned capacity)
+{
+    auto number = [](const char *&p, unsigned &value) {
+        while (*p == ' ' || *p == '\t') ++p;
+        if (*p < '0' || *p > '9') return false;
+        for (value = 0; *p >= '0' && *p <= '9' && value < 1000; ++p) value = value * 10 + unsigned(*p - '0');
+        return true;
+    };
+    unsigned heights[32], count = 0, written = 0;
+    char line[256] = {};
+    MciProfile("NonWindowsApp", "TTInitialSizes", line, sizeof line, true);
+    const char *p = line;
+    for (unsigned height = 0; count < 32 && number(p, height);)
+        if (height && height < 128) heights[count++] = height;
+    if (!count)
+        for (unsigned height : DosVmTrueType::Heights) heights[count++] = height;
+    for (unsigned i = 0; i < count && written < capacity; ++i)
+    {
+        char key[16], cell[64] = {};
+        snprintf(key, sizeof key, "0 %u", heights[i]);
+        MciProfile("TTFontDimenCache", key, cell, sizeof cell, true);
+        unsigned width = 0, height = 0;
+        const char *q = cell;
+        if (!number(q, width) || !number(q, height) || !width || !height || width > 127 || height > 127)
+            width = DosVmTrueType::WidthFor(heights[i]), height = heights[i];
+        bool listed = false;
+        for (unsigned k = 0; k < written; ++k) listed |= cells[k][0] == width && cells[k][1] == height;
+        if (listed) continue;
+        cells[written][0] = width;
+        cells[written][1] = height;
+        ++written;
+    }
+    return written;
+}
+
+// The face of DosVmTrueTypeFace for a TrueType size of the Font page.
 bool Application::DosVmLoadTrueType()
 {
     auto &d = *dos_vm;
     if (d.truetype_tried) return d.truetype && d.truetype->Ready();
     d.truetype_tried = true;
+    char family[40];
+    DosVmTrueTypeFace(family, sizeof family);
     d.truetype = new DosVmTrueType::Face;
-    const bool ready = d.truetype && d.truetype->Open("LUCON.TTF");
-    if (log) log(ready ? "DOSVM truetype LUCON.TTF ready=1" : "DOSVM truetype LUCON.TTF ready=0");
+    const bool ready = d.truetype && d.truetype->OpenFamily(family);
+    if (log)
+    {
+        char text[96];
+        snprintf(text, sizeof text, "DOSVM truetype face=\"%s\" ready=%d", family, ready ? 1 : 0);
+        log(text);
+    }
     return ready;
 }
 
@@ -930,7 +1014,7 @@ unsigned Application::DosVmFace(unsigned columns, unsigned rows, bool zoomed)
 
 // The size "Auto" takes: the largest raster cell (width first, then height)
 // whose window of columns x rows cells, with its frame and the toolbar strip,
-// fits the work area of the screen (the taskbar takes 28 pixels). A
+// fits the work area of the screen. A
 // maximized window has its frame outside the screen. Answers the index into
 // `cells`, or `count` when none fits.
 unsigned Application::DosVmAutoCell(const unsigned (*cells)[2], unsigned count, unsigned columns, unsigned rows, int strip,
@@ -941,8 +1025,13 @@ unsigned Application::DosVmAutoCell(const unsigned (*cells)[2], unsigned count, 
     // The two borders of one direction; a maximized window has them
     // outside the screen.
     const int borders = zoomed ? frame.right - frame.left : 0;
-    const int room_x = (int)ScreenWidth - (frame.right - frame.left) + borders;
-    const int room_y = (int)ScreenHeight - 28 - (frame.bottom - frame.top) + borders;
+    // The work area of the screen, what the taskbar and other bars leave
+    // (SPI_GETWORKAREA): a taskbar of 28 pixels at the bottom of the screen
+    // was assumed here, whatever the shell had reserved and wherever.
+    Gdi::RECT work = {0, 0, (int)ScreenWidth, (int)ScreenHeight};
+    User::WorkArea(&work);
+    const int room_x = (work.right - work.left) - (frame.right - frame.left) + borders;
+    const int room_y = (work.bottom - work.top) - (frame.bottom - frame.top) + borders;
     unsigned best = count;
     for (unsigned i = 0; i < count; ++i)
     {
@@ -2056,7 +2145,11 @@ void Application::DosVmFillFontBox()
     if ((d.fnt_flags & 4) && DosVmLoadFont())
         for (unsigned i = 0; i < d.face_count; ++i) add(d.faces[i].width | d.faces[i].height << 8);
     if (d.fnt_flags & 8)
-        for (unsigned h : DosVmTrueType::Heights) add(DosVmTrueType::WidthFor(h) | h << 8 | 0x8000);
+    {
+        unsigned cells[32][2];
+        const unsigned count = DosVmTrueTypeCells(cells, 32);
+        for (unsigned i = 0; i < count; ++i) add(cells[i][0] | cells[i][1] << 8 | 0x8000);
+    }
     // The size of the group, or Auto.
     unsigned selected = 0;
     if (!(d.fnt_flags & 0x10))
