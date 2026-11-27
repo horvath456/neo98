@@ -3335,6 +3335,9 @@ private:
     void WaveOutNotify(void *,unsigned,unsigned);
     unsigned WaveFormatOf(unsigned,Sound::Format &);
     unsigned WaveOutCapabilities(unsigned,unsigned);
+    void LoadSoundMapperSettings(); // src/x86_wave_out.cpp
+    void SaveMixerLevels();         // src/x86_mixer.cpp
+    void LoadMixerLevels();
     unsigned PreferredWaveOutDevice(unsigned &);
     unsigned MappedMidiOutDevice();
     unsigned PlaySoundWorker(unsigned,unsigned,unsigned);

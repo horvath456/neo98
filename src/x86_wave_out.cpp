@@ -379,6 +379,35 @@ unsigned Application::WaveOutCapabilities(unsigned buffer, unsigned bytes)
 // This driver has one device. A "Playback" that names it picks it, and no
 // entry, or an entry that names a device this machine does not have, leaves
 // the first device, which is what the mapper opens for WAVE_MAPPER anyway.
+// MSACM.DRV, the wave mapper, reads "Playback" when it is loaded at the start
+// of Windows and, when there is no such value, takes the first output device
+// that answers its query, has a mixer (mixerGetID) and capabilities, and writes
+// its szPname there; then the same for "Record" with the input devices. A
+// value that is there is left alone, also one that names a device this
+// machine does not have. The multimedia page of the Control Panel opens the
+// mixer of the device that "Playback" names and shows its volume; without a
+// name it showed none. This port has the mapper itself, so the session does
+// what the mapper's start does (Application::LoadUserStartSettings).
+void Application::LoadSoundMapperSettings()
+{
+    unsigned node = 0;
+    bool created = false;
+    if (registry.store.Open(registry.store.roots[1], "Software\\Microsoft\\Multimedia\\Sound Mapper", true,
+                            node, created))
+        return;
+    const auto name = [&](const char *value_name, const char *device) {
+        const Registry::Value *value = nullptr;
+        if (!registry.store.Query(node, value_name, value) && value)
+            return;
+        registry.store.Set(node, value_name, 1, device, unsigned(strlen(device)) + 1);
+    };
+    name("Playback", WaveOutDeviceName);
+    if (Sound::Microphone::Present())
+        name("Record", Neo98Hardware::WaveInName);
+    // And the driver sets the levels of its mixer again.
+    LoadMixerLevels();
+}
+
 unsigned Application::PreferredWaveOutDevice(unsigned &flags)
 {
     flags = 0;
