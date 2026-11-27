@@ -29,6 +29,16 @@ from them and selects the entry that begins with the picture in use
 picture that is not one of the locale's is one entry more; the list of
 another locale has only its own.
 
+A separator set alone rewrites its picture: LOCALE_STIME puts the new
+separator between the fields H, h, m and s of the time format and leaves
+what leads to the marker t or to a quote, LOCALE_SDATE replaces the first
+separator of the short date and every later one that equals it. Regional
+Settings sets only the separator when only that box was changed and counts
+on this. A separator has at most three characters, no digit and none of the
+letters of its picture (ERROR_INVALID_PARAMETER). LOCALE_STIMEFORMAT stores
+"sTime" as well, what stands between its first two fields, and nothing for
+a picture without such a pair.
+
     build/analysis-venv/bin/python tools/test_locale_settings_host.py [--no-build] [--keep] [--kms KMS]
 """
 import sys as _sys
@@ -79,6 +89,19 @@ AMERICAN = {'time format': 'tt h:mm:ss', '24 hours': '0', 'hour zero': '0', 'mar
             'other locale': listed(GERMAN[0], GERMAN)}
 
 
+SEPARATORS = {
+    'separator of h:mm:ss tt': ':',
+    'time separator .': '1 0', 'time format with .': 'h.mm.ss tt', 'time with .': '3.04.05 PM',
+    'date separator -': '1 0', 'short date with -': 'M-d-yy', 'date with -': '2-3-01',
+    'date separator . of two': '1 0', 'short date of two separators': 'dd.MM-yyyy',
+    "separator of tt h:mm' Uhr 'ss": ':',
+    'time separator empty': '1 0', 'time format without separator': "tt hmm' Uhr 'ss",
+    'time separator h': '0 87', 'time separator 1': '0 87', 'date separator of four': '0 87',
+    'date separator M': '0 87',
+    'separator of HHmm': '',
+}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--no-build', action='store_true')
@@ -117,7 +140,8 @@ def main():
         return dict(line.split('=', 1) for line in (written.read_text().splitlines() if written else ()) if '=' in line)
 
     try:
-        runs = {name: session(name.split()[0]) for name in ('set', 'get after set', 'back', 'get after back')}
+        runs = {name: session(name.split()[0]) for name in ('set', 'get after set', 'back', 'get after back',
+                                                            'separators')}
     finally:
         (WORK / 'log.txt').write_text('\n'.join(logs))
         if not args.keep:
@@ -140,6 +164,8 @@ def main():
         f'tt h:mm:ss and M/d/yy, at once: {differing(runs["back"], AMERICAN)}': not differing(runs['back'], AMERICAN),
         f'tt h:mm:ss and M/d/yy in a new session: {differing(runs["get after back"], AMERICAN)}':
             not differing(runs['get after back'], AMERICAN),
+        f'a separator rewrites its picture, a picture names its separator: '
+        f'{differing(runs["separators"], SEPARATORS)}': not differing(runs['separators'], SEPARATORS),
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():

@@ -25,6 +25,52 @@ const char *PictureField(const char *picture,const char *set){
     }
     return picture;
 }
+// KERNEL32's own search in a picture: the first character that is one of
+// `set`, or null. It does not look at quotes.
+const char *PictureAny(const char *text,const char *set){
+    for(;*text;++text)if(strchr(set,*text))return text;
+    return nullptr;
+}
+// KERNEL32, LOCALE_STIME: the time format with a new separator. What stands
+// between two of the fields H, h, m and s becomes the separator; what leads
+// to the marker t or to a quote stays.
+void TimeWithSeparator(const char *picture,const char *separator,char *out,unsigned capacity){
+    unsigned used=0;const auto put=[&](const char *from,const char *to){for(;from<to&&used+1<capacity;++from)out[used++]=*from;};
+    for(const char *at=picture;;){
+        const char *field=PictureAny(at,"Hhms");
+        if(!field){put(at,at+strlen(at));break;}
+        put(at,field+1);at=field+1;
+        while(*at&&strchr("Hhms",*at))put(at,at+1),++at;
+        if(!*at)break;
+        const char *next=PictureAny(at,"Hhmst'");
+        if(!next){put(at,at+strlen(at));break;}
+        if(*next=='t'||*next=='\''){put(at,next+1);at=next+1;continue;}
+        at=next;put(separator,separator+strlen(separator));
+    }
+    out[used]=0;
+}
+// KERNEL32, LOCALE_SDATE: the short date with a new separator. The first
+// text between two of the fields d, M and y becomes the separator, and every
+// later one that equals that first text; another one stays.
+void DateWithSeparator(const char *picture,const char *separator,char *out,unsigned capacity){
+    unsigned used=0;const auto put=[&](const char *from,const char *to){for(;from<to&&used+1<capacity;++from)out[used++]=*from;};
+    const char *first=nullptr;unsigned first_size=0;
+    for(const char *at=picture;;){
+        const char *field=PictureAny(at,"dMy");
+        if(!field){put(at,at+strlen(at));break;}
+        put(at,field+1);at=field+1;
+        while(*at&&strchr("dMy",*at))put(at,at+1),++at;
+        if(!*at)break;
+        const char *next=PictureAny(at,"dMy");
+        if(!next){put(at,at+strlen(at));break;}
+        const unsigned size=unsigned(next-at);
+        if(!first){first=at;first_size=size;put(separator,separator+strlen(separator));}
+        else if(size==first_size&&!memcmp(at,first,size))put(separator,separator+strlen(separator));
+        else put(at,next);
+        at=next;
+    }
+    out[used]=0;
+}
 }
 // What the user has set for a value of the user's locale, or null: the
 // string under HKCU\Control Panel\International.
@@ -112,8 +158,15 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
         unsigned field=a[1]&~0x40000000u;const char *key=LocaleOverrideName(field);if(!key)return bad(1004);
         // KERNEL32 has no branch for the three derived values.
         if(field==0x21||field==0x25||field==0x1005)return bad(1004);
-        const char *value=ReadString(a[2]);const unsigned size=strlen(value);
+        const char *given=ReadString(a[2]);const unsigned size=strlen(given);
         if(size>80)return bad(87);
+        // A copy: the registry and the locale are read again below.
+        char value[81];memcpy(value,given,size+1);
+        // KERNEL32: a separator of the date or the time has at most three
+        // characters, no digit and none of the letters of its picture.
+        if(field==0x1d||field==0x1e){
+            if(size>3||PictureAny(value,"0123456789")||PictureAny(value,field==0x1d?"dMy":"Hhmst"))return bad(87);
+        }
         if(key[0]=='i'){
             unsigned number=0;if(!size||size>2)return bad(87);for(unsigned i=0;i<size;++i){if(value[i]<'0'||value[i]>'9')return bad(87);number=number*10+value[i]-'0';}
             const unsigned maximum=field==0x100c?6:field==0x100d?2:field==0x1c?15:field==0x1b?3:field==0x1010?4:field==0x11||field==0x19?9:1;
@@ -133,6 +186,29 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
             derive("iTime",*hour=='H'?"1":"0");
             derive("iTLZero",*hour&&hour[1]==*hour?"1":"0");
             derive("iTimePrefix",*PictureField(value,"Hhmst")=='t'?"1":"0");
+            // "sTime": what stands between the first two of the fields H, h,
+            // m and s that follow each other without the marker t between
+            // them; empty when there is no such pair.
+            char separator[81]={};
+            for(const char *at=value;;){
+                const char *first=PictureAny(at,"Hhms");if(!first)break;
+                at=first+1;while(*at&&strchr("Hhms",*at))++at;
+                const char *next=PictureAny(at,"Hhmst");if(!next)break;
+                if(*next=='t'){at=next+1;continue;}
+                memcpy(separator,at,size_t(next-at));break;
+            }
+            derive("sTime",separator);
+        }
+        // KERNEL32: a new separator rewrites the picture it belongs to, the
+        // time format for LOCALE_STIME and the short date for LOCALE_SDATE.
+        // Regional Settings sets only the separator when only that changed.
+        if(field==0x1e||field==0x1d){
+            const unsigned of=field==0x1e?0x1003u:0x1fu;
+            char picture[256]={},rewritten[256];
+            if(const char *now=LocaleValue(UserDefaultLocale(),of))snprintf(picture,sizeof picture,"%s",now);
+            if(field==0x1e)TimeWithSeparator(picture,value,rewritten,sizeof rewritten);
+            else DateWithSeparator(picture,value,rewritten,sizeof rewritten);
+            if(strlen(rewritten)<=80)derive(field==0x1e?"sTimeFormat":"sShortDate",rewritten);
         }
         if(field==0x1f){
             const char *first=PictureField(value,"dMy");
