@@ -20,10 +20,6 @@ constexpr char ControlKeyboard[] = "Control Panel\\Keyboard";
 constexpr char ControlSound[] = "Control Panel\\Sound";
 constexpr char ControlColors[] = "Control Panel\\Colors";
 constexpr char ControlMetrics[] = "Control Panel\\Desktop\\WindowMetrics";
-// The dots per inch USER converts a stored size with (its word of the
-// display's LOGPIXELS): a size of WindowMetrics is twips when negative, 1440
-// to the inch, as LoadWindowMetrics in src/x86_user.cpp reads the others.
-constexpr int ControlDotsPerInch = 96;
 // The names of the system colours, strings 32 to 60 of USER; the colour of
 // index i is stored under the name i.
 const char *const ControlColorNames[29] = {
@@ -169,22 +165,6 @@ void Application::LoadControlPanelSettings()
     for (const auto &metric : metrics)
         settings.SetWord(metric.offset,
                          (unsigned short)ControlNumber(ControlDesktop, metric.name, settings.Word(metric.offset)));
-    // The grid of the icons, system metrics 38 and 39: twips when negative,
-    // never below the size of an icon (metrics 11 and 12).
-    static const struct { const char *name; unsigned offset, least; } spacing[] = {
-        {"IconSpacing", 0x32a, 0x2f4}, {"IconVerticalSpacing", 0x32c, 0x2f6}};
-    for (const auto &entry : spacing)
-    {
-        int size = ControlNumber(ControlMetrics, entry.name, 0);
-        if (!size)
-            continue;
-        if (size < 0)
-            size = (-size * ControlDotsPerInch + 720) / 1440;
-        if (size < int(settings.Word(entry.least)))
-            size = settings.Word(entry.least);
-        if (size <= 0x7fff)
-            settings.SetWord(entry.offset, (unsigned short)size);
-    }
     // Whether a window shows its contents while it is dragged, whether
     // minimizing is animated, and the switches of the preferences mask.
     settings.drag_full = ControlNumber(ControlDesktop, "DragFullWindows", settings.drag_full) ? 1 : 0;
@@ -320,7 +300,9 @@ bool Application::ControlPanelParameters(const unsigned *a, unsigned &result)
     {
         // With a pointer the action answers the spacing (the read branch);
         // without one it sets it: nothing for 0, never below the size of an
-        // icon, and stored in twips, negative, under WindowMetrics.
+        // icon, and stored in twips, negative, under WindowMetrics, by the
+        // dots per inch of the display. LoadWindowMetrics in
+        // src/x86_user.cpp reads it back at the start.
         if (a[2])
             return false;
         result = 1;
@@ -329,8 +311,10 @@ bool Application::ControlPanelParameters(const unsigned *a, unsigned &result)
         const unsigned least = settings.Word(action == 13 ? 0x2f4 : 0x2f6);
         const unsigned size = value < least ? least : value;
         settings.SetWord(action == 13 ? 0x32a : 0x32c, (unsigned short)size);
+        const auto &dpi = Gdi::Dpi();
+        const int dots = action == 13 ? dpi.logical_x : dpi.logical_y;
         if (store && StoreControlNumber(ControlMetrics, action == 13 ? "IconSpacing" : "IconVerticalSpacing",
-                                        -int(size * 1440 / ControlDotsPerInch)) && (a[3] & 2))
+                                        -int(size * 1440 / unsigned(dots > 0 ? dots : 96))) && (a[3] & 2))
             BroadcastMessage(Win98Broadcast::Send, 0x1a, action, 0);
         return true;
     }
