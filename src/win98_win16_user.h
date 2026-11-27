@@ -359,7 +359,7 @@ struct Ordinal { U ordinal, words; const char *name; };
 inline const Ordinal *UserOrdinals(U &count)
 {
     static const Ordinal table[] = {
-        {1, 6, "MessageBox"},          {5, 1, "InitApp"},
+        {1, 6, "MessageBox"},          {5, 1, "InitApp"},           {827, 2, "MessageBoxIndirect"},
         {6, 1, "PostQuitMessage"},     {13, 0, "GetTickCount"},
         {22, 1, "SetFocus"},           {23, 0, "GetFocus"},
         {117, 1, "WindowFromDC"},

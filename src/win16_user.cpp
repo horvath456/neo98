@@ -1491,6 +1491,49 @@ bool Application::Win16UserCall(unsigned ordinal, const Win16Frame &frame, unsig
         result = MessageBox(hwnd, text, caption, frame.Word(0));
         return true;
     }
+    case 827: // MessageBoxIndirect(lpMsgBoxParams)
+    {
+        // MSGBOXPARAMS of the 16-bit side: cbSize (DWORD), hwndOwner and
+        // hInstance (WORD), lpszText and lpszCaption (SEGPTR, or a string id
+        // of hInstance in the low word), dwStyle, lpszIcon,
+        // dwContextHelpId, lpfnMsgBoxCallback, dwLanguageId. The box is the
+        // one of the 32-bit call; a program's own icon and the help
+        // callback of the 16-bit side are not carried over: MB_USERICON
+        // becomes no icon, and help goes to the owner as WM_HELP.
+        const unsigned record = pointer(0);
+        if (!record || !virtual_memory.Access(record, 0x24, false))
+        {
+            result = 0;
+            return true;
+        }
+        const unsigned owner = Read32(record + 4) & 0xffff, instance = Read32(record + 4) >> 16;
+        char text[512] = "", caption[256] = "";
+        const auto string = [&](unsigned at, char *out, unsigned capacity, const char *fallback) {
+            const unsigned value = Read32(at);
+            if (value >> 16)
+            {
+                const unsigned flat = Win16Linear(value >> 16, value & 0xffff);
+                snprintf(out, capacity, "%s", flat ? ReadString(flat) : "");
+            }
+            else if (value)
+            {
+                const unsigned buffer = Allocate(capacity);
+                if (buffer && Win16LoadStringInto(instance, value & 0xffff, buffer, capacity))
+                    snprintf(out, capacity, "%s", ReadString(buffer));
+                if (buffer)
+                    Free(buffer);
+            }
+            else
+                snprintf(out, capacity, "%s", fallback);
+        };
+        string(record + 8, text, sizeof text, "");
+        string(record + 12, caption, sizeof caption, "Error");
+        unsigned style = Read32(record + 16);
+        if (style & 0x80)
+            style &= ~0xf0u;
+        result = MessageBox(owner, text, caption, style & ~0x4000u);
+        return true;
+    }
     case 5: // InitApp(instance): the task gets its message queue.
         machine.initialized = true;
         result = 1;

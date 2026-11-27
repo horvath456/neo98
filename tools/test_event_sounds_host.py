@@ -39,7 +39,7 @@ closed with Enter by the input script:
   events; MB_ICONQUESTION, whose entry is empty, is silent
   MB_USERICON (MessageBoxIndirectA) and the icon value 50h raise none
   the 16-bit MessageBox (tools/box_sound_win16_fixture.asm) raises
-  SystemExclamation
+  SystemExclamation, the 16-bit MessageBoxIndirect SystemHand
   Beep of KERNEL32 plays the default sound, and without one it is quiet: the
   speaker is only for a machine without a wave device
   the box of KERNEL32 that ends a program after a fault plays AppGPFault
@@ -195,7 +195,8 @@ def main():
         box_question, box_question_log = session('box a 32', CLOSE_BOX)
         box_user, box_user_log = session('box i 128', CLOSE_BOX)
         box_above, box_above_log = session('box a 80', CLOSE_BOX)
-        _, box16_log = session('', CLOSE_BOX, exe='BOX16.EXE')
+        _, box16_log = session('', CLOSE_BOX + ['1.5:wait=#32770|BoxTest', '0:idle=300', '0.3:key=0d'],
+                               exe='BOX16.EXE')
         default_beep, default_beep_log = session('kbeep')
         _, fault_log = session('fault', ['0:wait=#32770', '0:idle=500', '0.5:key=0d'], windowed=True)
     finally:
@@ -246,8 +247,9 @@ def main():
             raised(box_user_log) == [] and box_user == 0 and 'MessageBox caption=BoxTest' in box_user_log,
         f'nor the icon value 50h: {raised(box_above_log)} {box_above * 1000:.0f} ms':
             raised(box_above_log) == [] and box_above == 0 and 'MessageBox caption=BoxTest' in box_above_log,
-        f'the 16-bit MessageBox with MB_ICONEXCLAMATION raises SystemExclamation: {raised(box16_log)}':
-            raised(box16_log) == [('SystemExclamation', '0')],
+        f'the 16-bit MessageBox with MB_ICONEXCLAMATION raises SystemExclamation, MessageBoxIndirect with '
+        f'MB_ICONHAND SystemHand: {raised(box16_log)}':
+            raised(box16_log) == [('SystemExclamation', '0'), ('SystemHand', '0')],
         f'the box after a fault plays AppGPFault: {raised(fault_log)}':
             ('AppGPFault', '0') in raised(fault_log) and 'FAULT BOX' in fault_log,
     }

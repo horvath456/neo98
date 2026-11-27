@@ -1,7 +1,8 @@
 ; SPDX-License-Identifier: GPL-2.0-or-later
 ; A 16-bit message box sounds the event of its icon, as a 32-bit one does:
-; USER.1 MessageBox(0, text, "BoxTest", MB_ICONEXCLAMATION), then the end of
-; the task. tools/test_event_sounds_host.py presses Enter in the box; the New
+; USER.1 MessageBox(0, text, "BoxTest", MB_ICONEXCLAMATION), then USER.827
+; MessageBoxIndirect with MB_ICONHAND, then the end of the task.
+; tools/test_event_sounds_host.py presses Enter in each box; the New
 ; Executable is made as for tools/layer_win16_fixture.asm.
         bits 16
 section header start=0
@@ -31,6 +32,11 @@ code_start:
         push word caption
         push word 30h                   ; MB_ICONEXCLAMATION
         API 2, 1                        ; MessageBox
+        mov [params + 10], ds           ; the segments of the two strings
+        mov [params + 14], ds
+        push ds
+        push word params
+        API 2, 827                      ; MessageBoxIndirect
         mov ax, 4c00h
         API 1, 102                      ; DOS3Call
         jmp $
@@ -41,6 +47,16 @@ data_start:
         times 16 db 0                   ; the words of the local heap and the stack
 text    db 'A box of a 16-bit program', 0
 caption db 'BoxTest', 0
+other   db 'MessageBoxIndirect of a 16-bit program', 0
+; MSGBOXPARAMS: cbSize, hwndOwner, hInstance, lpszText, lpszCaption,
+; dwStyle (MB_ICONHAND), lpszIcon, dwContextHelpId, lpfnMsgBoxCallback,
+; dwLanguageId.
+params  dd 36
+        dw 0, 0
+        dw other, 0
+        dw caption, 0
+        dd 10h
+        dd 0, 0, 0, 0
         times 512 db 0
 data_end:
 
