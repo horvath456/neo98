@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Native Windows ABI adapter. New infrastructure, with native USER behavior.
 #include "x86_app.h"
-#include <chrono>
-#include <cstdio>
 #include "linux_shared_memory.h"
 #include "pc_vga.h"
 #include "arm64_cpu.h"
@@ -4175,7 +4173,6 @@ bool Application::Dispatch()
     if (!waiting)
     {
         ++api_calls;
-        ++dispatched_calls;
         ++slow_gate_calls;
         ring_token = api_ring.Begin<true>(item.dll, item.name, ThreadId(), ret, args, count);
         ring_active = true;
@@ -4274,27 +4271,6 @@ bool Application::Dispatch()
         // A call a saved state can take up again says so to its handler.
         if (!item.tail_gate) item.tail_gate = TailGate(item.dll, item.name, item.id, false) ? 2 : 1;
         threads[current_thread].tail = item.tail_gate == 2 ? TailFresh : TailNone;
-        // A call that keeps the host's thread for long holds the whole
-        // machine and its sound (Sound::Mixer::Beat): it goes into the log
-        // with its name. A call that waited instead, while another call ran
-        // or the host turned (Pump), is left out.
-        const unsigned long long calls_before = dispatched_calls, pumps_before = pump_serial;
-        const auto call_started = std::chrono::steady_clock::now();
-        struct SlowCall
-        {
-            const char *name;
-            unsigned long long before, pumps;
-            std::chrono::steady_clock::time_point started;
-            ~SlowCall()
-            {
-                if (dispatched_calls != before || pump_serial != pumps) return;
-                const double ms =
-                    std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
-                if (ms < 50) return;
-                printf("NEO98 HOST slow call %s ms=%.0f\n", name, ms);
-                fflush(stdout);
-            }
-        } slow_call{item.name, calls_before, pumps_before, call_started};
         if (item.screen_pixels && (User::ScreenLockActive() || threads[current_thread].screen_wait) &&
             ScreenWait(item.screen_pixels, args))
             value = 0;
@@ -4633,7 +4609,6 @@ bool Application::Service()
 }
 Application::State Application::Pump(unsigned slices)
 {
-    ++pump_serial;
     // The round of the host starts with the outermost Pump (HandSendOver).
     static unsigned pumping = 0;
     struct Round { Round() { if (!pumping++) handoff_round = Now(); } ~Round() { --pumping; } } round;

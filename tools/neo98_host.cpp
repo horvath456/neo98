@@ -24,7 +24,6 @@
 #include "host_dos_vm.h"
 #include "host_pacing.h"
 #include "host_hang.h"
-#include "host_stall_stack.h"
 #include "host_mouse_buttons.h"
 #include "host_wheel.h"
 #include "host_settings.h"
@@ -4873,8 +4872,6 @@ int main(int real_argc, char **real_argv)
     // every Windows thread and the sound streams wait (Sound::Mixer::Beat).
     // It goes into the log with where the time went, the guest's slices,
     // the GPU's flush and the rest of the turn.
-    static HostStallStack::Watch stall_watch;
-    stall_watch.Start();
     auto turn_start = std::chrono::steady_clock::now();
     double turn_guest_ms = 0, turn_flush_ms = 0, turn_events_ms = 0, turn_present_ms = 0;
     bool turn_canvas = false;
@@ -5102,7 +5099,7 @@ int main(int real_argc, char **real_argv)
                             if (sscanf(value.c_str(), "%d,%d,%15s", &s.x, &s.y, colour) == 3) { s.action = "pixel"; s.path = colour; }
                             else s.path = value;
                         }
-                        else if (s.action == "idle" || s.action == "raise" || s.action == "windows" || s.action == "activation" || s.action == "hostkeys" || s.action == "native" || s.action == "redraw" || s.action == "closebox" || s.action == "tops" || s.action == "trees" || s.action == "lists" || s.action == "cmd" || s.action == "pause" || s.action == "focus" || s.action == "trace" || s.action == "stand") s.x = atoi(value.c_str());
+                        else if (s.action == "idle" || s.action == "raise" || s.action == "windows" || s.action == "activation" || s.action == "hostkeys" || s.action == "native" || s.action == "redraw" || s.action == "closebox" || s.action == "tops" || s.action == "trees" || s.action == "lists" || s.action == "cmd" || s.action == "pause" || s.action == "focus" || s.action == "trace") s.x = atoi(value.c_str());
                         else if (s.action == "key" || s.action == "keydown" || s.action == "keyup") s.x = (int)strtol(value.c_str(), nullptr, 16);
                         else if (sscanf(value.c_str(), "%d,%d", &s.x, &s.y) != 2) continue;
                         if (s.action == "motion") s.path = value; // optional x,y,dx,dy: a queued SDL sample
@@ -5553,14 +5550,6 @@ int main(int real_argc, char **real_argv)
                 // keyboard goes down or up, as an SDL event with that USB
                 // usage. Unlike key= it takes the way of a real key, so the
                 // host knows it as held.
-                // stand=MS: the main thread stands that long, as when the Mac
-                // keeps it (tools/test_machine_stand_host.py).
-                if (s.action == "stand") {
-                    printf("NEO98 HOST input stand %d\n", s.x);
-                    fflush(stdout);
-                    std::this_thread::sleep_for(std::chrono::milliseconds(s.x));
-                    continue;
-                }
                 if (s.action == "sdlkey") {
                     // The modifiers held by earlier steps go with the key,
                     // as SDL gives them with a real one.
