@@ -14,6 +14,7 @@
 // samples there the way a UI test checks pixels.
 //
 #pragma once
+#include <atomic>
 #include <vector>
 namespace Sound
 {
@@ -185,6 +186,19 @@ class Mixer
     // which keeps the cut from clicking.
     void Hold(bool hold);
     bool Held() const { return held; }
+    // The sign of life of the machine: the thread that runs the guest calls
+    // it between its slices. A looping ring is refilled by the guest while the
+    // mixer plays it, as a DirectSound stream is; while the guest stands (a
+    // first translation of its code, a shader the host compiles, a file), the
+    // mixer would play the same bytes lap after lap and the stream stutters
+    // ("goooo" for a second). A machine without a beat for StallMilliseconds
+    // is held as in a pause until the next beat: the sound stops and goes on
+    // where it stopped. Before the first beat nothing is held.
+    static constexpr unsigned StallMilliseconds = 80;
+    void Beat();
+    bool Stalled() const;
+    // How often a stand of the machine has held the mixer so far.
+    unsigned long long StallHolds() const { return stall_holds.load(std::memory_order_relaxed); }
     // Whether a host provider carries the frames away.
     bool Live() const;
     // Starts the host provider now instead of with the first source: a card
@@ -231,7 +245,9 @@ class Mixer
     unsigned master_volume = 0xffffffff;
     bool master_mute = false;
     unsigned long long rendered_frames = 0, audible_frames = 0;   // RenderedFrames, AudibleFrames
-    bool held = false, faded = false;   // Hold; faded once the last block went out
+    bool held = false, faded = false;   // Hold (or a stall); faded once the last block went out
+    std::atomic<long long> last_beat{0}; // Beat, in nanoseconds of the steady clock
+    std::atomic<unsigned long long> stall_holds{0};
     unsigned group_volume[Groups] = {0xffffffff, 0xffffffff};
     bool group_mute[Groups] = {};
 

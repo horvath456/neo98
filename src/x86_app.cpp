@@ -3509,6 +3509,9 @@ void Application::BindUserProviders()
     User::SetCursorProvider(this, [](void *p, Gdi::HDC dc, int x, int y, unsigned cursor) {
         return static_cast<Application *>(p)->DrawCursorShape(dc, x, y, cursor);
     });
+    User::SetQueueCursorProvider([](void *p, unsigned thread) {
+        return static_cast<Application *>(p)->QueueCursor(thread);
+    });
     User::SetFrameCallbacks(this,
         [](void*p,unsigned h,unsigned m,unsigned wp,unsigned lp){return static_cast<Application*>(p)->SendFromNative(h,m,wp,lp);},
         [](void*p,unsigned h,unsigned m,unsigned wp,Gdi::RECT*r){return static_cast<Application*>(p)->FrameTrackRect(h,m,wp,r);},

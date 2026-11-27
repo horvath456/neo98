@@ -2,7 +2,9 @@
 // growing queues preserve PCM, loop blocks and uncollected completions.
 #include "../src/sound.h"
 #include <cassert>
+#include <chrono>
 #include <cstdio>
+#include <thread>
 #include <vector>
 namespace Sound::Speaker { void Reset() {} }
 namespace Sound::Microphone { void ResetAll() {} }
@@ -76,6 +78,41 @@ int main()
     assert(!out[4410] && !out[4411]);
     assert(mixer.Complete(live) == 5 && !mixer.Complete(live) && !mixer.Busy(live));
     mixer.Close(live);
+    // A machine that stands holds the mixer (Mixer::Beat): a looping ring,
+    // a DirectSound stream the guest refills, is not played lap after lap
+    // while the guest cannot refill it. The block that meets the stand
+    // falls to silence, nothing moves while it lasts, and after the next
+    // beat the ring goes on from where it stopped, rising from silence.
+    {
+        std::vector<short> ring(4096 * 2, 8192);
+        const unsigned stream = mixer.OpenRing(reinterpret_cast<const unsigned char *>(ring.data()),
+                                               unsigned(ring.size() * sizeof(short)), {Sound::OutputRate, 2, 16});
+        assert(stream);
+        mixer.PlayRing(stream, true);
+        mixer.Beat();
+        assert(!mixer.Stalled());
+        out.assign(256 * 2, 0);
+        mixer.Render(out.data(), 256);
+        assert(out[0] == 8192 && out[511] == 8192);
+        const unsigned before = mixer.RingCursor(stream);
+        assert(before == 256 * 4);
+        std::this_thread::sleep_for(std::chrono::milliseconds(Sound::Mixer::StallMilliseconds + 40));
+        assert(mixer.Stalled());
+        mixer.Render(out.data(), 256);
+        assert(out[0] > 8000 && out[510] < 100);
+        const unsigned held = mixer.RingCursor(stream);
+        assert(held == before + 256 * 4);
+        mixer.Render(out.data(), 256);
+        for (const short sample : out) assert(!sample);
+        assert(mixer.RingCursor(stream) == held);
+        mixer.Beat();
+        assert(!mixer.Stalled());
+        mixer.Render(out.data(), 256);
+        assert(out[0] < 100 && out[510] > 8000);
+        assert(mixer.RingCursor(stream) == held + 256 * 4);
+        mixer.Close(stream);
+    }
     puts("PASS wave queue PCM, 2050 ordered completions, wrapped loop reuse");
     puts("PASS bounded live PCM retains the newest frames without a callback gap");
+    puts("PASS a machine that stands holds a looping ring instead of playing it lap after lap");
 }
