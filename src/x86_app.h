@@ -53,6 +53,7 @@ struct Record;
 }
 namespace Win98DisplayReposition { struct Rect; }
 struct AH_Status; // src/host_devices_abi.h
+namespace GdiFonts { struct Face; }
 namespace X86
 {
 class Application final : private Pe32::AddressSpace
@@ -1209,6 +1210,9 @@ private:
     struct WindowTextMemory;
     unsigned FontCreateApi(ApiName, const unsigned *);
     // src/x86_font_catalog.cpp: the fonts of the installation and the stock fonts.
+    static void LoadDisplayDpi();
+    static unsigned CreateMetricFont(const unsigned char *logfont16);
+    static unsigned CreateRasterFont(const GdiFonts::Face &, unsigned scale);
     void LoadInstalledFonts();
     bool InstallStockFonts();
     unsigned FontCharsetApi(ApiName, const unsigned *);
@@ -3637,6 +3641,9 @@ private:
     // The turn of the running thread: when it began and whether the
     // last run ended because the slice of blocks was used up.
     unsigned long long turn_start = 0; bool slice_stop = false;
+    // What the changes of processor had cost when the turn began, or when
+    // Slice last took their time out of it (see there).
+    unsigned long long turn_switches = 0;
     char program_name[128] = {};
     // The guest memory and the processor of the process. The DOS process has
     // memory only (CpuBackend::None) until its first x86 module brings a
@@ -4256,6 +4263,7 @@ private:
     unsigned cursor_count = 0;
     unsigned cursor = 0;
     unsigned CurrentCursor();
+    unsigned QueueCursor(unsigned thread_id);
     // The sixteen OEM cursors USER loads at startup, in the order of its own
     // table at segment 21: resource 100+index. See win98_cursor.h.
     unsigned system_cursors[16] = {};

@@ -1307,7 +1307,7 @@ unsigned Application::UserSessionApi(ApiName name, const unsigned *a)
         };
         put16(36, DevModeSize);                       // dmSize,
         put32(40, 0x001c0020);                        // dmFields,
-        put16(102, 96);                               // dmLogPixels
+        put16(102, unsigned(Gdi::Dpi().logical_y));   // dmLogPixels, the font size of the display
         put32(104, unsigned(depth));
         put32(108, unsigned(width));
         put32(112, unsigned(height));

@@ -4873,7 +4873,12 @@ int main(int real_argc, char **real_argv)
     // on (tools/host_state.h).
     if (HostState::loaded) machine_pause(true, "state loaded");
     pacing.Start();
+    // A turn of this loop that takes long is a stand of the whole machine:
+    // every Windows thread and the sound streams wait. The beats tell the
+    // mixer that the machine still goes; without them it holds the sound
+    // (Sound::Mixer::Beat).
     while (running) {
+        Sound::Shared().Beat();
         hardware.Pump(*a,game_machine_folder.empty());
 #ifdef NEO98_WITH_HOST_MEDIA
         media.Pump();
@@ -4892,6 +4897,7 @@ int main(int real_argc, char **real_argv)
                 // Pump of a first process that has ended still runs the others.
                 if ((a->Status() == X86::Application::Exited || a->Status() == X86::Application::Failed) && !game_goes_on()) break;
                 a->Pump();
+                Sound::Shared().Beat();
                 // Nothing to run anywhere: every thread of every process waits.
                 if (!a->SystemRunnable()) break;
             }
@@ -4980,10 +4986,11 @@ int main(int real_argc, char **real_argv)
                 next += std::chrono::seconds(1);
                 struct rusage used{};
                 getrusage(RUSAGE_SELF, &used);
-                printf("NEO98 HOST stats t=%.2f presents=%u sound=%llu audible=%llu cpu=%.2f\n",
+                printf("NEO98 HOST stats t=%.2f presents=%u sound=%llu audible=%llu cpu=%.2f sound_holds=%llu\n",
                        std::chrono::duration<double>(std::chrono::steady_clock::now() - host_start).count(), a->HalPresents(),
                        Sound::Shared().RenderedFrames(), Sound::Shared().AudibleFrames(),
-                       (double)(used.ru_utime.tv_sec + used.ru_stime.tv_sec) + (used.ru_utime.tv_usec + used.ru_stime.tv_usec) / 1e6);
+                       (double)(used.ru_utime.tv_sec + used.ru_stime.tv_sec) + (used.ru_utime.tv_usec + used.ru_stime.tv_usec) / 1e6,
+                       Sound::Shared().StallHolds());
                 fflush(stdout);
 #if defined(__APPLE__)
                 HostMetal::LogStatistics();

@@ -4,6 +4,7 @@
 #include "dibeng.h"
 #include "dib_text.h"
 #include "win98_rect.h"
+#include "gdi_display_dpi.h"
 
 // Native ARM adapter with a deliberately limited Win32-shaped interface.
 // Public handles and DC state are native providers. DDB/BS_PATTERN bodies and

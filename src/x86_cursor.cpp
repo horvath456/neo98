@@ -111,6 +111,14 @@ unsigned Application::CurrentCursor()
     }
     return current;
 }
+// The cursor the thread with this id last set, for the pointer over its
+// windows (User::PointerMoved); ~0u when it has set none yet or is gone.
+unsigned Application::QueueCursor(unsigned thread_id)
+{
+    for (unsigned i = 0; thread_id && i < ThreadCapacity; ++i)
+        if (threads[i].id == thread_id && !threads[i].done) return threads[i].cursor_handle;
+    return ~0u;
+}
 // The handle of one OEM cursor. Zero before InitializeImageResources ran.
 unsigned Application::SystemCursor(unsigned identifier)
 {

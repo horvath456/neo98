@@ -11,6 +11,7 @@
 #include "profile_files.h"
 #include "win98_profile_struct.h"
 #include "x86_app.h"
+#include "gdi_font_catalog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -160,52 +161,105 @@ void Application::LoadUserStartSettings()
     }
 }
 // USER sizes the parts of a window at its start by the values of
-// HKCU\Control Panel\Desktop\WindowMetrics that Setup writes (Windows 98:
-// ScrollWidth -240, CaptionWidth -270, SmCaptionWidth -195, SmCaptionHeight
-// -225, MenuHeight -270), in twips when negative, -15 a pixel at 96 dots per
-// inch, and in pixels when positive. SPI_SETNONCLIENTMETRICS with
-// SPIF_UPDATEINIFILE writes them in pixels to [WindowMetrics] of WIN.INI
-// (src/x86_parameters_write.inc), which comes first. A value that is missing
-// or out of range keeps the one of Windows 98 (src/user_settings.h).
+// HKCU\Control Panel\Desktop\WindowMetrics that Setup writes. A size is a string, in twips when
+// negative (Windows 98: BorderWidth -15, ScrollWidth -240, CaptionWidth -270,
+// SmCaptionWidth -195, SmCaptionHeight -225, MenuHeight -270, IconSpacing
+// -1125) and then MulDiv(twips, dots per inch, 1440) pixels, in pixels when
+// positive; a missing one is 1 for the border, 16 for the scroll bars, 18 for
+// caption and menu and 13 for the small caption, and for the icon spacing 75
+// pixels at 96 dots per inch. A font is the fifty bytes of a LOGFONT16 whose
+// height is in points when positive, -MulDiv(points, dots per inch, 72)
+// pixels; without a height it is 8 points (4 for the small
+// caption, 6 for the icon titles), without a weight 400 (700 for the caption),
+// without a face MS Sans Serif. So everything here follows the font size of
+// the display (src/gdi_display_dpi.h). SPI_SETNONCLIENTMETRICS and
+// SPI_SETICONMETRICS with SPIF_UPDATEINIFILE store the same way
+// (src/x86_parameters_write.inc).
+namespace
+{
+constexpr const char *WindowMetricsKey = "Control Panel\\Desktop\\WindowMetrics";
+}
 void Application::LoadWindowMetrics()
 {
+    LoadInstalledFonts();
     auto &settings = User::SystemSettings();
-    static const char *const names[9] = {"BorderWidth",     "ScrollWidth",    "ScrollHeight",
-                                         "CaptionWidth",    "CaptionHeight",  "SmCaptionWidth",
-                                         "SmCaptionHeight", "MenuWidth",      "MenuHeight"};
-    static const unsigned offsets[9] = {0x1014, 0x2e2, 0x306, 0x31a, 0x31c, 0x346, 0x348, 0x34a, 0x34c};
     auto &registry = Registry::System();
     unsigned key = Registry::Missing;
     bool created = false;
-    const bool hive = !registry.Open(registry.roots[1], "Control Panel\\Desktop\\WindowMetrics", false, key, created);
-    unsigned sizes[9];
-    for (unsigned i = 0; i < 9; ++i)
-    {
-        sizes[i] = settings.Word(offsets[i]);
-        char text[16] = {};
-        ProfileString("WindowMetrics", names[i], "", text, sizeof text);
+    const bool hive = !registry.Open(registry.roots[1], WindowMetricsKey, false, key, created);
+    // USER's reader of a number: blanks, a sign, digits.
+    auto size = [&](const char *name, int fallback, bool twips) {
         const Registry::Value *value = nullptr;
-        if (!text[0] && hive && !registry.Query(key, names[i], value) && value && value->type == 1 && value->data &&
-            value->size && value->size < sizeof text)
-            memcpy(text, value->data, value->size);
-        int number = 0, sign = 1;
+        if (!hive || registry.Query(key, name, value) || !value || value->type != 1 || !value->data ||
+            !value->size || value->size > 31)
+            return fallback;
         unsigned at = 0;
-        if (text[0] == '-')
+        int sign = 1, number = 0;
+        while (at < value->size && value->data[at] == ' ')
+            ++at;
+        if (at < value->size && (value->data[at] == '-' || value->data[at] == '+'))
+            sign = value->data[at++] == '-' ? -1 : 1;
+        for (; at < value->size && value->data[at] >= '0' && value->data[at] <= '9' && number < 100000; ++at)
+            number = number * 10 + (value->data[at] - '0');
+        return twips && sign < 0 ? Gdi::TwipsToPixels(number) : sign * number;
+    };
+    // USER's reader of a font.
+    const auto *system_face = GdiFonts::RoleFace(GdiFonts::SystemRole);
+    auto font = [&](unsigned handle, const char *name, int points, unsigned weight) {
+        unsigned char logfont[50] = {};
+        const Registry::Value *value = nullptr;
+        if (hive && !registry.Query(key, name, value) && value && value->data)
+            memcpy(logfont, value->data, value->size < sizeof logfont ? value->size : sizeof logfont);
+        logfont[49] = 0;
+        if (!logfont[18])
+            memcpy(logfont + 18, "MS Sans Serif", 14);
+        int height = short(logfont[0] | logfont[1] << 8);
+        if (!height)
+            height = points;
+        if (height > 0)
+            height = -Gdi::PointsToPixels(height);
+        logfont[0] = (unsigned char)height;
+        logfont[1] = (unsigned char)(height >> 8);
+        if (!(logfont[8] | logfont[9]))
         {
-            sign = -1;
-            at = 1;
+            logfont[8] = (unsigned char)weight;
+            logfont[9] = (unsigned char)(weight >> 8);
         }
-        if (text[at] < '0' || text[at] > '9')
-            continue;
-        for (; text[at] >= '0' && text[at] <= '9' && number < 100000; ++at)
-            number = number * 10 + (text[at] - '0');
-        // MulDiv(twips, 96, 1440), rounded as USER rounds.
-        const int pixels = sign < 0 ? (number * 96 + 720) / 1440 : number;
-        if (pixels >= 1 && pixels <= (i ? 100 : 50))
-            sizes[i] = unsigned(pixels);
-    }
-    Win98Metrics::ApplyNonClientMetrics(settings, {sizes[0], sizes[1], sizes[2], sizes[3], sizes[4], sizes[5],
-                                                   sizes[6], sizes[7], sizes[8]});
+        logfont[13] = system_face ? system_face->font.data[0x55] : 0;
+        logfont[14] = logfont[15] = logfont[16] = 0;
+        settings.SetFont(handle, logfont);
+    };
+    font(0x502, "CaptionFont", 8, 700);
+    font(0x503, "SmCaptionFont", 4, 400);
+    font(0x501, "MenuFont", 8, 400);
+    font(0x505, "StatusFont", 8, 400);
+    font(0x506, "MessageFont", 8, 400);
+    font(0x504, "IconFont", 6, 400);
+    User::SetMetricFontProvider(CreateMetricFont);
+    Win98Metrics::NonClient sizes;
+    sizes.border_width = unsigned(size("BorderWidth", 1, true));
+    sizes.scroll_width = unsigned(size("ScrollWidth", 16, true));
+    sizes.scroll_height = unsigned(size("ScrollHeight", 16, true));
+    sizes.caption_width = unsigned(size("CaptionWidth", 18, true));
+    sizes.caption_height = unsigned(size("CaptionHeight", 18, true));
+    sizes.small_caption_width = unsigned(size("SmCaptionWidth", 13, true));
+    sizes.small_caption_height = unsigned(size("SmCaptionHeight", 13, true));
+    sizes.menu_width = unsigned(size("MenuWidth", 18, true));
+    sizes.menu_height = unsigned(size("MenuHeight", 18, true));
+    User::ApplyNonClientMetrics(sizes);
+    // USER, the grid of icons: IconSpacing and IconVerticalSpacing,
+    // or 75 pixels at 96 dots per inch scaled to the font size (and by
+    // IconSpacingFactor percent across), at least an icon.
+    const auto &dpi = Gdi::Dpi();
+    const int factor = size("IconSpacingFactor", 100, false);
+    int across = size("IconSpacing", dpi.logical_x * 75 / 96 * factor / 100, true);
+    int down = size("IconVerticalSpacing", dpi.logical_y * 75 / 96, true);
+    if (across < Win98Metrics::Signed(settings.Word(0x2f4)))
+        across = Win98Metrics::Signed(settings.Word(0x2f4));
+    if (down < Win98Metrics::Signed(settings.Word(0x2f6)))
+        down = Win98Metrics::Signed(settings.Word(0x2f6));
+    settings.SetWord(0x32a, (unsigned short)across);
+    settings.SetWord(0x32c, (unsigned short)down);
 }
 // USER: SPI_GETFONTSMOOTHING (4Ah) and SPI_SETFONTSMOOTHING (4Bh).
 // Without the Plus module at DS:264h, 4Ah writes a zero WORD, both answer

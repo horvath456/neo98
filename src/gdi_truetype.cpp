@@ -27,9 +27,11 @@ namespace
 {
 namespace M = TrueTypeMachine;
 
-// The display: 96 pixels per inch both ways and no spot size, which GDI
-// replaces with B505h.
-constexpr int LogPixels = 96;
+// The display: the logical dots per inch of the font size (GDIINFO
+// dpLogPixelsX and dpLogPixelsY, src/gdi_display_dpi.h), 96 with "Small
+// Fonts", and no spot size, which GDI replaces with B505h.
+int LogPixelsX() { return Gdi::Dpi().logical_x; }
+int LogPixelsY() { return Gdi::Dpi().logical_y; }
 constexpr U Spot = 0xb505;
 
 constexpr U FaceCapacity = 128, FontCapacity = 256;
@@ -375,7 +377,7 @@ const Font *Realize(const Face *face, int height, int width, U weight, bool ital
         return nullptr;
     // A height of zero is GDI's default of twelve points.
     if (!height)
-        height = -MulDiv16(12, LogPixels, 72);
+        height = -MulDiv16(12, LogPixelsY(), 72);
     // GDI's TrueType mapper replaces requests from -2 to
     // +2 with a two-pixel em, before converting a positive cell height.
     if (height >= -2 && height <= 2)
@@ -403,7 +405,7 @@ const Font *Realize(const Face *face, int height, int width, U weight, bool ital
         ppem = -height;
     else
     {
-        U vdmx = Call(M::Vdmx, face->file, U(LogPixels), U(LogPixels), U(height & 0xffff));
+        U vdmx = Call(M::Vdmx, face->file, U(LogPixelsX()), U(LogPixelsY()), U(height & 0xffff));
         if (vdmx == ~0u)
             vdmx = 0;
         if (vdmx & 0xffff)
@@ -413,7 +415,7 @@ const Font *Realize(const Face *face, int height, int width, U weight, bool ital
             int guess = MulDiv16(height, face->upem, face->cell), direction = 0;
             for (;;)
             {
-                U probe = Call(M::Vdmx, face->file, U(LogPixels), U(LogPixels), U(-guess & 0xffff));
+                U probe = Call(M::Vdmx, face->file, U(LogPixelsX()), U(LogPixelsY()), U(-guess & 0xffff));
                 if (probe == ~0u)
                     probe = 0;
                 int cell = short(probe & 0xffff) + short(probe >> 16);
@@ -447,7 +449,7 @@ const Font *Realize(const Face *face, int height, int width, U weight, bool ital
     U xscale = 0x100;
     if (width)
     {
-        const int units = MulDiv16(face->upem, LogPixels, LogPixels);
+        const int units = MulDiv16(face->upem, LogPixelsY(), LogPixelsX());
         const int average = MulDiv16(face->average, ppem, units);
         int wanted = width < 0 ? -width : width;
         if (average)
@@ -475,7 +477,7 @@ const Font *Realize(const Face *face, int height, int width, U weight, bool ital
     font->underline = underline;
     font->strikeout = strikeout;
     // the realized metrics.
-    const int xunits = MulDiv16(face->upem, LogPixels, int((unsigned(LogPixels) * xscale) >> 8));
+    const int xunits = MulDiv16(face->upem, LogPixelsY(), int((unsigned(LogPixelsX()) * xscale) >> 8));
     int ascent = MulDiv16(face->ascent, ppem, face->upem);
     const int external = MulDiv16(face->external, ppem, face->upem);
     const int descent = MulDiv16(face->cell - face->ascent, ppem, face->upem);
@@ -489,7 +491,7 @@ const Font *Realize(const Face *face, int height, int width, U weight, bool ital
     // the ppem sets ascent and cell.
     if (!slant)
     {
-        U vdmx = Call(M::Vdmx, face->file, (U(LogPixels) * xscale) >> 8, U(LogPixels), U(-ppem & 0xffff));
+        U vdmx = Call(M::Vdmx, face->file, (U(LogPixelsX()) * xscale) >> 8, U(LogPixelsY()), U(-ppem & 0xffff));
         if (vdmx == ~0u)
             vdmx = 0;
         const int below = short(vdmx & 0xffff), above = short(vdmx >> 16);
@@ -593,9 +595,9 @@ const Font *Realize(const Face *face, int height, int width, U weight, bool ital
     }
     Put16(f, 0, 0x300);
     Put32(f, 2, length);
-    Put16(f, 0x44, U(72 * ppem / LogPixels));       // dfPoints,
-    Put16(f, 0x46, LogPixels);
-    Put16(f, 0x48, LogPixels);
+    Put16(f, 0x44, U(72 * ppem / LogPixelsY()));    // dfPoints,
+    Put16(f, 0x46, U(LogPixelsY()));                // dfVertRes and
+    Put16(f, 0x48, U(LogPixelsX()));                // dfHorizRes
     Put16(f, 0x4a, U(ascent));
     Put16(f, 0x4c, U(cell - ppem));
     Put16(f, 0x4e, U(external));

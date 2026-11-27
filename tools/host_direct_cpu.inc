@@ -5,11 +5,29 @@ constexpr uint64_t DirectMinimum = 0x10000, DirectBridgeAddress = 0xfff00000;
 struct DirectBacking
 {
     int fd;
-    explicit DirectBacking(int value) : fd(value) {}
+    // Which file this is. Two descriptors of one file show the same pages:
+    // a block of shared memory that two guests have at one address.
+    bool known = false;
+    dev_t device = 0;
+    ino_t file = 0;
+    explicit DirectBacking(int value) : fd(value)
+    {
+        struct stat status;
+        if (fd >= 0 && !fstat(fd, &status))
+        {
+            known = true;
+            device = status.st_dev;
+            file = status.st_ino;
+        }
+    }
     ~DirectBacking()
     {
         if (fd >= 0)
             close(fd);
+    }
+    bool Same(const DirectBacking &other) const
+    {
+        return this == &other || (known && other.known && device == other.device && file == other.file);
     }
 };
 struct DirectMapping
@@ -18,14 +36,79 @@ struct DirectMapping
     uint64_t offset;
     std::shared_ptr<DirectBacking> backing;
 };
+// A piece of a guest's address space as the host maps it at the guest's own
+// addresses, with one mmap: pages of one file with one protection.
+struct DirectRun
+{
+    unsigned address, size;
+    int prot;
+    // The prepared gates of the processor (DirectCpu::PrepareGate) instead
+    // of its bytes; backing is null then.
+    bool overlay;
+    const DirectBacking *backing;
+    uint64_t offset;
+    uint64_t End() const { return uint64_t(address) + size; }
+    // This run goes on where the other ends, so one mmap makes both.
+    bool Follows(const DirectRun &before) const
+    {
+        return before.End() == address && before.prot == prot && before.overlay == overlay &&
+               (overlay || (before.backing->Same(*backing) && before.offset + before.size == offset));
+    }
+    // Wherever both runs have an address, they show the same page of the
+    // same file with the same rights. Prepared gates belong to one
+    // processor and are never the same as another's.
+    bool Shows(const DirectRun &other) const
+    {
+        return !overlay && !other.overlay && prot == other.prot && backing->known && other.backing->known &&
+               backing->Same(*other.backing) && offset - address == other.offset - other.address;
+    }
+};
+class DirectCpu;
 struct DirectArena
 {
     std::recursive_mutex mutex;
-    void *owner = nullptr;
+    // The processor whose guest stands at the guest addresses. While it is
+    // the owner, every change of its mappings and rights is made there at
+    // once, so the mappings of the range are always those of
+    // DirectCpu::Layout of the owner, or none without one.
+    DirectCpu *owner = nullptr;
     bool initialized = false;
     unsigned signal_number = 0;
     struct sigaction previous[NSIG] = {};
-    bool ldt_valid[8192] = {};
+    // The LDT of the host process. It is not emptied when the owner
+    // changes: the next processor writes only what its guest has otherwise
+    // (DirectCpu::SyncLdt, DirectCpu::SyncGdt). ldt_changes counts the
+    // writes to the lower half, gdt_end is one past the highest slot of the
+    // upper half that was ever written.
+    HostLdt ldt;
+    uint64_t ldt_changes = 0;
+    unsigned gdt_end = 4096;
+    // Cpu::SwitchCosts. counting is set while one processor takes the place
+    // of another, so the calls a running guest causes stay out of the sum.
+    SwitchCost cost = {};
+    bool counting = false;
+    static uint64_t Microseconds()
+    {
+        timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        return uint64_t(now.tv_sec) * 1000000 + uint64_t(now.tv_nsec) / 1000;
+    }
+    // NEO98_NATIVE_STATS: one line per second in which processors changed.
+    void Report(uint64_t now)
+    {
+        static const bool wanted = getenv("NEO98_NATIVE_STATS") != nullptr;
+        static SwitchCost last = {};
+        static uint64_t reported = 0;
+        if (!wanted || now - reported < 1000000)
+            return;
+        fprintf(stderr,
+                "DIRECT SWITCH pid=%ld switches=%llu maps=%llu descriptors=%llu microseconds=%llu in %.2f s\n",
+                long(getpid()), cost.switches - last.switches, cost.map_calls - last.map_calls,
+                cost.descriptor_calls - last.descriptor_calls, cost.microseconds - last.microseconds,
+                reported ? double(now - reported) / 1e6 : 0.0);
+        last = cost;
+        reported = now;
+    }
 
     bool Initialize()
     {
@@ -77,33 +160,37 @@ struct DirectArena
         initialized = true;
         return true;
     }
-    bool ClearLdt()
+    // Takes one descriptor out of the LDT of the host process.
+    bool ClearDescriptor(unsigned slot)
     {
-        for (unsigned slot = 0; slot < 8192; ++slot)
-            if (ldt_valid[slot])
-            {
-                user_desc empty = {};
-                empty.entry_number = slot;
-                empty.read_exec_only = empty.seg_not_present = 1;
-                if (syscall(SYS_modify_ldt, 0x11, &empty, sizeof empty))
-                    return false;
-                ldt_valid[slot] = false;
-            }
+        if (!ldt.valid[slot])
+            return true;
+        user_desc empty = {};
+        empty.entry_number = slot;
+        empty.read_exec_only = empty.seg_not_present = 1;
+        if (syscall(SYS_modify_ldt, 0x11, &empty, sizeof empty))
+            return false;
+        cost.descriptor_calls += counting;
+        ldt.valid[slot] = false;
+        if (slot < 4096)
+            ++ldt_changes;
+        return true;
+    }
+    // Nothing of a guest at [begin, end) any more: the reservation again.
+    bool Clear(uint64_t begin, uint64_t end)
+    {
+        if (mmap(reinterpret_cast<void *>(uintptr_t(begin)), end - begin, PROT_NONE,
+                 MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0) == MAP_FAILED)
+            return false;
+        cost.map_calls += counting;
         return true;
     }
     bool ResetMappings()
     {
         // The arena owns this entire range. Replace its guest mappings in
         // two calls, preserving the shared transition code between them.
-        // Resetting each allocation separately dominated process switches.
-        const uint64_t starts[] = {DirectMinimum, DirectBridgeAddress + Page};
-        const uint64_t ends[] = {DirectBridgeAddress, AddressBytes};
-        for (unsigned i = 0; i < 2; ++i)
-            if (mmap(reinterpret_cast<void *>(uintptr_t(starts[i])), ends[i] - starts[i], PROT_NONE,
-                     MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE | MAP_FIXED, -1, 0) == MAP_FAILED)
-                return false;
         owner = nullptr;
-        return ClearLdt();
+        return Clear(DirectMinimum, DirectBridgeAddress) && Clear(DirectBridgeAddress + Page, AddressBytes);
     }
 };
 DirectArena *direct_arena = nullptr;
@@ -114,7 +201,6 @@ DirectArena &Arena()
     direct_arena = value;
     return *value;
 }
-class DirectCpu;
 struct DirectRunRecord
 {
     DirectRunRecord *previous = nullptr;
@@ -333,8 +419,14 @@ extern "C" int neo98_direct_handle_signal(int signal, siginfo_t *info, void *opa
 class DirectCpu final : public NativeCpu
 {
     std::vector<DirectMapping> mappings;
-    std::vector<DirectMapping> activation_mappings;
-    bool mappings_changed = true;
+    // Layout: what the host maps for this guest. Stale after any change of
+    // the mappings, of a page's rights or of the gates.
+    std::vector<DirectRun> layout;
+    bool layout_stale = true;
+    // DirectArena::ldt_changes when SyncLdt last compared the guest's LDT
+    // with the host's, and whether the guest has had descriptors there.
+    uint64_t ldt_seen = ~0ull;
+    bool ldt_user = false;
     std::shared_ptr<DirectBacking> private_backing;
     // Original gate bytes stay in the process image. Prepared far calls live
     // in a separate backing, reused across activations and invalidated on writes.
@@ -349,10 +441,18 @@ class DirectCpu final : public NativeCpu
     {
         ++injected_syscalls;
         const long result = syscall(number, a, b, c, d, e, f);
+        if (number == SYS_modify_ldt)
+            Arena().cost.descriptor_calls += Arena().counting;
         if (number == SYS_modify_ldt && result == 0 && a == 0x11)
         {
+            // Selector and SyncLdt of NativeCpu keep the value themselves.
+            auto &arena = Arena();
             const auto &desc = *reinterpret_cast<const user_desc *>(b);
-            Arena().ldt_valid[desc.entry_number] = !desc.seg_not_present;
+            arena.ldt.valid[desc.entry_number] = !desc.seg_not_present;
+            if (desc.entry_number < 4096)
+                ++arena.ldt_changes;
+            else if (desc.entry_number >= arena.gdt_end)
+                arena.gdt_end = desc.entry_number + 1;
         }
         return result == -1 ? -errno : result;
     }
@@ -427,44 +527,283 @@ class DirectCpu final : public NativeCpu
                      overlay ? at : map.offset + at - map.address) == MAP_FAILED)
                 return false;
             ++low_maps;
+            Arena().cost.map_calls += Arena().counting;
             at = stop;
         }
         return true;
     }
+    // What the host maps for this guest at the guest's own addresses, in the
+    // order of the addresses: every run of pages that has one file, one
+    // protection and either the bytes of the processor or its prepared
+    // gates. Runs split at protection changes and at gate pages; adjacent
+    // mappings of one file join.
+    const std::vector<DirectRun> &Layout()
+    {
+        if (!layout_stale)
+            return layout;
+        layout.clear();
+        std::vector<const DirectMapping *> order;
+        order.reserve(mappings.size());
+        for (const auto &map : mappings)
+            order.push_back(&map);
+        std::sort(order.begin(), order.end(),
+                  [](const DirectMapping *a, const DirectMapping *b) { return a->address < b->address; });
+        // Away from the gate pages and without a write watch the protection
+        // of a page is its rights, and a run ends where the rights change.
+        const unsigned gate_first = gate ? gate_begin / Page : 1, gate_last = gate ? gate_end / Page : 0;
+        auto plain = [&](unsigned page) { return !write_hook && (page < gate_first || page > gate_last); };
+        for (const auto *map : order)
+        {
+            const uint64_t end = uint64_t(map->address) + map->size;
+            for (uint64_t at = map->address; at < end;)
+            {
+                const unsigned p = unsigned(at / Page);
+                const bool overlay = GatePage(p) && execute_gate_code;
+                const int prot = Protection(unsigned(at), rights[p]);
+                uint64_t stop = at + Page;
+                for (const bool simple = plain(p); stop < end; stop += Page)
+                {
+                    const unsigned q = unsigned(stop / Page);
+                    if (simple && plain(q) ? rights[q] != rights[p]
+                                           : (GatePage(q) && execute_gate_code) != overlay ||
+                                                 prot != Protection(unsigned(stop), rights[q]))
+                        break;
+                }
+                const DirectRun run{unsigned(at), unsigned(stop - at), prot, overlay,
+                                    overlay ? nullptr : map->backing.get(),
+                                    overlay ? at : map->offset + at - map->address};
+                if (!layout.empty() && run.Follows(layout.back()))
+                    layout.back().size += run.size;
+                else
+                    layout.push_back(run);
+                at = stop;
+            }
+        }
+        layout_stale = false;
+        return layout;
+    }
+    // Maps the part [begin, end) of a run of the layout.
+    bool MapRun(const DirectRun &run, uint64_t begin, uint64_t end)
+    {
+        if (run.overlay)
+            for (uint64_t a = begin; a < end; a += Page)
+                if (!PrepareGate(unsigned(a / Page)))
+                    return false;
+        if (mmap(reinterpret_cast<void *>(uintptr_t(begin)), end - begin, run.prot,
+                 (run.overlay ? MAP_PRIVATE : MAP_SHARED) | MAP_FIXED,
+                 run.overlay ? gate_backing->fd : run.backing->fd,
+                 run.offset + begin - run.address) == MAP_FAILED)
+            return false;
+        ++low_maps;
+        Arena().cost.map_calls += Arena().counting;
+        return true;
+    }
+    // This guest at the guest addresses instead of the owner's. What both
+    // have alike stays where it is, with its page tables: the memory two
+    // Windows processes share (the heaps of the session, the shared sections
+    // of the system DLLs) is the same file at the same address in both. In
+    // each range between such pieces, what only the owner had is taken away
+    // with one call, and each run of this guest is mapped with one; a run
+    // that covers one of the owner's replaces it without a call of its own.
     unsigned Activate()
     {
         auto &arena = Arena();
         if (arena.owner == this)
             return CpuError::Ok;
-        if (!arena.ResetMappings())
-            return CpuError::Map;
-        memset(descriptor_valid, 0, sizeof descriptor_valid);
-        ldt_snapshot_base = ldt_snapshot_count = 0;
-        if (mappings_changed)
+        static const std::vector<DirectRun> none;
+        const auto &before = arena.owner ? arena.owner->Layout() : none;
+        const auto &after = Layout();
+        // The ranges that stay, in the order of their addresses. The page of
+        // the transition code between guest and host is one of them.
+        struct Range
         {
-            activation_mappings = mappings;
-            std::sort(activation_mappings.begin(), activation_mappings.end(),
-                      [](const DirectMapping &a, const DirectMapping &b) { return a.address < b.address; });
-            size_t count = 0;
-            for (const auto &map : activation_mappings)
+            uint64_t begin, end;
+        };
+        std::vector<Range> kept;
+        auto keep = [&](uint64_t begin, uint64_t end) {
+            if (!kept.empty() && kept.back().end == begin)
+                kept.back().end = end;
+            else
+                kept.push_back({begin, end});
+        };
+        bool bridge = false;
+        for (size_t a = 0, b = 0; a < before.size() && b < after.size();)
+        {
+            const uint64_t begin = std::max(before[a].address, after[b].address),
+                           end = std::min(before[a].End(), after[b].End());
+            if (begin < end && before[a].Shows(after[b]))
             {
-                if (count && uint64_t(activation_mappings[count - 1].address) +
-                                     activation_mappings[count - 1].size == map.address &&
-                    activation_mappings[count - 1].backing == map.backing &&
-                    activation_mappings[count - 1].offset + activation_mappings[count - 1].size == map.offset)
-                    activation_mappings[count - 1].size += map.size;
-                else
-                    activation_mappings[count++] = map;
+                if (!bridge && begin > DirectBridgeAddress)
+                {
+                    keep(DirectBridgeAddress, DirectBridgeAddress + Page);
+                    bridge = true;
+                }
+                keep(begin, end);
             }
-            activation_mappings.resize(count);
-            mappings_changed = false;
+            if (before[a].End() < after[b].End())
+                ++a;
+            else
+                ++b;
         }
-        // MapLow still splits each run at protection changes and gate pages.
-        for (const auto &map : activation_mappings)
-            if (!MapLow(map))
+        if (!bridge)
+            keep(DirectBridgeAddress, DirectBridgeAddress + Page);
+        keep(AddressBytes, AddressBytes);
+        size_t a = 0, b = 0;
+        uint64_t low = DirectMinimum;
+        for (const auto &range : kept)
+        {
+            const uint64_t high = range.begin;
+            // The owner's pages in [low, high) that no run of this guest
+            // will cover, from the first to the last.
+            while (a < before.size() && before[a].End() <= low)
+                ++a;
+            while (b < after.size() && after[b].End() <= low)
+                ++b;
+            uint64_t first = 0, last = 0;
+            size_t cover = b;
+            for (size_t i = a; i < before.size() && before[i].address < high; ++i)
+            {
+                uint64_t at = std::max<uint64_t>(low, before[i].address);
+                const uint64_t to = std::min(high, before[i].End());
+                while (at < to)
+                {
+                    while (cover < after.size() && after[cover].End() <= at)
+                        ++cover;
+                    if (cover < after.size() && after[cover].address <= at)
+                    {
+                        at = std::min(to, after[cover].End());
+                        continue;
+                    }
+                    const uint64_t stop = cover < after.size() ? std::min<uint64_t>(to, after[cover].address) : to;
+                    if (!last)
+                        first = at;
+                    last = at = stop;
+                }
+            }
+            bool mapped = !last || arena.Clear(first, last);
+            for (size_t i = b; mapped && i < after.size() && after[i].address < high; ++i)
+                mapped = MapRun(after[i], std::max<uint64_t>(low, after[i].address), std::min(high, after[i].End()));
+            if (!mapped)
+            {
+                // Half of one guest and half of another is no state to leave.
+                arena.ResetMappings();
                 return CpuError::Map;
+            }
+            low = range.end;
+        }
         arena.owner = this;
+        // NEO98_DIRECT_SWITCH_DELAY=<microseconds>: every change takes that
+        // much longer, as it does on a busy machine. For tests of what must
+        // not depend on the time of a change (tools/test_turn_progress_host.py).
+        static const uint64_t delay = [] {
+            const char *value = getenv("NEO98_DIRECT_SWITCH_DELAY");
+            return value ? strtoull(value, nullptr, 10) : 0ull;
+        }();
+        if (delay)
+            for (const uint64_t until = DirectArena::Microseconds() + delay; DirectArena::Microseconds() < until;)
+            {
+            }
+        return SyncGdt() ? CpuError::Ok : CpuError::Mode;
+    }
+    // The upper half of the host's LDT holds translated descriptors of a
+    // guest's GDT, written by Selector when a segment register names one.
+    // Those of the guest before stay where this guest's GDT has the same
+    // descriptor (the flat code and data segments of every Windows process);
+    // the others get this guest's descriptor, or none.
+    bool SyncGdt()
+    {
+        auto &arena = Arena();
+        for (unsigned slot = 4096; slot < arena.gdt_end; ++slot)
+        {
+            if (!arena.ldt.valid[slot])
+                continue;
+            const unsigned selector = (slot - 4096) * 8;
+            const auto desc = Descriptor(selector);
+            if (desc == arena.ldt.value[slot])
+                continue;
+            if (state.gdtr.base && (desc & (1ull << 47)) ? Selector(selector, desc & (1ull << 43)) == ~0u
+                                                         : !arena.ClearDescriptor(slot))
+                return false;
+        }
+        return true;
+    }
+    // The lower half of the host's LDT holds the descriptors of a guest's
+    // LDT, the segments of 16-bit code, at the guest's own slots. A
+    // descriptor is written only where the host's table differs from the
+    // guest's. A guest with descriptors of its own gets exactly its table:
+    // what it does not have is taken out, a selector it freed and a selector
+    // of the guest before alike. A guest whose table is empty, a process of
+    // flat 32-bit code, has no selector that names a slot there and leaves
+    // the table as it finds it: the several hundred segments of a 16-bit
+    // driver in one process are then not written again after every turn of
+    // the flat processes around it. (On Windows the LDT is that of the whole
+    // system, and a flat process finds the selectors of the 16-bit side
+    // there as well.)
+    unsigned SyncLdt()
+    {
+        // NEO98_DIRECT_EXACT_LDT=1: exactly its table for a guest without
+        // descriptors as well, for a comparison at the price of the calls.
+        static const bool exact = getenv("NEO98_DIRECT_EXACT_LDT") != nullptr;
+        if (!state.ldtr.base && !exact)
+            return CpuError::Ok;
+        auto &arena = Arena();
+        const unsigned count = state.ldtr.base ? std::min(4096u, (state.ldtr.limit + 1) / 8) : 0;
+        const auto *table =
+            count ? static_cast<const unsigned char *>(HostPointer(state.ldtr.base, count * 8)) : nullptr;
+        if (ldt_seen == arena.ldt_changes && ldt_snapshot_base == state.ldtr.base && ldt_snapshot_count == count &&
+            (!count || (table && !memcmp(ldt_snapshot, table, count * 8))))
+            return CpuError::Ok;
+        auto entry = [&](unsigned index) {
+            unsigned long long desc = 0;
+            if (table)
+                memcpy(&desc, table + index * 8, 8);
+            else
+                desc = Descriptor(index * 8 + 7);
+            return desc;
+        };
+        bool own = exact;
+        for (unsigned index = 0; index < count && !own; ++index)
+            own = entry(index) & (1ull << 47);
+        if (own)
+        {
+            ldt_user = true;
+            for (unsigned index = 0; index < 4096; ++index)
+            {
+                const auto desc = index < count ? entry(index) : 0;
+                if (desc & (1ull << 47))
+                {
+                    if (Selector(index * 8 + 7, desc & (1ull << 43)) == ~0u)
+                        return CpuError::Mode;
+                }
+                else if (!arena.ClearDescriptor(index))
+                    return CpuError::Mode;
+            }
+        }
+        // A table that is not in one piece of host memory is compared entry
+        // by entry every time.
+        if (table)
+            memcpy(ldt_snapshot, table, count * 8);
+        ldt_snapshot_base = table || !count ? state.ldtr.base : ~0u;
+        ldt_snapshot_count = count;
+        ldt_seen = arena.ldt_changes;
         return CpuError::Ok;
+    }
+    // The end of a processor whose guest had descriptors: they leave the
+    // host's table with it.
+    void ReleaseLdt()
+    {
+        auto &arena = Arena();
+        if (!ldt_user)
+            return;
+        const unsigned count = state.ldtr.base ? std::min(4096u, (state.ldtr.limit + 1) / 8) : 0;
+        for (unsigned index = 0; index < 4096; ++index)
+        {
+            const auto desc = index < count ? Descriptor(index * 8 + 7) : 0;
+            // Without the guest's table every descriptor goes; the guests
+            // that are left write theirs again.
+            if (!count || ((desc & (1ull << 47)) && arena.ldt.value[index] == desc))
+                arena.ClearDescriptor(index);
+        }
     }
     unsigned RefreshGates(unsigned address, unsigned size)
     {
@@ -510,8 +849,7 @@ class DirectCpu final : public NativeCpu
             }
         }
         mappings.swap(kept);
-        mappings_changed = true;
-        activation_mappings.clear();
+        layout_stale = true;
         for (uint64_t at = address; at < end; at += Page)
             gate_ready[at / Page] = 0;
     }
@@ -525,8 +863,7 @@ class DirectCpu final : public NativeCpu
                  offset) == MAP_FAILED)
             return CpuError::Map;
         mappings.push_back({address, size, offset, std::move(backing)});
-        mappings_changed = true;
-        activation_mappings.clear();
+        layout_stale = true;
         for (uint64_t at = address; at < uint64_t(address) + size; at += Page)
         {
             rights[at / Page] = prot | Mapped;
@@ -544,7 +881,7 @@ class DirectCpu final : public NativeCpu
     {
         if (!(selector & 4) || (selector >> 3) >= 8192)
             return 0;
-        const auto desc = descriptors[selector >> 3];
+        const auto desc = host_ldt->value[selector >> 3];
         return ((desc >> 16) & 0xffffff) | ((desc >> 32) & 0xff000000);
     }
     unsigned Pull(Neo98DirectFrame &bridge)
@@ -587,6 +924,8 @@ class DirectCpu final : public NativeCpu
         std::lock_guard<std::recursive_mutex> lock(Arena().mutex);
         if (Arena().owner == this)
             Arena().ResetMappings();
+        if (bytes)
+            ReleaseLdt();
         if (getenv("NEO98_NATIVE_STATS"))
             fprintf(stderr,
                     "DIRECT STATS pid=%ld entries=%llu gates=%llu signals=%llu low_maps=%llu syscalls=%llu "
@@ -602,6 +941,7 @@ class DirectCpu final : public NativeCpu
             return CpuError::Arch;
         if (!DirectThread().Initialize())
             return CpuError::Resource;
+        host_ldt = &Arena().ldt;
         fd = int(syscall(SYS_memfd_create, "neo98-direct", MFD_CLOEXEC));
         if (fd < 0 || ftruncate(fd, AddressBytes))
             return CpuError::NoMemory;
@@ -683,6 +1023,7 @@ class DirectCpu final : public NativeCpu
     }
     bool ApplyPage(unsigned address) override
     {
+        layout_stale = true;
         return Arena().owner != this ||
                !mprotect(reinterpret_cast<void *>(uintptr_t(address)), Page, Protection(address, rights[address / Page]));
     }
@@ -691,6 +1032,7 @@ class DirectCpu final : public NativeCpu
         unsigned error = Range(address, size, 1);
         if (error || (prot & ~7u))
             return error ? error : CpuError::Argument;
+        layout_stale = true;
         for (uint64_t at = address; at < uint64_t(address) + size; at += Page)
         {
             rights[at / Page] = prot | Mapped;
@@ -719,6 +1061,7 @@ class DirectCpu final : public NativeCpu
         gate_end = end;
         gate = hook;
         gate_context = context;
+        layout_stale = true;
         std::fill(gate_ready.begin(), gate_ready.end(), 0);
         if (Arena().owner == this)
             for (const auto &map : mappings)
@@ -732,6 +1075,7 @@ class DirectCpu final : public NativeCpu
     unsigned SetGateCodeExecution(bool enabled) override
     {
         execute_gate_code = enabled;
+        layout_stale = true;
         return gate ? RefreshGates(gate_begin, gate_end - gate_begin + 1) : unsigned(CpuError::Ok);
     }
     unsigned SetTimeSliceHook(BudgetHook hook, void *context) override
@@ -751,6 +1095,12 @@ class DirectCpu final : public NativeCpu
             return CpuError::Hook;
         instruction_traces.push_back({begin, hook, context});
         return CpuError::Ok;
+    }
+    bool SwitchCosts(SwitchCost &out) const override
+    {
+        std::lock_guard<std::recursive_mutex> lock(Arena().mutex);
+        out = Arena().cost;
+        return true;
     }
     void RequestStop() override
     {
@@ -900,14 +1250,34 @@ class DirectCpu final : public NativeCpu
                 ++count;
                 continue;
             }
-            if (unsigned error = Activate())
-                return error;
-            {
-                RenderProfile::Scope profile(RenderProfile::NativeLdt);
-                if (unsigned error = SyncLdt()) return error;
-            }
             user_regs_struct r;
             {
+                // The change from another processor to this one: its pages
+                // at the guest's addresses, then its descriptors, those of
+                // its segment registers last.
+                auto &arena = Arena();
+                struct Change
+                {
+                    DirectArena &arena;
+                    const uint64_t began;
+                    ~Change()
+                    {
+                        if (!began)
+                            return;
+                        const uint64_t now = DirectArena::Microseconds();
+                        arena.counting = false;
+                        ++arena.cost.switches;
+                        arena.cost.microseconds += now - began;
+                        arena.Report(now);
+                    }
+                } change{arena, arena.owner != this ? DirectArena::Microseconds() : 0};
+                arena.counting = change.began != 0;
+                if (unsigned error = Activate())
+                    return error;
+                {
+                    RenderProfile::Scope profile(RenderProfile::NativeLdt);
+                    if (unsigned error = SyncLdt()) return error;
+                }
                 RenderProfile::Scope profile(RenderProfile::NativeRegisters);
                 if (unsigned error = PrepareRegisters(r)) return error;
             }

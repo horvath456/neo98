@@ -45,19 +45,23 @@ struct MenuOwnerEnvironment final : OD::Environment {
  int offset_x=0,offset_y=0; // client origin of the popup on the screen
  Win98Menu::Menu*Find(unsigned h)override{return FindMenu(h);}
  OD::S BarHeight()override{return OD::S(settings.Word(0x34c));}
- OD::S ItemHeight()override{return 13;}
- OD::S TextPad()override{return 6;}
+ // The menu font as USER measured it (User::Settings::FontCell).
+ OD::S ItemHeight()override{return settings.menu_cell.height;}
+ OD::S TextPad()override{return settings.menu_cell.average;}
  OD::S EdgePad()override{return OD::S(settings.Word(0x6e8));}
- OD::S CheckWidth()override{return 13;}
- OD::S CheckHeight()override{return 13;}
+ // USER, the square of a check mark: the border, the external
+ // leading and the height of the menu font, made even, less one: 13 for MS
+ // Sans Serif 8 at 96 dots per inch.
+ OD::S CheckWidth()override{return OD::S(((settings.Word(0x2ea)+settings.menu_cell.external+settings.menu_cell.height)&~1)-1);}
+ OD::S CheckHeight()override{return CheckWidth();}
  OD::S EdgeX()override{return OD::S(settings.Word(0x2e8));}
  OD::S BorderX()override{return OD::S(settings.Word(0x2ec));}
  OD::S BarPadX()override{return OD::S(settings.Word(0x338));}
  OD::S BarPadY()override{return OD::S(settings.Word(0x33a));}
- OD::S BarExtra()override{return 0;}
+ OD::S BarExtra()override{return settings.menu_cell.external;}
  OD::S SystemBitmapWidth()override{return 16;}
  OD::S MdiBitmapWidth(unsigned short)override{return 16;}
- void SelectMenuFont(bool)override{Gdi::SelectObject(screen,system_font);} // no bold menu face yet
+ void SelectMenuFont(bool bold)override{Gdi::SelectObject(screen,MetricFont(bold?0x507:0x501));}
  bool BitmapSize(unsigned short h,OD::Size&s)override{unsigned info[6]{};if(!Gdi::BitmapInfo(h,info))return false;s={OD::S(info[1]),OD::S(info[2])};return true;}
  static const char*Text(OD::P p){return reinterpret_cast<const char*>(p);}
  unsigned TabIndex(OD::P p)override{const char*s=Text(p);unsigned n=0;while(s&&s[n]&&s[n]!='\t')++n;return n;}
@@ -564,7 +568,7 @@ unsigned ServePopupPaints(){
   const unsigned*const system_colors=Win98Frame::SystemColors();
   Fill(dc,{r.left,r.top,r.right,r.bottom},system_colors[4]);Edge(dc,{r.left,r.top,r.right,r.bottom});
   MenuOwnerEnvironment environment;
-Gdi::SelectObject(dc,system_font);
+Gdi::SelectObject(dc,MetricFont(0x501));
  const unsigned popup_window=v.popup.window;
  environment.offset_x=environment.offset_y=0;
  // The item is copied out of the table: WM_DRAWITEM below returns into the

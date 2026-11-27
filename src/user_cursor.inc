@@ -6,6 +6,7 @@
 namespace {
 void *cursor_context = nullptr;
 CursorDraw cursor_draw = nullptr;
+QueueCursor queue_cursor = nullptr;
 // USER keeps the ShowCursor level in the message queue, not in one global
 // word: counts at [queue+3Ah] (and the thread's own tally at
 // [thread+54h]), and the pointer follows the level of the
@@ -30,6 +31,7 @@ unsigned pointer_drawn_shape = 0;
 } // namespace
 
 void SetCursorProvider(void *context, CursorDraw draw) { cursor_context = context; cursor_draw = draw; }
+void SetQueueCursorProvider(QueueCursor provider) { queue_cursor = provider; }
 void ShowPointer(bool on) { if (cursor_composited != on) { cursor_composited = on; MovePointer(); } }
 bool PointerComposited() { return cursor_composited; }
 unsigned SetPointerShape(unsigned cursor)
@@ -243,13 +245,30 @@ void MovePointer()
 // pointer travels. Two synchronous guest callbacks per motion packet would cost
 // more than they buy here, so the native frame answer decides when anything can
 // have changed, and only then does the window procedure get asked.
+//
+// The cursor belongs to a message queue, and the pointer shows the one of
+// the cursor queue: the queue of the window it comes to. A window whose
+// thread set a cursor earlier finds it back before WM_SETCURSOR, so a program
+// that sets a cursor only when GetCursor answers another one (Internet
+// Explorer over a link) shows it again after the pointer was over a window
+// of another thread. Before, the pointer kept the cursor the other thread
+// had set, and the hand over a link of a folder's web view came only once.
 void PointerMoved(HWND h, int x, int y)
 {
     if (!frame_send || !IsWindow(h)) return;
     const unsigned native = FrameHitTest(h, x, y);
     if (cursor_setcursor_window == h && cursor_setcursor_hit == native) return;
+    const HWND before = cursor_setcursor_window;
     cursor_setcursor_window = h;
     cursor_setcursor_hit = native;
+    if (queue_cursor && before != h)
+        if (const auto *w = Find(h))
+            if (const auto *p = Process(w->process); p && p->context)
+                if (const unsigned shape = queue_cursor(p->context, w->thread); shape != ~0u)
+                {
+                    cursor_owner_context = p->context;
+                    if (shape != cursor_shape) { cursor_shape = shape; MovePointer(); }
+                }
     const unsigned hit = HitTest(h, x, y);
     if (!IsWindow(h)) return;
     TrackSend(h, 0x20, h, (hit & 0xffff) | (0x200u << 16));

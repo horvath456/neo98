@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "gdi_truetype.h"
+#include "gdi_display_dpi.h"
 namespace GdiFonts
 {
 namespace
@@ -52,7 +53,74 @@ bool Add(const char *file, const unsigned char *fnt, unsigned size, bool copy, u
     return true;
 }
 int Distance(int a, int b) { return a > b ? a - b : b - a; }
+// GDI enlarges a raster font up to eight times.
+constexpr unsigned MaximumScale = 8;
+void Put16(unsigned char *p, unsigned value) { p[0] = (unsigned char)value; p[1] = (unsigned char)(value >> 8); }
+void Put32(unsigned char *p, unsigned value) { Put16(p, value); Put16(p + 2, value >> 16); }
 } // namespace
+
+// The image is written as a version 3.0 font, whose character table has
+// 32-bit offsets: the 118 bytes of the header with the sizes multiplied, the
+// table, the face name and the glyphs. A glyph is stored in columns of eight
+// pixels, each column from top to bottom.
+unsigned char *ScaledFnt(const Face &face, unsigned scale, unsigned &length)
+{
+    const unsigned char *source = face.font.data;
+    if (face.type != Raster || !source || scale < 2 || scale > MaximumScale)
+        return nullptr;
+    const unsigned height = face.font.Height(), tall = height * scale;
+    const unsigned glyphs = unsigned(source[0x60]) - source[0x5f] + 1;
+    const unsigned table = 148, name_at = table + (glyphs + 1) * 6;
+    unsigned name_length = 0;
+    while (face.name[name_length])
+        ++name_length;
+    unsigned total = name_at + name_length + 1;
+    for (unsigned i = 0; i < glyphs; ++i)
+        total += ((face.font.Width(i) * scale + 7) / 8) * tall;
+    if (tall > 128 || total > 8u * 1024 * 1024)
+        return nullptr;
+    auto *out = static_cast<unsigned char *>(calloc(total + tall, 1));
+    if (!out)
+        return nullptr;
+    memcpy(out, source, 118);
+    Put16(out, 0x300);
+    Put32(out + 2, total);
+    // dfPoints, dfAscent, both leadings, dfPixWidth, dfPixHeight, dfAvgWidth, dfMaxWidth.
+    static const unsigned char sizes[] = {0x44, 0x4a, 0x4c, 0x4e, 0x56, 0x58, 0x5b, 0x5d};
+    for (unsigned at : sizes)
+        Put16(out + at, Word(source + at) * scale);
+    Put32(out + 0x65, 0);                                  // dfDevice
+    Put32(out + 0x69, name_at);                            // dfFace
+    Put32(out + 0x6d, 0);                                  // dfBitsPointer
+    Put32(out + 0x71, name_at + name_length + 1);          // dfBitsOffset
+    Put32(out + 0x76, Word(source + 0x56) ? 1u : 2u);      // dfFlags: fixed or proportional
+    memcpy(out + name_at, face.name, name_length + 1);
+    unsigned at = name_at + name_length + 1;
+    for (unsigned i = 0; i < glyphs; ++i)
+    {
+        const unsigned width = face.font.Width(i), wide = width * scale, bits = face.font.Bits(i);
+        Put16(out + table + i * 6, wide);
+        Put32(out + table + i * 6 + 2, at);
+        for (unsigned x = 0; x < width; ++x)
+            for (unsigned y = 0; y < height; ++y)
+            {
+                if (!(source[bits + (x / 8) * height + y] & (0x80u >> (x % 8))))
+                    continue;
+                for (unsigned dx = 0; dx < scale; ++dx)
+                    for (unsigned dy = 0; dy < scale; ++dy)
+                    {
+                        const unsigned px = x * scale + dx, py = y * scale + dy;
+                        out[at + (px / 8) * tall + py] |= (unsigned char)(0x80u >> (px % 8));
+                    }
+            }
+        at += ((wide + 7) / 8) * tall;
+    }
+    // The entry after the last character, an empty glyph at the end.
+    Put16(out + table + glyphs * 6, 0);
+    Put32(out + table + glyphs * 6 + 2, at);
+    length = total;
+    return out;
+}
 
 bool SameFace(const char *a, const char *b)
 {
@@ -164,9 +232,20 @@ const char *Substitute(const char *face)
 }
 
 // The native font mapper prefers the face name, then the character set,
-// size, weight and italic style. It does not use GDI's penalty tables.
-const Face *Match(const char *requested, int height, unsigned weight, bool italic, unsigned charset)
+// size, weight and italic style. Among the sizes of a raster face it weighs
+// the height with the penalties of GDI's mapper, the table GDI.EXE carries: a
+// size that is too high costs 600 and 150 for every pixel above the request
+// (HeightBigger, HeightBiggerDifference), one that is too low 150 for every
+// pixel missing (HeightSmaller), and a size enlarged by a whole factor 50 and
+// 20 times the factor (SizeSynth, IntSizeSynth). So a request between two
+// sizes takes the lower one, and one far above the largest size the nearest
+// multiple of a small one. The other penalties of the table (family, pitch,
+// width, aspect) are not weighed.
+const Face *Match(const char *requested, int height, unsigned weight, bool italic, unsigned charset,
+                  unsigned *scale)
 {
+    if (scale)
+        *scale = 1;
     const char *name = Substitute(requested);
     bool raster = false, outline = false, charset_seen = false;
     for (unsigned i = 0; i < count; ++i)
@@ -186,24 +265,40 @@ const Face *Match(const char *requested, int height, unsigned weight, bool itali
     {
         // A raster face comes in fixed sizes. A negative height is the em
         // height, the cell without the internal leading. Zero requests a
-        // 12-point em at the display DPI. The nearest size wins, the smaller one
-        // on a tie, then the nearer weight.
-        const int target = height ? (height < 0 ? -height : height) : 16;
-        int best_size = 0x7fffffff, best_weight = 0x7fffffff;
+        // 12-point em at the font size of the display, 16 pixels at 96 dots
+        // per inch. The size with the least penalty wins, the smaller one on
+        // a tie, then the nearer weight.
+        const int target = height ? (height < 0 ? -height : height) : Gdi::PointsToPixels(12);
+        int best_size = 0x7fffffff, best_weight = 0x7fffffff, best_cell = 0;
+        unsigned best_scale = 1;
         for (unsigned i = 0; i < count; ++i)
         {
             const Face &f = faces[i];
             if (f.type != Raster || !SameFace(f.name, name) ||
                 (charset_seen && charset != 1 && f.font.data[0x55] != charset))
                 continue;
-            const int cell = int(f.font.Height()) - (height <= 0 ? int(Word(f.font.data + 0x4c)) : 0);
-            const int d = Distance(cell, target), w = Distance(int(Word(f.font.data + 0x53)), int(weight));
-            const int best_cell = best ? int(best->font.Height()) : 0;
-            if (!best || d < best_size || (d == best_size && int(f.font.Height()) < best_cell) ||
-                (d == best_size && int(f.font.Height()) == best_cell && w < best_weight))
-                best = &f, best_size = d, best_weight = w;
+            const int w = Distance(int(Word(f.font.data + 0x53)), int(weight));
+            for (unsigned factor = 1; factor <= (scale ? MaximumScale : 1u); ++factor)
+            {
+                // The enlarged cell has to stay one DibText draws.
+                if (factor > 1 && (f.font.Height() * factor > 128 || Word(f.font.data + 0x5d) * factor > 256))
+                    break;
+                const int cell = int(f.font.Height() * factor);
+                const int size = cell - (height <= 0 ? int(Word(f.font.data + 0x4c) * factor) : 0);
+                int d = size > target ? 600 + 150 * (size - target) : 150 * (target - size);
+                if (factor > 1)
+                    d += 50 + 20 * int(factor);
+                if (!best || d < best_size || (d == best_size && cell < best_cell) ||
+                    (d == best_size && cell == best_cell && w < best_weight))
+                    best = &f, best_size = d, best_weight = w, best_cell = cell, best_scale = factor;
+            }
         }
-        if(!outline || best_size==0)return best;
+        if (!outline || best_size == 0)
+        {
+            if (scale)
+                *scale = best_scale;
+            return best;
+        }
         best=nullptr;
     }
     // A TrueType family is a set of files (regular, bold,...). The file with

@@ -3,8 +3,13 @@
 #include "win98_combobox.h"
 #include "win98_combo_mouse.h"
 #include "user_draw.h"
+#include "user_settings.h"
 #include <string.h>
 namespace X86 {
+// The button of a drop-down combo box is as wide as a scroll bar
+// (SM_CXVSCROLL): 16 pixels with the sizes Setup writes, 20 with "Large
+// Fonts", and whatever SPI_SETNONCLIENTMETRICS makes of iScrollWidth.
+static int ComboButtonWidth() { return Win98Metrics::Query(User::SystemSettings(), 2); }
 struct Application::ComboBox {
  Application&app;Win98ComboBox::State state;unsigned hwnd=0,list=0,edit=0,dc=0,active=0,list_scroll_style=0,shown_height=0;bool building=false,layout=false,syncing=false,closing=false;Win98ComboMouse::ListState tracking;
  explicit ComboBox(Application&a):app(a){}
@@ -58,7 +63,7 @@ struct Application::ComboBox {
   Gdi::RECT r{};User::GetWindowRect(hwnd,&r);Gdi::POINT pos{r.left,r.top};unsigned parent=Parent();if(parent)User::ScreenToClient(parent,&pos);
   const unsigned frame=state.height+6,drop=state.flags&2?frame:unsigned(r.bottom-r.top);
   User::MoveWindow(hwnd,pos.x,pos.y,state.width,drop);
-  if(edit)User::MoveWindow(edit,3,3,state.width>unsigned((state.flags&2)?22:6)?state.width-((state.flags&2)?22:6):0,state.height);
+  if(edit)User::MoveWindow(edit,3,3,state.width>unsigned((state.flags&2)?ComboButtonWidth()+6:6)?state.width-((state.flags&2)?ComboButtonWidth()+6:6):0,state.height);
   if(list){if(state.flags&2){User::GetWindowRect(hwnd,&r);const bool positioned=size_simple||(state.flags&0x80);User::MoveWindow(list,positioned?r.left:0,(positioned?r.top:0)+frame,state.width>state.drop_width?state.width:state.drop_width,(state.flags&0x80)&&shown_height?shown_height:state.list_height);}else User::MoveWindow(list,0,frame,state.width,state.list_height);}
   // These composite children are created by USER, without a guest WNDPROC.
   // Finish their WM_SIZE work through the native list provider as well.
@@ -330,7 +335,8 @@ void Application::DrawComboBox(unsigned hwnd,Gdi::HDC dc,const Gdi::RECT&bounds)
  // never showed the focus.
  if(b->state.flags&0x10){
   const bool focused=(b->state.flags&4)&&!(b->state.flags&0x80);
-  const Gdi::RECT item{3,3,b->state.width>19?int(b->state.width)-19:3,int(b->state.height)+3};
+  const int drop=ComboButtonWidth();
+  const Gdi::RECT item{3,3,int(b->state.width)>drop+3?int(b->state.width)-drop-3:3,int(b->state.height)+3};
   Gdi::SetTextColor(dc,Api("GetSysColor",&text));Gdi::SetBkColor(dc,Api("GetSysColor",&window));
   const unsigned background=SendFromNative(b->Parent(),User::IsEnabled(hwnd)?0x133:0x138,dc,hwnd);
   if(!b->Alive()){Gdi::RestoreDC(dc,saved);return;}
@@ -339,7 +345,7 @@ void Application::DrawComboBox(unsigned hwnd,Gdi::HDC dc,const Gdi::RECT&bounds)
   else{char label[8192];User::GetWindowText(hwnd,label,sizeof label);Gdi::SetBkMode(dc,Gdi::TRANSPARENT);unsigned highlight=13,highlight_text=14;if(focused){fill(item,highlight);Gdi::SetTextColor(dc,Api("GetSysColor",&highlight_text));Gdi::SetBkColor(dc,Api("GetSysColor",&highlight));}Gdi::TextOutA(dc,item.left+1,item.top+1,label,strlen(label));if(focused)Gdi::DrawFocusRect(dc,&item);}
  }
  if(!b->hwnd){Gdi::RestoreDC(dc,saved);return;}
- if(b->state.flags&2){Gdi::RECT button{int(b->state.width)-18,2,int(b->state.width)-2,int(b->state.height)+4};fill(button,face);Win98Draw::DrawEdge(dc,&button,(b->state.flags&0x40)?10:5,15);unsigned black=Gdi::CreateSolidBrush(0);int x=(button.left+button.right)/2-3,y=(button.top+button.bottom)/2-1;for(int row=0;row<4;++row){Gdi::RECT r{x+row,y+row,x+7-row,y+row+1};Gdi::FillRect(dc,&r,black);}Gdi::DeleteObject(black);}
+ if(b->state.flags&2){Gdi::RECT button{int(b->state.width)-ComboButtonWidth()-2,2,int(b->state.width)-2,int(b->state.height)+4};fill(button,face);Win98Draw::DrawEdge(dc,&button,(b->state.flags&0x40)?10:5,15);unsigned black=Gdi::CreateSolidBrush(0);int x=(button.left+button.right)/2-3,y=(button.top+button.bottom)/2-1;for(int row=0;row<4;++row){Gdi::RECT r{x+row,y+row,x+7-row,y+row+1};Gdi::FillRect(dc,&r,black);}Gdi::DeleteObject(black);}
  Gdi::RestoreDC(dc,saved);
 }
 
@@ -360,10 +366,11 @@ bool Application::ComboBoxView(unsigned hwnd, unsigned *out)
     const bool button = (b->state.flags & 2) != 0;
     // the text rectangle stops before the drop down button.
     out[0] = unsigned(3); out[1] = unsigned(3);
-    out[2] = unsigned(button && width > 19 ? width - 19 : width - 3);
+    const int drop = ComboButtonWidth();
+    out[2] = unsigned(button && width > drop + 3 ? width - drop - 3 : width - 3);
     out[3] = unsigned(height + 3);
     // draws the button in this cell; a simple combo has none.
-    out[4] = unsigned(button ? width - 18 : 0); out[5] = unsigned(button ? 2 : 0);
+    out[4] = unsigned(button ? width - drop - 2 : 0); out[5] = unsigned(button ? 2 : 0);
     out[6] = unsigned(button ? width - 2 : 0); out[7] = unsigned(button ? height + 4 : 0);
     // an absent button is invisible, a held one is pressed.
     out[8] = (button ? 0u : 0x8000u) | ((b->state.flags & 0x40) ? 8u : 0u);

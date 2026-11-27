@@ -21,7 +21,10 @@ QEMU, runs 16-bit code and serves as a second backend for 32-bit code.
 On Linux x64 the code runs directly on the processor, 32-bit and 16-bit
 alike (`tools/host_native_cpu.cpp`): Neo98 gives the program the segments
 Windows 98 would, and the kernel hands back every system call and fault the
-program causes. All of them sit behind one interface, `X86::Cpu` in
+program causes. The processes take their turns at the same 32-bit addresses
+there, and a change from one to the next exchanges only the pages and
+segments in which the two differ (`tools/host_direct_cpu.inc`). All of them
+sit behind one interface, `X86::Cpu` in
 `src/x86_cpu.h`, so the rest of Neo98 doesn't care which one runs.
 
 When a program calls a Windows function that Neo98 implements, execution
