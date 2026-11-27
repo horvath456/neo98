@@ -32,9 +32,12 @@ above the asterisk (50h to 70h). It calls the play routine itself, not
 an event without a file is quiet, where `MessageBeep` falls back to the
 speaker. Windows 98 and Windows 95 do the same. The 32-bit calls
 (`MessageBoxA`, `MessageBoxExA`, `MessageBoxW`, `MessageBoxIndirectA`) and
-the 16-bit `MessageBox` end in USER's one routine, and so do the boxes the
-port opens itself (`Application::BuildMessageBox`, `src/x86_message_box.cpp`).
-The system-modal box of a hard error plays nothing.
+the 16-bit `MessageBox` and `MessageBoxIndirect` end in USER's one routine,
+and so do the boxes the port opens itself (`Application::BuildMessageBox`,
+`src/x86_message_box.cpp`). The 16-bit `MessageBoxIndirect` reads its
+segmented record and shows the box of the 32-bit call; a program's own icon
+and its 16-bit help callback are not carried over. The system-modal box of
+a hard error plays nothing.
 
 ## Beep of KERNEL32
 
@@ -50,7 +53,8 @@ never reads its frequency or duration.
 `tools/test_event_sounds_host.py` (with `tools/event_sound_fixture.c` and
 `tools/box_sound_win16_fixture.asm`): `MessageBeep`, `PlaySound` with
 `SND_ALIAS`, the events of the menu and of the window states, a box of each
-of the four 32-bit calls and of the 16-bit `MessageBox`, a box with the beep
+of the four 32-bit calls and of the 16-bit `MessageBox` and
+`MessageBoxIndirect`, a box with the beep
 off, with an empty entry, with `MB_USERICON` and with 50h, `Beep` with and
 without a default sound, and the fault box in `neo98-host`. The samples the
 device plays are recorded (`NEO98_AUDIO_TAP`).
