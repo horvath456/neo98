@@ -42,6 +42,37 @@ inline void Recompute(Environment &e)
     e.SetWord(0x300, height - e.Word(0x2e6));
     e.SetWord(0x35a, U(e.Word(0x320)) * 2 + height);
 }
+// What USER has measured of the fonts it made for the caption, the small
+// caption and the menu (their cell heights, the menu font's external leading)
+// before it takes the sizes over.
+struct FontHeights
+{
+    int caption, small_caption, menu;
+};
+// USER, between the fonts and the arithmetic below: every size is held
+// to what the edges and the fonts need. The border is between 1 and 50, a
+// width at least four edges, and a caption, small caption or menu bar at
+// least as high as its font and one edge (SM_CYEDGE). With a larger font a
+// caption therefore grows by itself.
+inline void HoldNonClient(Environment &e, NonClient &n, const FontHeights &fonts)
+{
+    auto least = [](U &value, int minimum) {
+        if (Signed(value) < minimum)
+            value = U(minimum) & 0xffff;
+    };
+    least(n.border_width, 1);
+    if (Signed(n.border_width) > 50)
+        n.border_width = 50;
+    const int edge_x = Signed(e.Word(0x338)), edge_y = Signed(e.Word(0x33a));
+    least(n.scroll_width, edge_x * 4);
+    least(n.scroll_height, edge_y * 4);
+    least(n.caption_width, edge_x * 4);
+    least(n.caption_height, edge_y + fonts.caption);
+    least(n.small_caption_width, edge_x * 4);
+    least(n.small_caption_height, edge_y + fonts.small_caption);
+    least(n.menu_width, edge_x * 4);
+    least(n.menu_height, edge_y + fonts.menu);
+}
 // Complete arithmetic routine USER and its USER15 helper.
 // NONCLIENTMETRICS fields enter as native values; the original uses their low WORDs.
 // Font selection/measurement and validation of supplied settings precede this routine.

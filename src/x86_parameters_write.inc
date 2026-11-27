@@ -130,11 +130,41 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
                         User::MoveWindow(windows[i], m.left, m.top, m.right - m.left, m.bottom - m.top);
                 }
         }
+        // USER's two writers store the sizes and fonts of a window's
+        // parts and of the icon grid under HKCU\Control Panel\Desktop\
+        // WindowMetrics, not in WIN.INI: a size as "%d", in twips and
+        // negative for the lengths (-MulDiv(pixels, 1440, dots per inch)), a
+        // font as its LOGFONT16 with the height in points
+        // (-MulDiv(height, 72, dots per inch) of a negative height). The
+        // start reads them back for the font size the display has then
+        // (Application::LoadWindowMetrics).
+        static bool MetricsValue(unsigned identifier) { return identifier >= 0x40 && identifier != 0x43; }
+        static bool Twips(unsigned identifier)
+        {
+            switch (identifier)
+            {
+            case 0x40: case 0x41: case 0x74: case 0x75: case 0x76: case 0x78: case 0x79: case 0x7b: case 0x7c:
+            case 0x7e: case 0x7f: case 0x80: case 0x84: case 0x85:
+                return true;
+            default:
+                return false;
+            }
+        }
+        bool WriteMetricsValue(const char *name, unsigned type, const void *data, unsigned size)
+        {
+            auto &registry = Registry::System();
+            unsigned key = Registry::Missing;
+            bool created = false;
+            return !registry.Open(registry.roots[1], "Control Panel\\Desktop\\WindowMetrics", true, key, created) &&
+                   !registry.Set(key, name, type, data, size);
+        }
         bool WriteProfileInt(unsigned identifier, int value) override
         {
             const auto *entry = FindKey(identifier);
             if (!entry)
                 return false;
+            if (Twips(identifier))
+                value = -Gdi::PixelsToTwips(value);
             char text[16];
             int n = 0, magnitude = value < 0 ? -value : value;
             char digits[12];
@@ -149,6 +179,8 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
             while (n)
                 text[out++] = digits[--n];
             text[out] = 0;
+            if (MetricsValue(identifier))
+                return WriteMetricsValue(entry->key, 1, text, unsigned(out) + 1);
             return app.WriteSystemProfile(entry->section, entry->key, text);
         }
         bool WriteProfileFont(unsigned identifier, const unsigned char *logfont) override
@@ -156,12 +188,16 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
             const auto *entry = FindKey(identifier);
             if (!entry || !logfont)
                 return false;
-            // The original stores the LOGFONT16 bytes; the native profile keeps the face
-            // name, which is the part the implemented read branches surface again.
-            char face[33] = {};
-            for (unsigned i = 0; i < 32 && logfont[18 + i]; ++i)
-                face[i] = char(logfont[18 + i]);
-            return app.WriteSystemProfile(entry->section, entry->key, face);
+            unsigned char stored[50];
+            memcpy(stored, logfont, sizeof stored);
+            const int height = short(stored[0] | stored[1] << 8);
+            if (height < 0)
+            {
+                const int points = Gdi::DpiMulDiv(-height, 72, Gdi::Dpi().logical_y);
+                stored[0] = (unsigned char)points;
+                stored[1] = (unsigned char)(points >> 8);
+            }
+            return WriteMetricsValue(entry->key, 3, stored, sizeof stored);
         }
         bool WriteProfileFont32(unsigned identifier, const unsigned char *logfont) override
         {
@@ -173,10 +209,8 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
         }
         void ApplyNonClientMetrics(const unsigned char *m) override
         {
-            Win98Metrics::ApplyNonClientMetrics(
-                s, {unsigned(Signed32(m, 4)), unsigned(Signed32(m, 8)), unsigned(Signed32(m, 0xc)),
-                    unsigned(Signed32(m, 0x10)), unsigned(Signed32(m, 0x14)), unsigned(Signed32(m, 0x54)),
-                    unsigned(Signed32(m, 0x58)), unsigned(Signed32(m, 0x98)), unsigned(Signed32(m, 0x9c))});
+            // USER: the fonts first (it makes and measures them), then the
+            // sizes, held to the fonts.
             unsigned char narrow[50];
             const unsigned offsets[5] = {0x18, 0x5c, 0xa0, 0xdc, 0x118};
             const unsigned handles[5] = {0x502, 0x503, 0x501, 0x505, 0x506};
@@ -185,6 +219,10 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
                 NarrowFont(m + offsets[i], narrow);
                 s.SetFont(handles[i], narrow);
             }
+            User::ApplyNonClientMetrics(
+                {unsigned(Signed32(m, 4)), unsigned(Signed32(m, 8)), unsigned(Signed32(m, 0xc)),
+                 unsigned(Signed32(m, 0x10)), unsigned(Signed32(m, 0x14)), unsigned(Signed32(m, 0x54)),
+                 unsigned(Signed32(m, 0x58)), unsigned(Signed32(m, 0x98)), unsigned(Signed32(m, 0x9c))});
         }
         void ApplyMinimizedMetrics(const unsigned char *m) override
         {

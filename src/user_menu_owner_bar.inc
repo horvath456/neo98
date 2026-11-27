@@ -42,7 +42,7 @@ unsigned ServeOwnerBars(HWND only)
         if(!dc){delete[] pixels;continue;}
         v.window=h;v.painting=true;
         Gdi::SetViewportOrgEx(dc,-rect.left,-rect.top);
-        Gdi::SelectObject(dc,system_font);
+        Gdi::SelectObject(dc,MetricFont(0x501));
         Fill(dc,rect,Win98Frame::SystemColors()[Win98MenuDraw::ColorMenu]);
         MenuOwnerEnvironment environment;
         for(unsigned i=0;;++i){
