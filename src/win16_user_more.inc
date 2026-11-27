@@ -530,22 +530,44 @@ bool Application::Win16UserMore(unsigned ordinal, const Win16Frame &frame, unsig
         delete[] copy;
         return state != Failed;
     }
-    case 397: // RegisterClassEx(class): a DWORD cbSize, then the fields of
-              // WNDCLASS, then hIconSm.
+    case 397: // RegisterClassEx(class)
     {
+        // The WNDCLASSEX of 16-bit USER starts with two dwords, cbSize and
+        // style; from the procedure on its fields lie as in a WNDCLASS that
+        // began six bytes in, and hIconSm follows the class name. The style
+        // word of that WNDCLASS would be the high word of the style.
         const unsigned at = pointer(0);
         if (!at) { result = 0; return true; }
-        result = Win16RegisterClassAt(at + 4, Win16ImageNative(Win16Word(at + 4 + Win16U::ClassBytes)));
+        const unsigned style = Win16Word(at + 4) | (Win16Word(at + 6) << 16);
+        result = Win16RegisterClassAt(at + Win16U::ClassExBase,
+                                      Win16ImageNative(Win16Word(at + Win16U::ClassExBase + Win16U::ClassBytes)),
+                                      style);
         return true;
     }
     case 398: // GetClassInfoEx(instance, class, out)
     {
         const unsigned out = pointer(3);
         const unsigned klass = arg(1) ? pointer(1) : arg(2);
-        result = Win16ClassInfoInto(arg(0), klass, out ? out + 4 : 0u);
-        // The small icon stays null: the 16-bit class store keeps none.
+        result = Win16ClassInfoInto(arg(0), klass, out ? out + Win16U::ClassExBase : 0u);
         if (result && out)
-            Win16Word(out + 4 + Win16U::ClassBytes, 0);
+        {
+            // The style as the dword of WNDCLASSEX, over the word the
+            // WNDCLASS layout put at its high half.
+            const unsigned style = Win16Word(out + Win16U::ClassExBase);
+            Win16Word(out + 4, style);
+            Win16Word(out + 6, 0);
+            // The small icon RegisterClassEx kept, as the word of the
+            // 16-bit side.
+            unsigned small_icon = 0;
+            if (const unsigned scratch = Win16Scratch())
+            {
+                Write32(scratch, 48); // sizeof WNDCLASSEXA
+                const unsigned a[] = {arg(0), klass, scratch};
+                if (Api("GetClassInfoExA", a))
+                    small_icon = Win16ImageAlias(Read32(scratch + 44), 0, false, 0, nullptr);
+            }
+            Win16Word(out + Win16U::ClassExBase + Win16U::ClassBytes, small_icon);
+        }
         return true;
     }
 

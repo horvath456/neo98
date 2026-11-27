@@ -39,7 +39,11 @@ enum ClassLayout : U
 {
     ClassStyle = 0, ClassProcedure = 2, ClassExtra = 6, ClassWindowExtra = 8,
     ClassInstance = 10, ClassIcon = 12, ClassCursor = 14, ClassBackground = 16,
-    ClassMenu = 18, ClassName = 22, ClassBytes = 26
+    ClassMenu = 18, ClassName = 22, ClassBytes = 26,
+    // WNDCLASSEX: DWORD cbSize, DWORD style, then the WNDCLASS fields from
+    // lpfnWndProc on, which lie as in a WNDCLASS that starts here, and
+    // HICON hIconSm behind the class name.
+    ClassExBase = 6
 };
 // PAINTSTRUCT: HDC, BOOL fErase, RECT rcPaint, BOOL fRestore, BOOL fIncUpdate,
 // BYTE rgbReserved[16].

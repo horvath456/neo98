@@ -2227,7 +2227,7 @@ private:
     // for an ordinal neither knows.
     bool Win16UserMore(unsigned ordinal, const Win16Frame &, unsigned words, unsigned &result, bool &handled);
     bool Win16GdiMore(unsigned ordinal, const Win16Frame &, unsigned words, unsigned &result, bool &handled);
-    unsigned Win16RegisterClassAt(unsigned at, unsigned small_icon);
+    unsigned Win16RegisterClassAt(unsigned at, unsigned small_icon, unsigned style);
     unsigned Win16ClassInfoInto(unsigned instance, unsigned klass, unsigned out);
     unsigned Win16MenuFromTemplate(const unsigned char *source, unsigned bytes);
     bool Win16GetMessage(unsigned ordinal, const Win16Frame &, unsigned &result, unsigned &words);
