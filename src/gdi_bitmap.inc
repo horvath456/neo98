@@ -11,7 +11,34 @@ struct BitmapStore
     // (Failure in win98_bitmap_thunk.h). The counts are a port limit.
     // These internal bitmap handles are WORD offsets, 4000h + 4*slot.
     static constexpr U LocalCapacity = (0x10000-0x4000)/4;
-    static constexpr U GlobalCount = 4096, Limit = 128u << 20;
+    static constexpr U GlobalCount = 4096;
+    // What the bits of all device bitmaps together may take of the host.
+    // Win98 has no number for it: there the bits are global memory, and a
+    // CreateCompatibleBitmap fails when the machine and its swap file have
+    // no room. Here they are memory of the host process, twice for a bitmap
+    // larger than 64 KiB (the block of the original GDI code and the copy
+    // the renderer draws in), so the bound follows the host: a quarter of
+    // its memory, not less than the 128 MiB this used to be for every host,
+    // not more than 2 GiB, which the 32-bit count can hold.
+    // NEO98_BITMAP_MEMORY gives the megabytes instead, for tests.
+    static U HostLimit()
+    {
+        unsigned long long megabytes = 0;
+        if (const char *given = getenv("NEO98_BITMAP_MEMORY"))
+            megabytes = strtoull(given, nullptr, 10);
+        if (!megabytes)
+        {
+#if defined(__APPLE__) || defined(__linux__)
+            const long pages = sysconf(_SC_PHYS_PAGES), page = sysconf(_SC_PAGESIZE);
+            if (pages > 0 && page > 0)
+                megabytes = (unsigned long long)pages * (unsigned long long)page / 4 >> 20;
+#endif
+            if (megabytes < 128) megabytes = 128;
+        }
+        if (megabytes > 2048) megabytes = 2048;
+        return U(megabytes << 20);
+    }
+    const U Limit = HostLimit();
     struct Range
     {
         U base = 0, size = 0, guest = 0;

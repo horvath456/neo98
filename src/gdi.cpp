@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "gdi.h"
 #include <new>
+#include <stdlib.h>
+#if defined(__APPLE__) || defined(__linux__)
+#include <unistd.h>
+#endif
 #include "gdi_state.h"
 #include "gdi_truetype.h"
 #include <stdint.h>
