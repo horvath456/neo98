@@ -2356,13 +2356,17 @@ int main(int real_argc, char **real_argv)
     // The guest clock starts at the Mac's local time, as Win98 starts from the
     // battery clock; see StartGuestClock.
     {
-        const time_t now = time(nullptr);
+        // With its milliseconds, for the clock a restart keeps (tools/clock_file.h).
+        struct timespec exact = {};
+        clock_gettime(CLOCK_REALTIME, &exact);
+        const time_t now = exact.tv_sec;
         struct tm parts = {};
         localtime_r(&now, &parts);
         const unsigned short fields[8] = {
             (unsigned short)(parts.tm_year + 1900), (unsigned short)(parts.tm_mon + 1),
             (unsigned short)parts.tm_wday, (unsigned short)parts.tm_mday, (unsigned short)parts.tm_hour,
-            (unsigned short)parts.tm_min, (unsigned short)(parts.tm_sec > 59 ? 59 : parts.tm_sec), 0};
+            (unsigned short)parts.tm_min, (unsigned short)(parts.tm_sec > 59 ? 59 : parts.tm_sec),
+            (unsigned short)(exact.tv_nsec / 1000000)};
         X86::Application::StartGuestClock(fields);
     }
     X86::Application *a = nullptr;

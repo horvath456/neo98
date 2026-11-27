@@ -331,10 +331,15 @@ class Session
         { fprintf(stderr, "Invalid guest-network listen address.\n"); return false; }
         network.SetOnline(!options.offline); NetHost::Install(&network); serial.Install();
         printer = std::make_unique<PrinterPortHost::Directory>(options.printer); PrinterPort::Install(printer.get());
-        const time_t now = time(nullptr); struct tm clock; localtime_r(&now, &clock);
+        // With its milliseconds: a clock set in Windows is kept as its
+        // distance to this one (tools/clock_file.h), and whole seconds here
+        // would move it by up to a second at every start.
+        struct timespec exact{}; clock_gettime(CLOCK_REALTIME, &exact);
+        const time_t now = exact.tv_sec; struct tm clock; localtime_r(&now, &clock);
         unsigned short fields[] = {static_cast<unsigned short>(1900 + clock.tm_year), static_cast<unsigned short>(clock.tm_mon + 1),
             static_cast<unsigned short>(clock.tm_wday), static_cast<unsigned short>(clock.tm_mday), static_cast<unsigned short>(clock.tm_hour),
-            static_cast<unsigned short>(clock.tm_min), static_cast<unsigned short>(clock.tm_sec), 0};
+            static_cast<unsigned short>(clock.tm_min), static_cast<unsigned short>(clock.tm_sec > 59 ? 59 : clock.tm_sec),
+            static_cast<unsigned short>(exact.tv_nsec / 1000000)};
         X86::Application::StartGuestClock(fields);
         if (options.desktop_width) X86::Application::SetHostDisplay(options.desktop_width, options.desktop_height, false);
         app = std::make_unique<X86::Application>(Log);
