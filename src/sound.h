@@ -197,6 +197,8 @@ class Mixer
     static constexpr unsigned StallMilliseconds = 80;
     void Beat();
     bool Stalled() const;
+    // Milliseconds since the last beat; -1 before the first.
+    long long SinceBeat() const;
     // How often a stand of the machine has held the mixer so far.
     unsigned long long StallHolds() const { return stall_holds.load(std::memory_order_relaxed); }
     // Whether a host provider carries the frames away.

@@ -639,6 +639,12 @@ long long SteadyNanoseconds()
 
 void Mixer::Beat() { last_beat.store(SteadyNanoseconds(), std::memory_order_relaxed); }
 
+long long Mixer::SinceBeat() const
+{
+    const long long beat = last_beat.load(std::memory_order_relaxed);
+    return beat ? (SteadyNanoseconds() - beat) / 1000000 : -1;
+}
+
 bool Mixer::Stalled() const
 {
     const long long beat = last_beat.load(std::memory_order_relaxed);
