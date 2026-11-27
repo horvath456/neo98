@@ -39,7 +39,7 @@ unsigned Application::CaretApi(ApiName name,const unsigned*a){
     switch (name.id)
     {
     API_CASE("GetCaretBlinkTime")return caret_blink;
-    API_CASE("SetCaretBlinkTime")return Win98Caret::Blink(e,s,caret_blink,a[0]);
+    API_CASE("SetCaretBlinkTime")return SetCaretBlink(a[0]);
     API_CASE("GetCaretPos"){
         if(!a[0]||!virtual_memory.Access(a[0],8,true)){last_error=87;return 0;}
         const Gdi::POINT p{Win98Caret::Signed(s.x),Win98Caret::Signed(s.y)};return Store(a[0],&p,sizeof p);
@@ -62,6 +62,21 @@ unsigned Application::CaretApi(ApiName name,const unsigned*a){
     else if(API_IS(name,"ShowCaret"))Win98Caret::Show(e,s);
     else Win98Caret::Hide(e,s);
     User::CaretChanged();return 1;
+}
+// USER SetCaretBlinkTime keeps the time in one word of its data segment, so
+// it holds for every process, and starts the timer of the caller's caret
+// anew. The carets of the other processes take the new time as well.
+unsigned Application::SetCaretBlink(unsigned milliseconds)
+{
+    CaretEnvironment e{*this};
+    const unsigned result = Win98Caret::Blink(e, caret, caret_blink, milliseconds);
+    for (auto *process : session_processes)
+        if (process && process != this && process->caret.owner)
+        {
+            CaretEnvironment other{*process};
+            Win98Caret::Blink(other, process->caret, caret_blink, milliseconds);
+        }
+    return result;
 }
 void Application::CaretWindowDestroyed(unsigned hwnd){
     // Inversions kept for a window that is gone have no pixels any more.

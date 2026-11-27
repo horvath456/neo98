@@ -19,6 +19,17 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
     // SPI_SCREENSAVERRUNNING (61h) keeps it at DS:28Ch, inverted.
     bool saver_running = false;
     unsigned mouse_speed = 10;
+    // DS:D8h: the typematic word of the keyboard, the speed in the low five
+    // bits (31 the fastest) and the delay in bits 5 and 6. USER starts with
+    // 15 and leaves the keyboard alone when no speed is stored; `typematic`
+    // says that Windows has set the keyboard (src/x86_control_panel.inc).
+    unsigned short keyboard = 15;
+    bool typematic = false;
+    // The two thresholds and the speed of SPI_GETMOUSE, the lines of one
+    // notch of the wheel, the delay of a submenu in milliseconds and DS:1A4h,
+    // whether MessageBeep sounds.
+    unsigned short mouse[3] = {6, 10, 1};
+    unsigned short wheel_lines = 3, menu_show_delay = 400, beep = 1;
     bool gradient_captions = true;
     // DS:264h, the COOL.DLL module USER loads at start.
     unsigned short plus = 0;
@@ -83,9 +94,9 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
         switch (offset)
         {
         case 0x1a4:
-            return 1; // Beep enabled.
+            return beep;
         case 0xd8:
-            return 31 | (1 << 5); // Keyboard rate and delay.
+            return keyboard;
         case 0xda:
         case 0xdc:
         case 0xde:
@@ -104,11 +115,9 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
         case 0xedc:
             return 7; // Average caption-font width for the current native font profile.
         case 0x86a:
-            return 6;
         case 0x86c:
-            return 10;
         case 0x86e:
-            return 1;
+            return mouse[(offset - 0x86a) / 2];
         case 0x1a8:
             return 0x501; // Menu.
         case 0x1ac:

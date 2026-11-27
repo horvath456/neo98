@@ -5270,16 +5270,19 @@ static void RouteMouse(const InputPacket &packet, void *context, InputFocus call
     // way is asked.
     auto nonclient_hit = [&](HWND h) { return h == routed ? route_hit : HitTest(h, x, y); };
     // USER: a second press on the same window within the double-click
-    // time and a 4-pixel box is WM_LBUTTONDBLCLK; anything else starts a new
-    // click record.
+    // time and the double-click box (system metrics 36 and 37, four pixels
+    // unless SPI_SETDOUBLECLKWIDTH and SPI_SETDOUBLECLKHEIGHT say otherwise)
+    // is WM_LBUTTONDBLCLK; anything else starts a new click record.
+    const int double_click_width = SystemSettings().Word(0x326), double_click_height = SystemSettings().Word(0x328);
     // USER also compares the stored message: only a second press of
     // the same button is a double click.
     auto press_message_for = [&](HWND h, unsigned press = 0x201)
     {
         unsigned message = press;
         if (milliseconds && last_click_window == h && last_click_message == press &&
-            milliseconds - last_click_time <= double_click_time && x - last_click_x >= -4 &&
-            x - last_click_x <= 4 && y - last_click_y >= -4 && y - last_click_y <= 4)
+            milliseconds - last_click_time <= double_click_time && x - last_click_x >= -double_click_width &&
+            x - last_click_x <= double_click_width && y - last_click_y >= -double_click_height &&
+            y - last_click_y <= double_click_height)
         {
             message = press + 2;
             last_click_window = 0;

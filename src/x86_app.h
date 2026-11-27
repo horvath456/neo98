@@ -1220,6 +1220,23 @@ private:
     unsigned SystemParameters(const unsigned *);
     unsigned FontSmoothingParameters(const unsigned *);
     void LoadUserStartSettings();
+    // src/x86_control_panel.inc
+    void LoadControlPanelSettings();
+    bool ControlPanelParameters(const unsigned *a, unsigned &result);
+    static bool BeepEnabled();
+    static unsigned TypematicDelay(unsigned word);
+    static unsigned TypematicPeriod(unsigned word);
+    // The key the keyboard repeats: the last one that went down and is still
+    // held, and the time of its next repeat on the clock of the machine.
+    struct Typematic
+    {
+        unsigned key = 0, character = 0, scan = 0;
+        bool extended = false, sending = false;
+        unsigned long long next = 0;
+    };
+    static Typematic typematic;
+    bool TypematicKey(unsigned key, unsigned character, bool down, unsigned scan, bool extended);
+    void TypematicPulse();
     void LoadWindowMetrics();
     unsigned MouseButtonSwapParameter(const unsigned *);
     unsigned ScreenSaveParameters(const unsigned *);
@@ -3034,7 +3051,9 @@ private:
     Win98Caret::State caret;
     bool caret_edit=false,caret_edit_shown=false;
     void EditCaret(unsigned,bool);
-    unsigned caret_blink=500;
+    // DS:148h of USER, one time for every process.
+    static inline unsigned caret_blink=500;
+    unsigned SetCaretBlink(unsigned milliseconds);
     unsigned CaretApi(ApiName,const unsigned*);
     void CaretPulse();void FreeCarets();void CaretWindowDestroyed(unsigned);
     unsigned DrawCaret(unsigned,unsigned);

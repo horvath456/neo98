@@ -4,6 +4,7 @@
 #include "win98_parameters_write.h"
 #include "win98_broadcast.h"
 #include "win98_gdi_parameters.h"
+#include "win98_frame_control.h"
 #include "registry.h"
 #include "sound.h"
 #include "files.h"
@@ -66,6 +67,7 @@ unsigned Application::SystemMetric(unsigned index)
 }
 #include "x86_parameters_write.inc"
 #include "x86_accessibility.inc"
+#include "x86_control_panel.inc"
 // USER reads its settings once at start. It opens HKLM\Software\Microsoft\Plus!\Setup,
 // reads the value "cool.dll" into a 104h-byte buffer
 // and, when that succeeds with a nonzero length, loads
@@ -137,6 +139,7 @@ void Application::LoadUserStartSettings()
         }
     }
     LoadWindowMetrics();
+    LoadControlPanelSettings();
     key = Registry::Missing;
     value = nullptr;
     if (registry.Open(registry.roots[2], "Software\\Microsoft\\Plus!\\Setup", false, key, created) ||
@@ -356,6 +359,9 @@ unsigned Application::SystemParameters(const unsigned *a)
     // FILTERKEYS to SCREENREADER, src/x86_accessibility.inc.
     if (a[0] >= 0x32 && a[0] <= 0x47)
         return AccessibilityParameters(a);
+    // The plain numbers of the Control Panel, src/x86_control_panel.inc.
+    if (unsigned result = 0; ControlPanelParameters(a, result))
+        return result;
     // Actions that change a setting run the implemented write branches.
     if (a[0] == 20 || a[0] == 21 || a[0] == 34 || a[0] == 42 || a[0] == 44 || a[0] == 46 || a[0] == 47)
         return SystemParametersWrite(a);

@@ -4622,6 +4622,7 @@ Application::State Application::Pump(unsigned slices)
         return state;
     }
     UpdateLaunchFeedback();
+    TypematicPulse();
     CaretPulse();
     ScreenSaverTick();
     // MMSOUND.DRV note queues run on the mixer clock. Copy their threshold
@@ -5598,6 +5599,9 @@ void Application::RawKey(unsigned key, unsigned character, bool down, unsigned s
     // BlockInput keeps hardware input away; keybd_event, mouse_event and
     // SendInput pass (src/x86_user32_gates.cpp).
     if (User::InputBlocked() && !injected_input)
+        return;
+    // A held key repeats by the delay and the speed Windows has set.
+    if (!injected_input && TypematicKey(key, character, down, scan, extended))
         return;
     auto packet=User::CaptureKey(key, character, down, scan, extended);
     const bool repeat = (packet.parameter & 0x40000000) != 0 && down;
