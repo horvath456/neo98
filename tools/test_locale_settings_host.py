@@ -20,6 +20,10 @@ copy of drive C:
   tt h:mm:ss and M/d/yy: 12 hours, no zero, the marker first, the month
   first and "/"
 
+The lists of the locale are those of the installed version's LOCALE.NLS:
+the short dates of English (United States) on Windows 95 have no
+yyyy-MM-dd, which Windows 98 added.
+
 EnumTimeFormatsA and EnumDateFormatsA of the user's locale hand out the
 picture the user has set first and leave it out of the list of the locale
 that follows. Regional Settings fills its "Time style" and date style boxes
@@ -66,6 +70,7 @@ if __name__ == '__main__':
 import argparse
 import os
 import shutil
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -81,6 +86,21 @@ WORK = ROOT / 'build/locale-settings'
 # (Germany) in LOCALE.NLS, in its order.
 TIMES = ['h:mm:ss tt', 'hh:mm:ss tt', 'H:mm:ss', 'HH:mm:ss']
 SHORT = ['M/d/yy', 'M/d/yyyy', 'MM/dd/yy', 'MM/dd/yyyy', 'yy/MM/dd', 'yyyy-MM-dd', 'dd-MMM-yy']
+# The short dates of English (United States) in LOCALE.NLS of Windows 95
+# (KERNEL32 4.00): the same without yyyy-MM-dd.
+SHORT_4_00 = ['M/d/yy', 'M/d/yyyy', 'MM/dd/yy', 'MM/dd/yyyy', 'yy/MM/dd', 'dd-MMM-yy']
+
+
+def kernel_version(drive):
+    """(major, minor) of the file version of the drive's KERNEL32.DLL, from
+    its VS_FIXEDFILEINFO."""
+    path = win98_c.path('C:\\WINDOWS\\SYSTEM\\KERNEL32.DLL', drive)
+    data = path.read_bytes() if path else b''
+    at = data.find(struct.pack('<I', 0xFEEF04BD))
+    if at < 0:
+        return (4, 10)
+    high = struct.unpack_from('<I', data, at + 8)[0]
+    return (high >> 16, high & 0xffff)
 LONG = ['dddd, MMMM dd, yyyy', 'MMMM dd, yyyy', 'dddd, dd MMMM, yyyy', 'dd MMMM, yyyy']
 GERMAN = ['HH:mm:ss', 'H:mm:ss', 'H.mm', "H.mm' Uhr '"]
 
@@ -148,6 +168,10 @@ def main():
     subprocess.run(['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
+    # The locale's own list of short dates is that of the installed version.
+    if kernel_version(drive) < (4, 10):
+        for expected, own in ((EUROPEAN, 'dd.MM.yyyy'), (AMERICAN, 'M/d/yy')):
+            expected['short dates'] = listed(own, SHORT_4_00)
     subprocess.run(['i686-w64-mingw32-gcc', '-Os', str(ROOT / 'tools/locale_settings_fixture.c'), '-nostartfiles',
                     '-nostdlib', '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32', '-ladvapi32',
                     '-o', str(drive / 'LOCSET.EXE')], check=True)
