@@ -3330,7 +3330,30 @@ void Application::Slice(Cpu &cpu, unsigned address, void *context)
         }
     }
     a.slice_blocks += a.slice_armed;
-    if (a.slice_blocks >= SliceBlocks || (a.turn_start && Now() - a.turn_start >= TurnMicroseconds))
+    bool late = a.turn_start && Now() - a.turn_start >= TurnMicroseconds;
+    // The time it takes to bring this guest to the addresses it runs at is
+    // not time of its turn. On Linux x64 the guests share the 32-bit
+    // addresses of the host, and the first run of a turn after another
+    // process had its turn changes the mappings there
+    // (tools/host_direct_cpu.inc). On a busy machine, or with a guest that
+    // has much to map, that takes longer than a turn lasts. The turn was
+    // then over at the first API gate the guest reached, before the call was
+    // served, and the next turn served that one call and no more: two
+    // processes with work took turns of one call each, which is standstill
+    // for whoever watches them. The cost of the changes since the turn began
+    // moves its start.
+    if (late)
+    {
+        SwitchCost cost;
+        if (cpu.SwitchCosts(cost) && cost.microseconds > a.turn_switches)
+        {
+            const unsigned long long now = Now(), spent = cost.microseconds - a.turn_switches;
+            a.turn_start += spent < now - a.turn_start ? spent : now - a.turn_start;
+            a.turn_switches = cost.microseconds;
+            late = now - a.turn_start >= TurnMicroseconds;
+        }
+    }
+    if (a.slice_blocks >= SliceBlocks || late)
     {
         a.slice_stop = true;
         cpu.Stop();
@@ -4689,6 +4712,10 @@ bool Application::RunTurn(unsigned index, unsigned &remaining)
     t.deadline = 0;
     budget = remaining > 8 ? 8 : remaining;
     turn_start = Now(); slice_stop = false;
+    {
+        SwitchCost cost;
+        turn_switches = cpu->SwitchCosts(cost) ? cost.microseconds : 0;
+    }
     unsigned allowance = budget;
     state = Running;
     const auto quantum_began = Now();

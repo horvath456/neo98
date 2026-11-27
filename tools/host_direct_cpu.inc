@@ -683,6 +683,17 @@ class DirectCpu final : public NativeCpu
             low = range.end;
         }
         arena.owner = this;
+        // NEO98_DIRECT_SWITCH_DELAY=<microseconds>: every change takes that
+        // much longer, as it does on a busy machine. For tests of what must
+        // not depend on the time of a change (tools/test_turn_progress_host.py).
+        static const uint64_t delay = [] {
+            const char *value = getenv("NEO98_DIRECT_SWITCH_DELAY");
+            return value ? strtoull(value, nullptr, 10) : 0ull;
+        }();
+        if (delay)
+            for (const uint64_t until = DirectArena::Microseconds() + delay; DirectArena::Microseconds() < until;)
+            {
+            }
         return SyncGdt() ? CpuError::Ok : CpuError::Mode;
     }
     // The upper half of the host's LDT holds translated descriptors of a

@@ -3599,6 +3599,9 @@ private:
     // The turn of the running thread: when it began and whether the
     // last run ended because the slice of blocks was used up.
     unsigned long long turn_start = 0; bool slice_stop = false;
+    // What the changes of processor had cost when the turn began, or when
+    // Slice last took their time out of it (see there).
+    unsigned long long turn_switches = 0;
     char program_name[128] = {};
     // The guest memory and the processor of the process. The DOS process has
     // memory only (CpuBackend::None) until its first x86 module brings a
