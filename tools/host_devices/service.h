@@ -28,7 +28,8 @@ namespace HostDeviceService
 // NEO98_TEST_CAMERA replaces the cameras of the host by one test camera, for
 // runs without the Mac's camera and without its question for access:
 // "on" (or any other value) a moving picture, left half red and right half
-// green with a white bar; "dark" starts but sends no picture; "denied" is
+// green with a white bar; "wide" the same in the middle of a 16:9 picture
+// with blue sides; "dark" starts but sends no picture; "denied" is
 // refused as macOS refuses without access; "ask" waits for an answer that
 // never comes; "none" is a host without a camera.
 class TestCamera final:public Platform
@@ -70,13 +71,17 @@ public:
     {
         if(!running||mode=="dark")return;
         const auto now=std::chrono::steady_clock::now();if(now<next)return;next=now+std::chrono::milliseconds(66);
-        static unsigned char picture[320*240*4];const unsigned bar=(step++*8)%320;
-        for(unsigned y=0;y<240;++y)for(unsigned x=0;x<320;++x)
+        // "wide" is 16:9 as the camera of a Mac: the red and the green of
+        // the 4:3 picture in its middle, a blue band of 40 pixels on each
+        // side that a 4:3 program does not see (src/capture_crop.h).
+        const bool wide=mode=="wide";const unsigned w=320,h=wide?180:240,side=wide?40:0;
+        static unsigned char picture[320*240*4];const unsigned bar=side+(step++*8)%(w-2*side);
+        for(unsigned y=0;y<h;++y)for(unsigned x=0;x<w;++x)
         {
-            unsigned char *p=picture+(y*320+x)*4;const bool white=x>=bar&&x<bar+16;
-            p[0]=white?255:0;p[1]=white||x>=160?255:0;p[2]=white||x<160?255:0;p[3]=255;
+            unsigned char *p=picture+(y*w+x)*4;const bool white=x>=bar&&x<bar+16,blue=x<side||x>=w-side;
+            p[0]=white||blue?255:0;p[1]=!blue&&(white||x>=160)?255:0;p[2]=!blue&&(white||x<160)?255:0;p[3]=255;
         }
-        CopyFrame(out,picture,320,240,320*4);
+        CopyFrame(out,picture,w,h,w*4);
     }
 };
 inline std::unique_ptr<Platform> MakeHostPlatform()
