@@ -60,13 +60,15 @@ EXPECTED = {
     'menu show delay result': 1, 'menu show delay': 250, 'swapped': 1,
     # 90 pixels; 20 is below the 32 of an icon, which is the least.
     'icon spacing': 90, 'icon vertical spacing': 32,
+    'animation result': 1, 'animation': 1, 'menu animation result': 1, 'menu animation': 1,
+    'combo animation result': 1, 'combo animation': 0,
     'colour background': 10 | 20 << 8 | 30 << 16, 'colour window': 250 | 240 << 8 | 230 << 16,
     'colour button face': 100 | 110 << 8 | 120 << 16,
 }
 SETTERS = ('keyboard speed', 'keyboard delay', 'double click time', 'mouse', 'beep', 'double click width',
            'double click height', 'drag width', 'drag height', 'menu drop alignment', 'wheel lines',
-           'menu show delay', 'mouse button swap', 'icon spacing', 'icon vertical spacing', 'caret blink time',
-           'colours')
+           'menu show delay', 'mouse button swap', 'icon spacing', 'icon vertical spacing', 'animation',
+           'menu animation', 'combo animation', 'caret blink time', 'colours')
 
 
 def values(path):

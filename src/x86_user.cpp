@@ -104,7 +104,7 @@ void Application::LoadUserStartSettings()
     }
     key=Registry::Missing;
     if(!registry.Open(registry.roots[1],"Control Panel\\Desktop",false,key,created)&&
-       !registry.Query(key,"UserPreferencesMask",value)&&value&&value->type==3&&value->data&&value->size>=4)
+       !registry.Query(key,"UserPreferencemask",value)&&value&&value->type==3&&value->data&&value->size>=4)
         settings.gradient_captions=(value->data[0]&0x10)!=0;
     // The screen saver and the power features of the display: the
     // timeouts in seconds, negative while inactive (USER DS:DAh, DCh, DEh),
@@ -357,10 +357,10 @@ unsigned Application::SystemParametersService(const unsigned *a)
             auto&r=Registry::System();unsigned key=Registry::Missing;bool created=false;
             if(r.Open(r.roots[1],"Control Panel\\Desktop",true,key,created))return 0;
             const Registry::Value*value=nullptr;unsigned char mask[4]={};
-            if(!r.Query(key,"UserPreferencesMask",value)&&value&&value->type==3&&value->data&&value->size>=4)
+            if(!r.Query(key,"UserPreferencemask",value)&&value&&value->type==3&&value->data&&value->size>=4)
                 memcpy(mask,value->data,4);
             mask[0]=(mask[0]&~0x10u)|(a[2]?0x10:0);
-            if(r.Set(key,"UserPreferencesMask",3,mask,4))return 0;
+            if(r.Set(key,"UserPreferencemask",3,mask,4))return 0;
         }
         settings.gradient_captions=a[2]!=0;
         User::InvalidateRect(0,nullptr,false);

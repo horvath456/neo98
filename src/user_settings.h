@@ -30,6 +30,12 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
     // whether MessageBeep sounds.
     unsigned short mouse[3] = {6, 10, 1};
     unsigned short wheel_lines = 3, menu_show_delay = 400, beep = 1;
+    // DS:234h, "show window contents while dragging" (it needs the Plus
+    // module at DS:264h as well), DS:1A6h, whether minimizing is animated,
+    // and DS:1B6h, the switches of "UserPreferencemask": bit n is the pair
+    // of actions 1000h + 2n (get) and 1001h + 2n (set).
+    unsigned short drag_full = 0, min_animate = 0;
+    unsigned preferences = 0;
     bool gradient_captions = true;
     // DS:264h, the COOL.DLL module USER loads at start.
     unsigned short plus = 0;
@@ -108,7 +114,9 @@ struct Settings final : Win98Parameters::Environment, Win98Metrics::Environment
         case 0x264:
             return plus;
         case 0x234:
-            return 0; // DragFullWindows is "0" in the local install.
+            return drag_full;
+        case 0x1a6:
+            return min_animate;
         case 0x6e8:
         case 0x6ea:
             return 4;

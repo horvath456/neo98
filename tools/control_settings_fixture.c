@@ -144,6 +144,17 @@ static void read_all(void)
     line("menu show delay result", SystemParametersInfoA(SPI_GETMENUSHOWDELAY, 0, &value, 0));
     line("menu show delay", value);
     line("swapped", GetSystemMetrics(SM_SWAPBUTTON));
+    {
+        ANIMATIONINFO animation = {sizeof animation, 7};
+        line("animation result", SystemParametersInfoA(SPI_GETANIMATION, sizeof animation, &animation, 0));
+        line("animation", animation.iMinAnimate);
+        value = 0xdead;
+        line("menu animation result", SystemParametersInfoA(0x1002, 0, &value, 0));
+        line("menu animation", value);
+        value = 0xdead;
+        line("combo animation result", SystemParametersInfoA(0x1004, 0, &value, 0));
+        line("combo animation", value);
+    }
     line("icon spacing", GetSystemMetrics(SM_CXICONSPACING));
     line("icon vertical spacing", GetSystemMetrics(SM_CYICONSPACING));
     line("colour background", GetSysColor(COLOR_BACKGROUND));
@@ -193,6 +204,13 @@ void mainCRTStartup(void)
         line("set mouse button swap", SystemParametersInfoA(SPI_SETMOUSEBUTTONSWAP, 1, 0, keep));
         line("set icon spacing", SystemParametersInfoA(SPI_ICONHORIZONTALSPACING, 90, 0, keep));
         line("set icon vertical spacing", SystemParametersInfoA(SPI_ICONVERTICALSPACING, 20, 0, keep));
+        {
+            ANIMATIONINFO animation = {sizeof animation, 1};
+            line("set animation", SystemParametersInfoA(SPI_SETANIMATION, sizeof animation, &animation, keep));
+            // 1003h and 1005h: the animation of menus and of combo boxes.
+            line("set menu animation", SystemParametersInfoA(0x1003, 0, (void *)1, keep));
+            line("set combo animation", SystemParametersInfoA(0x1005, 0, 0, keep));
+        }
         line("changes", changes);
         // The Keyboard page: SetCaretBlinkTime, and the value USER reads at
         // its next start.

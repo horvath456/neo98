@@ -185,6 +185,20 @@ void Application::LoadControlPanelSettings()
         if (size <= 0x7fff)
             settings.SetWord(entry.offset, (unsigned short)size);
     }
+    // Whether a window shows its contents while it is dragged, whether
+    // minimizing is animated, and the switches of the preferences mask.
+    settings.drag_full = ControlNumber(ControlDesktop, "DragFullWindows", settings.drag_full) ? 1 : 0;
+    settings.min_animate = ControlNumber(ControlMetrics, "MinAnimate", settings.min_animate) ? 1 : 0;
+    {
+        auto &registry = Registry::System();
+        unsigned key = Registry::Missing;
+        bool created = false;
+        const Registry::Value *mask = nullptr;
+        if (!registry.Open(registry.roots[1], ControlDesktop, false, key, created) &&
+            !registry.Query(key, "UserPreferencemask", mask) && mask && mask->type == 3 && mask->data &&
+            mask->size >= 4)
+            memcpy(&settings.preferences, mask->data, 4);
+    }
     // The beep is on unless the value starts with something else than the
     // 'Y' of the built-in "Yes", in either case.
     char beep[4];
@@ -216,6 +230,38 @@ bool Application::ControlPanelParameters(const unsigned *a, unsigned &result)
         result = Store(a[2], &word, 4);
         return true;
     };
+    // The switches of the preferences mask, 1000h to 100Fh: an even action
+    // answers bit (action - 1000h) / 2, the odd one after it sets the bit
+    // when the pointer is not null and clears it otherwise. Stored, the bit
+    // goes into the four bytes of "UserPreferencemask" as they stand in
+    // the registry. 1008h and 1009h, the gradient of the captions, have
+    // their own branch in src/x86_user.cpp.
+    if (action >= 0x1000 && action <= 0x100f && action != 0x1008 && action != 0x1009)
+    {
+        const unsigned bit = 1u << ((action - 0x1000) >> 1);
+        if (!(action & 1))
+            return answer(settings.preferences & bit ? 1 : 0);
+        settings.preferences = a[2] ? settings.preferences | bit : settings.preferences & ~bit;
+        result = 1;
+        if (store)
+        {
+            auto &registry = Registry::System();
+            unsigned key = Registry::Missing, mask = settings.preferences;
+            bool created = false;
+            const Registry::Value *stored = nullptr;
+            if (registry.Open(registry.roots[1], ControlDesktop, true, key, created))
+                return true;
+            if (!registry.Query(key, "UserPreferencemask", stored) && stored && stored->type == 3 && stored->data &&
+                stored->size >= 4)
+            {
+                memcpy(&mask, stored->data, 4);
+                mask = a[2] ? mask | bit : mask & ~bit;
+            }
+            if (!registry.Set(key, "UserPreferencemask", 3, &mask, 4) && (a[3] & 2))
+                BroadcastMessage(Win98Broadcast::Send, 0x1a, action, 0);
+        }
+        return true;
+    }
     switch (action)
     {
     case 1: // SPI_GETBEEP
@@ -300,6 +346,32 @@ bool Application::ControlPanelParameters(const unsigned *a, unsigned &result)
     case 32: // SPI_SETDOUBLECLICKTIME: SetDoubleClickTime, stored with the mouse.
         User::SetDoubleClickTime(value);
         return finish(ControlMouse, "DoubleClickSpeed", (short)value);
+    case 37: // SPI_SETDRAGFULLWINDOWS: FALSE without the Plus module.
+        if (!settings.Word(0x264))
+        {
+            result = 0;
+            return true;
+        }
+        settings.drag_full = value ? 1 : 0;
+        return finish(ControlDesktop, "DragFullWindows", settings.drag_full);
+    case 72: // SPI_GETANIMATION: ANIMATIONINFO, eight bytes.
+    case 73: // SPI_SETANIMATION
+    {
+        unsigned info[2] = {};
+        if (!a[2] || !Read(a[2], info, sizeof info) || info[0] != 8)
+        {
+            result = 0;
+            return true;
+        }
+        if (action == 72)
+        {
+            info[1] = settings.min_animate;
+            result = Store(a[2], info, sizeof info);
+            return true;
+        }
+        settings.min_animate = info[1] ? 1 : 0;
+        return finish(ControlMetrics, "MinAnimate", settings.min_animate);
+    }
     case 76: // SPI_SETDRAGWIDTH
         settings.SetWord(0x366, (unsigned short)value);
         return finish(ControlDesktop, "DragWidth", (short)value);
