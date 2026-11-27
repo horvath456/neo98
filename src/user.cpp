@@ -5663,8 +5663,12 @@ static void RouteMouse(const InputPacket &packet, void *context, InputFocus call
         if (w->nonclient_flags & 8)
         {
             bool hit_button = false;
+            // A caption button is pressed where the window says it is: the
+            // answer of its WM_NCHITTEST for the point names the button. A
+            // procedure that answers HTCAPTION over a box gets a press on
+            // the caption, as under Windows, which asks before every press.
             for (unsigned i = 0; i < w->button_slots && !hit_button; ++i)
-                if (Inside(w->button_slot[i].rect, x - p.x, y - p.y))
+                if (Inside(w->button_slot[i].rect, x - p.x, y - p.y) && route_hit == w->button_slot[i].hit)
                 {
                     w->pressed_hit = w->button_slot[i].hit;
                     w->pressed_inside = true;

@@ -117,18 +117,32 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
         void RecomputeMetrics() override { Win98Metrics::Recompute(s); }
         void RepositionWindows(const Win98ParametersWrite::Rect &) override
         {
-            // USER walks every top-level window. The native provider re-applies
-            // the reconstructed maximized rectangle to the windows that are maximized.
+            // USER walks the windows of the top level that are no tool
+            // windows and places each one anew with DeferWindowPos and one
+            // EndDeferWindowPos, SWP_NOZORDER and SWP_NOACTIVATE: a window is
+            // asked with WM_WINDOWPOSCHANGING, gets WM_NCCALCSIZE and is told
+            // with WM_WINDOWPOSCHANGED and WM_SIZE. The provider does this
+            // for the windows that are maximized, with the reconstructed
+            // maximized rectangle; the others stay where they are.
             unsigned windows[User::WindowCapacity], count = 0;
             if (!User::WindowSnapshot(0, windows, User::WindowCapacity, count))
                 return;
-            for (unsigned i = 0; i < count; ++i)
-                if (User::IsWindow(windows[i]) && (User::Style(windows[i]) & 0x01000000))
-                {
-                    Gdi::RECT m;
-                    if (User::MaximizedRect(windows[i], m))
-                        User::MoveWindow(windows[i], m.left, m.top, m.right - m.left, m.bottom - m.top);
-                }
+            unsigned positions[64][7], moved = 0;
+            for (unsigned i = 0; i < count && moved < 64; ++i)
+            {
+                const unsigned hwnd = windows[i];
+                if (!User::IsWindow(hwnd) || !(User::Style(hwnd) & 0x01000000) || (User::ExtendedStyle(hwnd) & 0x80))
+                    continue;
+                Gdi::RECT m, now = {};
+                if (!User::MaximizedRect(hwnd, m) || !User::GetWindowRect(hwnd, &now) ||
+                    (m.left == now.left && m.top == now.top && m.right == now.right && m.bottom == now.bottom))
+                    continue;
+                const unsigned entry[7] = {hwnd, 0, unsigned(m.left), unsigned(m.top), unsigned(m.right - m.left),
+                                           unsigned(m.bottom - m.top), 0x14};
+                memcpy(positions[moved++], entry, sizeof entry);
+            }
+            if (moved)
+                app.PositionWindows(moved, positions);
         }
         // USER's two writers store the sizes and fonts of a window's
         // parts and of the icon grid under HKCU\Control Panel\Desktop\
