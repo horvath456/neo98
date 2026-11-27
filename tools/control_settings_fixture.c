@@ -238,6 +238,26 @@ void mainCRTStartup(void)
         read_all();
         save("C:\\CHILD.TXT");
     }
+    else if (has(command, "pattern") || has(command, "putpattern"))
+    {
+        // Display Properties, Background: the pattern goes through
+        // SPI_SETDESKPATTERN and is read back from the registry.
+        char value[80] = "absent";
+        DWORD size = sizeof value;
+        HKEY handle;
+        if (has(command, "putpattern"))
+            line("set pattern", SystemParametersInfoA(SPI_SETDESKPATTERN, 0, "170 85 170 85 170 85 170 85", keep));
+        if (!RegOpenKeyA(HKEY_CURRENT_USER, "Control Panel\\Desktop", &handle))
+        {
+            if (RegQueryValueExA(handle, "Pattern", 0, 0, (BYTE *)value, &size))
+                lstrcpyA(value, "absent");
+            RegCloseKey(handle);
+        }
+        used += wsprintfA(text + used, "registry pattern=%s\r\n", value);
+        GetProfileStringA("Desktop", "Pattern", "absent", value, sizeof value);
+        used += wsprintfA(text + used, "profile pattern=%s\r\n", value);
+        save("C:\\PATTERN.TXT");
+    }
     else if (has(command, "get"))
     {
         read_all();
