@@ -12,9 +12,11 @@
 // HostDevices::Provider (tools/host_devices/service.h).
 // The driver offers one format, uncompressed 24-bit RGB, bottom-up, at any
 // size from 16x12 to 640x480; each frame is scaled from the host's 32-bit
-// frame with the nearest pixel. VIDEO_IN and VIDEO_EXTERNALIN open,
+// frame with the nearest pixel, from its middle where the shapes differ
+// (src/capture_crop.h). VIDEO_IN and VIDEO_EXTERNALIN open,
 // VIDEO_OUT and VIDEO_EXTERNALOUT (overlay) do not.
 #include "win16_machine.h"
+#include "capture_crop.h"
 #include "host_devices.h"
 #include <stdio.h>
 #include <string.h>
@@ -71,15 +73,18 @@ bool Application::Win16CaptureFill(unsigned header, unsigned time)
     const bool live = HostDevices::current && !HostDevices::current->Frame(frame, sizeof *frame, done) &&
                       frame->width && frame->height && frame->width <= 640 && frame->height <= 480 &&
                       frame->bytes >= frame->width * frame->height * 4;
+    // A picture of another shape than the format gives its middle, not a
+    // squeezed whole (src/capture_crop.h).
+    const auto area = live ? CaptureCrop::Centred(frame->width, frame->height, c.width, c.height) : CaptureCrop::Area{};
     for (unsigned y = 0; y < c.height; ++y)
     {
         // The DIB is bottom-up and the host frame top-down.
         if (live)
         {
-            const unsigned sy = (c.height - 1 - y) * frame->height / c.height;
-            const unsigned char *source = frame->pixels + sy * frame->width * 4;
+            const unsigned sy = area.y + (c.height - 1 - y) * area.height / c.height;
+            const unsigned char *source = frame->pixels + (sy * frame->width + area.x) * 4;
             for (unsigned x = 0; x < c.width; ++x)
-                memcpy(&row[x * 3], source + (x * frame->width / c.width) * 4, 3);
+                memcpy(&row[x * 3], source + (x * area.width / c.width) * 4, 3);
         }
         Store(data + y * stride, row, stride);
     }

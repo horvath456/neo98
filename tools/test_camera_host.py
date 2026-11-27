@@ -8,6 +8,8 @@ instead of the Mac's camera, so no run asks macOS for camera access or opens the
 1. app: CAMERA.EXE (tools/host_devices/camera.c) shows the moving picture of the test camera
    through AVICAP32 and NEO98CAP.DRV: red on the left, green on the right, and two pictures a
    second apart differ. It names the driver in SYSTEM.INI [drivers] msvideo= itself.
+   wide: a 16:9 test camera, as the camera of a Mac, shows its middle in the 4:3 picture
+   (src/capture_crop.h): the blue sides of the picture are cut off, nothing is squeezed.
 2. states: without a picture Camera says why instead of showing black: a host without a
    camera, a refused camera access (macOS), the question for access still open, and a camera
    that sends no picture.
@@ -153,6 +155,43 @@ def app(binary, out, check, report):
     ini = (run / 'c/WINDOWS/SYSTEM.INI').read_text(errors='replace') if (run / 'c/WINDOWS/SYSTEM.INI').exists() else ''
     check('app: SYSTEM.INI [drivers] names the capture driver', re.search(r'(?im)^msvideo=neo98cap\.drv\s*$', ini))
     check('app: no call the host does not carry', not failures(text))
+    shutil.rmtree(run / 'c', ignore_errors=True)
+
+
+def blue(path, frame):
+    """Pure blue pixels inside the frame of the window."""
+    width, height, pixels = read_ppm(path)
+    left, top, right, bottom = frame
+    count = 0
+    for y in range(max(top, 0), min(bottom, height)):
+        row = y * width * 3
+        for x in range(max(left, 0), min(right, width)):
+            r, g, b = pixels[row + x * 3:row + x * 3 + 3]
+            if b > 230 and r < 30 and g < 30:
+                count += 1
+    return count
+
+
+def wide(binary, out, check, report):
+    """A 16:9 camera, as a Mac's, in the 4:3 of Camera: its middle, not the whole squeezed."""
+    steps = [f'0:wait={CLASS}|Camera', '4:tops=2', '4.3:shot={out}/wide.ppm']
+    code, text, run = camera_run(binary, out, 'wide', 'wide', steps, keep=True)
+    found = tops(text)
+    frame, capture, _words = camera_windows(found[0]) if found else (None, False, '')
+    check('wide: Camera shows the picture of the 16:9 test camera', frame is not None and capture)
+    if frame and (run / 'wide.ppm').exists():
+        red, green, _white, _black = colours(run / 'wide.ppm', frame)
+        sides = blue(run / 'wide.ppm', frame)
+        report['wide'] = {'frame': frame, 'red': red, 'green': green, 'blue': sides}
+        # Squeezed, the blue sides took a quarter of the picture (76,800
+        # pixels) and red and green three eighths each (115,200); cut, red and
+        # green fill a half each (153,600), less the white bar of 43 columns
+        # where it stands.
+        check(f'wide: the blue sides of the 16:9 picture are cut off ({sides} pixels)', sides < 100)
+        check(f'wide: red and green fill a half of the 640x480 each ({red}, {green} pixels)',
+              red > 125000 and green > 125000)
+    else:
+        check('wide: the picture was taken', False)
     shutil.rmtree(run / 'c', ignore_errors=True)
 
 
@@ -319,7 +358,7 @@ def start(binary, out, check, report):
 def main():
     parser = argparse.ArgumentParser(description=__doc__.split('\n', 1)[0])
     parser.add_argument('--no-build', action='store_true')
-    parser.add_argument('--only', action='append', default=[], choices=['app', 'states', 'devices', 'move', 'start'])
+    parser.add_argument('--only', action='append', default=[], choices=['app', 'wide', 'states', 'devices', 'move', 'start'])
     arguments = parser.parse_args()
     build_hardware_manager()
     binary = ROOT / 'build/native-app/neo98-host' if arguments.no_build else build_host()
@@ -331,7 +370,7 @@ def main():
         checks[name] = bool(condition)
         print(('ok  ' if condition else 'FAIL'), name, flush=True)
 
-    for name, part in (('app', app), ('states', states), ('devices', devices), ('move', move), ('start', start)):
+    for name, part in (('app', app), ('wide', wide), ('states', states), ('devices', devices), ('move', move), ('start', start)):
         if not arguments.only or name in arguments.only:
             part(binary, out, check, report)
     (out / 'results.json').write_text(json.dumps({'checks': checks, 'report': report}, indent=1, default=str) + '\n')
