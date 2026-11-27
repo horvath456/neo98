@@ -456,6 +456,7 @@ void Application::ReleaseThread(unsigned i)
         return;
     ReleaseCrtThreadData(i);
     EndThreadStaticTls(i);
+    Win16HostedThreadEnded(t.id);
     FreeThreadFiber(t.fiber);
     if (t.context)
         cpu->FreeContext(t.context);

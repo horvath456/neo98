@@ -326,7 +326,7 @@ unsigned Application::WinmmCompletionApi(ApiName name, const unsigned *a)
             if (tile.selector && tile.selector == selector)
             {
                 for (unsigned i = 0; i < tile.count; ++i)
-                    selectors.Unmap((selector + i * 8) << 16);
+                    Win16FreeSelector(selector + i * 8);
                 tile = {};
                 break;
             }

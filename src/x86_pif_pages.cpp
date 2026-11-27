@@ -443,7 +443,7 @@ void Application::PifPageRelease(unsigned index)
         unsigned a[] = {p.icon};
         Api("DestroyIcon", a);
     }
-    if (p.handle16 != p.block) selectors.Unmap(p.handle16);
+    if (p.handle16 != p.block) Win16FreeSelector(p.handle16 >> 16);
     if (p.block) Free(p.block);
     auto &sh = s.sheets[p.sheet];
     p = PifPagesState::Page();

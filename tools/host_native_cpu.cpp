@@ -789,10 +789,20 @@ class NativeCpu : public Cpu
         r.orig_rax = -1;
         r.cs = Selector(state.regs[Reg::Cs], true);
         r.ss = Selector(state.regs[Reg::Ss], false);
-        r.ds = Selector(state.regs[Reg::Ds], false);
-        r.es = Selector(state.regs[Reg::Es], false);
-        r.fs = Selector(state.regs[Reg::Fs], false);
-        r.gs = Selector(state.regs[Reg::Gs], false);
+        // A data segment register can still hold a selector the program
+        // has freed: 16-bit code frees a block and leaves its selector in ES.
+        // A processor goes on with the descriptor it loaded, and Windows
+        // puts the null selector there when it next loads the register and
+        // finds no descriptor. Here the registers are loaded on every entry,
+        // so that is now.
+        auto data = [&](unsigned value) {
+            const unsigned selector = Selector(value, false);
+            return selector == ~0u && !(Descriptor(value) & (1ull << 47)) ? 0u : selector;
+        };
+        r.ds = data(state.regs[Reg::Ds]);
+        r.es = data(state.regs[Reg::Es]);
+        r.fs = data(state.regs[Reg::Fs]);
+        r.gs = data(state.regs[Reg::Gs]);
         auto segment_base = [&](unsigned selector) -> unsigned long long {
             if (!(selector & 4) || (selector >> 3) >= 8192) return 0;
             const auto desc = host_ldt->value[selector >> 3];

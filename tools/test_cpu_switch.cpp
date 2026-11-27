@@ -23,7 +23,8 @@
 // its own pages and no others, a guest with descriptors finds exactly its
 // own table (not a selector it freed, not one of the guest before), and
 // rights, mappings and descriptors changed while another guest stood at the
-// addresses are in force at the next turn.
+// addresses are in force at the next turn. A data segment register that still
+// holds a selector the guest has freed starts the next run as the null selector.
 //
 // The descriptors of a GDT stand translated in the upper half of the host's
 // LDT; every guest finds there its own and none of another.
@@ -521,6 +522,30 @@ int main()
     for (unsigned turn = 0; turn < 2; ++turn)
         for (Guest *guest : all)
             guest->Look(all, exact_flat);
+
+    // A selector the guest freed while ES still held it: 16-bit code frees a
+    // block and leaves the selector in the register. The run starts all the
+    // same, with the null selector there, as Windows loads it when it finds
+    // no descriptor for a register it restores.
+    {
+        const unsigned slot = 460, selector = slot * 8 + 7;
+        driver.SetDescriptor(slot, Descriptor(Segments + slot * Page, 0x1460));
+        okay(driver.cpu->Set(Reg::Es, selector));
+        driver.SetDescriptor(slot, 0);
+        // mov eax,11111111h; push es; pop eax; mov [Result],eax; jmp Gates
+        unsigned char code[] = {0xb8, 0x11, 0x11, 0x11, 0x11, 0x06, 0x58, 0xa3, 0, 0, 0, 0, 0xe9, 0, 0, 0, 0};
+        const unsigned result = Result, jump = Gates - (Code + sizeof code);
+        memcpy(code + 8, &result, 4);
+        memcpy(code + 13, &jump, 4);
+        okay(driver.cpu->Write(Code, code, sizeof code));
+        const unsigned error = driver.cpu->Run(Code, 0);
+        CHECK(!error, "a run with a freed selector in ES stopped with %s", CpuErrorText(error));
+        unsigned seen = ~0u;
+        okay(driver.cpu->Read(Result, &seen, 4));
+        CHECK((seen & 0xffff) == 0, "ES held %04x at the start of a run after its selector was freed", seen & 0xffff);
+        for (Guest *guest : all)
+            guest->Look(all, exact_flat);
+    }
 
     // A guest that ends takes its descriptors with it; the others keep theirs.
     {

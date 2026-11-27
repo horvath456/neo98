@@ -622,7 +622,7 @@ unsigned Application::Win16Deliver(unsigned procedure, unsigned hwnd, unsigned m
     struct CopySelectorBack
     {
         Application &app; unsigned &selector;
-        ~CopySelectorBack() { if (selector) app.selectors.Unmap(selector << 16); }
+        ~CopySelectorBack() { if (selector) app.Win16FreeSelector(selector); }
     } copy_selector_back{*this, copy_selector};
     if (log && (message == 0x403 || message == 0x404))
     {
@@ -5496,7 +5496,7 @@ bool Application::Win16GdiCall(unsigned ordinal, const Win16Frame &frame, unsign
             for (auto &section : win16_dib_sections)
                 if (section.handle && section.handle == arg(0))
                 {
-                    selectors.Unmap(section.selector << 16);
+                    Win16FreeSelector(section.selector);
                     section = {};
                 }
         return true;

@@ -46,7 +46,7 @@ unsigned Application::PrintMapFlat(unsigned flat)
 void Application::PrintUnmapFar(unsigned far)
 {
     if (far)
-        selectors.Unmap(far & 0xffff0000u);
+        Win16FreeSelector(far >> 16);
 }
 
 // Control(lpPDevice, wFunction, lpInData, lpOutData), DDI ordinal 3.

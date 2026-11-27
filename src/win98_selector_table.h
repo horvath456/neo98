@@ -50,11 +50,29 @@ struct Table {
         return pointer>>16;
     }
     // Allocate consecutive descriptors with access byte 0xF3 and selector
-    // spacing eight, as required by __AHINCR. The free list cannot guarantee
-    // contiguity.
+    // spacing eight, as required by __AHINCR. The lowest run of free entries
+    // that is long enough is taken; only without such a run does the table
+    // grow. Taking every run from the end used the table up with the blocks
+    // larger than 64 KiB a program had long freed.
     unsigned CreateRun(unsigned count) {
-        if(!count||first+count>Capacity)return 0;
-        const unsigned index=first;first+=count;
+        if(!count)return 0;
+        unsigned index=0;
+        for(unsigned i=Reserved,run=0;free&&i<first;++i){
+            run=entries[i].used?0:run+1;
+            if(run==count){index=i+1-count;break;}
+        }
+        if(index){
+            // Out of the list of free entries, which links them in the order
+            // they were freed.
+            for(unsigned *link=&free;*link;){
+                const unsigned i=*link;
+                if(i>=index&&i<index+count)*link=entries[i].next;else link=&entries[i].next;
+            }
+        }
+        else{
+            if(first+count>Capacity)return 0;
+            index=first;first+=count;
+        }
         for(unsigned i=0;i<count;++i)entries[index+i]={0,0,65535,0,true,false,false,false};
         return index*8+7;
     }

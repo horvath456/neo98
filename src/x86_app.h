@@ -2001,6 +2001,7 @@ private:
     };
     bool Win16Descriptor(unsigned selector);
     unsigned Win16Segment(unsigned base, unsigned limit, bool code, bool big);
+    void Win16FreeSelector(unsigned selector);
     unsigned Win16Linear(unsigned selector, unsigned offset) const;
     unsigned Win16Limit(unsigned selector) const;
     void Win16DescribeAddress(char *out, unsigned capacity, unsigned selector, unsigned offset);
@@ -2041,7 +2042,8 @@ private:
     bool Win16DosFileControlFind(bool first, unsigned &result, unsigned flags);
     static void Win16Interrupt(Cpu &, unsigned number, void *context);
     void Win16Clear(unsigned address, unsigned bytes);
-    unsigned Win16GlobalAlloc(unsigned flags, unsigned size);
+    unsigned Win16GlobalAlloc(unsigned flags, unsigned size, unsigned owner = 0);
+    unsigned Win16LibraryOfCode(unsigned selector);
     bool Win16GlobalMap(Win16Block &, unsigned memory, unsigned size);
     Win16Block *Win16GlobalBlock(unsigned handle);
     bool Win16GlobalFree(unsigned handle);
@@ -2180,6 +2182,7 @@ private:
     // A callback into 32-bit code while a hosted 16-bit call is on the CPU
     // runs on the flat context the call was entered from.
     unsigned Win16HostedStack();
+    void Win16HostedThreadEnded(unsigned thread);
     bool Win16HostedFlat(unsigned &low);
     void Win16HostedResume(unsigned low);
     // `record` is the 264-byte record of the shared enumeration

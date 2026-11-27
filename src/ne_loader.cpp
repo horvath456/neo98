@@ -124,6 +124,24 @@ unsigned Application::Win16Segment(unsigned base, unsigned limit, bool code, boo
         return 0;
     return selector;
 }
+// Gives a selector back: its entry of the table is free for the next
+// descriptor, and the descriptor leaves the LDT the processor loads. KRNL386
+// does the same in its free_sel: a selector that is free names no segment,
+// LAR and LSL fail on it and a load of it faults, which is how a 16-bit
+// program finds out whether a selector is (still) valid. A descriptor that
+// stayed readable also stayed in the count of what the process holds.
+void Application::Win16FreeSelector(unsigned selector)
+{
+    if (!selectors.At(selector))
+        return;
+    selectors.Unmap(selector << 16);
+    const unsigned index = selector >> 3;
+    if (win16.state && index * 8 + 8 <= LdtBytes)
+    {
+        const unsigned char none[8] = {};
+        Store(LdtBase + index * 8, none, sizeof none);
+    }
+}
 unsigned Application::Win16Linear(unsigned selector, unsigned offset) const
 {
     const auto *entry = selectors.At(selector);
@@ -592,13 +610,18 @@ bool Application::Win16FreeLibrary(unsigned word)
             if (entry.memory)
                 Free(entry.memory);
             if (entry.selector)
-                selectors.Unmap(entry.selector << 16);
+                Win16FreeSelector(entry.selector);
             entry = Win16Machine::Resource{};
             entry.module = ~0u;
         }
         else if (entry.module != ~0u && entry.module > index)
             --entry.module;
     }
+    // What the module owns on the global heap goes with it (KRNL386:
+    // GlobalFreeAll with the module as owner).
+    for (unsigned i = 0; i < machine.global_capacity; ++i)
+        if (machine.globals[i].handle && !machine.globals[i].segment && machine.globals[i].owner == module.handle)
+            Win16GlobalFree(machine.globals[i].handle);
     for (unsigned number = 1; number <= module.segments; ++number)
         if (module.selector[number])
         {
@@ -610,10 +633,10 @@ bool Application::Win16FreeLibrary(unsigned word)
             // whose release also gives the memory back.
             if (!Win16GlobalFree(module.selector[number]) && module.memory[number])
                 Free(module.memory[number]);
-            selectors.Unmap(module.selector[number] << 16);
+            Win16FreeSelector(module.selector[number]);
         }
     if (module.handle)
-        selectors.Unmap(module.handle << 16);
+        Win16FreeSelector(module.handle);
     if (module.database)
         Free(module.database);
     delete[] module.file;
@@ -2174,7 +2197,7 @@ void Application::Win16Clear(unsigned address, unsigned bytes)
 }
 // The global heap on selectors. Rounding, the flag check and the handle shape
 // follow KRNL386; see win98_ne_task.h for the places they come from.
-unsigned Application::Win16GlobalAlloc(unsigned flags, unsigned size)
+unsigned Application::Win16GlobalAlloc(unsigned flags, unsigned size, unsigned owner)
 {
     auto &machine = *win16.state;
     // KRNL386 reports suspicious bits through warning E002, then continues
@@ -2203,6 +2226,7 @@ unsigned Application::Win16GlobalAlloc(unsigned flags, unsigned size)
     block.memory = memory;
     block.size = rounded;
     block.flags = flags;
+    block.owner = owner;
     // GlobalAlloc(GMEM_MOVEABLE, 0) builds the descriptor of its block with
     // the access byte of the table and `and al, 7Fh`, so
     // the block is there without being present. That is the same state a
@@ -2243,13 +2267,13 @@ bool Application::Win16GlobalMap(Win16Block &block, unsigned memory, unsigned si
             if (!moved)
                 return false;
             for (unsigned i = 0; i < block.tiles; ++i)
-                selectors.Unmap((block.selector + i * 8) << 16);
+                Win16FreeSelector(block.selector + i * 8);
             block.selector = moved;
         }
     }
     else
         for (unsigned i = tiles; i < block.tiles; ++i)
-            selectors.Unmap((block.selector + i * 8) << 16);
+            Win16FreeSelector(block.selector + i * 8);
     block.tiles = tiles;
     for (unsigned i = 0; i < tiles; ++i)
     {
@@ -2285,6 +2309,23 @@ Application::Win16Block *Application::Win16GlobalBlock(unsigned handle)
             return &machine.globals[i];
     return nullptr;
 }
+// The library whose code segment `selector` is: its module handle, or zero
+// for the code of a program or of nothing this loader placed.
+unsigned Application::Win16LibraryOfCode(unsigned selector)
+{
+    if (!win16.state)
+        return 0;
+    for (unsigned i = 0; i < win16.state->module_count; ++i)
+    {
+        const auto &module = win16.state->modules[i];
+        if (!module.library)
+            continue;
+        for (unsigned number = 1; number <= module.segments; ++number)
+            if (module.selector[number] && (module.selector[number] & ~3u) == (selector & ~3u))
+                return module.handle;
+    }
+    return 0;
+}
 // Release a global-heap block. GlobalFree returns zero on success and the
 // unrecognized handle otherwise; this helper reports whether it found the
 // block.
@@ -2302,7 +2343,7 @@ bool Application::Win16GlobalFree(unsigned handle)
     else if (block->memory)
         Free(block->memory);
     for (unsigned i = 0; i < block->tiles; ++i)
-        selectors.Unmap((block->selector + i * 8) << 16);
+        Win16FreeSelector(block->selector + i * 8);
     *block = Win16Block{};
     return true;
 }
@@ -2957,7 +2998,9 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
         return Win16LocalCall(ordinal, frame, result, words);
     case 15: // GlobalAlloc(flags, size)
         words = 3;
-        result = Win16GlobalAlloc(frame.Word(2), frame.Long(0));
+        // GMEM_SHARE from the code of a library: the block is the library's.
+        result = Win16GlobalAlloc(frame.Word(2), frame.Long(0),
+                                  frame.Word(2) & Win98NeTask::DdeShare ? Win16LibraryOfCode(frame.cs) : 0);
         return true;
     case 17: // GlobalFree(handle)
         words = 1;
@@ -3753,7 +3796,7 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
     }
     case 176: // FreeSelector(selector)
         words = 1;
-        selectors.Unmap(frame.Word(0) << 16);
+        Win16FreeSelector(frame.Word(0));
         result = 0;
         return true;
     case 25:  // GlobalCompact(minimum): the largest free block
@@ -4772,7 +4815,7 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
         }
         if (!row)
         {
-            for (unsigned selector = first; selector && selector <= previous; selector += 8) selectors.Unmap(selector << 16);
+            for (unsigned selector = first; selector && selector <= previous; selector += 8) Win16FreeSelector(selector);
             first = 0;
         }
         result = first;
@@ -5017,7 +5060,7 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
         return true;
     case 359: // UnMapLS(segptr): gives the selector of MapLS back
         words = 2;
-        selectors.Unmap(frame.Long(0));
+        Win16FreeSelector(frame.Long(0) >> 16);
         result = 0;
         return true;
     case 355: // GetWinDebugInfo(lpInfo, flags): FALSE, this is no debugging kernel
@@ -5772,7 +5815,7 @@ void Application::Win16Interrupt(Cpu &cpu, unsigned number, void *context)
             const unsigned selector = app.Register(Reg::Ebx) & 0xffff;
             if (!selector || !app.selectors.Find(selector << 16))
                 return answer(0x8022);
-            app.selectors.Unmap(selector << 16);
+            app.Win16FreeSelector(selector);
             return answer(0);
         }
         if (function == 0x0006 || function == 0x0007)
@@ -6636,9 +6679,9 @@ bool Application::Win16RealModeDos(unsigned structure)
         Register(Reg::Eflags, saved_flags);
     }
     if (es)
-        selectors.Unmap(es << 16);
+        Win16FreeSelector(es);
     if (ds)
-        selectors.Unmap(ds << 16);
+        Win16FreeSelector(ds);
     return answered;
 }
 bool Application::Win16DosCall(unsigned &result)

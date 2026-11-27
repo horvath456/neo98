@@ -149,7 +149,7 @@ unsigned Application::Win16GlobalApi(unsigned ordinal, const unsigned *a)
         if (!block) return a[0] & 0xffffu;
         const unsigned release[] = {block->pointer};
         Api("GlobalFree", release);
-        if(block->segment)selectors.Unmap(block->segment);
+        if(block->segment)Win16FreeSelector(block->segment>>16);
         *block = Win16Global{};
         return 0;
     }

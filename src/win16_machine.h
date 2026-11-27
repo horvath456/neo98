@@ -27,6 +27,13 @@ struct Application::Win16Block
     // them, so GlobalHandle, GlobalSize and GlobalFlags answer for a segment
     // selector; the loader owns the memory, so GlobalFree does not release it.
     bool segment = false;
+    // The module a block belongs to, or zero for one of the task. KRNL386
+    // gives a block allocated with GMEM_SHARE to the module whose code asked
+    // for it (GlobalAlloc reads the owner of the caller's code segment), and
+    // frees what a module owns when the module goes (GlobalFreeAll from
+    // FreeLibrary's last reference). AVIFILE.DLL leaves two such blocks
+    // behind every time it is unloaded and relies on exactly that.
+    unsigned owner = 0;
 };
 // One 16-bit module and everything the loader made for it.
 struct Application::Win16Module

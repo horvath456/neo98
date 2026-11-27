@@ -18,7 +18,7 @@ unsigned Application::SegmentMap(unsigned pointer,bool arena){
  const unsigned result=selectors.Map(pointer,arena);
  if(result>>16){
   const unsigned node=SegmentNode(result);unsigned char bytes[8];
-  if(!node){selectors.Unmap(result);return 0;}
+  if(!node){Win16FreeSelector(result>>16);return 0;}
   selectors.Descriptor(result>>16,bytes);Store(node,bytes,8);
   // A 16-bit module hosted in this process (src/x86_thunk_hosted.cpp) loads
   // the selector from the LDT, as the original's code does after QT_Thunk:
@@ -39,10 +39,7 @@ unsigned Application::SegmentSlotLinear(unsigned slot_value){
 void Application::SegmentUnmapNode(unsigned node){
  if(selector_nodes&&node>=selector_nodes+8&&node<selector_nodes+0x8000&&!((node-selector_nodes)&7)){
   const unsigned selector=(node-selector_nodes)|7;
-  selectors.Unmap(selector<<16);
-  if(win16.state&&(selector>>3)*8+8<=Win16LdtBytes){
-   const unsigned char zero[8]={};Store(Win16LdtBase+(selector>>3)*8,zero,8);
-  }
+  Win16FreeSelector(selector);
  }
 }
 struct Application::ThunkMemory{
@@ -292,7 +289,7 @@ unsigned Application::ThunkBridgeApi(ApiName name,const unsigned *a){
  API_CASE("SMapLS"){
   unsigned mapped=SegmentMap(Register(Reg::Eax));Register(Reg::Edx,SegmentNode(mapped));return mapped;
  }
- API_CASE("UnMapLS"){selectors.Unmap(a[0]);return 0;}
+ API_CASE("UnMapLS"){Win16FreeSelector(a[0]>>16);return 0;}
  API_CASE("SUnMapLS"){SegmentUnmapNode(Register(Reg::Ecx));return Register(Reg::Eax);}
  API_CASE("UnMapSLFixArray"){
   for(unsigned i=0;i<a[0];++i)selectors.Unfix(Read32(a[1]+4*i));return Register(Reg::Eax);

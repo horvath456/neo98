@@ -444,7 +444,7 @@ unsigned Application::DMusic16Answer(unsigned ordinal, unsigned stack)
         const unsigned value = dword(0), first = value >> 16, count = value & 0xffff;
         if (!first || !count) return 0;
         for (unsigned i = 0; i < count; ++i)
-            selectors.Unmap((first + i * 8) << 16);
+            Win16FreeSelector(first + i * 8);
         return 0;
     }
     default:

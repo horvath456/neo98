@@ -157,6 +157,24 @@ unsigned Application::Win16HostedStack()
     return record->stack;
 }
 
+// The end of a thread. KERNEL32 gives every thread its 16-bit stack and
+// takes it back with the thread; here the stack is a block of the global
+// heap, and the record makes room for the next thread. Without this the
+// seventeenth thread that ever reached 16-bit code in a process found no
+// record, and every film MCIAVI played left 32 KiB and a selector behind.
+void Application::Win16HostedThreadEnded(unsigned thread)
+{
+    if (!win16.state || !thread)
+        return;
+    for (auto &record : win16.state->hosted_threads)
+        if (record.thread == thread)
+        {
+            if (record.stack)
+                Win16GlobalFree(record.stack);
+            record = {};
+        }
+}
+
 // Call found 16-bit code on the CPU: switch to the flat context of the
 // innermost hosted call of this thread and remember how far down the 16-bit
 // stack is in use, so a hosted call made from the callback starts below it.

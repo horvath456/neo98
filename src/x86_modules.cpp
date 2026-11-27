@@ -1292,7 +1292,7 @@ unsigned Application::Win16ModuleApi(unsigned ordinal, const unsigned *a)
  for(auto&entry:native_win16_modules)if(entry.handle&&(a[0]&65535)==entry.handle){m=&entry;break;}
  if(!m)return 0;
  if(ordinal==Win98Win16Module::FreeLibrary16){
-  if(!--m->references){selectors.Unmap(m->segment);Free(m->memory);*m=NativeWin16Module{};}
+  if(!--m->references){Win16FreeSelector(m->segment>>16);Free(m->memory);*m=NativeWin16Module{};}
   return 0;
  }
  if(ordinal==Win98Win16Module::GetProcAddress16){
