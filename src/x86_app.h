@@ -465,6 +465,11 @@ private:
     void RemoveThreadHooks(unsigned thread);
     unsigned process_id=0;
     static unsigned AllocateThreadIdentity();
+    // The memory of a process object and what of it the host has to back
+    // (src/x86_app.cpp).
+    static void *ProcessStorage();
+    static void FreeProcessStorage(void *storage);
+    static void ReturnZeroPages(Application &process);
     VirtualMemory::Space virtual_memory;
     struct MemoryBackend;
     bool ConfigureMemory();

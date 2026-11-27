@@ -78,7 +78,10 @@ bool Application::EnsureSystemVmMemory()
     system_vm_memory = reinterpret_cast<unsigned char *>(
         (reinterpret_cast<unsigned long long>(system_vm_storage) + 0xffff) & ~0xffffull);
 #endif
-    memset(system_vm_memory, 0, 0x110000);
+    // A new memory file reads as zero; writing the megabyte made the host
+    // back all of it for every process.
+    if (!system_vm_shared)
+        memset(system_vm_memory, 0, 0x110000);
     memset(system_vm_memory + 0xc0000, 0xff, 0x30000);
     unsigned char page[4096];
     for (unsigned offset = 0; offset < PcBios::Size; offset += sizeof page)

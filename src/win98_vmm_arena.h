@@ -22,8 +22,6 @@ template <U Capacity = 576> class Arena
         free.page = ~0u;
         free.next = &free;
         allocated.next = allocated.previous = &allocated;
-        for (U i = Capacity; i; --i)
-            Recycle(&blocks[i - 1]);
         if (first_page < end_page && end_page <= 0x100000)
         {
             if (auto *initial = New())
@@ -171,11 +169,19 @@ template <U Capacity = 576> class Arena
   private:
     Block blocks[Capacity]{}, free{}, allocated{};
     Block *unused = nullptr;
+    // The blocks from this index on were never handed out. They are not on
+    // the list of unused ones: a table with room for the worst case, a
+    // megabyte in every process, stays memory nobody has written to until a
+    // process needs that many blocks. The order blocks are handed out in is
+    // the one the list gave: a recycled block first, then the lowest fresh one.
+    U fresh = 0;
     Block *New()
     {
         auto *block = unused;
         if (block)
             unused = block->next;
+        else if (fresh < Capacity)
+            block = &blocks[fresh++];
         return block;
     }
     void Recycle(Block *block)

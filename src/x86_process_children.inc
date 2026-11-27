@@ -169,7 +169,7 @@ void Application::PumpChildren(unsigned slices){
         // Keep the record while the destructor releases this child's own
         // process handles. No handle is an owner of a live Application.
         ++c.references;
-        app->~Application();free(app);
+        app->~Application();FreeProcessStorage(app);
         if(!--c.references)c={};
     }
     User::BindTask(saved_pid,saved_tid);pumping_children=false;
@@ -447,8 +447,9 @@ unsigned Application::LaunchChild(const unsigned *a,const char *override_applica
         if(log)log("CreateProcess failed: the session has no room for another process");
         last_error=8;return 0;}
     unsigned free_handles=0;for(auto &h:kernel_handles)if(!h.kind)++free_handles;if(free_handles<2){last_error=8;return 0;}
-    auto *storage=malloc(sizeof(Application));if(!storage){last_error=8;return 0;}
+    auto *storage=ProcessStorage();if(!storage){last_error=8;return 0;}
     auto *child=new(storage)Application(log);
+    ReturnZeroPages(*child);
     child->parent_process=this;
     child->trace_calls=trace_calls;child->trace_from=trace_from?1:0; // a traced parent traces its children from their start
     // A route override stays in the child: a test that runs one of our
@@ -456,7 +457,7 @@ unsigned Application::LaunchChild(const unsigned *a,const char *override_applica
     for(unsigned i=0;i<NativeModuleCount();++i)child->AddNativeModule(NativeModuleAt(i));
     const unsigned saved_pid=User::CurrentProcess(),saved_tid=User::CurrentThread();
     struct RestoreBinding{unsigned p,t;~RestoreBinding(){User::BindTask(p,t);}} restore{saved_pid,saved_tid};
-    auto discard=[&](unsigned code){child->~Application();free(child);last_error=code;return 0u;};
+    auto discard=[&](unsigned code){child->~Application();FreeProcessStorage(child);last_error=code;return 0u;};
     child->owned_executable=image;image=nullptr;
     child->owned_font=static_cast<unsigned char*>(malloc(font_size));
     child->initial_environment=static_cast<char*>(malloc(s->environment_size));

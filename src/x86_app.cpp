@@ -53,6 +53,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h> // strcasecmp
+#if defined(__linux__)
+#include <malloc.h> // malloc_trim
+#endif
 #include "../sdk/lib/neo98_touch_abi.h"
 
 namespace X86
@@ -2147,6 +2150,59 @@ unsigned Application::AllocateThreadIdentity()
     }
     return 0;
 }
+// A process object is five megabytes, most of it tables with room for the
+// worst case: 128 threads, 16384 regions of virtual memory, 8192 blocks.
+// Its constructor writes every one of them, almost all of it zeros, and the
+// host backed all of it for every program, a calculator like a game.
+// ReturnZeroPages hands the pages that hold nothing but zeros back; they read
+// as zero as before and cost memory when something is written to them. The
+// storage comes from the host directly, so that those pages can go back and
+// the whole object does when the process ends.
+#if defined(__linux__)
+void *Application::ProcessStorage()
+{
+    void *storage = mmap(nullptr, sizeof(Application), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    return storage == MAP_FAILED ? nullptr : storage;
+}
+void Application::FreeProcessStorage(void *storage)
+{
+    if (storage)
+        munmap(storage, sizeof(Application));
+    // What the process had on the heap of the host is free now but stays
+    // with the host process, in pages between blocks that live on. The end
+    // of a process is rare and the place to hand them back.
+    malloc_trim(0);
+}
+void Application::ReturnZeroPages(Application &process)
+{
+    constexpr size_t Page = 4096;
+    auto *bytes = reinterpret_cast<unsigned char *>(&process);
+    const size_t first = (Page - reinterpret_cast<uintptr_t>(bytes) % Page) % Page;
+    size_t run = 0;
+    for (size_t at = first; at + Page <= sizeof(Application) + 1; at += Page)
+    {
+        bool zero = at + Page <= sizeof(Application);
+        if (zero)
+        {
+            // Whole words: the page is aligned.
+            const auto *words = reinterpret_cast<const unsigned long long *>(bytes + at);
+            for (size_t i = 0; i < Page / sizeof *words && zero; ++i)
+                zero = !words[i];
+        }
+        if (zero)
+            ++run;
+        else if (run)
+        {
+            madvise(bytes + at - run * Page, run * Page, MADV_DONTNEED);
+            run = 0;
+        }
+    }
+}
+#else
+void *Application::ProcessStorage() { return malloc(sizeof(Application)); }
+void Application::FreeProcessStorage(void *storage) { free(storage); }
+void Application::ReturnZeroPages(Application &) {}
+#endif
 Application::Application(Logger logger) : log(logger)
 {
     process_id=next_process_identity++;

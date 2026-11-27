@@ -343,6 +343,7 @@ class Session
         X86::Application::StartGuestClock(fields);
         if (options.desktop_width) X86::Application::SetHostDisplay(options.desktop_width, options.desktop_height, false);
         app = std::make_unique<X86::Application>(Log);
+        X86::Application::ReturnZeroPages(*app);
         // The layout of the keyboard is the machine's before it runs: once
         // the processor exists, ConfigureKeyboardLayout refuses (as the Mac
         // host calls it right after making the application).
