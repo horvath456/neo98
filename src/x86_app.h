@@ -4316,6 +4316,7 @@ private:
     unsigned DrawTextApi(ApiName,const unsigned *);
     unsigned PositionApi(ApiName, const unsigned *);
     unsigned PositionWindows(unsigned count, unsigned (*args)[7],unsigned region_window=0,unsigned region=0);
+    void RecalculateFrames(unsigned parent, unsigned flags, int dx, int dy, int caption, int menu, unsigned depth = 0);
     unsigned PositionSend(unsigned hwnd, unsigned message, unsigned wp, unsigned lp, unsigned block = 0);
     unsigned ComputerNameApi(ApiName, const unsigned *);
     unsigned RegistryApi(ApiName, const unsigned *);

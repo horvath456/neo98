@@ -2645,6 +2645,15 @@ void RelayoutFrame(HWND h)
     dirty = true;
 }
 bool ModernWindow(HWND h) { auto *w = Find(h); return w && (w->nonclient_flags & 0x00400000) != 0; }
+unsigned FrameParts(HWND h) { auto *w = Find(h); return w ? w->nonclient_flags & 15u : 0; }
+void ShiftSavedPlacement(HWND h, int dx, int dy)
+{
+    auto *w = Find(h);
+    if (!w) return;
+    if (w->maximum_position_saved) { w->maximum_position.x -= dx; w->maximum_position.y -= dy; }
+    if ((w->style & 0x20000000u) && w->normal_saved)
+        w->normal = {w->normal.left - dx, w->normal.top - dy, w->normal.right + dx, w->normal.bottom + dy};
+}
 bool SetOwnerField(HWND h, HWND value)
 {
     auto *w = Find(h);

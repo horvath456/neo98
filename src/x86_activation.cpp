@@ -1556,6 +1556,10 @@ unsigned Application::DefaultWindowMessage(unsigned hwnd, unsigned message, unsi
         return Api("DestroyWindow", &hwnd);
     if (message == 0x80) // WM_SETICON: ICON_SMALL 0 / ICON_BIG 1
     {
+        // 2: USER asks the window to make its own small copy of the big icon
+        // again when the caption height has changed. The caption here draws
+        // the icon it has at the size of the day; there is nothing to make.
+        if (wp == 2) return 0;
         const bool large = wp == 1;
         // A program may give the icon as the word a handle is under Windows.
         lp = IconHandle(lp);

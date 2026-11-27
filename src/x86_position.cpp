@@ -52,6 +52,84 @@ unsigned Application::PositionSend(unsigned hwnd, unsigned message, unsigned wp,
     other->Free(mirror);
     return result;
 }
+// USER after SPI_SETNONCLIENTMETRICS: every window of the system, the children
+// after their parent, is given its frame anew through SetWindowPos with
+// SWP_FRAMECHANGED, so it gets WM_WINDOWPOSCHANGING, WM_NCCALCSIZE,
+// WM_WINDOWPOSCHANGED and the WM_SIZE that follows from them.
+//   1  the sizing border changed by dx, dy: a window with WS_THICKFRAME grows
+//      by that on every side (a minimized one in the place it keeps for the
+//      way back)
+//   2  the parts of the frame changed: a window that was not resized keeps
+//      its place; either way it gets taller by the change of the caption if
+//      it has one and by that of the menu bar if it has one, so the client
+//      area keeps its height. With a new caption height the window is asked
+//      to make its small icon again (WM_SETICON with 2).
+//   4  the size of a minimized window changed by dx, dy
+void Application::RecalculateFrames(unsigned parent, unsigned flags, int dx, int dy, int caption, int menu, unsigned depth)
+{
+    unsigned windows[User::WindowCapacity], count = 0;
+    if (depth > 64 || !User::WindowSnapshot(parent, windows, User::WindowCapacity, count))
+        return;
+    for (unsigned i = 0; i < count; ++i)
+    {
+        const unsigned hwnd = windows[i];
+        if (state == Failed || state == Exited) return;
+        if (!User::IsWindow(hwnd)) continue;
+        const unsigned style = User::Style(hwnd), parts = User::FrameParts(hwnd);
+        Gdi::RECT r = {};
+        // SetWindowPos takes the place in the client area of the parent.
+        const auto place = [&](unsigned swp) {
+            Gdi::POINT origin = {r.left, r.top};
+            if (const unsigned above = User::Parent(hwnd); above && above != User::GetDesktopWindow())
+                User::ScreenToClient(above, &origin);
+            unsigned position[1][7] = {{hwnd, 0, unsigned(origin.x), unsigned(origin.y), unsigned(r.right - r.left),
+                                        unsigned(r.bottom - r.top), swp}};
+            PositionWindows(1, position);
+            return state != Failed && state != Exited && User::IsWindow(hwnd);
+        };
+        const auto taller = [&] {
+            if (parts & 8) r.bottom += caption;
+            if (parts & 1) r.bottom += menu;
+        };
+        bool resized = false;
+        if ((flags & 4) && (style & 0x20000000u))
+        {
+            User::GetWindowRect(hwnd, &r);
+            r.right += dx; r.bottom += dy;
+            resized = true;
+        }
+        else if ((flags & 1) && (style & 0x40000u))
+        {
+            User::ShiftSavedPlacement(hwnd, dx, dy);
+            if (!(style & 0x20000000u))
+            {
+                User::GetWindowRect(hwnd, &r);
+                r = {r.left - dx, r.top - dy, r.right + dx, r.bottom + dy};
+                taller();
+                resized = true;
+            }
+        }
+        // SWP_NOZORDER, SWP_NOREDRAW, SWP_NOACTIVATE, SWP_FRAMECHANGED, SWP_NOCOPYBITS
+        if (resized && !place(0x13c)) continue;
+        if (flags & 2)
+        {
+            if (caption)
+            {
+                const unsigned again[] = {hwnd, 0x80, 2, 0};
+                Api("SendMessageA", again);
+                if (state == Failed || state == Exited) return;
+                if (!User::IsWindow(hwnd)) continue;
+            }
+            if (!(User::Style(hwnd) & 0x20000000u) && !resized)
+            {
+                User::GetWindowRect(hwnd, &r);
+                taller();
+                if (!place(0x13e)) continue; // and SWP_NOMOVE
+            }
+        }
+        RecalculateFrames(hwnd, flags, dx, dy, caption, menu, depth + 1);
+    }
+}
 unsigned Application::PositionWindows(unsigned count, unsigned (*positions)[7],unsigned region_window,unsigned region)
 {
     // USER (EndDeferWindowPos) with its worker. Per entry the

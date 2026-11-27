@@ -219,19 +219,32 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
                 NarrowFont(m + offsets[i], narrow);
                 s.SetFont(handles[i], narrow);
             }
+            // What the windows that are open are measured against: the
+            // sizing border (SM_CXFRAME, SM_CYFRAME), the heights the caption
+            // and the menu bar were set to (SM_CYSIZE, SM_CYMENUSIZE) and the
+            // size of a minimized window.
+            const int frame_x = app.SystemMetric(32), frame_y = app.SystemMetric(33);
+            const int caption = Signed32(m, 0x14) - app.SystemMetric(31), menu = Signed32(m, 0x9c) - app.SystemMetric(55);
+            const int minimized_x = app.SystemMetric(57), minimized_y = app.SystemMetric(58);
             User::ApplyNonClientMetrics(
                 {unsigned(Signed32(m, 4)), unsigned(Signed32(m, 8)), unsigned(Signed32(m, 0xc)),
                  unsigned(Signed32(m, 0x10)), unsigned(Signed32(m, 0x14)), unsigned(Signed32(m, 0x54)),
                  unsigned(Signed32(m, 0x58)), unsigned(Signed32(m, 0x98)), unsigned(Signed32(m, 0x9c))});
+            // USER: the windows that are open get the new frame at once, the
+            // minimized ones their new size, and the whole screen is painted
+            // again (RDW_INVALIDATE, RDW_ERASE, RDW_ALLCHILDREN, RDW_FRAME).
+            const int dx = app.SystemMetric(32) - frame_x, dy = app.SystemMetric(33) - frame_y;
+            app.RecalculateFrames(0, dx || dy ? 3 : 2, dx, dy, caption, menu);
+            const int wider = app.SystemMetric(57) - minimized_x, higher = app.SystemMetric(58) - minimized_y;
+            if (wider || higher)
+                app.RecalculateFrames(0, 4, wider, higher, 0, 0);
+            User::RedrawWindow(User::GetDesktopWindow(), nullptr, 0, 0x485);
         }
         void ApplyMinimizedMetrics(const unsigned char *m) override
         {
             // Inverse of the implemented read branch for action 43.
-            const unsigned width = unsigned(Signed32(m, 4) + int(s.Word(0x2ec)) * 2) & 0xffff;
-            s.SetWord(0x350, (unsigned short)width);
-            s.SetWord(0x33c, (unsigned short)((width + unsigned(Signed32(m, 8))) & 0xffff));
-            s.SetWord(0x33e, (unsigned short)((s.Word(0x352) + unsigned(Signed32(m, 0xc))) & 0xffff));
-            s.SetWord(0x34e, (unsigned short)Signed32(m, 0x10));
+            Win98Metrics::ApplyMinimizedMetrics(s, Signed32(m, 4), Signed32(m, 8), Signed32(m, 0xc),
+                                                unsigned(Signed32(m, 0x10)));
         }
         void ApplyIconMetrics(const unsigned char *m) override
         {

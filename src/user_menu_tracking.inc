@@ -370,7 +370,7 @@ unsigned ContinueBarSession(){
 //   Restore   enabled for a minimized window and for a maximized one that
 //             has WS_MAXIMIZEBOX
 //   Move      grayed for a minimized window of the taskbar and for a
-//             maximized one that is as large as a maximized window is
+//             maximized one that covers the work area
 //   Size      enabled with WS_THICKFRAME, neither minimized nor maximized
 //   Minimize  enabled with WS_MINIMIZEBOX, not minimized
 //   Maximize  enabled with WS_MAXIMIZEBOX, not maximized
@@ -393,15 +393,9 @@ void PrepareSystemMenu(HWND h){
  else if(style&0x1000000u){
   restore=0;move=3;
   if(!(style&0x40000000u)){
-   // Smaller than a maximized window is (a program's WM_GETMINMAXINFO):
-   // it can still be moved.
-   // The work area and the frame that a maximized window has outside it.
-   Win98MinMax::Info limits{};
-   if(MinMaxDefaults(h,limits)){
-    const int wide=settings.work[2]-settings.work[0]+limits.max_size.x-(settings.monitor[2]-settings.monitor[0]);
-    const int high=settings.work[3]-settings.work[1]+limits.max_size.y-(settings.monitor[3]-settings.monitor[1]);
-    if(w->width<wide||w->height<high)move=0;
-   }
+   // Smaller than the work area (a program's WM_GETMINMAXINFO): it can
+   // still be moved.
+   if(w->width<settings.work[2]-settings.work[0]||w->height<settings.work[3]-settings.work[1])move=0;
   }
   maximize=3;size=3;
  }
