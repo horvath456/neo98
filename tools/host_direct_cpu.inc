@@ -431,7 +431,7 @@ class DirectCpu final : public NativeCpu
     // Original gate bytes stay in the process image. Prepared far calls live
     // in a separate backing, reused across activations and invalidated on writes.
     std::shared_ptr<DirectBacking> gate_backing;
-    std::vector<unsigned char> gate_ready{std::vector<unsigned char>(Pages)};
+    PageBytes gate_ready;
     std::atomic<pid_t> running_tid{0};
     bool return_gates = false;
     uint64_t entries = 0, direct_gates = 0, signals = 0, low_maps = 0;
@@ -977,8 +977,10 @@ class DirectCpu final : public NativeCpu
     }
     unsigned Map(unsigned address, unsigned size, unsigned prot) override
     {
+        // Fresh pages of the private file read as zero, and Unmap gave back
+        // what was there before (NativeCpu::ReleasePages).
         auto error = AddMapping(address, size, prot, private_backing, address);
-        if (!error)
+        if (!error && zero_on_map)
             memset(bytes + address, 0, size);
         return error;
     }
@@ -1019,6 +1021,7 @@ class DirectCpu final : public NativeCpu
             return CpuError::Map;
         ForgetMapping(address, size);
         RemoveMappings(address, size);
+        ReleasePages(address, size);
         return CpuError::Ok;
     }
     bool ApplyPage(unsigned address) override
@@ -1062,7 +1065,7 @@ class DirectCpu final : public NativeCpu
         gate = hook;
         gate_context = context;
         layout_stale = true;
-        std::fill(gate_ready.begin(), gate_ready.end(), 0);
+        gate_ready.Clear();
         if (Arena().owner == this)
             for (const auto &map : mappings)
                 if ((uint64_t(map.address) <= end && uint64_t(map.address) + map.size > begin) ||

@@ -19,6 +19,7 @@
 #include <new>
 #include <pthread.h>
 #include <fcntl.h>
+#include <linux/falloc.h>
 #include <sys/mman.h>
 #include <sys/prctl.h>
 #include <sys/ptrace.h>
@@ -159,6 +160,31 @@ struct NativeContext
     user_fpregs_struct fp = {};
     DescriptorTable gdtr, ldtr;
 };
+// One byte for every page of the guest's 4 GiB, zero until it is written.
+// Anonymous memory, which the host backs only where it was written: a
+// processor keeps four such tables, and as vectors they cost every Windows
+// process 4 MiB for the megabyte of pages it has.
+class PageBytes
+{
+    unsigned char *bytes;
+
+  public:
+    PageBytes()
+        : bytes(static_cast<unsigned char *>(
+              mmap(nullptr, Pages, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_NORESERVE, -1, 0)))
+    {
+        if (bytes == MAP_FAILED)
+            abort();
+    }
+    ~PageBytes() { munmap(bytes, Pages); }
+    PageBytes(const PageBytes &) = delete;
+    PageBytes &operator=(const PageBytes &) = delete;
+    unsigned char &operator[](size_t page) { return bytes[page]; }
+    const unsigned char &operator[](size_t page) const { return bytes[page]; }
+    unsigned char *data() { return bytes; }
+    // All zero again, and the memory back to the host.
+    void Clear() { madvise(bytes, Pages, MADV_DONTNEED); }
+};
 // What a Linux LDT holds, by slot: the descriptors of the guest's LDT in the
 // lower half, translated descriptors of its GDT in the upper one
 // (NativeCpu::Selector). The ptrace mode has an LDT for each guest, that of
@@ -175,8 +201,11 @@ class NativeCpu : public Cpu
     pid_t child = -1;
     int fd = -1;
     unsigned char *bytes = nullptr, *scratch = nullptr, *signal_stack = nullptr;
-    std::vector<unsigned char> rights{std::vector<unsigned char>(Pages)};
-    std::vector<unsigned char> readable{std::vector<unsigned char>(Pages)}, writable{std::vector<unsigned char>(Pages)};
+    PageBytes rights, readable, writable;
+    // Unmap gives the pages of the private file back to the host, so a
+    // range that is mapped again reads as zero without being written. Set
+    // when the host refused that once; Map zeroes the range itself then.
+    bool zero_on_map = false;
     struct Shared { unsigned address, size; unsigned char *host; };
     std::vector<Shared> shared;
     std::vector<Shared> state_shared;
@@ -1142,7 +1171,7 @@ class NativeCpu : public Cpu
         if (result != address) return CpuError::Map;
         if (mmap(bytes + address, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, address) == MAP_FAILED)
         { Syscall(SYS_munmap, address, size); return CpuError::Map; }
-        memset(bytes + address, 0, size);
+        if (zero_on_map) memset(bytes + address, 0, size);
         for (unsigned long long a = address; a < static_cast<unsigned long long>(address) + size; a += Page)
             rights[a / Page] = prot | Mapped;
         return Protect(address, size, prot);
@@ -1188,9 +1217,23 @@ class NativeCpu : public Cpu
         if (error) return error;
         if (Syscall(SYS_munmap, address, size)) return CpuError::Map;
         ForgetMapping(address, size);
+        ReleasePages(address, size);
         return CpuError::Ok;
     }
   protected:
+    // The pages of the private file behind a range that is unmapped go back
+    // to the host. A Windows process reserves far more than it touches (32
+    // MiB of heap arena, 2 MiB of stack): zeroing every range when it was
+    // mapped made the host back all of it, and what a process freed stayed
+    // with the host's file until the process ended.
+    void ReleasePages(unsigned address, unsigned size)
+    {
+        if (fd < 0 || zero_on_map) return;
+        int result;
+        do result = fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE, address, size);
+        while (result && errno == EINTR);
+        if (result) zero_on_map = true;
+    }
     void ForgetMapping(unsigned address, unsigned size)
     {
         const unsigned long long end = static_cast<unsigned long long>(address) + size;
