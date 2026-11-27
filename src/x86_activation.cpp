@@ -1058,6 +1058,29 @@ unsigned Application::ContextMenuOfFrame(unsigned hwnd, unsigned lp)
     User::TrackPopup(menu, 0x202, x, y, hwnd);
     return 0;
 }
+// WM_POPUPSYSTEMMENU (0313h): the taskbar sends it with
+// SendMessageCallback when a window's button is clicked with the right
+// button, lParam the point of the click. USER's DefWindowProc: nothing for a
+// disabled window; otherwise the system menu with Maximize as its default
+// item, Restore for a minimized or maximized window, tracked with the right
+// button too at the point. For lParam -1 USER asks the shell hook for the
+// rectangle of the button (HSHELL_GETMINRECT) and opens the menu along it;
+// without a shell hook that answers, as here, it opens nothing.
+unsigned Application::PopupSystemMenu(unsigned hwnd, unsigned lp)
+{
+    const unsigned style = User::Style(hwnd);
+    if ((style & 0x08000000u) || lp == 0xffffffffu)
+        return 0;
+    const unsigned arguments[] = {hwnd, 0};
+    const unsigned menu = Api("GetSystemMenu", arguments);
+    if (!menu || !User::IsWindow(hwnd))
+        return 0;
+    User::PrepareSystemMenu(hwnd);
+    User::SetMenuDefault(menu, style & 0x21000000u ? 0xf120 : 0xf030, false);
+    User::TrackPopup(menu, 0x202, (short)(lp & 0xffff), (short)(lp >> 16), hwnd);
+    PlayMenuSounds();
+    return 0;
+}
 // GetExpWinVer of an instance handle, as USER's CreateWindowEx asks it: the
 // expected version word of the NE header for a 16-bit instance or module (a
 // module of our side answers with the file of the tree Win98 loads for it),
@@ -1270,12 +1293,29 @@ unsigned Application::DefaultWindowMessage(unsigned hwnd, unsigned message, unsi
     if (message == 0x112 && (wp & 0xfff0) == 0xf090)
     {
         // SC_MOUSEMENU: the press on the menu bar that WM_NCLBUTTONDOWN
-        // turned into this command drops the popup of the item at the point.
+        // turned into this command drops the popup of the item at the point;
+        // with HTSYSMENU in its low bits, the press on the icon of the
+        // caption drops the system menu below the icon.
+        const bool system = (wp & 0xf) == 3;
+        unsigned menu = 0;
+        if (system)
+        {
+            const unsigned arguments[] = {hwnd, 0};
+            menu = Api("GetSystemMenu", arguments);
+            if (!menu || state == Failed || state == Exited || !User::IsWindow(hwnd))
+                return 0;
+        }
         const bool kept = TakeFresh() && PushHostFrame(HostBarMenu);
-        User::MouseMenu(hwnd, (short)(lp & 0xffff), (short)(lp >> 16));
+        if (system)
+            User::MouseSystemMenu(hwnd, menu);
+        else
+            User::MouseMenu(hwnd, (short)(lp & 0xffff), (short)(lp >> 16));
         if (kept) PopHostFrame();
+        PlayMenuSounds();
         return 0;
     }
+    if (message == 0x313)
+        return PopupSystemMenu(hwnd, lp);
     // The key branch runs first; a native control behind this procedure
     // still gets its keys below.
     if (message == 0x100 || message == 0x101 || message == 0x104 || message == 0x105 || message == 0x106)
@@ -1363,7 +1403,7 @@ unsigned Application::DefaultWindowMessage(unsigned hwnd, unsigned message, unsi
             TailOfGate(TailResult);
             return Send(hwnd, 0x112, 0xf010 | wp, lp);              // SC_MOVE
         }
-        if (wp == 5) { TailOfGate(TailResult); return Send(hwnd, 0x112, 0xf090 | wp, lp); }              // SC_MOUSEMENU
+        if (wp == 5 || wp == 3) { TailOfGate(TailResult); return Send(hwnd, 0x112, 0xf090 | wp, lp); }   // SC_MOUSEMENU
         if (wp == 6) return Send(hwnd, 0x112, 0xf080 | wp, lp);              // SC_HSCROLL
         if (wp == 7) return Send(hwnd, 0x112, 0xf070 | wp, lp);              // SC_VSCROLL
         return 0;                                                            // HTGROWBOX: nothing

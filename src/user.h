@@ -588,6 +588,7 @@ bool EndMenu();bool PopupActive();unsigned PopupCommand();bool PopupInputMessage
 // SC_KEYMENU: the menu mode of the window's bar from the keyboard (USER); character 0 for ALT or F10 alone, ' ' for the system menu.
 unsigned KeyMenu(HWND,HMENU system_menu,unsigned character);
 unsigned MouseMenu(HWND,int x,int y);
+unsigned MouseSystemMenu(HWND,HMENU system);
 bool BarModeActive();bool MenuBeepRequest();unsigned MenuSoundRequest();
 unsigned MenuKeyFlags(unsigned thread,unsigned clear,unsigned set); // answers the bits before the change
 unsigned PopupHoverRequest();bool PopupHoverOpen(unsigned window);

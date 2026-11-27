@@ -2783,6 +2783,7 @@ private:
     unsigned DuplicateMappingFrom(Application &source, unsigned object);
     unsigned DefaultWindowMessage(unsigned, unsigned, unsigned, unsigned);
     unsigned ContextMenuOfFrame(unsigned hwnd, unsigned lp);
+    unsigned PopupSystemMenu(unsigned hwnd, unsigned lp);
     unsigned DefaultKeyMessage(unsigned hwnd, unsigned message, unsigned wp, unsigned lp);
     unsigned KeyMenuCommand(unsigned hwnd, unsigned lp);
     unsigned ButtonProcedure(unsigned, unsigned, unsigned, unsigned); // native BUTTON class, token 0x71000030

@@ -276,6 +276,53 @@ void PaintCaption(HWND h, const Window &w, Gdi::POINT p)
     }
 }
 
+// The system bitmaps an MDI frame's bar carries for its maximized child
+// (USER, the bitmap items below 12): HBMMENU_SYSTEM, 1, is the child's small
+// icon, centred in the item, the child being the item's data; 2, 3 and 5 are
+// the caption buttons Restore, Minimize and Close, 6 and 7 Close and
+// Minimize disabled, drawn as DrawFrameControl draws a caption's, at the
+// width of the item and two pixels less high, pressed while the item is
+// selected and inactive while it is grayed.
+bool PaintBarBitmap(const Win98Menu::Item &item, Gdi::RECT box, unsigned flags)
+{
+    if (item.type & 0x100) return false;
+    if (item.bitmap == 1)
+    {
+        const HWND child = item.data;
+        auto *c = Find(child);
+        if (!c) return true;
+        unsigned icon = c->icon_small ? c->icon_small : c->icon_large;
+        if (!icon) icon = User::ClassAccess(child, -34, 0, 2);   // GCL_HICONSM
+        if (!icon) icon = User::ClassAccess(child, -14, 0, 2);   // GCL_HICON
+        if (!icon || !frame_icon) icon = DefaultApplicationIcon;
+        const int width = settings.Word(0x340), height = settings.Word(0x342); // SM_CXSMICON, SM_CYSMICON
+        CaptionEnvironment e;
+        e.window = child;
+        e.dc = screen;
+        e.colors = Win98Frame::SystemColors();
+        e.DrawIcon(0, box.left + Win98Caption::Half(box.right - box.left - width),
+                   box.top + Win98Caption::Half(box.bottom - box.top - height), icon, width, height);
+        return true;
+    }
+    unsigned kind;
+    switch (item.bitmap)
+    {
+    case 2: kind = 3; break;                            // DFCS_CAPTIONRESTORE
+    case 3: kind = 1; break;                            // DFCS_CAPTIONMIN
+    case 5: kind = 0; break;                            // DFCS_CAPTIONCLOSE
+    case 6: kind = 0 | Win98Frame::Inactive; break;
+    case 7: kind = 1 | Win98Frame::Inactive; break;
+    default: return false;
+    }
+    if (item.state & 3) kind |= Win98Frame::Inactive;
+    if (item.state & 0x80) kind |= Win98Frame::Pushed;   // MFS_HILITE
+    (void)flags;
+    const int width = box.right - box.left, height = width - 2;
+    Gdi::RECT button{box.left, box.top + Win98Caption::Half(box.bottom - box.top - height), box.right, 0};
+    button.bottom = button.top + height;
+    Win98Frame::DrawFrameControl(screen, &button, Win98Frame::Caption, kind);
+    return true;
+}
 void PaintMenuBar(const Window &w, Gdi::POINT p)
 {
     const auto *menu = FindMenu(w.menu);
@@ -306,7 +353,8 @@ void PaintMenuBar(const Window &w, Gdi::POINT p)
         entry.cx = box.right - box.left;
         entry.cy = box.bottom - box.top;
         const auto choice = Win98MenuDraw::ItemColors(menu_settings, entry, record, 0);
-        if (choice.fill)
+        const bool button = !(menu->items[i].type & 0x100) && menu->items[i].bitmap >= 2 && menu->items[i].bitmap <= 7;
+        if (choice.fill && !button)
             Fill(box, colors[choice.background]);
         if(menu->items[i].type&0x100){
             PaintOwnerBarItem(w,p,box);
@@ -314,6 +362,7 @@ void PaintMenuBar(const Window &w, Gdi::POINT p)
             continue;
         }
         if(menu->items[i].bitmap==0xffff)PaintOwnerBarItem(w,p,box);
+        if(PaintBarBitmap(menu->items[i],box,choice.flags)){Gdi::RestoreDC(screen,-1);continue;}
         // USER: a menu bar item skips a leading 08h, the old
         // right-alignment mark, and draws the rest.
         const char *source = MenuText(menu->items[i]);
