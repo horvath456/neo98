@@ -173,19 +173,48 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
             if(number>maximum||(field==0x1009&&number!=1))return bad(87);
         }
         unsigned node;bool created=false;unsigned error=registry.store.Open(registry.store.roots[1],"Control Panel\\International",true,node,created);
-        if(!error)error=registry.store.Set(node,key,1,value,size+1);
+        // KERNEL32 compares every value it would write, the one given and
+        // those that follow from it, with what the locale itself has for
+        // that type (GetLocaleInfoA with LOCALE_NOUSEROVERRIDE, then
+        // CompareStringA without flags), and removes the stored value when
+        // they are equal instead of storing it.
+        const unsigned lcid=UserDefaultLocale();
+        const auto keep=[&](const char *name,unsigned type,const char *text){
+            if(error)return;
+            const unsigned length=unsigned(strlen(text));
+            if(const char *own=Win98Locale::SystemInfo(lcid,type)){
+                const unsigned mine=Allocate(unsigned(strlen(own))+length+2);
+                if(mine){
+                    Store(mine,own,unsigned(strlen(own))+1);Store(mine+unsigned(strlen(own))+1,text,length+1);
+                    const unsigned compare[]={lcid,0,mine,~0u,mine+unsigned(strlen(own))+1,~0u};
+                    const bool same=CompareStringApi(compare)==2;Free(mine);
+                    if(same){registry.store.DeleteValue(node,name);return;}
+                }
+            }
+            error=registry.store.Set(node,name,1,text,length+1);
+        };
+        // KERNEL32: LOCALE_ITIME rewrites the time format, every H to h for
+        // 0 and every h to H for 1, and keeps the number itself.
+        if(field==0x23&&!error){
+            char picture[256]={};
+            if(const char *now=LocaleValue(lcid,0x1003))snprintf(picture,sizeof picture,"%s",now);
+            for(char *at=picture;*at;++at){if(value[0]=='0'&&*at=='H')*at='h';else if(value[0]=='1'&&*at=='h')*at='H';}
+            keep(key,field,value);keep("sTimeFormat",0x1003,picture);
+            return error?bad(error):1;
+        }
+        keep(key,field,value);
         // KERNEL32 keeps the values that follow from a picture beside it.
         // LOCALE_STIMEFORMAT: "iTime" (1 for the 24 hours of H), "iTLZero"
         // (1 for two hour digits) and "iTimePrefix" (1 when the AM/PM
         // marker comes first). LOCALE_SSHORTDATE: "iDate" (0 month, 1 day,
         // 2 year first) and "sDate", what stands between the first two
         // fields. The Date/Time page and 16-bit programs read these.
-        const auto derive=[&](const char *name,const char *text){if(!error)error=registry.store.Set(node,name,1,text,unsigned(strlen(text))+1);};
+        const auto derive=[&](const char *name,unsigned type,const char *text){keep(name,type,text);};
         if(field==0x1003){
             const char *hour=PictureField(value,"Hh");
-            derive("iTime",*hour=='H'?"1":"0");
-            derive("iTLZero",*hour&&hour[1]==*hour?"1":"0");
-            derive("iTimePrefix",*PictureField(value,"Hhmst")=='t'?"1":"0");
+            derive("iTime",0x23,*hour=='H'?"1":"0");
+            derive("iTLZero",0x25,*hour&&hour[1]==*hour?"1":"0");
+            derive("iTimePrefix",0x1005,*PictureField(value,"Hhmst")=='t'?"1":"0");
             // "sTime": what stands between the first two of the fields H, h,
             // m and s that follow each other without the marker t between
             // them; empty when there is no such pair.
@@ -197,7 +226,7 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
                 if(*next=='t'){at=next+1;continue;}
                 memcpy(separator,at,size_t(next-at));break;
             }
-            derive("sTime",separator);
+            derive("sTime",0x1e,separator);
         }
         // KERNEL32: a new separator rewrites the picture it belongs to, the
         // time format for LOCALE_STIME and the short date for LOCALE_SDATE.
@@ -205,19 +234,19 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
         if(field==0x1e||field==0x1d){
             const unsigned of=field==0x1e?0x1003u:0x1fu;
             char picture[256]={},rewritten[256];
-            if(const char *now=LocaleValue(UserDefaultLocale(),of))snprintf(picture,sizeof picture,"%s",now);
+            if(const char *now=LocaleValue(lcid,of))snprintf(picture,sizeof picture,"%s",now);
             if(field==0x1e)TimeWithSeparator(picture,value,rewritten,sizeof rewritten);
             else DateWithSeparator(picture,value,rewritten,sizeof rewritten);
-            if(strlen(rewritten)<=80)derive(field==0x1e?"sTimeFormat":"sShortDate",rewritten);
+            if(strlen(rewritten)<=80)derive(field==0x1e?"sTimeFormat":"sShortDate",field==0x1e?0x1003u:0x1fu,rewritten);
         }
         if(field==0x1f){
             const char *first=PictureField(value,"dMy");
-            derive("iDate",*first=='d'?"1":*first=='y'?"2":"0");
+            derive("iDate",0x21,*first=='d'?"1":*first=='y'?"2":"0");
             const char *after=first;while(*after&&*after==*first)++after;
             const char *next=PictureField(after,"dMy");
             char separator[8]={};unsigned used=0;
             for(const char *p=after;p<next&&used+1<sizeof separator;++p)if(*p!='\'')separator[used++]=*p;
-            if(*first&&*next&&used)derive("sDate",separator);
+            if(*first&&*next&&used)derive("sDate",0x1d,separator);
         }
         return error?bad(error):1;
     }

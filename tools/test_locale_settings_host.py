@@ -39,6 +39,19 @@ letters of its picture (ERROR_INVALID_PARAMETER). LOCALE_STIMEFORMAT stores
 "sTime" as well, what stands between its first two fields, and nothing for
 a picture without such a pair.
 
+KERNEL32 compares every value it would store, the one given and those that
+follow from it, with what the locale itself has for that type, and removes
+the stored value when they are equal: after "0" and then "6" for the first
+day of the week of English (United States) no iFirstDayOfWeek is stored
+and the locale answers 6; the same for the list separator, for the default
+time format and what follows from it, and for the default short date.
+LOCALE_ITIME rewrites the time format, every h to H for 1 and back for 0.
+The first day of the week takes one digit from 0 to 6.
+
+A new locale (Locale of HKCU\\Control Panel\\International and
+InvalidateNLSCache, as Regional Settings does it) answers its own values:
+German (Germany) begins the week on Monday (0).
+
     build/analysis-venv/bin/python tools/test_locale_settings_host.py [--no-build] [--keep] [--kms KMS]
 """
 import sys as _sys
@@ -100,6 +113,22 @@ SEPARATORS = {
     'date separator M': '0 87',
     'separator of HHmm': '',
 }
+DEFAULTS = {
+    'first day 0': '1 0', 'stored first day 0': '0', 'first day after 0': '0',
+    'first day 6': '1 0', 'stored first day 6': 'absent', 'first day after 6': '6',
+    'first day 7': '0 87',
+    'list ;': '1 0', 'stored list ;': ';', 'list ,': '1 0', 'stored list ,': 'absent',
+    'time format HH:mm:ss': '1 0', 'stored HH:mm:ss': 'HH:mm:ss', 'stored iTime of HH:mm:ss': '1',
+    'time format h:mm:ss tt': '1 0', 'stored h:mm:ss tt': 'absent', 'stored iTime of h:mm:ss tt': 'absent',
+    'stored iTLZero of h:mm:ss tt': 'absent', 'stored sTime of h:mm:ss tt': 'absent',
+    'iTime 1': '1 0', 'time format after iTime 1': 'H:mm:ss tt', 'stored iTime 1': '1',
+    'time after iTime 1': '15:04:05 PM',
+    'iTime 0': '1 0', 'time format after iTime 0': 'h:mm:ss tt', 'stored time format after iTime 0': 'absent',
+    'short date M/d/yy': '1 0', 'stored M/d/yy': 'absent', 'stored iDate of M/d/yy': 'absent',
+    'stored sDate of M/d/yy': 'absent',
+}
+GERMAN = {'user locale': '407', 'first day': '0', 'short date': 'dd.MM.yy', 'time format': 'HH:mm:ss',
+          'decimal': ','}
 
 
 def main():
@@ -120,7 +149,7 @@ def main():
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
     subprocess.run(['i686-w64-mingw32-gcc', '-Os', str(ROOT / 'tools/locale_settings_fixture.c'), '-nostartfiles',
-                    '-nostdlib', '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32',
+                    '-nostdlib', '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32', '-ladvapi32',
                     '-o', str(drive / 'LOCSET.EXE')], check=True)
     logs = []
 
@@ -141,7 +170,7 @@ def main():
 
     try:
         runs = {name: session(name.split()[0]) for name in ('set', 'get after set', 'back', 'get after back',
-                                                            'separators')}
+                                                            'separators', 'defaults', 'german')}
     finally:
         (WORK / 'log.txt').write_text('\n'.join(logs))
         if not args.keep:
@@ -166,6 +195,10 @@ def main():
             not differing(runs['get after back'], AMERICAN),
         f'a separator rewrites its picture, a picture names its separator: '
         f'{differing(runs["separators"], SEPARATORS)}': not differing(runs['separators'], SEPARATORS),
+        f'a value equal to the locale\'s own is removed, LOCALE_ITIME rewrites the time format: '
+        f'{differing(runs["defaults"], DEFAULTS)}': not differing(runs['defaults'], DEFAULTS),
+        f'a new locale answers its own values: {differing(runs["german"], GERMAN)}':
+            not differing(runs['german'], GERMAN),
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():
