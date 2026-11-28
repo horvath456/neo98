@@ -326,6 +326,7 @@ HWND mouse_track_target=0;
 unsigned mouse_track_hit=0;
 void *control_context = nullptr; OwnerDraw owner_draw = nullptr; ControlColor control_color = nullptr;
 void *guest_paint_context = nullptr; GuestPaint guest_paint = nullptr;
+void *guest_frame_context = nullptr; GuestPaint guest_frame = nullptr;
 void *common_context=nullptr;CommonDraw common_draw=nullptr;
 void *caret_context=nullptr;CaretDraw caret_draw=nullptr;CaretDestroy caret_destroy=nullptr;
 void *caret_bracket_context=nullptr;CaretBracket caret_bracket=nullptr;
@@ -598,9 +599,19 @@ bool GuestProcedure(const Window &w) { return w.procedure && (w.procedure & 0xff
 // box, scroll bar, buttons, labels, the common controls) are drawn by the
 // composition or on their thread by the port, and so is a minimized window,
 // which the composition draws as its caption bar.
+// An EDIT whose window procedure a program put in front of the port's (a
+// subclass, or a class of the program's own on the EDIT) paints its frame in
+// its thread as well: the program's procedure gets WM_NCPAINT, hands it on,
+// DefWindowProc paints the border, and what the program draws over it
+// through its window DC stays until the frame has to be painted again. Such
+// an edit gets no WM_PAINT from the queue here; the WM_NCPAINT it is owed
+// comes when its thread looks for messages (ServeControlPaints). An edit
+// with scroll bars keeps its frame from the composition: its thumb moves
+// while the thread may be in a tracking loop that serves no paint.
+static bool SubclassedEdit(const Window &w) { return w.edit && GuestProcedure(w) && !(w.style & 0x00300000u); }
 static bool ThreadFrame(HWND h, const Window &w)
 {
-    return h != 0xff && w.thread && Custom(w) && !(w.style & 0x20000000u);
+    return h != 0xff && w.thread && (Custom(w) || SubclassedEdit(w)) && !(w.style & 0x20000000u);
 }
 // Whether the caption shows active. A frame its thread paints follows the
 // frame-on bit, which DefWindowProc of WM_NCACTIVATE sets before it paints,
@@ -2245,7 +2256,7 @@ void Shutdown()
     if (system_font) Gdi::DeleteObject(system_font); system_font = 0;
     delete[] published_frame; published_frame = nullptr;
     ReleaseScreen(); queued = focus = open_menu = press_owner = 0;for(auto&slot:capture_slots)slot={};capture_globals={};automatic_capture=false;capture_serial=0; class_store.Reset();
-    control_context=nullptr;owner_draw=nullptr;control_color=nullptr;guest_paint_context=nullptr;guest_paint=nullptr;rendering=false;
+    control_context=nullptr;owner_draw=nullptr;control_color=nullptr;guest_paint_context=nullptr;guest_paint=nullptr;guest_frame_context=nullptr;guest_frame=nullptr;rendering=false;
     common_context=nullptr;common_draw=nullptr;
     last_click_window = last_click_time = 0;
     SetMetadataProvider(nullptr,nullptr,nullptr);standalone_metadata={};processed_position=metadata_queue_marker=0;
@@ -2658,6 +2669,7 @@ void SetExtendedStyle(HWND h,unsigned style){if(auto *w=Find(h)){if(h==Desktop)r
  const auto old=w->extended;w->extended=style;NormalizeEdge(*w);Layout(h);Metrics(*w);dirty=true;if((old^style)&8)OrderWindow(h,0,w->ready);ShellVisibility(h,*w);}}
 void SetControlCallbacks(void *p,OwnerDraw draw,ControlColor color){control_context=p;owner_draw=draw;control_color=color;}
 void SetGuestPaint(void *p,GuestPaint paint){guest_paint_context=p;guest_paint=paint;}
+void SetGuestFrame(void *p,GuestPaint paint){guest_frame_context=p;guest_frame=paint;}
 bool Rendering(){return rendering;}
 Win98Dialog::Node DialogNode(HWND h) {
     auto *w=Find(h);if(!w)return {};
@@ -6618,6 +6630,16 @@ unsigned ServeControlPaints()
             AskEditColors(h);
             continue;
         }
+        // The WM_NCPAINT a subclassed EDIT is owed (ThreadFrame), on its
+        // thread and through its window procedure.
+        if (w && SubclassedEdit(*w) && guest_frame && w->frame_message_owed && w->frame_update_pending &&
+            (!active_thread || w->thread == active_thread) && (!active_process || w->process == active_process) &&
+            ThreadFrame(h, *w) && IsVisible(h) && !Locked(h) && RedrawChain(h))
+        {
+            guest_frame(CallbackContext(guest_frame_context, h), h);
+            ++painted;
+            continue;
+        }
         if (!w || !ControlContent(*w)) continue;
         if (!w->redraw) continue;
         // STATIC exposes its update region as WM_PAINT to the application's
@@ -6840,7 +6862,7 @@ void HandFallbacksOn(void *gone, void *heir)
     if (!gone) return;
     void **fallbacks[] = {&metadata_context, &default_icon_context, &icon_size_context, &scroll_brush_context,
                           &edit_notify_context, &edit_word_context, &property_context, &control_context,
-                          &guest_paint_context, &common_context, &caret_context, &caret_bracket_context,
+                          &guest_paint_context, &guest_frame_context, &common_context, &caret_context, &caret_bracket_context,
                           &clipboard_context, &menu_context, &menu_owner_context, &frame_context, &cursor_context,
                           &capture_context, &win_event_context};
     for (void **fallback : fallbacks)

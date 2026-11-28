@@ -222,6 +222,7 @@ void SetCommonDraw(void *,CommonDraw);
 void SetControlCallbacks(void *,OwnerDraw,ControlColor);
 using GuestPaint = void (*)(void *, HWND);
 void SetGuestPaint(void *,GuestPaint);   // WM_PAINT through a program's procedure of a STATIC
+void SetGuestFrame(void *,GuestPaint);   // the owed WM_NCPAINT of a subclassed EDIT
 bool PaintLabel(HWND,Gdi::HDC);           // the STATIC class procedure's WM_PAINT
 bool PaintButton(HWND,Gdi::HDC);          // synchronous BUTTON drawing, with its color callback
 bool Rendering();

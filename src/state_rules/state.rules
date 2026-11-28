@@ -125,6 +125,7 @@ var User::(anonymous namespace)::screen_lease_context auto       # a process
 var User::(anonymous namespace)::edit_notify_context auto        # a process
 var User::(anonymous namespace)::control_context auto            # a process
 var User::(anonymous namespace)::guest_paint_context auto        # the process that dispatches a subclassed STATIC's WM_PAINT
+var User::(anonymous namespace)::guest_frame_context auto        # the process that sends a subclassed EDIT the WM_NCPAINT it is owed
 var User::(anonymous namespace)::common_context auto             # a process
 var User::(anonymous namespace)::clipboard_context auto          # a process
 var User::(anonymous namespace)::metadata_context auto           # a process
