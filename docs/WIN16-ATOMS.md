@@ -17,12 +17,14 @@ when they are called. KRNL386 keeps them in that segment's local heap:
 - an integer atom (a far pointer with selector zero, or a name "#nnn") is
   its number when that is between 1 and BFFFh, and has no entry.
 
-Programs use this layout directly. SETUPX keeps the source and target names
-of its copy queue as local atoms and reads them with
-`LocalLock(atom << 2) + 5` out of its own segment. With the atoms in one
-table outside the segment, as the port first had them, every name SETUPX
-read was empty: no file of a queue was found in a cabinet, and SETUPX asked
-for the installation disk, for example after OK in the Network applet.
+Programs use this layout directly. The SETUPX of Windows 95 (it imports
+AddAtom, FindAtom, DeleteAtom and GetAtomName; that of Windows 98 none of
+them) keeps the source and target names of its copy queue as local atoms
+and reads them with `LocalLock(atom << 2) + 5` out of its own segment. With
+the atoms in one table outside the segment, as the port first had them,
+every name SETUPX read was empty: no file of a queue was found in a
+cabinet, and SETUPX asked for the installation disk, for example after OK
+in the Network applet ([NETWORK-APPLET.md](NETWORK-APPLET.md)).
 
 The port runs KRNL386's algorithm (`src/win98_atoms.h`, which also serves
 the 32-bit tables of `src/x86_atoms.cpp`) over the caller's data segment,
