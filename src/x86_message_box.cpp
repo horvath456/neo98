@@ -27,7 +27,6 @@ MessageBoxFrame*BoxFrame(Application*a,unsigned hwnd){for(auto*f=MessageBoxFrame
 // Verified USER NE strings:84,85,89,90,87,86,88,78,111. Index matches
 // USER's native string slots, including Error for the width helper.
 const char*const BoxLabels[]={"OK","Cancel","&Yes","&No","&Retry","&Abort","&Ignore","Error","&Help"};
-Gdi::RECT Rectangle(const Win98MessageBoxLayout::Rect&r){return {r.left,r.top,r.right,r.bottom};}
 }
 unsigned Application::MessageBoxApi(ApiName name,const unsigned*a){
  struct E {
@@ -129,17 +128,58 @@ unsigned Application::BuildMessageBox(const Win98MessageBox::Parameters&p,const 
  // sounds also while the beep is off, and an event without a file is quiet,
  // not the speaker.
  if(!(p.style&0x80)&&((p.style&0xf0)>>4)<5)PlaySoundEvent(0x91+((p.style&0xf0)>>4));
- const auto&r=frame.layout.absolute_outer;
+ // USER writes the box as a dialog template, which holds dialog units: it
+ // turns the pixels of each rectangle into them with MulDiv, and the dialog
+ // manager turns them back, so every place and size is rounded on the way.
+ // The header gets the box's client area, at the place inside the frame and
+ // caption; the dialog manager of Windows 95 and 98 takes that place for the
+ // window's own corner, so the box stands a frame to the right and a frame
+ // and a caption lower than USER centred it, as wide as its client area
+ // came back. MB_SETFOREGROUND adds DS_SETFOREGROUND.
+ Win98MessageBoxLayout::Arithmetic units;const int bx=in.dialog_base_x,by=in.dialog_base_y;
+ auto across=[&](int pixels,int extra){return units.Scale(units.Scale(pixels,4,bx)+extra,bx,4);};
+ auto down=[&](int pixels,int extra){return units.Scale(units.Scale(pixels,8,by)+extra,by,8);};
+ const auto&outer=frame.layout.absolute_outer;
+ const int frame_x=in.frame_x,frame_y=in.frame_y,caption_height=in.caption_height;
+ const Win98MessageBoxLayout::Rect r=Win98MessageBoxLayout::Area(across(outer.left+frame_x,0),down(outer.top+frame_y+caption_height,0),
+  across(outer.right-outer.left-2*frame_x,0)+2*frame_x,down(outer.bottom-outer.top-2*frame_y-caption_height,0)+2*frame_y+caption_height);
  unsigned klass=String("#32770"),caption_string=String(title);
- unsigned style=(p.style&0x3000)==0x1000?0x80c80347:0x80c801c5;
+ unsigned style=((p.style&0x3000)==0x1000?0x80c80347:0x80c801c5)|((p.style&0x10000)?0x200:0);
  unsigned args[]={0x101,klass,caption_string,style,unsigned(r.left),unsigned(r.top),unsigned(r.right-r.left),unsigned(r.bottom-r.top),p.owner,0,p.instance,0};
  unsigned previous_focus=User::GetFocus();frame.previous_focus=previous_focus;frame.hwnd=CreateWindow(args);Free(klass);Free(caption_string);if(!frame.hwnd)return 0;
  *dialog=Dialog{};dialog->hwnd=frame.hwnd;dialog->owner=p.owner;dialog->font=frame.font;dialog->previous_focus=previous_focus;dialog->xunit=in.dialog_base_x;dialog->yunit=in.dialog_base_y;
  unsigned first=0;bool controls=true;
  for(unsigned i=0;i<buttons.count;++i){
   unsigned id=buttons.ids[i];const auto&b=frame.layout.buttons[i];unsigned type=String("BUTTON"),label=String(BoxLabels[buttons.labels[i]-1]);
-  unsigned a[]={0,type,label,0x50010000u|(i==0?0x20000u:0u)|(i==buttons.selected?1u:0u),unsigned(b.left),unsigned(b.top),unsigned(b.right-b.left),unsigned(b.bottom-b.top),frame.hwnd,id,p.instance,0};
+  unsigned a[]={0,type,label,0x50010000u|(i==0?0x20000u:0u)|(i==buttons.selected?1u:0u),unsigned(across(b.left,0)),unsigned(down(b.top,0)),unsigned(across(b.right-b.left,0)),unsigned(down(b.bottom-b.top,0)),frame.hwnd,id,p.instance,0};
   unsigned button=CreateWindow(a);Free(type);Free(label);if(!button){controls=false;break;}Send(button,0x30,frame.font,0);if(i==buttons.selected){first=button;dialog->default_id=id;}
+ }
+ // After the buttons the template has a STATIC with SS_ICON for the icon,
+ // id 10, at 7,7 dialog units and of no size (the control takes the icon's),
+ // its name the resource id of the icon (FFh and the word: 7F01h to 7F04h
+ // for the hand, the question, the exclamation and the asterisk; a
+ // program's own icon is set afterwards), and a STATIC for the text, id
+ // FFFFh, SS_LEFT | SS_NOPREFIX | SS_EDITCONTROL whatever MB_RIGHT says, at
+ // the text's rectangle and, as USER gives a left-aligned static, one
+ // dialog unit more each way. The controls draw icon and text; the box
+ // itself only its face. Programs and hooks find the text by GetDlgItem,
+ // EnumChildWindows and GetWindowText.
+ if(controls&&state!=Failed&&state!=Exited){
+  unsigned type=String("STATIC");
+  auto child=[&](unsigned name,unsigned style,int x,int y,int cx,int cy,unsigned id){
+   unsigned a[]={0,type,name,style,unsigned(x),unsigned(y),unsigned(cx),unsigned(cy),frame.hwnd,id,p.instance,0};
+   const unsigned hwnd=CreateWindow(a);if(hwnd)Send(hwnd,0x30,frame.font,0);return hwnd;};
+  if(icon_id&&type){
+   const char name[]={char(0xff),char(icon_id&255),char(icon_id>>8),0};unsigned text=String(name);
+   const unsigned icon=text?child(text,0x50020003,across(frame.layout.icon.left,0),down(frame.layout.icon.top,0),0,0,10):0;
+   Free(text);
+   if(!icon)controls=false;else if((p.style&0x80)&&frame.icon&&state!=Failed&&state!=Exited)Send(icon,0x170,frame.icon,0);
+  }
+  if(controls&&p.text&&type&&state!=Failed&&state!=Exited){
+   const auto&t=frame.layout.text;
+   if(!child(frame.text,0x50022080,across(t.left,0),down(t.top,0),across(t.right-t.left,1),down(t.bottom-t.top,1),0xffff))controls=false;
+  }
+  if(!type)controls=false;else Free(type);
  }
  if(!controls||state==Failed||state==Exited){EndDialog(frame.hwnd,0);*dialog=Dialog{};return 0;}
  // USER runs here, in the box's own WM_INITDIALOG, after the dialog
@@ -219,10 +259,8 @@ bool Application::MessageBoxMessage(unsigned hwnd,unsigned message,unsigned wp,u
  if(message==0x14){Gdi::RECT r{};if(User::GetClientRect(hwnd,&r)){unsigned color=15;result=Gdi::FillRect(wp,&r,Api("GetSysColorBrush",&color));}return true;}
  if(message==0xf){
   User::Paint paint{};SendFramePaint(hwnd);if(!User::IsWindow(hwnd))return true;unsigned dc=User::BeginPaint(hwnd,paint);if(!dc)return true;
-  Gdi::SaveDC(dc);Gdi::SelectObject(dc,f->font);Gdi::SetBkMode(dc,Gdi::TRANSPARENT);unsigned color=18;Gdi::SetTextColor(dc,Api("GetSysColor",&color));
-  Gdi::RECT client{};User::GetClientRect(hwnd,&client);color=15;Gdi::FillRect(dc,&client,Api("GetSysColorBrush",&color));
-  auto text=Rectangle(f->layout.text);Store(f->scratch,&text,sizeof text);unsigned a[]={dc,f->text,~0u,f->scratch,0x2a50u|((f->parameters.style&0x80000)?2u:0u)};Api("DrawTextA",a);
-  if(f->icon){const auto&r=f->layout.icon;unsigned a[]={dc,unsigned(r.left),unsigned(r.top),f->icon,unsigned(r.right-r.left),unsigned(r.bottom-r.top),0,0,3};ImageApi("DrawIconEx",a);}
+  // The face only: the icon and the text are STATIC children.
+  Gdi::SaveDC(dc);Gdi::RECT client{};User::GetClientRect(hwnd,&client);unsigned color=15;Gdi::FillRect(dc,&client,Api("GetSysColorBrush",&color));
   Gdi::RestoreDC(dc,-1);User::DrawingChanged(dc);User::EndPaint(hwnd,paint);return true;
  }
  return false;

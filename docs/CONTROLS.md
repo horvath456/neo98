@@ -54,3 +54,48 @@ program measured in Windows 98 SE; in Windows 95 OSR2 only the lines of the
 right-aligned and centred blocks differ, as above. With
 `CheckBoxesFollowFontSize` at 144 dots per inch ([FONT-SIZE.md](FONT-SIZE.md))
 the cell is 20 pixels and the block moves with it.
+
+## The children of a message box
+
+USER builds a message box as a dialog template and runs it like any dialog.
+After the buttons the template has a STATIC with `SS_ICON` for the icon,
+id 10, style `50020003h`, at 7,7 dialog units and of no size (the control
+takes the size of its icon), whose name is the icon's resource id (FFh and
+the word 7F01h to 7F04h: the hand, the question, the exclamation, the
+asterisk; `MB_USERICON` gets 7F03h and the program's icon afterwards), and a
+STATIC for the text, id FFFFh, style `50022080h` (`SS_LEFT`, `SS_NOPREFIX`,
+`SS_EDITCONTROL`) whatever `MB_RIGHT` says, at the rectangle the box
+measured for the text. The icon's control answers `GetWindowText` with those
+three bytes, the text's with the whole text. A box without an icon has no
+icon control, one with a null text no text control.
+
+The template holds dialog units. USER turns the pixels of its layout into
+them with MulDiv (and gives the left-aligned text one unit more each way),
+the dialog manager turns them back, so every place and size is rounded on
+the way. The header gets the box's client area, at its place inside the
+frame and caption; the dialog manager of Windows 95 and 98 takes that place
+for the window's own corner, so a box stands a frame to the right and a
+frame and a caption lower than USER centred it. `MB_SETFOREGROUND` adds
+`DS_SETFOREGROUND`. The controls draw the icon and the text; the box paints
+only its face. A STATIC draws with `DT_EDITCONTROL` when it has
+`SS_EDITCONTROL` (but not with `SS_LEFTNOWORDWRAP`), so the text breaks its
+lines as the box measured them.
+
+Neo98 made the buttons only and painted icon and text into the box itself:
+`EnumChildWindows` found no STATIC, `GetDlgItemText(box, 0xFFFF)` nothing,
+and a `WH_CBT` hook saw no control for the text (`src/x86_message_box.cpp`).
+The hook still sees two things differently: Windows' dialog manager hands it
+the class as an atom and Neo98 by name, and Neo98 adds `WS_CLIPSIBLINGS` to
+a popup before the hook and Windows after.
+
+A dialog's modal loop, the message box's among them, dispatches what it
+takes from the queue: a `WM_TIMER` with a procedure (SetTimer's `TIMERPROC`)
+calls the procedure, also for the timer of a thread, which has no window.
+Neo98's loop sent every message to its window, and such a timer did not run
+while a dialog was open (`src/x86_dialog.cpp`, `RunModal`).
+
+`tools/message_box_children_fixture.c` opens five boxes and records what its
+CBT hook and, from such a timer, `EnumChildWindows`, `GetDlgItem` and
+`GetDlgItemText` find; `tools/test_message_box_children_host.py` compares
+every line with the same program in Windows 98 SE (Windows 95 OSR2 answers
+the same).
