@@ -169,6 +169,15 @@ struct Window {
     // A callback-driven control paints its initial frame on its owning thread
     // during PaintControlSurface.
     bool frame_owed = false;
+    // The frame of a window whose thread paints it (ThreadFrame) is painted
+    // only by DefWindowProc of WM_NCPAINT and WM_NCACTIVATE, as on Windows:
+    // the composition keeps its pixels and owes the window WM_NCPAINT when
+    // a part of it comes into view (the settle) or what it shows changes
+    // (PaintWindow). frame_signature is what the frame on the screen was
+    // painted for; frame_full marks the whole window as owed, which
+    // WM_NCPAINT passes as 1.
+    bool frame_full = false;
+    unsigned frame_signature = 0;
     bool frame_message_owed = true;
     bool frame_update_pending = false;
     // RDW_FRAME can mark client-only rectangles too. Keep that area so
@@ -431,16 +440,17 @@ bool WithinWindow(HWND root,HWND h)
     return false;
 }
 bool Locked(HWND h){return WithinWindow(locked_window,h);}
-// Unlocking with NULL invalidates the accumulated area. USER-owned frames,
-// controls and desktop background remain pending during the lock and are
-// drawn on the next paint pass.
+// Unlocking with NULL invalidates the accumulated area, frames with it
+// (RDW_FRAME): a frame its window's thread paints was not painted during the
+// lock. USER-owned controls and the desktop background remain pending during
+// the lock and are drawn on the next paint pass.
 void RepaintLockedWindow(HWND)
 {
     const unsigned count = lock_sums;
     lock_sums = 0;
     for (unsigned i = 0; i < count; ++i) {
         const Gdi::RECT r = lock_sum[i];
-        RedrawWindow(Desktop, &r, 0, 0x85, nullptr, nullptr);
+        RedrawWindow(Desktop, &r, 0, 0x485, nullptr, nullptr);
     }
     dirty=true;
 }
@@ -582,6 +592,58 @@ bool ControlContent(const Window &w) { return w.button || w.label || (w.common &
 // A window procedure of the program instead of the port's class procedure
 // (the tokens at 71000000h, x86_app.h NativeProcedure).
 bool GuestProcedure(const Window &w) { return w.procedure && (w.procedure & 0xffff0000u) != 0x71000000u; }
+// Whose frame the window's own thread paints, through WM_NCPAINT and
+// DefWindowProc, as on Windows: a window of a program's class (one that gets
+// WM_PAINT from its queue). The port's own controls (edit, list box, combo
+// box, scroll bar, buttons, labels, the common controls) are drawn by the
+// composition or on their thread by the port, and so is a minimized window,
+// which the composition draws as its caption bar.
+static bool ThreadFrame(HWND h, const Window &w)
+{
+    return h != 0xff && w.thread && Custom(w) && !(w.style & 0x20000000u);
+}
+// Whether the caption shows active. A frame its thread paints follows the
+// frame-on bit, which DefWindowProc of WM_NCACTIVATE sets before it paints,
+// as on Windows; so does a child's caption (an MDI child). The composition
+// paints other top-level captions active with their window.
+static bool CaptionActive(HWND h, const Window &w)
+{
+    return ((w.style & 0x40000000u) || ThreadFrame(h, w)) ? w.frame_on : foreground == h;
+}
+// The window owes WM_NCPAINT for its frame: the whole of it (full), which
+// WM_NCPAINT passes as 1, or the parts already in frame_update.
+static void OweFrame(Window &w, bool full)
+{
+    if (full)
+    {
+        w.frame_full = true;
+        w.frame_update.Add({-w.client.left, -w.client.top, w.width - w.client.left, w.height - w.client.top});
+    }
+    w.frame_message_owed = true;
+    w.frame_update_pending = true;
+    w.wait_paint_observed = false;
+}
+// A part of the window that came into view and was not carried along by a
+// move (SettleGeometry): its frame part goes into the update region of the
+// frame, as on Windows, in client coordinates; exposed and client are in
+// screen coordinates.
+static void ExposeFrame(Window &w, const Gdi::RECT *exposed, unsigned count, const Gdi::RECT &client)
+{
+    bool any = false;
+    for (unsigned i = 0; i < count; ++i)
+    {
+        RectRegion part;
+        part.Append(exposed[i]);
+        part.Subtract(client);
+        for (unsigned k = 0; k < part.count; ++k)
+        {
+            const auto &r = part.rectangles[k];
+            w.frame_update.Add({r.left - client.left, r.top - client.top, r.right - client.left, r.bottom - client.top});
+            any = true;
+        }
+    }
+    if (any) OweFrame(w, false);
+}
 Gdi::POINT Origin(const Window &w,unsigned depth=0);
 void FreeWindowDCs(Window &w);
 // Paint tracing is enabled with NEO98_TRACE_PAINT.
@@ -1130,7 +1192,7 @@ static HWND CaptureClickFor(const InputPacket &p)
 Win98ButtonLayout::Metrics ButtonMetrics()
 {
     return {int(settings.Word(0x338)),int(settings.Word(0x33a)),int(settings.Word(0x2e8)),
-            int(settings.Word(0x2ea)),13};
+            int(settings.Word(0x2ea)),CheckCell()};
 }
 // the content rectangle of the kind and the caption inside it.
 // A check box or radio button keeps its caption in place while it is pressed;
@@ -1342,13 +1404,15 @@ void PaintControlContent(HWND h, Window &w, Gdi::HDC dc)
                     // places the 13x13 cell ([9B4h], [9B6h]): centred
                     // by default, at the right with BS_LEFTTEXT, and for BS_TOP
                     // or BS_BOTTOM inside a line of 5/4 of the text height.
+                    // The cell is larger with CheckBoxesFollowFontSize, and
+                    // the Marlett cells are drawn at that size.
                     unsigned state=(w.check&3)?0x400u:0u;
                     if(w.pressed)state|=0x200;
                     if(!IsEnabled(h))state|=0x100;
                     if(kind==4||kind==9)state|=4;
                     else if((kind==5||kind==6)&&(w.check&3)==2)state|=8;
                     if(w.style&0x8000)state|=0xc000;
-                    const int cell=13;
+                    const int cell=CheckCell();
                     int top=(client.bottom-cell)/2;
                     const unsigned vertical=(w.style>>8)&0xc;
                     if(vertical==4||vertical==8){
@@ -1633,8 +1697,43 @@ struct SurfaceTarget {
     SurfaceTarget(HWND h) : previous(screen) { if (host_window_surfaces) screen = HostFrameDC(h); }
     ~SurfaceTarget() { screen = previous; }
 };
-// The frame alone, clipped to the window's visible region.
-static void PaintVisibleFrame(HWND h, Window &w)
+// What the frame of a window shows (PaintFrame): its style, size and parts,
+// the title, the icon, active or not, the caption buttons, the system icon
+// selected, the menu bar's items, the scroll bars, the system colours and
+// the frame invalidations.
+static unsigned FrameSignature(HWND h, const Window &w)
+{
+    unsigned hash = 2166136261u;
+    auto mix = [&](unsigned value) { for (unsigned i = 0; i < 4; ++i) { hash ^= (value >> (i * 8)) & 255; hash *= 16777619u; } };
+    auto rect = [&](const Gdi::RECT &r) { mix(unsigned(r.left)); mix(unsigned(r.top)); mix(unsigned(r.right)); mix(unsigned(r.bottom)); };
+    mix(w.style); mix(w.extended); mix(unsigned(w.width)); mix(unsigned(w.height)); mix(w.nonclient_flags);
+    rect(w.client); rect(w.caption); rect(w.menu_bar);
+    mix(CaptionActive(h, w)); mix(w.enabled);
+    mix(w.icon_small); mix(w.icon_large); mix(w.icon_drag); mix(SystemIconSelected(h));
+    mix(w.pressed_hit); mix(w.pressed_inside); mix(w.button_slots);
+    for (unsigned i = 0; i < w.button_slots && i < 4; ++i) { mix(w.button_slot[i].state); rect(w.button_slot[i].cell); }
+    for (const char *t = w.title; *t; ++t) mix(unsigned(char(*t)));
+    mix(w.menu); mix(w.menu_items);
+    if (const auto *m = (w.nonclient_flags & 1) ? FindMenu(w.menu) : nullptr)
+        for (unsigned i = 0; i < m->count && i < w.menu_items; ++i)
+        {
+            mix(m->items[i].state); mix(m->items[i].type); mix(m->items[i].bitmap); mix(m->items[i].data);
+            for (const char *t = MenuText(m->items[i]); *t; ++t) mix(unsigned(char(*t)));
+            rect(w.menu_item[i]);
+        }
+    if (w.scroll_allocated)
+    {
+        const auto *bytes = reinterpret_cast<const unsigned char *>(&w.scroll);
+        for (unsigned i = 0; i < sizeof w.scroll; ++i) mix(bytes[i]);
+    }
+    const unsigned *colors = Win98Frame::SystemColors();
+    for (unsigned i = 0; i < Win98Frame::ColorCount; ++i) mix(colors[i]);
+    mix(MetricFont(0x502)); mix(MetricFont(0x503)); mix(MetricFont(0x501));
+    return hash | 1;
+}
+// The frame alone, clipped to the window's visible region and to region (a
+// GDI region in screen coordinates; 0 or 1 for the whole frame).
+static void PaintVisibleFrame(HWND h, Window &w, unsigned region)
 {
     SurfaceTarget target(h);
     auto *visible = new RectList;
@@ -1644,14 +1743,35 @@ static void PaintVisibleFrame(HWND h, Window &w)
     {
         const auto p = Origin(w);
         const auto area = At(w.client, p);
-        if (Gdi::IntersectClipRegion(screen, visible->r, visible->n) && RegionClip(screen, w, 0, 0))
+        bool clipped = Gdi::IntersectClipRegion(screen, visible->r, visible->n) && RegionClip(screen, w, 0, 0);
+        if (clipped && region > 1)
+        {
+            Gdi::RegionRectanglesCopy parts;
+            clipped = parts.Read(region) && Gdi::IntersectClipRegion(screen, parts.rectangles, parts.count);
+        }
+        if (clipped)
         {
             Gdi::ExcludeClipRect(screen, area.left, area.top, area.right, area.bottom);
             PaintFrame(h, w, p);
+            // A frame painted for the window (WM_NCPAINT, WM_NCACTIVATE)
+            // is the one the composition keeps.
+            w.frame_signature = FrameSignature(h, w);
         }
         Gdi::RestoreDC(screen, save);
     }
     delete visible;
+}
+// DefWindowProc of WM_NCPAINT (region its wParam) and WM_NCACTIVATE (the
+// whole frame) for a window whose thread paints its frame: the frame is
+// painted now, in that thread, and it is the frame the composition keeps.
+// Any other window gets its frame from the composition. A locked window
+// (LockWindowUpdate) draws nothing; its release invalidates the frame.
+static void DefaultFramePaint(HWND h, unsigned region)
+{
+    auto *w = Find(h);
+    if (!w || !ThreadFrame(h, *w) || !ShowsTree(h) || rendering || Locked(h)) return;
+    PaintVisibleFrame(h, *w, region);
+    dirty = true;
 }
 // Overlapping siblings share pixels if either lacks WS_CLIPSIBLINGS; the last
 // paint wins. A group box is excluded because it leaves its interior
@@ -1745,7 +1865,22 @@ void PaintWindow(HWND h, Window &w)
             if (frame_save)
             {
                 Gdi::ExcludeClipRect(screen, area.left, area.top, area.right, area.bottom);
-                PaintFrame(h, w, p);
+                // A window whose thread paints its frame keeps what was
+                // painted there: its DefWindowProc paints the frame on
+                // WM_NCPAINT, which the window is owed for the parts that
+                // came into view (SettleGeometry) and here for a change of
+                // what the frame shows, the whole frame. The window draws
+                // over it what it draws itself, as on Windows.
+                if (ThreadFrame(h, w))
+                {
+                    const unsigned signature = FrameSignature(h, w);
+                    if (signature != w.frame_signature)
+                    {
+                        w.frame_signature = signature;
+                        OweFrame(w, true);
+                    }
+                }
+                else PaintFrame(h, w, p);
                 Gdi::RestoreDC(screen, frame_save);
             }
             PaintNativeClient(h, w, p, client, area);
@@ -2343,6 +2478,7 @@ bool DestroyWindow(HWND h)
 }
 void SetShellEvents(void *context, ShellEvent event) { shell_context = context; shell_event = event; }
 void SetShellHookOwner(void *context) { shell_hook_context = context; }
+void *ShellHookOwner() { return shell_hook_context; }
 void ConstrainShellPosition(HWND h,unsigned &after,unsigned &flags) {
     if(const auto*w=Find(h))Win98ShellRegistration::ConstrainPosition(w->nonclient_flags,after,flags);
 }
@@ -3482,11 +3618,40 @@ static HWND BackgroundFrontPosition(HWND h, const Window &w, HWND front)
     }
     return place;
 }
+// SetWindowPos with HWND_TOPMOST or HWND_NOTOPMOST changes the band of the
+// window's owned windows with it, as Windows documents it: "When a
+// non-topmost window is made topmost, its owned windows are also made
+// topmost. Its owners, however, are not changed. ... When a topmost window
+// is made non-topmost, its owners and its owned windows are also made
+// non-topmost windows." The owned windows (all top-level windows whose owner
+// chain reaches the window) get the bit before the owner pass orders them
+// above their owner; the owners follow in OrderWindow.
+static void OwnedBand(HWND h, bool topmost)
+{
+    for (unsigned i = 0; i < MaxWindows; ++i)
+    {
+        auto &other = windows[i];
+        if (!other.used || other.parent) continue;
+        bool owned = false;
+        for (HWND o = other.owner; o && !owned; )
+        {
+            if (o == h) owned = true;
+            const auto *next = Find(o);
+            o = next && next->owner != o ? next->owner : 0;
+        }
+        if (owned) other.extended = topmost ? (other.extended | 8u) : (other.extended & ~8u);
+    }
+}
 unsigned PrepareOwnedPositions(const unsigned position[7], unsigned (*out)[7], unsigned capacity)
 {
     const HWND h = position[0];
     const auto *w = Find(h);
     if (!w || !capacity) return 0;
+    if (!w->parent && !(position[6] & 4u) && h != Desktop)
+    {
+        if (position[1] == ~0u && !(w->extended & 8)) OwnedBand(h, true);
+        else if (position[1] == ~1u && (w->extended & 8)) OwnedBand(h, false);
+    }
     if (w->parent || (position[6] & 4u))
     {
         memcpy(out[0], position, 7 * sizeof(unsigned));
@@ -3568,6 +3733,13 @@ bool OrderWindow(HWND h, HWND after, bool order_owned)
     }
     const HWND behind = !after && !(w->extended & 8) ? BackgroundFrontPosition(h, *w, FrontPosition(*w)) : 0;
     if (behind == h) return true;
+    // A topmost window made non-topmost takes its topmost owners out of
+    // the band with it; they stand right below it (OwnedBand).
+    const bool leaving = after == ~1u && (w->extended & 8) && Container(*w) == Desktop;
+    // A change of band moves the window to the top of its new band; its
+    // owned windows, which changed band with it (OwnedBand), go above it
+    // again, as the owner pass of USER places them.
+    const bool band = Container(*w) == Desktop && ((after == ~0u && !(w->extended & 8)) || leaving);
     Unlink(h, *w);
     if (after == ~0u) { w->extended |= 8; after = 0; }
     else if (after == ~1u) { w->extended &= ~8u; after = 0; }
@@ -3584,7 +3756,24 @@ bool OrderWindow(HWND h, HWND after, bool order_owned)
         else if (!(w->extended & 8)) after = FrontPosition(*w);
     }
     LinkAfter(h, *w, after);
-    if (order_owned) OwnedZOrder(h);
+    if (leaving)
+    {
+        HWND below = h;
+        for (HWND o = w->owner, n = 0; o && n < MaxWindows; ++n)
+        {
+            auto *owner = Find(o);
+            if (!owner || owner->parent || o == below) break;
+            if (owner->extended & 8)
+            {
+                owner->extended &= ~8u;
+                Unlink(o, *owner);
+                LinkAfter(o, *owner, below);
+                below = o;
+            }
+            o = owner->owner != o ? owner->owner : 0;
+        }
+    }
+    if (order_owned || band) OwnedZOrder(h);
     dirty = true;
     return true;
 }
@@ -4314,10 +4503,49 @@ unsigned EraseToken(HWND h){auto *w=Find(h);return w?w->erase_serial:0;}
 void Erased(HWND h,unsigned token){auto *w=Find(h);if(w&&token==w->erase_serial)w->erase_pending=false;}
 void KeepErase(HWND h){if(auto *w=Find(h)){w->erase_pending=true;++w->erase_serial;}}
 unsigned Background(HWND h){auto *w=Find(h);return w?(w->class_record?class_store.HandleValue(class_store.Read16(Win98Classes::Body(class_store,w->class_record)+16)):w->background):0;}
-bool TakeFramePaint(HWND h)
+void PaintThreadFrame(HWND h) { DefaultFramePaint(h, 1); }
+// The wParam of the WM_NCPAINT the window is owed, or 0 for none. Windows
+// passes the update region of the window in screen coordinates, frame and
+// client, and 1 when the whole window is to be painted. The region is the
+// caller's to delete after the message (DropFramePaint).
+unsigned TakeFramePaint(HWND h)
 {
-    auto *w=Find(h);if(!w || !w->frame_message_owed)return false;
-    w->frame_message_owed=false;w->frame_update_pending=false;w->frame_update.Clear();return true;
+    auto *w=Find(h);if(!w || !w->frame_message_owed)return 0;
+    unsigned parameter = 1;
+    if (!w->frame_full && w->frame_update.count)
+    {
+        RectRegion all = w->frame_update;
+        for (unsigned i = 0; i < w->update.count; ++i) all.Add(w->update.rectangles[i]);
+        RectRegion rest;
+        rest.Append({-ClientLeft(*w), -ClientTop(*w), w->width - ClientLeft(*w), w->height - ClientTop(*w)});
+        for (unsigned i = 0; i < all.count && rest.count; ++i) rest.Subtract(all.rectangles[i]);
+        if (rest.count)
+        {
+            const auto origin = Origin(*w);
+            const int x = origin.x + ClientLeft(*w), y = origin.y + ClientTop(*w);
+            if (const auto region = Gdi::CreateRegionRect(0, 0, 0, 0))
+            {
+                bool okay = true;
+                for (unsigned i = 0; i < all.count && okay; ++i)
+                {
+                    const auto &r = all.rectangles[i];
+                    const auto piece = Gdi::CreateRegionRect(r.left + x, r.top + y, r.right + x, r.bottom + y);
+                    okay = piece && Gdi::CombineRegions(region, region, piece, 2) != 0;
+                    if (piece) Gdi::DeleteObject(piece);
+                }
+                if (okay) parameter = region;
+                else Gdi::DeleteObject(region);
+            }
+        }
+    }
+    w->frame_message_owed=false;w->frame_full=false;w->frame_update_pending=false;w->frame_update.Clear();
+    return parameter;
+}
+// After WM_NCPAINT: the region USER made for it goes, unless the window gave
+// it to GetDCEx, which deleted it with its DC.
+void DropFramePaint(unsigned parameter)
+{
+    if (parameter > 1 && Gdi::GetObjectType(parameter) == 8) Gdi::DeleteObject(parameter);
 }
 void InvalidateFrame(HWND h)
 {
@@ -4329,10 +4557,7 @@ void InvalidateFrame(HWND h)
     if (!w || (!ShowsTree(h) && !iconic)) return;
     const auto client = Client(*w);
     if (!ClientLeft(*w) && !ClientTop(*w) && client.right == w->width && client.bottom == w->height) return;
-    w->frame_message_owed = true;
-    w->frame_update_pending = true;
-    w->frame_update.Add({-ClientLeft(*w),-ClientTop(*w),w->width-ClientLeft(*w),w->height-ClientTop(*w)});
-    w->wait_paint_observed = false;
+    OweFrame(*w, true);
     if (ControlContent(*w)) { w->frame_owed = true; w->needs_paint = true; }
     dirty = true;
 }
@@ -4628,8 +4853,10 @@ unsigned DefaultMessage(HWND h, unsigned msg, unsigned wp, unsigned lp)
             w->frame_on = wp != 0;
             dirty = true;
         }
+        DefaultFramePaint(h, 1);
         return 1;
     }
+    if (msg == 0x85) { DefaultFramePaint(h, wp); return 0; }
     if (msg == 0x81 || msg == 0x11 || msg == 0x13) return 1; // WM_NCCREATE, WM_QUERYENDSESSION, WM_QUERYOPEN
     if (msg == 0x2e || msg == 0x2f) return ~0u; // USER: default listbox key/character handling.
     if (msg == 0x112)
@@ -5050,6 +5277,9 @@ bool SavesBits(HWND h, const Window &w)
 }
 }
 unsigned GetDoubleClickTime() { return double_click_time; }
+static int check_cell = 13;
+int CheckCell() { return check_cell; }
+void SetCheckCell(int pixels) { check_cell = pixels < 13 ? 13 : pixels > 64 ? 64 : pixels; dirty = true; }
 void SetDoubleClickTime(unsigned time) { double_click_time = !time ? 500 : time > 5000 ? 5000 : time; }
 unsigned PhysicalMouseButtons() { return mouse_buttons; }
 bool PhysicalKeyDown(unsigned key) { return input.Down(key); }
@@ -6145,7 +6375,7 @@ void PaintControlSurface(HWND h)
     if (w->frame_owed)
     {
         w->frame_owed = false;
-        PaintVisibleFrame(h, *w);
+        PaintVisibleFrame(h, *w, 1);
         // The state this frame shows. The composition compares with it
         // (PaintWindow): a control that paints before its first composition
         // and whose frame changes after that, as the list of a combo box

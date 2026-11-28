@@ -326,7 +326,7 @@ struct Application::ImageResources final:IR::Environment {
   m.size_x=metric(30);m.size_y=metric(31);m.caption_x=metric(54);m.caption_y=metric(55);
   m.small_x=metric(52);m.small_y=metric(53);
   m.edge_x=metric(45);m.edge_y=2*metric(46);m.border_y=metric(6);
-  m.menu_bias=metric(72);m.menu_extra=0;
+  m.menu_bias=metric(72);m.menu_extra=0;m.check=User::CheckCell();
   int width=0,height=0;
   if(close){width=2*(m.edge_x+m.caption_x);height=m.caption_y+m.edge_y;}
   else{

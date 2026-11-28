@@ -629,6 +629,9 @@ void SettleGeometry()
             const Gdi::RECT local{c.left - ox, c.top - oy, c.right - ox, c.bottom - oy};
             InvalidateOne(h, &local, true);
         }
+        // The frame part as well, where the window's thread paints its frame:
+        // the composition keeps that frame's pixels and paints no new ones.
+        if (i < MaxWindows && ThreadFrame(h, *w)) ExposeFrame(*w, exposed->r, exposed->n, client);
         // A child's area also belongs to every ancestor lacking
         // WS_CLIPCHILDREN. Invalidate exposed areas there so the parent can
         // paint for children whose WM_ERASEBKGND/WM_PAINT do nothing. Newly

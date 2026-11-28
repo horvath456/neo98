@@ -12,7 +12,10 @@ def main():
             log = host(out, drive, r'C:\WINDOWS\EXPLORER.EXE',
                        steps=f'4:key=1b;8:key=1b;10:wait=Shell_TrayWnd;'
                              f'11:open={drive}/Program Files/Accessories/MSPAINT.EXE;'
-                             '13:wait=MSPaintApp;15:tops=1', seconds=17)
+                             '13:wait=MSPaintApp;15:tops=1', seconds=17,
+                       # Explorer's first start on the pristine drive runs the setup
+                       # of the first logon before the taskbar is there.
+                       deadline=240)
             frames = re.findall(r'visible=1 frame=(-?\d+),(-?\d+),(-?\d+),(-?\d+).* class=MSPaintApp', log)
             assert frames, out / 'host.log'
             x, y, right, bottom = map(int, frames[-1])

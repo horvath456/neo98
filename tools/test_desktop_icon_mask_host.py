@@ -40,7 +40,10 @@ def main():
             host(out / 'explorer', drive, r'C:\WINDOWS\EXPLORER.EXE',
                  steps='4:key=1b;8:key=1b;10:wait=Shell_TrayWnd;'
                        f'12:mask={out}/explorer-on.pgm;14:menu=seamless-icons;16:mask={out}/explorer-off.pgm',
-                 seconds=18, extra=['--seamless', '--seamless-icons'])
+                 seconds=18, extra=['--seamless', '--seamless-icons'],
+                 # Explorer's first start on the pristine drive runs the
+                 # setup of the first logon before the taskbar is there.
+                 deadline=240)
         _, _, on = image(out / 'explorer-on.pgm')
         w, h, off = image(out / 'explorer-off.pgm')
         added = sum(on(x, y) == 'ff' and off(x, y) == '00' for y in range(h) for x in range(w))

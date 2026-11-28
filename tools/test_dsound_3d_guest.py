@@ -87,16 +87,23 @@ RUN = args.source_root.resolve()
 OUT = (args.out or neo98.output_directory('dsound-3d')).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(RUN / 'tools'))
+import runner_windows  # noqa: E402
+# The runtime is compiled as the hosts are: the tables of src/ come from
+# setup's drive C: when the runner starts (tools/runner_windows.py), and the
+# system font is the drive's Fixedsys.
 if args.objects:
     OBJECTS = args.objects.resolve()
 else:
     import native_app
-    OBJECTS = Path(native_app.object_directory())
+    OBJECTS = Path(native_app.object_directory(content=True))
 
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 env = neo98.tool_environment()
 env['UBSAN_OPTIONS'] = 'halt_on_error=1:print_stacktrace=1'
-FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags()]
+FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags(),
+         *runner_windows.FLAGS]
+windows, font = runner_windows.prepare(OUT)
+env.update(windows)
 
 
 def run(name, command):
@@ -137,7 +144,6 @@ for name in (['sound_mixer', 'x86_wave_out', 'x86_dsound_vxd'] if args.rebuild_a
 library = ROOT / 'build/analysis-venv/lib/python3.14/site-packages/unicorn/lib/libunicorn.2.dylib'
 binary = OUT / 'test-dsound-3d'
 run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_dsound_3d_guest.cpp', *objects, *_engine_link_extra(), *_native_app().unicorn_link(library), '-o', binary])
-font = ROOT / 'build/generated/notepad-fixedsys.fnt'
 import re
 
 

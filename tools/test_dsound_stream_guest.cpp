@@ -15,6 +15,9 @@
 #undef private
 #include "../src/sound.h"
 #include "system_tree_host.h"
+#ifdef NEO98_RUNTIME_CONTENT
+#include "runner_windows_data.h"
+#endif
 #include <algorithm>
 #include <cassert>
 #include <chrono>
@@ -103,7 +106,12 @@ int main(int argc, char **argv)
     // the primary buffer of the driver in pieces of its own choosing.
     const bool ring3 = argc > 3 && !strcmp(argv[3], "ring3");
     auto exe = load(argv[1]), font = load(argv[2]);
+#ifdef NEO98_RUNTIME_CONTENT
+    // The tables of src/ out of setup's drive C:, which is mounted as well.
+    if (!RunnerWindowsData::Load()) return 1;
+#else
     assert(SystemTreeHost::Mount());
+#endif
     Sound::SetCapture(capture, sizeof capture / (2 * sizeof(short)));
     X86::Application app(nullptr);
     app.log = collect;

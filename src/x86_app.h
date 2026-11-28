@@ -1014,6 +1014,7 @@ private:
     void StartPasswordList();
     unsigned RegisterShell(unsigned hwnd, unsigned flags);
     void ShellEvent(unsigned code, unsigned hwnd, unsigned parameter);
+    bool ShellMinRect(unsigned hwnd, Gdi::RECT &rect);
     struct AtomTable;
     AtomTable *atoms = nullptr;
     unsigned AtomApi(ApiName, const unsigned *);
@@ -2227,7 +2228,7 @@ private:
     // for an ordinal neither knows.
     bool Win16UserMore(unsigned ordinal, const Win16Frame &, unsigned words, unsigned &result, bool &handled);
     bool Win16GdiMore(unsigned ordinal, const Win16Frame &, unsigned words, unsigned &result, bool &handled);
-    unsigned Win16RegisterClassAt(unsigned at, unsigned small_icon);
+    unsigned Win16RegisterClassAt(unsigned at, unsigned small_icon, unsigned style);
     unsigned Win16ClassInfoInto(unsigned instance, unsigned klass, unsigned out);
     unsigned Win16MenuFromTemplate(const unsigned char *source, unsigned bytes);
     bool Win16GetMessage(unsigned ordinal, const Win16Frame &, unsigned &result, unsigned &words);
@@ -2783,6 +2784,8 @@ private:
     unsigned DuplicateMappingFrom(Application &source, unsigned object);
     unsigned DefaultWindowMessage(unsigned, unsigned, unsigned, unsigned);
     unsigned ContextMenuOfFrame(unsigned hwnd, unsigned lp);
+    unsigned PopupSystemMenu(unsigned hwnd, unsigned lp);
+    void SendFramePaint(unsigned hwnd);
     unsigned DefaultKeyMessage(unsigned hwnd, unsigned message, unsigned wp, unsigned lp);
     unsigned KeyMenuCommand(unsigned hwnd, unsigned lp);
     unsigned ButtonProcedure(unsigned, unsigned, unsigned, unsigned); // native BUTTON class, token 0x71000030

@@ -14,9 +14,16 @@ static void*MenuTestMalloc(size_t size){if(++menu_alloc_calls==menu_fail_at)retu
 #undef private
 #define malloc MenuTestMalloc
 #include "../src/user.cpp"
+#ifdef NEO98_RUNTIME_CONTENT
+#include "runner_windows_data.h"
+#endif
 #undef malloc
 static std::vector<unsigned char> load(const char*p){FILE*f=fopen(p,"rb");assert(f);fseek(f,0,SEEK_END);auto n=ftell(f);rewind(f);std::vector<unsigned char>b(n);assert(fread(b.data(),1,n,f)==size_t(n));fclose(f);return b;}
-int main(int argc,char**argv){assert(argc==3);auto exe=load(argv[1]),font=load(argv[2]);
+int main(int argc,char**argv){assert(argc==3);
+#ifdef NEO98_RUNTIME_CONTENT
+ if(!RunnerWindowsData::Load())return 1;
+#endif
+ auto exe=load(argv[1]),font=load(argv[2]);
  for(unsigned profile=0;profile<2;++profile){X86::Application app(nullptr);assert(app.Start(exe.data(),exe.size(),font.data(),font.size(),"MENUFAMILY.EXE"));for(unsigned n=0;n<10000&&app.Status()!=X86::Application::Failed&&app.Status()!=X86::Application::Exited;++n)app.Pump(32);if(app.Status()!=X86::Application::Exited||app.ExitCode())fprintf(stderr,"menu state=%u code=%u error=%s\n",app.Status(),app.ExitCode(),app.Error());assert(app.Status()==X86::Application::Exited&&!app.ExitCode());printf("MENU GUEST PASS: calls=%u callbacks=%u\n",app.ApiCalls(),app.Callbacks());assert(!User::menu_state.head);assert(!User::menu_environment.text_bytes);
  auto failure=User::CreateMenu();assert(failure);
  for(unsigned stage=1;stage<=2;++stage){menu_alloc_calls=0;menu_fail_at=stage;assert(!User::AppendMenu(failure,0,7,"allocation failure",0));assert(!User::MenuItemCount(failure));menu_fail_at=0;assert(!User::menu_environment.text_bytes);}

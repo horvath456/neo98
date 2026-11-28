@@ -4263,12 +4263,12 @@ bool Application::Win16EndPaint(const Win16Frame &frame, unsigned &result, unsig
 bool Application::Win16RegisterClass(const Win16Frame &frame, unsigned &result, unsigned &words)
 {
     const unsigned at = frame.Pointer(words - 2);
-    result = at ? Win16RegisterClassAt(at, 0) : 0;
+    result = at ? Win16RegisterClassAt(at, 0, Win16Word(at + Win16U::ClassStyle)) : 0;
     return true;
 }
-// The WNDCLASS of the 16-bit side at `at`, and the small icon of the Ex
-// form (USER.397), which a WNDCLASS has not.
-unsigned Application::Win16RegisterClassAt(unsigned at, unsigned small_icon)
+// The WNDCLASS of the 16-bit side at `at`, and the small icon and the style of
+// the Ex form (USER.397), whose style is a dword in front of the procedure.
+unsigned Application::Win16RegisterClassAt(unsigned at, unsigned small_icon, unsigned style)
 {
     unsigned result = 0;
     const unsigned procedure = Win16Word(at + Win16U::ClassProcedure) |
@@ -4291,7 +4291,7 @@ unsigned Application::Win16RegisterClassAt(unsigned at, unsigned small_icon)
     // instance, the icon, the cursor, the background, the menu, the name and
     // the small icon. A 16-bit WNDCLASS has no small icon.
     const unsigned fields[12] = {48,
-                                 Win16Word(at + Win16U::ClassStyle),
+                                 style,
                                  Win16Procedure(procedure),
                                  Win16Word(at + Win16U::ClassExtra),
                                  Win16Word(at + Win16U::ClassWindowExtra),
@@ -4556,8 +4556,11 @@ unsigned Application::Win16ClassInfoInto(unsigned instance, unsigned klass, unsi
     Win16Word(out + 6, Read32(scratch + 8));                                // cbClsExtra
     Win16Word(out + 8, Read32(scratch + 12));                               // cbWndExtra
     Win16Word(out + 10, instance);
-    Win16Word(out + 12, Read32(scratch + 20));                              // icon
-    Win16Word(out + 14, Read32(scratch + 24));                              // cursor
+    // Icon and cursor as the words the 16-bit side knows them by, the ones
+    // LoadIcon and LoadCursor gave it and GetClassWord answers; the low
+    // word of the native handle is none of them.
+    Win16Word(out + 12, Win16ImageAlias(Read32(scratch + 20), 0, false, 0, nullptr));
+    Win16Word(out + 14, Win16ImageAlias(Read32(scratch + 24), 0, true, 0, nullptr));
     Win16Word(out + 16, Read32(scratch + 28));                              // brush
     return result;
 }

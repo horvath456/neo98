@@ -64,6 +64,35 @@ for 12 pixels at every size; they get larger only because the fonts of 120
 dots per inch start at 16 pixels. Check boxes and radio buttons stay 13
 pixels, and toolbar pictures keep their size, as on Windows.
 
+## Check boxes and radio buttons
+
+USER of Windows 95 and 98 draws the cells of check boxes and radio buttons
+once at its start, with the other pictures of buttons, captions, menus and
+scroll bars, into one bitmap, and sizes each kind there: the caption
+buttons and scroll arrows from the metrics of their parts, the check marks
+of menus from the menu font, and the check box and radio button cells as a
+constant, 13 by 13 pixels. So they keep 13 pixels at every font size, 1.2 mm
+at 144 dots per inch, and so does `LoadBitmap(OBM_CHECKBOXES)`. Neo98 does
+the same (`Win98Oem::Size` in `src/win98_oem_bitmaps.h`).
+
+Neo98 has a setting for screens where that is too small:
+
+| Place | Value |
+| --- | --- |
+| `HKEY_LOCAL_MACHINE\Software\NEO98` | `CheckBoxesFollowFontSize`: `"1"` (or the DWORD 1) for a cell of 13 x dpi / 96 pixels, rounded; absent or anything else for 13 |
+
+It is read at the start with the font size. With it the cell is 16 pixels at
+120 dots per inch and 20 at 144, for every button style that draws one
+(check box, radio button, three-state box, their automatic forms, checked,
+indeterminate, disabled, pressed, `BS_FLAT`) and for the cells of
+`OBM_CHECKBOXES`. `DrawFrameControl` draws them at that size from the cells
+of the Marlett font, so they are as sharp as the small ones, not stretched.
+The caption follows the cell where it belongs (after it, before it with
+`BS_LEFTTEXT`), and the focus rectangle frames the caption as before. The
+check marks of menus already follow the menu font; nothing else changes.
+`tools/test_check_cell_host.py` measures the cells at 96 and 144 dots per
+inch with and without the setting.
+
 ## Fonts between two sizes
 
 A raster font has only the sizes of its file. The mapper weighs them with

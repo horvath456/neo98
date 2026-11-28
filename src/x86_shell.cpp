@@ -330,5 +330,49 @@ void Application::ShellEvent(unsigned code, unsigned hwnd, unsigned parameter)
     ShellEnvironment e(*this);
     Win98Shell::Hook(shell_state, e, code, hwnd, parameter);
 }
+// HSHELL_GETMINRECT, which USER's DefWindowProc asks for 0313h with lParam
+// -1 (and nothing else here). SHELL's hook does what it does for every
+// code 5 (Win98Shell::Send): a SHELLHOOKINFO of 12 bytes, the window and
+// then the rectangle as four words, sent with its registered message to
+// each of its windows, and the rectangle copied back. Explorer's taskbar
+// fills it with the window's button in screen coordinates, cut to what
+// shows of its band, and leaves it as it was for a window without one.
+// The taskbar answers on its own thread in Explorer, and USER's caller
+// waits for it: a send between the processes, with the info in the memory
+// of the shell's process. False when no shell hook is registered.
+bool Application::ShellMinRect(unsigned hwnd, Gdi::RECT &rect)
+{
+    rect = {};
+    auto *shell = static_cast<Application *>(User::ShellHookOwner());
+    if (!shell || !shell->shell_subscription || shell->shell_subscription != shell->shell_state.hook)
+        return false;
+    // The list as it stands now: the shell may change it, or end, while it
+    // is asked.
+    unsigned windows[sizeof shell->shell_state.windows / sizeof *shell->shell_state.windows];
+    const unsigned count = shell->shell_state.count, message = shell->shell_state.message;
+    for (unsigned i = 0; i < count; ++i)
+        windows[i] = shell->shell_state.windows[i];
+    const unsigned info = shell->Allocate(12);
+    if (!info)
+        return true;
+    const unsigned zero[3] = {hwnd, 0, 0};
+    shell->Store(info, zero, sizeof zero);
+    for (unsigned i = 0; i < count; ++i)
+    {
+        if (!User::IsWindow(windows[i]))
+            continue;
+        if (shell == this)
+            CallWindow(windows[i], message, 5, info);
+        else
+            SendCrossProcessRaw(shell, windows[i], message, 5, info);
+        if (User::ShellHookOwner() != shell || state == Failed || state == Exited)
+            return false;
+    }
+    short words[4] = {};
+    shell->Read(info + 4, words, sizeof words);
+    shell->Free(info);
+    rect = {words[0], words[1], words[2], words[3]};
+    return true;
+}
 #include "x86_shell_dragdrop.inc"
 } // namespace X86

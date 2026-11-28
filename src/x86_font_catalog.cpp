@@ -200,6 +200,18 @@ void Application::LoadDisplayDpi()
     };
     const int logical_x = number("DPILogicalX"), logical_y = number("DPILogicalY");
     Gdi::SetDpi(logical_x, logical_y, number("DPIPhysicalX"), number("DPIPhysicalY"));
+    // Neo98's own setting, HKLM\Software\NEO98\CheckBoxesFollowFontSize:
+    // "1" (or a DWORD 1) makes the cell of check boxes and radio buttons
+    // 13 x dpi / 96 instead of the 13 pixels of USER (docs/FONT-SIZE.md).
+    U neo = Registry::Missing;
+    const Registry::Value *follow = nullptr;
+    bool scaled = false;
+    if (!registry.Open(registry.roots[2], "Software\\NEO98", false, neo, created) &&
+        !registry.Query(neo, "CheckBoxesFollowFontSize", follow) && follow && follow->data && follow->size)
+        scaled = (follow->type == 1 && follow->data[0] == '1') ||
+                 ((follow->type == 3 || follow->type == 4) && follow->data[0] == 1);
+    const int dpi = logical_x > 0 ? logical_x : 96;
+    User::SetCheckCell(scaled ? (13 * dpi + 48) / 96 : 13);
 }
 
 // A raster face as a GDI font, enlarged by a whole factor when the mapper

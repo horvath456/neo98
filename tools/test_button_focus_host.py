@@ -35,27 +35,34 @@ import win98_c  # noqa: E402
 win98_c.use_pristine()  # tests start from setup's C:, never the user's
 
 FACE, BLACK, HIGHLIGHT = 0xc0c0c0, 0x000000, 0x000080
-# Notepad and its dialogs stand at the same place in every run. The focus
-# rectangles in screen pixels, right and bottom exclusive:
+# Notepad and its dialogs stand at the same place in every run. Notepad's
+# client area begins at 68,97: its frame at 64,55, the sizing border of 4,
+# the caption of 19 (SM_CYCAPTION) and the menu bar of 19 (SM_CYMENU, 18
+# from MenuHeight -270 twips and one border). COMDLG32 places Find at 30,73
+# dialog units from there (45,119 pixels with the base units 6 by 13), at
+# 113,216, and its client area at 116,238, inside the dialog frame of 3 and
+# the caption. The rectangles were first measured with a menu bar of 20, the
+# port's old default, and lay a pixel lower; Save As moves with Notepad too.
+# The focus rectangles in screen pixels, right and bottom exclusive:
 EXPECTED = {
     # "Save as type" (CBS_DROPDOWNLIST): the item rectangle, with
     # the item at (3,3) and tmHeight+2 high as combo_contract measures it on
     # Win98 SE.
-    'combo': [[156, 334, 367, 349]],
+    'combo': [[156, 333, 367, 348]],
     # The edit "Find what" has the caret, no rectangle.
     'edit': [],
-    # "Match case": the caption at 140,310 (13 + 3 + 2 points right of the
-    # control at 122), one border before, 13 + 1 + 2 points high.
-    'check': [[139, 309, 197, 325]],
+    # "Match case": the caption at 140,309 (13 + 3 + 2 points right of the
+    # control at 122,306), one border before, 13 + 1 + 2 points high.
+    'check': [[139, 308, 197, 324]],
     # "Find Next" and then "Cancel", each the default push button while it
-    # has the focus (389..464 x 247..270, 276..299): inset by edge, border
-    # and border.
-    'next': [[393, 251, 460, 266]],
-    'cancel': [[393, 280, 460, 295]],
+    # has the focus (389..464 x 246..269, 275..298; 5 and 23 dialog units
+    # below the client area): inset by edge, border and border.
+    'next': [[393, 250, 460, 265]],
+    'cancel': [[393, 279, 460, 294]],
     # "Down" after ALT+D: the caption at 341 is 28 points wide (D 8, o 6,
     # w 8, n 6 in SSERIFE.FON), so the right side of the frame lies at 369,
     # next to the last column of the n. The control itself reaches to 376.
-    'radio': [[340, 303, 370, 319]],
+    'radio': [[340, 302, 370, 318]],
     # The dialog is gone.
     'after': [],
 }

@@ -13,7 +13,10 @@ def main():
                        steps=f'4:key=1b;8:key=1b;10:wait=Shell_TrayWnd;11:open={drive}/WINDOWS/NOTEPAD.EXE;'
                              '13:wait=Notepad;14:tops=1;15:keydown=11;15.1:key=1b;15.2:keyup=11;'
                              '17:tops=1;18:key=1b;19:keydown=5b;19.2:keyup=5b;21:tops=1;'
-                             '22:key=1b;23:keydown=5c;23.1:key=41;23.2:keyup=5c;25:tops=1', seconds=27)
+                             '22:key=1b;23:keydown=5c;23.1:key=41;23.2:keyup=5c;25:tops=1', seconds=27,
+                       # Explorer's first start on the pristine drive runs the setup
+                       # of the first logon before the taskbar is there.
+                       deadline=240)
             snapshots = re.findall(r'^NEO98 HOST tops foreground=.*$(?:\n^NEO98 HOST (?:top|child) .*$)*', log, re.M)
             assert len(snapshots) == 4, len(snapshots)
             assert 'class=Notepad' in snapshots[0]

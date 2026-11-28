@@ -2510,6 +2510,8 @@ unsigned Application::DosVmWindowMessage(unsigned hwnd, unsigned message, unsign
     case 0x000f: // WM_PAINT
     {
         User::Paint paint = {};
+        SendFramePaint(hwnd);
+        if (!User::IsWindow(hwnd)) return 0;
         const unsigned dc = User::BeginPaint(hwnd, paint);
         if (log && trace_calls)
         {

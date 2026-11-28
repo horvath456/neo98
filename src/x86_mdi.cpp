@@ -221,7 +221,10 @@ void Application::MdiComposeMenu(MdiClient &record)
         const unsigned arguments[] = {child, 0};
         const unsigned system = Api("GetSystemMenu", arguments);
         if (!system) return;
-        Win98Menu::Info icon{}; icon.mask = 2 | 4 | 0x80; icon.submenu = system; icon.bitmap = 1;
+        // HBMMENU_SYSTEM with the child as its item data: the bar draws the
+        // child's small icon there, as USER does.
+        Win98Menu::Info icon{}; icon.mask = 2 | 4 | 0x20 | 0x80; icon.submenu = system; icon.bitmap = 1;
+        icon.data = child;
         if (!User::MenuItemInfo(menu, 0, 0x400, icon, 2, false)) return;
         record.decorated_menu = menu; record.decorated_child = child; record.decorated_system = system;
         const unsigned commands[] = {0xf020, ScRestore, ScClose}, bitmaps[] = {3, 2, 5};

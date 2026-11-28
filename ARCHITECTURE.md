@@ -55,7 +55,9 @@ Each Windows process gets its own address space, modules, handles and
 threads. Windows threads run as fibers on a single host thread and take turns
 at waits and messages (`src/fiber*`, `src/x86_threads.cpp`). This keeps the
 order of events as Windows 98 programs expect it. 16-bit programs share one
-task, as they did on Windows 98. What a process costs the host in memory,
+task, as they did on Windows 98, and use the same windows and classes as
+32-bit ones; how their records and window procedures are translated is in
+[docs/WIN16-WINDOWS.md](docs/WIN16-WINDOWS.md). What a process costs the host in memory,
 and what comes back when it frees something or ends, is in
 [docs/HOST-MEMORY.md](docs/HOST-MEMORY.md).
 

@@ -297,7 +297,16 @@ unsigned Application::ComboBoxMessage(unsigned hwnd,unsigned message,unsigned wp
     if(n)if(const unsigned p=Allocate(n+1)){Store(p,text,n+1);item=b->List(0x18f,~0u,p);Free(p);}
     if(item==~0u)item=0;
     b->List(0x186,~0u,0);b->List(0x19e,item,0);b->List(0x197,item,0);
-   }}else if(code==0x100){if(!(s.flags&4)){b->Edit(0xb1,0,~0u);s.flags|=4;b->Notify(3);}}else if(code==0x200){s.flags&=~4u;b->Notify(4);}}return 0;}
+   }}else if(code==0x100){if(!(s.flags&4)){b->Edit(0xb1,0,~0u);s.flags|=4;b->Notify(3);}}
+   // USER's kill-focus helper of a combo box, on EN_KILLFOCUS of its edit:
+   // the edit was made with ES_NOHIDESEL, so the combo takes the highlight
+   // off itself (EM_SETSEL 0,0), closes its list unless the focus stays in
+   // it, and sends CBN_KILLFOCUS. The highlight stayed drawn.
+   else if(code==0x200&&(s.flags&4)){
+    s.flags&=~4u;b->Edit(0xb1,0,0);
+    bool inside=false;for(unsigned next=User::GetFocus();next;next=User::Parent(next))if(next==b->list||next==hwnd)inside=true;
+    if(!inside&&(s.flags&0x80))b->Drop(false);
+    if(FindComboBox(hwnd)==b)b->Notify(4);}}return 0;}
  case 0x201:case 0x203:
   if(s.flags&2){if(s.flags&0x80)b->Close(true);else{s.flags|=0x20;b->Pressed(true);b->Drop(true);if(b->Alive())User::CaptureOperation(1,hwnd);}}return 0;
  case 0x200:if((s.flags&0x20)&&(s.flags&0x80)){

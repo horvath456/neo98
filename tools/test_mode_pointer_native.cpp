@@ -9,6 +9,9 @@
 #include "../src/x86_app.h"
 #undef private
 #include "system_tree_host.h"
+#ifdef NEO98_RUNTIME_CONTENT
+#include "runner_windows_data.h"
+#endif
 #include <cassert>
 #include <cstdio>
 #include <vector>
@@ -73,7 +76,12 @@ int main(int argc, char **argv)
 {
     assert(argc == 3);
     auto exe = load(argv[1]), font = load(argv[2]);
+#ifdef NEO98_RUNTIME_CONTENT
+    // The tables of src/ out of setup's drive C:, which is mounted as well.
+    if (!RunnerWindowsData::Load()) return 1;
+#else
     assert(SystemTreeHost::Mount());
+#endif
     auto *app = new X86::Application(nullptr);
     assert(app->Start(exe.data(), exe.size(), font.data(), font.size(), "MODEPTR.EXE", ""));
     Wait(app, 1);

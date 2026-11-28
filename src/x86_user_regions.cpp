@@ -144,8 +144,8 @@ unsigned Application::UpdateRegionApi(ApiName name, const unsigned *a)
             last_error = 87;
             return 0;
         }
-        if (a[2] && User::GetUpdateRect(a[0], nullptr) && User::TakeFramePaint(a[0]))
-            CallWindow(a[0], 0x85, 1, 0);
+        if (a[2] && User::GetUpdateRect(a[0], nullptr))
+            if (const unsigned region = User::TakeFramePaint(a[0])) { CallWindow(a[0], 0x85, region, 0); User::DropFramePaint(region); }
         if (a[2] && User::GetUpdateRect(a[0], nullptr) && User::NeedsErase(a[0]))
         {
             const unsigned token = User::EraseToken(a[0]);

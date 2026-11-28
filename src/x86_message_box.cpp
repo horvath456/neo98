@@ -210,7 +210,7 @@ bool Application::MessageBoxMessage(unsigned hwnd,unsigned message,unsigned wp,u
  }
  if(message==0x14){Gdi::RECT r{};if(User::GetClientRect(hwnd,&r)){unsigned color=15;result=Gdi::FillRect(wp,&r,Api("GetSysColorBrush",&color));}return true;}
  if(message==0xf){
-  User::Paint paint{};unsigned dc=User::BeginPaint(hwnd,paint);if(!dc)return true;
+  User::Paint paint{};SendFramePaint(hwnd);if(!User::IsWindow(hwnd))return true;unsigned dc=User::BeginPaint(hwnd,paint);if(!dc)return true;
   Gdi::SaveDC(dc);Gdi::SelectObject(dc,f->font);Gdi::SetBkMode(dc,Gdi::TRANSPARENT);unsigned color=18;Gdi::SetTextColor(dc,Api("GetSysColor",&color));
   Gdi::RECT client{};User::GetClientRect(hwnd,&client);color=15;Gdi::FillRect(dc,&client,Api("GetSysColorBrush",&color));
   auto text=Rectangle(f->layout.text);Store(f->scratch,&text,sizeof text);unsigned a[]={dc,f->text,~0u,f->scratch,0x2a50u|((f->parameters.style&0x80000)?2u:0u)};Api("DrawTextA",a);

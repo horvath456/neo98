@@ -122,6 +122,7 @@ unsigned SetWindowIcon(HWND, bool large, unsigned icon);
 bool TakeSizeMove(HWND);
 using ShellEvent = void (*)(void *, unsigned code, HWND, unsigned parameter);
 void SetShellHookOwner(void *context);
+void *ShellHookOwner(); // the process that registered SHELL's hook, or null
 void SetShellEvents(void *, ShellEvent);
 using ShellPosition = void (*)(void *, HWND);
 using ShellMessage = void (*)(void *, HWND, unsigned, unsigned, unsigned);
@@ -395,7 +396,14 @@ void ClipAncestorUpdates(HWND);
 bool AncestorNeedsPaint(HWND);
 bool OrderUnchanged(HWND, HWND after);
 bool GetUpdateRect(HWND, Gdi::RECT *);
-bool TakeFramePaint(HWND);
+// The wParam of the WM_NCPAINT the window is owed (0: none, 1: the whole
+// window, else a region in screen coordinates), taken off the window; after
+// the message DropFramePaint deletes the region.
+unsigned TakeFramePaint(HWND);
+void DropFramePaint(unsigned parameter);
+// DefWindowProc of WM_SETTEXT and WM_SETICON: a frame the window's thread
+// paints is painted at once, as USER redraws the caption there.
+void PaintThreadFrame(HWND);
 void InvalidateFrame(HWND);
 bool TakeInternalPaint(HWND);
 bool NeedsErase(HWND);
@@ -588,6 +596,7 @@ bool EndMenu();bool PopupActive();unsigned PopupCommand();bool PopupInputMessage
 // SC_KEYMENU: the menu mode of the window's bar from the keyboard (USER); character 0 for ALT or F10 alone, ' ' for the system menu.
 unsigned KeyMenu(HWND,HMENU system_menu,unsigned character);
 unsigned MouseMenu(HWND,int x,int y);
+unsigned MouseSystemMenu(HWND,HMENU system);
 bool BarModeActive();bool MenuBeepRequest();unsigned MenuSoundRequest();
 unsigned MenuKeyFlags(unsigned thread,unsigned clear,unsigned set); // answers the bits before the change
 unsigned PopupHoverRequest();bool PopupHoverOpen(unsigned window);
@@ -598,6 +607,11 @@ unsigned PopupWindowForMenu(HMENU);
 bool MenuIdleTarget(HWND &owner, HWND &popup);
 unsigned GetDoubleClickTime();
 void SetDoubleClickTime(unsigned);
+// The cell of a check box or radio button: 13 pixels, as USER of Windows 95
+// and 98 fixes it at every font size, or 13 x dpi / 96 with the Neo98 setting
+// CheckBoxesFollowFontSize (docs/FONT-SIZE.md).
+int CheckCell();
+void SetCheckCell(int pixels);
 // Hardware state is captured immediately; routing may run later on a GUI fiber.
 struct InputPacket
 {

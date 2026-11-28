@@ -34,7 +34,7 @@ from native_app import ROOT, build_host  # noqa: E402
 import win16_fixture  # noqa: E402
 import win98_c  # noqa: E402
 
-WORDS = 57
+WORDS = 59
 
 
 def main():
@@ -46,7 +46,7 @@ def main():
     drive = out / 'c'
     subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(pristine.resolve()), str(drive)], check=True)
     win16_fixture.assemble(ROOT / 'tools/ordinals_win16_fixture.asm', out / 'ORD16.EXE', 'ORD16',
-                           neo98.tool_environment(), ('KERNEL', 'USER', 'GDI', 'SHELL'))
+                           neo98.tool_environment(), ('KERNEL', 'USER', 'GDI', 'SHELL', 'KEYBOARD'))
     shutil.copyfile(out / 'ORD16.EXE', drive / 'ORD16.EXE')
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_DEADLINE='60',
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))
@@ -89,7 +89,10 @@ def main():
         # TRUE in DX, the length with the terminating zero in AX, as SHELL32 counts.
         'SHELL.37 DoEnvironmentSubst expands through SHELL32':
             (w[54], w[55]) == (len(environment) + 1, 1) and environment == b'C:\\WINDOWS\\X',
-        'every gate took its word count off the stack': w[56] == 0,
+        # Character Map names the keystroke of a character with it; a
+        # capital letter is the letter's key with Shift (1 in the high byte).
+        'KEYBOARD.129 VkKeyScan answers the key and the shift state': (w[56], w[57]) == (0x41, 0x141),
+        'every gate took its word count off the stack': w[58] == 0,
     }
     for name, passed in checks.items():
         print('ok  ' if passed else 'FAIL', name, flush=True)

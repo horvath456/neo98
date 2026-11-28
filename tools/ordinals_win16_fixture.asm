@@ -18,10 +18,12 @@
 ; MENUITEMINFO of 26 bytes
 ; USER.259 to 261 the deferred positioning the HDWP as a word
 ; SHELL.37 DoEnvironmentSubst SHELL32 on the flat stack
+; KEYBOARD.129 VkKeyScan the key and the shift state of a character
 ;
 ; Every call is checked for its word count as well: the stack pointer after
 ; the last one has to be the one before the first. The New Executable is made
-; as for tools/layer_win16_fixture.asm, with GDI as module 3 and SHELL as 4.
+; as for tools/layer_win16_fixture.asm, with GDI as module 3, SHELL as 4 and
+; KEYBOARD as 5.
         bits 16
 section header start=0
         dw code_end - code_start, data_end - data_start, (fix_end - fix_start) / 6
@@ -31,7 +33,7 @@ section fix vstart=0 follows=data align=1
 fix_start:
 
 ; A far call the loader fills in: module 1 is KERNEL, 2 is USER, 3 is GDI,
-; 4 is SHELL.
+; 4 is SHELL, 5 is KEYBOARD.
 %macro API 2
 %%at:   db 0x9a, 0xff, 0xff, 0x00, 0x00
 [section fix]
@@ -311,6 +313,15 @@ code_start:
         API 4, 37
         KEEP
         mov ax, dx
+        KEEP
+
+        ; KEYBOARD.129 VkKeyScan(character): the virtual key in the low byte,
+        ; the shift state in the high one
+        push word 'a'
+        API 5, 129
+        KEEP
+        push word 'A'
+        API 5, 129
         KEEP
 
         ; The stack pointer against the one before the first call.

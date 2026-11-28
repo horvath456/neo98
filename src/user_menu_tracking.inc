@@ -452,6 +452,17 @@ unsigned MouseMenu(HWND owner,int x,int y){
  }
  return 0;
 }
+// SC_MOUSEMENU with HTSYSMENU: the press on the icon of the caption drops
+// the system menu below the icon, in the menu mode of the window's bar as
+// the keyboard's does (the menu loop of USER, entered with the system
+// menu selected and open).
+unsigned MouseSystemMenu(HWND owner,HMENU system){
+ auto*w=Find(owner);if(!w||!system||bar_session.active||PopupSession())return 0;
+ const bool child=(w->style&0xc0000000u)==0x40000000u;
+ HMENU bar=!child&&(w->nonclient_flags&1)?w->menu:0;
+ if(bar&&!FindMenu(bar))bar=0;
+ return RunBarSession(owner,bar,system,BarSystem,false,true,0);
+}
 unsigned KeyMenu(HWND owner,HMENU system,unsigned character){
  auto*w=Find(owner);if(!w||bar_session.active||PopupSession())return 0;
  const bool child=(w->style&0xc0000000u)==0x40000000u;
@@ -553,7 +564,28 @@ bool PopupRouteInput(const InputPacket&p){auto*s=PopupSession();if(!s||!s->curre
   PopupView*root=nullptr;for(auto&v:popup_views)if(v.used&&v.bar_menu&&v.session==s){root=&v;break;}
   auto*owner=root?Find(root->popup.owner):nullptr;int bar_hit=-1;
   if(owner&&(owner->nonclient_flags&1)){const auto o=Origin(*owner);for(unsigned j=0;j<owner->menu_items;++j)if(Inside(owner->menu_item[j],p.x-o.x,p.y-o.y)){bar_hit=int(j);break;}}
-  if(bar_hit>=0&&unsigned(bar_hit)!=root->bar_index&&(down||p.moved)&&bar_session.active){BarOpen(bar_hit,false);MT::Close(popup_environment,*s,0,0,0);}
+  // The menu loop of USER: a second press on the icon of the caption
+  // whose system menu is open, within the double-click time and box of the
+  // press that opened it, closes the menu and the window (SC_CLOSE, as the
+  // double click of DefWindowProc on the icon does).
+  const unsigned system_owner=s->current?s->current->owner:0;
+  const bool icon_double=down&&(p.changed&p.buttons&1)&&bar_session.active&&bar_session.index==BarSystem&&
+   bar_session.owner==system_owner&&(s->current->flags&4)&&HitTest(system_owner,p.x,p.y)==Win98FrameHit::SysMenu&&
+   last_click_window==system_owner&&last_click_message==0x201&&p.milliseconds&&p.milliseconds-last_click_time<=double_click_time&&
+   p.x-last_click_x>=-int(SystemSettings().Word(0x326))&&p.x-last_click_x<=int(SystemSettings().Word(0x326))&&
+   p.y-last_click_y>=-int(SystemSettings().Word(0x328))&&p.y-last_click_y<=int(SystemSettings().Word(0x328));
+  // The same for the icon of a maximized MDI child at the start of its
+  // frame's bar (HBMMENU_SYSTEM): the double click is the child's Close, the
+  // command its system menu there sends the frame.
+  auto*bar_menu=owner?FindMenu(owner->menu):nullptr;
+  const bool child_double=!icon_double&&down&&(p.changed&p.buttons&1)&&root&&bar_hit==0&&root->bar_index==0&&
+   bar_menu&&bar_menu->count&&bar_menu->items[0].bitmap==1&&!(bar_menu->items[0].type&0x100)&&
+   last_click_window==root->popup.owner&&last_click_message==0x201&&p.milliseconds&&p.milliseconds-last_click_time<=double_click_time&&
+   p.x-last_click_x>=-int(SystemSettings().Word(0x326))&&p.x-last_click_x<=int(SystemSettings().Word(0x326))&&
+   p.y-last_click_y>=-int(SystemSettings().Word(0x328))&&p.y-last_click_y<=int(SystemSettings().Word(0x328));
+  if(icon_double){last_click_window=0;bar_session.again=false;MT::Close(popup_environment,*s,0x112,0xf060,0);}
+  else if(child_double){last_click_window=0;bar_session.again=false;MT::Close(popup_environment,*s,0x111,0xf060,0);}
+  else if(bar_hit>=0&&unsigned(bar_hit)!=root->bar_index&&(down||p.moved)&&bar_session.active){BarOpen(bar_hit,false);MT::Close(popup_environment,*s,0,0,0);}
   else if(down)MT::Close(popup_environment,*s,0,0,0);
   else if(up)s->flags&=~8u;
  }
