@@ -39,8 +39,8 @@ loops do.
 
 Not the same:
 
-- The system menu of the window has no "Edit", "Toolbar" and "Properties"
-  of WINOLDAP; the sheet opens from the Properties button of the toolbar.
+- The property sheet opens from the system menu's Properties and from the
+  button of the toolbar ([DOS-WINDOW-MENU.md](DOS-WINDOW-MENU.md)).
 - `WM_SETFOCUS` to a field of the sheet passes no `WH_CALLWNDPROC`; the
   `WH_CBT` focus event comes.
 

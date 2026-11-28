@@ -1936,6 +1936,12 @@ private:
     void DosVmScale();
     void DosVmFullscreen(bool on);
     bool DosVmLoadToolbar();
+    unsigned char *DosVmWoaModule(unsigned &size);
+    void DosVmSystemMenu();
+    void DosVmMenuStates();
+    void DosVmToggleToolbar();
+    void DosVmSystemCommand(unsigned command);
+    void DosVmToolbarCommand(unsigned button, unsigned tail);
     void DosVmPaintToolbar(unsigned dc, int width);
     void DosVmToolbarClick(int x, int y);
     void DosVmReloadSettings();

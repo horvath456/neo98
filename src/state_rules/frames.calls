@@ -245,7 +245,7 @@ resumable  X86::Application::DialogGotoMnemonic sites=2  # only direct button WM
 resumable  X86::Application::PifPropertySheet sites=3  # guest scratch owns pages/templates/header/module; only phase 1 records the sheet call and phase 2 releases it
 resumable  X86::Application::PifAdvancedDialog sites=3  # records only the initialized Advanced modal loop and clears the page globals afterward
 resumable  X86::Application::PifPageMessage sites=2  # only command 4008 preserves the post-Advanced enable/real-mode control update and TRUE return
-resumable  X86::Application::DosVmToolbarClick sites=2  # a recorded Properties/Font caller preserves timer/flags/window invalidation and the outer mouse reset
+resumable  X86::Application::DosVmToolbarCommand sites=2  # a recorded Properties/Font caller (a button of the strip or an item of the system menu) preserves timer/flags/window invalidation and the outer mouse reset
 resumable  X86::Application::DosVmWindowMessage sites=2  # forwards the actual window-message tail only to toolbar clicks (also the host's properties request); other messages do not gain a record
 resumable  X86::Application::ServeOpenRequests sites=1  # the GetMessage/PeekMessage owner preserves its arguments; each settings request uses its own PIF record
 
