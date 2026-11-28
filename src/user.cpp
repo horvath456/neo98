@@ -1229,7 +1229,6 @@ static void MeasureMultiline(const Window &w,Gdi::HDC dc,const Win98ButtonLayout
 // Windows 95 reads both from the empty byte and draws every line from the
 // left of the block.
 static bool multiline_lines_left = false;
-void SetMultilineButtonLinesLeft(bool left) { multiline_lines_left = left; dirty = true; }
 static void DrawMultiline(const Window &w,Gdi::HDC dc,int x,int y,const Gdi::SIZE &text)
 {
     const unsigned horizontal=Win98ButtonLayout::Alignment(w.style)&3;
@@ -5333,6 +5332,7 @@ unsigned GetDoubleClickTime() { return double_click_time; }
 static int check_cell = 13;
 int CheckCell() { return check_cell; }
 void SetCheckCell(int pixels) { check_cell = pixels < 13 ? 13 : pixels > 64 ? 64 : pixels; dirty = true; }
+void SetMultilineButtonLinesLeft(bool left) { multiline_lines_left = left; dirty = true; }
 void SetDoubleClickTime(unsigned time) { double_click_time = !time ? 500 : time > 5000 ? 5000 : time; }
 unsigned PhysicalMouseButtons() { return mouse_buttons; }
 bool PhysicalKeyDown(unsigned key) { return input.Down(key); }
