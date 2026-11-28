@@ -48,6 +48,7 @@
 #include "win98_frame_control.h"
 #include "win98_rect.h"
 #include "win98_send_message.h"
+#include "win98_win16_controls.h"
 #include "win98_kernel.h"
 #include <stdio.h>
 #include <stdlib.h>

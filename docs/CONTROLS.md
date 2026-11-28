@@ -118,3 +118,45 @@ sorted brackets among the letters, and ended the list box on `LB_ADDFILE`
 `src/x86_dlgdir.cpp`). Measured in Windows 95 OSR2 and Windows 98 SE with
 `tools/cross_process_lists_fixture.c`.
 
+## The messages of controls across processes
+
+A program may send a list box, a combo box or an edit control of another
+process the messages that carry a pointer. USER32 of Windows 95 and 98 hands
+them to the 16-bit USER, whose thunk knows the control's messages by its
+class and copies what the pointer reaches into its own memory and back, so
+they work as within one process:
+
+| What the pointer reaches | Messages |
+| --- | --- |
+| a string the control reads | `CB_ADDSTRING`, `CB_INSERTSTRING`, `CB_FINDSTRING`, `CB_FINDSTRINGEXACT`, `CB_SELECTSTRING`, `CB_DIR`, the same of `LB_`, `LB_ADDFILE`, `EM_REPLACESEL` |
+| a text the control writes, as long as its length says | `CB_GETLBTEXT`, `LB_GETTEXT` |
+| a rectangle the control writes or reads | `CB_GETDROPPEDCONTROLRECT`, `LB_GETITEMRECT`, `EM_GETRECT`; `EM_SETRECT`, `EM_SETRECTNP` |
+| an array | `LB_GETSELITEMS` (written), `LB_SETTABSTOPS`, `EM_SETTABSTOPS` (read) |
+| two `DWORD`s behind `wParam` and `lParam` | `CB_GETEDITSEL`, `EM_GETSEL` |
+| a structure read and written | `WM_GETMINMAXINFO` |
+
+An owner-drawn list or combo box without `LBS_HASSTRINGS` or
+`CBS_HASSTRINGS` takes the value itself for the string messages and answers
+its item's `DWORD` to `LB_GETTEXT` and `CB_GETLBTEXT`. `WM_GETTEXT` gets a
+buffer of `wParam` bytes and all of them come back: the text, its end and
+zeros. `EM_GETLINE`, whose first word gives the size, ends its sender with a
+fault in Windows 95 and 98; here it is copied like the others.
+
+Neo98 copied the strings of `WM_SETTEXT` and `WM_GETTEXT` and the block of
+`WM_COPYDATA` only; the other pointers reached the other process as numbers
+of the sender's memory, so `CB_SELECTSTRING` to another program's combo box
+selected nothing. The receiver now gets a copy in its own memory for the
+time of the send, filled from the sender's buffer, and every byte of it
+goes back (`SendCrossProcess`, `src/x86_send_message.inc`; the table is the
+one of the 16-bit messages, `Win98Win16Controls::MessageBuffer`). A 16-bit
+program's message takes the same way, after its pointer was made a flat one
+of its own memory.
+
+`tools/cross_process_lists_fixture.c` starts itself as a server with the
+controls and sends them the messages;
+`tools/cross_process_lists_win16_fixture.asm` sends some from a 16-bit
+program; `tools/test_cross_process_lists_host.py` compares every answer and
+buffer with Windows 98 SE (Windows 95 OSR2 answers the same). The edit's
+formatting rectangle differs and is not compared: Windows' is two points
+wider, and its `EM_SETRECT` insets the rectangle, cuts it to whole lines and
+answers 1.

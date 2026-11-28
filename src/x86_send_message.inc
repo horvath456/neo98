@@ -98,7 +98,11 @@ unsigned Application::FinishSendCopy(unsigned process,unsigned block,unsigned re
   if(output&&capacity&&threads[current_thread].sent_completed){
    // WM_GETTEXT returns characters excluding the terminator. Only those
    // bytes belong to the reply; preserve the rest of the sender's buffer.
-   const unsigned bytes=result<capacity?result+1:capacity;
+   // With the high bit the capacity is the exact number of bytes: a copy
+   // that was filled from the sender's buffer goes back whole.
+   const bool exact=(capacity&0x80000000u)!=0;
+   if(exact)capacity&=0x7fffffffu;
+   const unsigned bytes=exact?capacity:result<capacity?result+1:capacity;
    unsigned char buffer[512];
    for(unsigned at=0;at<bytes;at+=sizeof buffer){
     const unsigned part=bytes-at<sizeof buffer?bytes-at:unsigned(sizeof buffer);
@@ -286,12 +290,15 @@ unsigned Application::SendCrossProcess(unsigned hwnd,unsigned message,unsigned w
  // USER's synchronous system messages carry their pointer data across
  // processes. A foreign window must write WM_GETTEXT into its own memory;
  // the reply is copied back before the sender resumes.
+ // The thunk of Windows 95 and 98 gives the receiver a buffer of wParam
+ // bytes and copies all of them back: the text, its end, and zeros up to
+ // wParam (measured with a combo box of another process).
  if(message==0x0d&&wp&&lp){
   if(!virtual_memory.Access(lp,wp,true)){last_error=87;return 0;}
   const unsigned block=other->Allocate(wp);
   if(!block){last_error=8;return 0;}
-  other->Write32(block,0);
-  return copied(block,lp,wp);
+  {unsigned char zero[256]={};for(unsigned at=0;at<wp;at+=sizeof zero)other->Store(block+at,zero,wp-at<sizeof zero?wp-at:unsigned(sizeof zero));}
+  return copied(block,lp,wp|0x80000000u);
  }
  // WM_SETTEXT, WM_WININICHANGE and WM_DEVMODECHANGE carry a string. Under
  // Win98 the message goes through USER.EXE, where the string is valid for
@@ -312,6 +319,70 @@ unsigned Application::SendCrossProcess(unsigned hwnd,unsigned message,unsigned w
    text[n-1]=0;other->Store(block,text,n);
    free(text);
    return copied(block);
+  }
+ }
+ // The pointers of the list box, combo box and edit messages, and of
+ // WM_GETMINMAXINFO. USER of Windows 95 and 98 carries them to a control of
+ // another process: USER32 hands the message to the 16-bit USER, whose thunk
+ // knows the control's messages by its class and copies what the pointer
+ // reaches into its own memory and back. A string goes in (CB_ADDSTRING,
+ // LB_FINDSTRING, EM_REPLACESEL, CB_DIR...), a text, a rectangle or an array
+ // comes out (CB_GETLBTEXT, LB_GETTEXT, EM_GETLINE, LB_GETITEMRECT,
+ // LB_GETSELITEMS...) or goes in (EM_SETRECT, LB_SETTABSTOPS), and an
+ // owner-drawn list or combo box without LBS_HASSTRINGS or CBS_HASSTRINGS
+ // takes the value itself and answers its item's DWORD. Here the receiver
+ // gets a copy in its own memory for the time of the send, filled from the
+ // sender's buffer, and every byte of it goes back. The table is the one of
+ // the 16-bit messages (Win98Win16Controls::MessageBuffer).
+ {
+  namespace C=Win98Win16Controls;
+  const unsigned control=User::IsEdit(hwnd)?2u:User::CommonControl(hwnd);
+  const unsigned style=User::Style(hwnd);
+  // EM_GETSEL and CB_GETEDITSEL: a DWORD each behind wParam and lParam.
+  if(((control==2&&message==0xb0)||(control==6&&message==0x140))&&(wp||lp)){
+   unsigned values[2]={0,0};
+   if((wp&&!Read(wp,&values[0],4))||(lp&&!Read(lp,&values[1],4))){last_error=87;return 0;}
+   const unsigned block=other->Allocate(8);if(!block){last_error=8;return 0;}
+   other->Store(block,values,8);
+   GiveTail(TailNone);
+   const unsigned result=SendCrossProcessRaw(other,hwnd,message,wp?block:0,lp?block+4:0,timeout,flags,completed);
+   if(threads[current_thread].sent_completed&&other->Read(block,values,8)){if(wp)Store(wp,&values[0],4);if(lp)Store(lp,&values[1],4);}
+   if(auto*s=SendState::Find(*other,false))
+    for(auto&r:s->records)
+     if(r.phase==2&&r.message==message&&r.wp==(wp?block:0)&&r.lp==(lp?block+4:0)&&!r.copy){r.copy=block;return result;}
+   other->Free(block);
+   return result;
+  }
+  unsigned in=0,out=0,buffer=C::None;
+  if(lp&&(control==2||control==4||control==6))buffer=C::MessageBuffer(control,message,style);
+  if(buffer==C::StringIn){
+   const unsigned probe[2]={lp,1u<<20};
+   unsigned n=0;bool readable=!Api("IsBadStringPtrA",probe);
+   if(readable)for(char c=1;c&&n<(1u<<20);++n)if(!Read(lp+n,&c,1)){readable=false;break;}
+   if(readable)in=n;
+  }else if(buffer==C::TextOut){
+   if(control==2){unsigned short size=0;if(Read(lp,&size,2))in=out=size<2?2u:size;}
+   else if(!C::HasStrings(control,style))in=out=4;
+   else{
+    const unsigned characters=SendCrossProcessRaw(other,hwnd,control==6?0x149:0x18a,wp,0);
+    if(int(characters)>=0&&characters<(1u<<20))in=out=characters+1;
+   }
+  }else if(buffer==C::RectOut)in=out=16;
+  else if(buffer==C::RectIn)in=16;
+  else if(buffer==C::WordsIn&&wp<65536)in=wp*4;
+  else if(buffer==C::WordsOut&&wp<65536)in=out=wp*4;
+  if(message==0x24&&lp)in=out=40;
+  if(in){
+   auto*bytes=static_cast<unsigned char*>(calloc(in,1));
+   if(!bytes){last_error=8;return 0;}
+   // A buffer the sender only reads back may begin unreadable; it goes
+   // zeroed then.
+   if(!Read(lp,bytes,in)&&!out){free(bytes);last_error=87;return 0;}
+   if(buffer==C::StringIn)bytes[in-1]=0;
+   const unsigned block=other->Allocate(in);
+   if(!block){free(bytes);last_error=8;return 0;}
+   other->Store(block,bytes,in);free(bytes);
+   return copied(block,out?lp:0,out?out|0x80000000u:0);
   }
  }
  if(message!=0x4a||!lp){GiveTail(tail);return SendCrossProcessRaw(other,hwnd,message,wp,lp,timeout,flags,completed);}
