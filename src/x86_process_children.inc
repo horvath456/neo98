@@ -383,6 +383,11 @@ unsigned Application::LaunchChild(const unsigned *a,const char *override_applica
         if(quote&&*p!='"'){last_error=2;return 0;}
     }
     if(!token[0]){last_error=2;return 0;}
+    // The name as given, before ".exe" is added: a folder of that name is
+    // no program, and KERNEL32 fails to open it with ERROR_ACCESS_DENIED
+    // where a missing name gives ERROR_FILE_NOT_FOUND (WinExec and
+    // LoadModule hand the 5 on).
+    char given[260];strcpy(given,token);
     const char*part=strrchr(token,'\\');part=part?part+1:token;
     if(!strchr(part,'.')){if(strlen(token)+4>=sizeof token){last_error=206;return 0;}strcat(token,".exe");}
     char path[260]{};unsigned node=0;bool found=false;
@@ -395,7 +400,12 @@ unsigned Application::LaunchChild(const unsigned *a,const char *override_applica
             char*p=entries;while(*p&&!found){char*end=strchr(p,';');if(end)*end=0;found=candidate(p);if(!end)break;p=end+1;}
         }}
     }
-    if(!found){last_error=2;return 0;}
+    if(!found){
+        char folder[260];unsigned directory=0;
+        if((strchr(given,'\\')||strchr(given,'/')||strchr(given,':'))&&!files.FullPath(given,folder)&&
+           !files.store.Lookup(folder,directory)&&(files.store.Get(directory)->attributes&0x10)){last_error=5;return 0;}
+        last_error=2;return 0;
+    }
     if(strlen(path)>=sizeof program_name){last_error=206;return 0;}
     const auto*file=files.store.Get(node);
     // An empty batch file is still a batch file: Win98 opens a DOS window

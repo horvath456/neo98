@@ -37,7 +37,11 @@ struct Application::LegacyProcessEnvironment {
  unsigned GetDirectory(unsigned n,unsigned out){unsigned a[]={n,out};return app.KernelPathApi("GetCurrentDirectoryA",a);}
  unsigned SetDirectory(unsigned name){return app.KernelPathApi("SetCurrentDirectoryA",&name);}
  unsigned Create(const unsigned*a){return app.ProcessApi("CreateProcessA",a);}
- unsigned Finish(unsigned kind,unsigned created,unsigned info){if(auto*s=app.ProcessFileState())app.threads[app.current_thread].file_api_flags=s->thread_flags;ReleaseMode();return Win98ProcessLegacy::Finish(*this,kind,created,info);}
+ // A started program leaves the caller's last error as it was: what the
+ // look for its task and the wait for its input set on the way is the
+ // port's own bookkeeping (WinExec of a program that ended at once left
+ // ERROR_INVALID_HANDLE behind).
+ unsigned Finish(unsigned kind,unsigned created,unsigned info){if(auto*s=app.ProcessFileState())app.threads[app.current_thread].file_api_flags=s->thread_flags;ReleaseMode();const unsigned before=app.last_error;const unsigned result=Win98ProcessLegacy::Finish(*this,kind,created,info);if(created)app.last_error=before;return result;}
  unsigned Allocate(unsigned bytes){if(++allocations>1&&bytes<minimum_command){app.last_error=87;return 0;}if(!bytes||bytes>32768){app.last_error=8;return 0;}return app.Allocate(bytes);}
  void Free(unsigned p){app.Free(p);}
  void Close(unsigned h){if((h&0xff000000)==0x40000000)app.FileApi("CloseHandle",&h);else app.ThreadApi("CloseHandle",&h);}
