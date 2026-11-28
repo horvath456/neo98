@@ -3484,11 +3484,40 @@ static HWND BackgroundFrontPosition(HWND h, const Window &w, HWND front)
     }
     return place;
 }
+// SetWindowPos with HWND_TOPMOST or HWND_NOTOPMOST changes the band of the
+// window's owned windows with it, as Windows documents it: "When a
+// non-topmost window is made topmost, its owned windows are also made
+// topmost. Its owners, however, are not changed. ... When a topmost window
+// is made non-topmost, its owners and its owned windows are also made
+// non-topmost windows." The owned windows (all top-level windows whose owner
+// chain reaches the window) get the bit before the owner pass orders them
+// above their owner; the owners follow in OrderWindow.
+static void OwnedBand(HWND h, bool topmost)
+{
+    for (unsigned i = 0; i < MaxWindows; ++i)
+    {
+        auto &other = windows[i];
+        if (!other.used || other.parent) continue;
+        bool owned = false;
+        for (HWND o = other.owner; o && !owned; )
+        {
+            if (o == h) owned = true;
+            const auto *next = Find(o);
+            o = next && next->owner != o ? next->owner : 0;
+        }
+        if (owned) other.extended = topmost ? (other.extended | 8u) : (other.extended & ~8u);
+    }
+}
 unsigned PrepareOwnedPositions(const unsigned position[7], unsigned (*out)[7], unsigned capacity)
 {
     const HWND h = position[0];
     const auto *w = Find(h);
     if (!w || !capacity) return 0;
+    if (!w->parent && !(position[6] & 4u) && h != Desktop)
+    {
+        if (position[1] == ~0u && !(w->extended & 8)) OwnedBand(h, true);
+        else if (position[1] == ~1u && (w->extended & 8)) OwnedBand(h, false);
+    }
     if (w->parent || (position[6] & 4u))
     {
         memcpy(out[0], position, 7 * sizeof(unsigned));
@@ -3570,6 +3599,13 @@ bool OrderWindow(HWND h, HWND after, bool order_owned)
     }
     const HWND behind = !after && !(w->extended & 8) ? BackgroundFrontPosition(h, *w, FrontPosition(*w)) : 0;
     if (behind == h) return true;
+    // A topmost window made non-topmost takes its topmost owners out of
+    // the band with it; they stand right below it (OwnedBand).
+    const bool leaving = after == ~1u && (w->extended & 8) && Container(*w) == Desktop;
+    // A change of band moves the window to the top of its new band; its
+    // owned windows, which changed band with it (OwnedBand), go above it
+    // again, as the owner pass of USER places them.
+    const bool band = Container(*w) == Desktop && ((after == ~0u && !(w->extended & 8)) || leaving);
     Unlink(h, *w);
     if (after == ~0u) { w->extended |= 8; after = 0; }
     else if (after == ~1u) { w->extended &= ~8u; after = 0; }
@@ -3586,7 +3622,24 @@ bool OrderWindow(HWND h, HWND after, bool order_owned)
         else if (!(w->extended & 8)) after = FrontPosition(*w);
     }
     LinkAfter(h, *w, after);
-    if (order_owned) OwnedZOrder(h);
+    if (leaving)
+    {
+        HWND below = h;
+        for (HWND o = w->owner, n = 0; o && n < MaxWindows; ++n)
+        {
+            auto *owner = Find(o);
+            if (!owner || owner->parent || o == below) break;
+            if (owner->extended & 8)
+            {
+                owner->extended &= ~8u;
+                Unlink(o, *owner);
+                LinkAfter(o, *owner, below);
+                below = o;
+            }
+            o = owner->owner != o ? owner->owner : 0;
+        }
+    }
+    if (order_owned || band) OwnedZOrder(h);
     dirty = true;
     return true;
 }
