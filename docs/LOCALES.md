@@ -5,7 +5,9 @@ numbers and money are written, which day begins the week. Windows keeps
 the values of every locale in `C:\WINDOWS\SYSTEM\LOCALE.NLS`, and the
 user's choice under `HKEY_CURRENT_USER\Control Panel\International`.
 Neo98 reads both like KERNEL32 does (`src/x86_nls_extended.inc`,
-`src/x86_nls.cpp`, `tools/host_windows_locale.h`).
+`src/x86_nls.cpp`, `tools/host_windows_locale.h`). What `SetLocaleInfoA`
+stores for a value and what Regional Settings keeps of typed text is in
+[REGIONAL-SETTINGS.md](REGIONAL-SETTINGS.md).
 
 ## Which locales there are
 

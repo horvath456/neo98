@@ -1,5 +1,7 @@
 # Regional Settings: what is stored, and typed text
 
+Which locales there are and how one is chosen is in [LOCALES.md](LOCALES.md).
+
 ## What SetLocaleInfoA stores
 
 `SetLocaleInfoA` sets a value of the user's locale under
