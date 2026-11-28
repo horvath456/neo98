@@ -357,7 +357,12 @@ class Script
             }
             else if (step.action == "ctrl")
             {
-                // ctrl=VK: the key with CONTROL held.
+                // ctrl=VK: the key with CONTROL held. CONTROL goes up again
+                // at once, before the program reads the key: GetKeyState
+                // sees it held with the key, GetAsyncKeyState does not (the
+                // property sheet of Windows 95's COMCTL32 asks the latter,
+                // docs/PROPERTY-SHEET-KEYS.md). A chord held while the
+                // program reads it is keydown=11, the key, keyup=11.
                 const unsigned key = strtoul(step.value.c_str(), nullptr, 16);
                 unsigned scan = 0; bool extended = false;
                 for (unsigned usage = 1; usage < 128; ++usage)
