@@ -140,11 +140,45 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
         for(const auto &entry:KernelCodepageNames)if(entry.id==page){Store(a[2]+24,entry.text,strlen(entry.text)+1);return 1;}
         return bad(1814); // Original CODEPAGE resources have no UTF-7/UTF-8 name.
     }
-    API_CASE("EnumSystemCodePagesA") API_CASE("EnumSystemLocalesA"){
+    API_CASE("EnumSystemLocalesA"){
+        // KERNEL32 reads the locales out of the registry, not out of
+        // LOCALE.NLS: the values of Nls\Locale and then those of
+        // Nls\AddLocales, in the order the registry keeps them. A value
+        // counts when its name is eight hexadecimal digits; LCID_INSTALLED
+        // (1) also wants a name of the locale as its data, LCID_SUPPORTED
+        // (2) takes those without one too. The callback gets the name as
+        // the registry spells it, and an answer other than TRUE ends the
+        // values of that key, not those of the next. Setup writes the
+        // locales of the installed code pages with their names and the
+        // others empty, so Regional Settings, which lists the installed
+        // ones, offers every locale of the installed language group.
+        if(!a[0])return bad(87);if(a[1]!=1&&a[1]!=2)return bad(1004);
+        const bool installed=a[1]==1;
+        const char *paths[]={Win98SystemLocale::MachinePath(),"SYSTEM\\CurrentControlSet\\Control\\Nls\\AddLocales"};
+        unsigned keys[2];
+        for(unsigned k=0;k<2;++k){bool created=false;if(registry.store.Open(registry.store.roots[2],paths[k],false,keys[k],created))return bad(1009);}
+        // RegEnumValueA into buffers of 256 bytes for the name and the data.
+        const unsigned buffer=Allocate(256);if(!buffer)return bad(8);
+        for(const unsigned key:keys)for(unsigned index=0;;++index){
+            const Registry::Value *value=nullptr;
+            if(registry.store.EnumValue(key,index,value))break;
+            const size_t length=strlen(value->name);
+            if(length>=256||value->size>256){Free(buffer);return bad(1009);}
+            bool lcid=length==8;
+            for(size_t i=0;lcid&&i<length;++i){const char c=char(value->name[i]|32);lcid=(c>='0'&&c<='9')||(c>='a'&&c<='f');}
+            if(!lcid||(installed&&(!value->size||!value->data[0])))continue;
+            Store(buffer,value->name,9);
+            const unsigned answer=Call(a[0],&buffer,1);
+            if(state==Failed||state==Exited){Free(buffer);return 0;}
+            if(answer!=1)break;
+        }
+        Free(buffer);return 1;
+    }
+    API_CASE("EnumSystemCodePagesA"){
         if(!a[0])return bad(87);if(a[1]!=1&&a[1]!=2)return bad(1004);
         const unsigned buffer=Allocate(32);if(!buffer)return bad(8);
-        const bool pages=API_IS(name,"EnumSystemCodePagesA");const unsigned numbers[]={437,850,866,1252,65000,65001};
-        for(unsigned i=0;i<(pages?6u:1u);++i){char value[32];if(pages)snprintf(value,sizeof value,"%u",numbers[i]);else strcpy(value,"00000409");Store(buffer,value,strlen(value)+1);if(!Call(a[0],&buffer,1)||state==Failed||state==Exited)break;}
+        const unsigned numbers[]={437,850,866,1252,65000,65001};
+        for(unsigned i=0;i<6u;++i){char value[32];snprintf(value,sizeof value,"%u",numbers[i]);Store(buffer,value,strlen(value)+1);if(!Call(a[0],&buffer,1)||state==Failed||state==Exited)break;}
         Free(buffer);return state!=Failed&&state!=Exited;
     }
     API_CASE("VerLanguageNameA"){
