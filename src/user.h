@@ -612,6 +612,11 @@ void SetDoubleClickTime(unsigned);
 // CheckBoxesFollowFontSize (docs/FONT-SIZE.md).
 int CheckCell();
 void SetCheckCell(int pixels);
+// The lines of a BS_MULTILINE caption follow the button's horizontal
+// alignment inside their block, as in Windows 98; with `left` they all start
+// at the left of the block, as Windows 95 draws them (src/user.cpp,
+// DrawMultiline; docs/CONTROLS.md).
+void SetMultilineButtonLinesLeft(bool left);
 // Hardware state is captured immediately; routing may run later on a GUI fiber.
 struct InputPacket
 {

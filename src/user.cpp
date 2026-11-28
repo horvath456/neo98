@@ -1198,8 +1198,54 @@ Win98ButtonLayout::Metrics ButtonMetrics()
 // A check box or radio button keeps its caption in place while it is pressed;
 // its paint passes no pressed state, only the push paint does
 
+// A BS_MULTILINE caption (a text button only: an image button draws no
+// text). USER measures it with DrawText, DT_CALCRECT, DT_WORDBREAK and
+// DT_EDITCONTROL, in the content rectangle less SM_CXEDGE at both sides and
+// SM_CYBORDER above and below; the block it answers, its widest line by its
+// lines, is placed like a single line (Caption) and handed to DrawState as a
+// DST_COMPLEX picture whose callback draws the text again with DT_WORDBREAK
+// and DT_EDITCONTROL in a rectangle of that size. A caption that needs more
+// lines than the button has room for overhangs it at both ends, centred, and
+// the client clip cuts it, as in Windows.
+static bool MultilineButton(const Window &w)
+{
+    const unsigned kind=w.style&15;
+    return (w.style&0x2000)&&!(w.style&0xc0)&&kind!=7&&kind!=11&&w.title[0];
+}
+static void MeasureMultiline(const Window &w,Gdi::HDC dc,const Win98ButtonLayout::Rect &content,Gdi::SIZE &text)
+{
+    const auto m=ButtonMetrics();
+    const unsigned length=Length(w.title);
+    unsigned ignored=0;
+    Win98DrawTextGdi::Environment layout{ignored,dc};
+    Win98DrawText::Rect r={content.left+m.edge_x,content.top+m.border_y,content.right-m.edge_x,content.bottom-m.border_y};
+    if(length<8192)Win98DrawText::Layout(layout,w.title,length,false,r,0x2410,nullptr);
+    text={r.right-r.left,r.bottom-r.top};
+}
+// The lines of the block. The callback of Windows 98 aligns them with the
+// horizontal bits of the button (BS_CENTER DT_CENTER, BS_RIGHT DT_RIGHT, a
+// centred push button's lines centred); the vertical bits it looks for are
+// never there, so the lines start at the top of the block. The callback of
+// Windows 95 reads both from the empty byte and draws every line from the
+// left of the block.
+static bool multiline_lines_left = false;
+void SetMultilineButtonLinesLeft(bool left) { multiline_lines_left = left; dirty = true; }
+static void DrawMultiline(const Window &w,Gdi::HDC dc,int x,int y,const Gdi::SIZE &text)
+{
+    const unsigned horizontal=Win98ButtonLayout::Alignment(w.style)&3;
+    unsigned flags=0x2010;
+    if(!multiline_lines_left)flags|=horizontal==3?1u:horizontal==2?2u:0u;
+    unsigned ignored=0;
+    Win98DrawTextGdi::Environment layout{ignored,dc};
+    Win98DrawText::Rect area={x,y,x+text.cx,y+text.cy+1};
+    const int saved=Gdi::SaveDC(dc);
+    if(!saved)return;
+    Gdi::IntersectClipRect(dc,area.left,area.top,area.right,area.bottom);
+    Win98DrawText::Layout(layout,w.title,Length(w.title),false,area,flags,nullptr);
+    Gdi::RestoreDC(dc,saved);
+}
 Win98ButtonLayout::Rect ButtonCaption(const Window &w,Gdi::HDC dc,const Gdi::RECT &client,
-                                      const Gdi::SIZE &text,int &x,int &y)
+                                      Gdi::SIZE &text,int &x,int &y)
 {
     const auto m=ButtonMetrics();
     const bool win40=(w.nonclient_flags&0x00400000)!=0;
@@ -1207,6 +1253,7 @@ Win98ButtonLayout::Rect ButtonCaption(const Window &w,Gdi::HDC dc,const Gdi::REC
     if(win40)Gdi::GetTextExtentPoint32A(dc,"0",1,&zero);
     const auto content=Win98ButtonLayout::Content(w.style,win40,{client.left,client.top,client.right,client.bottom},
                                                   zero.cx,m);
+    if(MultilineButton(w))MeasureMultiline(w,dc,content,text);
     Win98ButtonLayout::Caption(w.style,content,text.cx,text.cy+1,
                                w.pressed&&Win98ButtonLayout::PushKind(w.style),m,x,y);
     return content;
@@ -1368,7 +1415,9 @@ void PaintControlContent(HWND h, Window &w, Gdi::HDC dc)
             // DST_PREFIXTEXT and DrawText underline
             // the letter after '&'. The DrawText output
             // routine does that for a caption up to its 256-byte buffer.
+            const bool multiline=w.button&&MultilineButton(w);
             auto caption=[&](int cx,int cy){
+                if(multiline){DrawMultiline(w,dc,cx,cy,text);return;}
                 const unsigned length=Length(w.title);bool tab=false;
                 for(unsigned i=0;i<length;++i)tab|=w.title[i]=='\t';
                 if((w.button||!(w.style&0x80))&&length&&length<=256&&!tab){
