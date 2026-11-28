@@ -6263,7 +6263,10 @@ bool Application::Win16DosFind(bool first, unsigned dta, unsigned &error)
         const unsigned handle = Api("FindFirstFileA", a);
         if (!handle || handle == 0xffffffffu)
         {
-            error = 2; // ERROR_FILE_NOT_FOUND, the answer of 4Eh with no match
+            // ERROR_FILE_NOT_FOUND, the answer of 4Eh with no match; a folder
+            // or a drive that does not exist is "path not found" (3), as in
+            // Windows 95 and 98.
+            error = last_error == 3 ? 3u : 2u;
             return false;
         }
         machine.find_handle = handle;
@@ -6606,7 +6609,7 @@ bool Application::Win16DosLongName(unsigned ax, unsigned &result, unsigned flags
             const unsigned a[] = {source};
             const unsigned attributes = Api("GetFileAttributesA", a);
             if (attributes == 0xffffffffu)
-                return answer(2);
+                return answer(last_error == 3 ? 3u : 2u); // a missing folder or drive: path not found
             Register(Reg::Ecx, attributes & 0xffff);
             return answer(0);
         }
@@ -6621,6 +6624,9 @@ bool Application::Win16DosLongName(unsigned ax, unsigned &result, unsigned flags
     {
         const unsigned at = Win16Linear(Register(Reg::Ds), Register(Reg::Esi) & 0xffff);
         const unsigned drive = Register(Reg::Edx) & 0xff;
+        // A drive that does not exist: ERROR_INVALID_DRIVE, as 47h.
+        if (drive && !files.store.Drive((char)('A' + drive - 1)))
+            return answer(15);
         char directory[260] = {};
         files.Directory(drive ? (char)('A' + drive - 1) : 'C', directory);
         const char *tail = directory;
@@ -6848,9 +6854,11 @@ bool Application::Win16DosCall(unsigned &result)
             else
                 break;
         }
-        // The DOS contract: carry set and the error number in AX.
+        // The DOS contract: carry set and the error number in AX:
+        // ERROR_FILE_NOT_FOUND, or ERROR_PATH_NOT_FOUND for a folder or a
+        // drive that does not exist.
         Register(Reg::Eflags, flags | 1u);
-        result = 2; // ERROR_FILE_NOT_FOUND
+        result = last_error == 3 ? 3u : 2u;
         machine.RememberDosError(result);
         return true;
     }
@@ -7418,6 +7426,15 @@ bool Application::Win16DosCall(unsigned &result)
     {
         const unsigned at = Win16Linear(Register(Reg::Ds), Register(Reg::Esi) & 0xffff);
         const unsigned drive = Register(Reg::Edx) & 0xff;
+        // A drive that does not exist: carry and ERROR_INVALID_DRIVE (15),
+        // measured in Windows 95.
+        if (drive && !files.store.Drive((char)('A' + drive - 1)))
+        {
+            Register(Reg::Eflags, flags | 1u);
+            result = 15;
+            machine.RememberDosError(result);
+            return true;
+        }
         char directory[260] = {};
         files.Directory(drive ? (char)('A' + drive - 1) : files.current[0], directory);
         const char *tail = directory;

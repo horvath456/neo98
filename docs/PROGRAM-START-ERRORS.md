@@ -17,6 +17,7 @@ answer alike in every row. A number above 32 means the program started.
 | --- | --- | --- | --- | --- | --- | --- |
 | a file that does not exist | -1, 2 | 2, 2 | 2, 2 | 2, 2 | 2 | 2, 2 |
 | a file in a folder that does not exist | -1, 3 | 2, 2 | 2, 2 | 2, 2 | 2 | 3, 3 |
+| a file on a drive that does not exist, also in a folder there | -1, 3 | 2, 2 | 2, 2 | 2, 2 | 2 | 3, 3 |
 | a name found nowhere on the path | -1, 2 | 2, 2 | 2, 2 | 2, 2 | 2 | 2, 2 |
 | a text file named `.EXE`, or an empty one | | 5, 193 | 5, 193 | 0, 193 | 193 | 0, 193 |
 | a document without a program | | 31, 1155 | 31, 1155 | 0, 193 | 193 | 0, 193 |
@@ -32,7 +33,43 @@ association", 1157 `ERROR_DLL_NOT_FOUND`, 31 `ERROR_GEN_FAILURE`.
 has a number of its own for, and `WinExec` hands on 2, 3, 4, 5, 8 and 11
 and answers 0 for every other error. A folder that does not exist is
 "file not found" for every way of starting but `LoadModule`; only the file
-functions say "path not found".
+functions say "path not found". A drive that does not exist is a folder
+that does not exist, for the ways of starting and for the file functions.
+
+## A drive that does not exist
+
+Every function that takes a path answers for a path on a drive that does
+not exist (Q:) what it answers for a folder that does not exist: "path
+not found" (3). Measured with the same program in Windows 95 OSR2 and
+Windows 98 SE, which answer alike:
+
+| Function | Q: | C:\SE\NODIR (a folder that does not exist) |
+| --- | --- | --- |
+| `CreateFile`, opening and creating | 3 | 3 |
+| `GetFileAttributes` of a file, of the root or folder | 3, 3 | 3, 2 |
+| `FindFirstFile` | 3 | 3 |
+| `SetCurrentDirectory` | 3 | 2 |
+| `CreateDirectory`, `DeleteFile` | 3 | 3 |
+| `OpenFile` (`OF_EXIST`), its `nErrCode` too | 3 | 3 |
+| `GetDiskFreeSpace` | 15 | 123 |
+| `GetVolumeInformation` | 13 | 161 |
+| `GetFullPathName` | the path, no error | the path |
+| `GetDriveType` | 1 (no root) | 1 |
+
+Only `GetDiskFreeSpace`, which takes a drive, says "invalid drive" (15).
+Neo98's file system answered 15 for every path on a drive that does not
+exist. For a 16-bit program DOS answers the same: open (3Dh), change
+directory (3Bh), find first (4Eh), make directory (39h), the attributes
+(4300h) and the long-name attributes (7143h) set the carry and answer 3,
+the free space of the drive (36h) answers FFFFh, and its current
+directory (47h) sets the carry and answers 15. Neo98 answered 2 from find
+first and the attributes, and the current directory of the missing
+drive.
+
+The shell's Run dialog says "Cannot find the file 'Q:\NOFILE.EXE' (or one
+of its components)...", as for a file that does not exist, because
+`ShellExecute` answers 2. "The device is not ready" belongs to a drive
+that exists without a disk in it (error 21, an empty CD-ROM drive).
 
 A program with a missing DLL or a missing import does not start, and
 KERNEL32 says why before the creator gets its answer: "A required .DLL
@@ -47,7 +84,7 @@ and stops the run when it is called.
 
 | What was typed | The message of the shell |
 | --- | --- |
-| a missing file, also in a missing folder, also with arguments | "Cannot find the file 'X' (or one of its components). Make sure the path and filename are correct and that all required libraries are available." |
+| a missing file, also in a missing folder or on a missing drive, also with arguments | "Cannot find the file 'X' (or one of its components). Make sure the path and filename are correct and that all required libraries are available." |
 | no program | "X is not a valid Win32 application." |
 | a document without a program | "This file does not have a program associated with it for performing this action. Create an association in My Computer by clicking View and then clicking Options." (Windows 98: "Folder Options") |
 | a document whose program is missing | the dialog "Program Not Found", which asks where the program is |
@@ -70,9 +107,6 @@ SE: the field's text is selected from its first to its last character.
 
 ## Not the same in Neo98
 
-- A drive letter that does not exist: Windows answers "path not found" (3)
-  from `GetFileAttributes` and `LoadModule`, Neo98 "invalid drive" (15).
-  The ways of starting answer 2 in both.
 - A program that started: Windows 95 and 98 answer the 16-bit instance or
   task of the new program from `ShellExecute` and `WinExec`, Neo98 another
   number above 32.
@@ -80,9 +114,12 @@ SE: the field's text is selected from its first to its last character.
 ## Tests
 
 `tools/test_start_errors_host.py` runs the fixture: every row of the
-table, and the Run dialog for a missing folder, a file that is no program
-and a missing import, whose messages the log of the run holds.
+table, the file functions for a missing drive and a missing folder, and
+the Run dialog for a missing folder, a missing drive, a file that is no
+program and a missing import, whose messages the log of the run holds.
 `tools/test_start_win16_host.py` starts Calculator from a 16-bit program by
 its name and by its path through `ShellExecute` and `WinExec`;
 `tools/test_winfile_run_host.py` opens File Manager's Run and checks the
-selection of its field and that a typed character replaces the text.
+selection of its field and that a typed character replaces the text. The
+fixture writes its lines to COM1 as well, so the same program runs in the
+real Windows under QEMU.

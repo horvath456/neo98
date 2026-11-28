@@ -26,6 +26,13 @@ The port started a program with an import its own KERNEL32 did not know
 (the program stopped at the first call of it) and answered 2 for a folder
 given as the program, where Windows answers 5.
 
+A drive that does not exist (Q:) is a path that is not found for the file
+functions (3: CreateFile, GetFileAttributes, FindFirstFile,
+SetCurrentDirectory, CreateDirectory, DeleteFile, OpenFile) and for
+LoadModule, "file not found" (2) for the other ways of starting, and
+"invalid drive" (15) only for GetDiskFreeSpace; Run says "Cannot find the
+file". The port answered 15 for every path on it.
+
     build/analysis-venv/bin/python tools/test_start_errors_host.py [--no-build]
 """
 from __future__ import annotations
@@ -60,10 +67,17 @@ EXPECTED = {
     'locked-exe': 'GFA 20/0|SE 26/32|SEX 0,26/32|WE 0/32|CP 0/32|CPA 0/32|LM 0/32',
     'missing-dll': 'GFA 20/0|SE 32/1157|SEX 0,32/1157|WE 0/1157|CP 0/1157|CPA 0/1157|LM 0/1157',
     'missing-export': 'GFA 20/0|SE 5/31|SEX 0,5/31|WE 0/31|CP 0/31|CPA 0/31|LM 31/31',
+    'missing-drive': 'GFA ffffffff/3|SE 2/2|SEX 0,2/2|WE 2/2|CP 0/2|CPA 0/2|LM 3/3',
+    'missing-drive-folder': 'GFA ffffffff/3|SE 2/2|SEX 0,2/2|WE 2/2|CP 0/2|CPA 0/2|LM 3/3',
     'program': 'WE 33/0|CP 1/0',
+    'files-drive': 'CFO -1/3|CFC -1/3|GFA ffffffff/3|GFAR ffffffff/3|FFF -1/3|SCD 0/3|GDFS 0/15|CD 0/3|DF 0/3|'
+                   'GFPN d/0|GVI 0/13|OF -1/3,3|GDT 1',
+    'files-folder': 'CFO -1/3|CFC -1/3|GFA ffffffff/3|GFAR ffffffff/2|FFF -1/3|SCD 0/2|GDFS 0/123|CD 0/3|DF 0/3|'
+                    'GFPN 16/0|GVI 0/161|OF -1/3,3|GDT 1',
 }
 MESSAGES = [
     ('missing folder', "Cannot find the file 'C:\\SE\\NODIR\\NOFILE.EXE' (or one of its components)"),
+    ('missing drive', "Cannot find the file 'Q:\\NOFILE.EXE' (or one of its components)"),
     ('no program', 'C:\\SE\\TEXT.EXE is not a valid Win32 application.'),
     ('missing import, KERNEL32', 'The MISSEXP.EXE file is\nlinked to missing export KERNEL32.DLL:GetModuleFileNameQ.'),
     ('missing import, the shell', 'C:\\SE\\MISSEXP.EXE\n\nA device attached to the system is not functioning.'),
@@ -79,8 +93,10 @@ def main():
     drive = out / 'c'
     subprocess.run(['cp', *(['-c'] if sys.platform == 'darwin' else ['--reflink=auto']), '-R',
                     str(pristine.resolve()), str(drive)], check=True)
+    # Built as for the real Windows under QEMU: no SSE, subsystem 4.0.
     subprocess.run(['i686-w64-mingw32-gcc', '-Os', str(ROOT / 'tools/start_errors_fixture.c'), '-ffreestanding',
                     '-fno-builtin', '-nostartfiles', '-nostdlib', '-Wl,-e,_mainCRTStartup', '-mwindows',
+                    '-march=pentium', '-mno-sse', '-mno-mmx', '-Wl,--major-subsystem-version,4',
                     '-lkernel32', '-luser32', '-lshell32', '-o', str(drive / 'STARTERR.EXE')], check=True)
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_DEADLINE='300',
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))

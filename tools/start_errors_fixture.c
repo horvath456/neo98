@@ -9,12 +9,22 @@
  *   label|GFA attributes/error|SE result/error|SEX ok,hInstApp/error|
  *   WE result/error|CP ok/error|CPA ok/error|LM result/error
  *
+ * and for a drive that does not exist and a folder that does not exist the
+ * file functions that take a path (the "files-" lines):
+ *
+ *   label|CFO handle/error|CFC ...|GFA ...|GFAR ...|FFF ...|SCD ...|GDFS ...|
+ *   CD ...|DF ...|GFPN length/error|GVI ...|OF result/error,nErrCode|GDT type
+ *
  * then the program opens the shell's Run dialog (SHELL32 ordinal 61) for a
  * few of the cases, types the command and presses OK, so the log of the run
  * holds the message Windows shows. A thread of its own closes every box that
- * comes up. The programs it starts are copies of itself: QUIET.EXE ends at
- * once, MISSEXP.EXE imports a name KERNEL32 does not export, MISSDLL.EXE a
- * DLL that does not exist.
+ * comes up and writes its caption and text ("BOX caption / text"). The
+ * programs it starts are copies of itself: QUIET.EXE ends at once,
+ * MISSEXP.EXE imports a name KERNEL32 does not export, MISSDLL.EXE a DLL
+ * that does not exist.
+ *
+ * Every line goes to COM1 as well when it opens, and the last is
+ * MEASURE_DONE: the same program measures the real Windows under QEMU.
  */
 #include <windows.h>
 #include <shellapi.h>
@@ -42,13 +52,15 @@ int memcmp(const void *a, const void *b, unsigned n)
             return *p - *q;
     return 0;
 }
-static HANDLE out = INVALID_HANDLE_VALUE;
+static HANDLE out = INVALID_HANDLE_VALUE, serial = INVALID_HANDLE_VALUE;
 static CRITICAL_SECTION put_lock;
 static void put(const char *s)
 {
     DWORD n;
     EnterCriticalSection(&put_lock);
     WriteFile(out, s, lstrlenA(s), &n, 0);
+    if (serial != INVALID_HANDLE_VALUE)
+        WriteFile(serial, s, lstrlenA(s), &n, 0);
     LeaveCriticalSection(&put_lock);
 }
 static void file(const char *name, const char *text, DWORD size)
@@ -81,23 +93,41 @@ static BOOL CALLBACK edit_of(HWND child, LPARAM found)
     }
     return TRUE;
 }
+/* The text of a box: that of its first Static control with any, not the
+   icon's. */
+struct text { char text[400]; int done; };
+static BOOL CALLBACK text_of(HWND child, LPARAM found)
+{
+    struct text *t = (struct text *)found;
+    char klass[32];
+    int i;
+    GetClassNameA(child, klass, sizeof klass);
+    if (lstrcmpiA(klass, "Static") || (GetWindowLongA(child, GWL_STYLE) & 0x1f) == SS_ICON ||
+        !GetWindowTextA(child, t->text, sizeof t->text))
+        return TRUE;
+    for (i = 0; t->text[i]; i++)
+        if (t->text[i] == '\r' || t->text[i] == '\n')
+            t->text[i] = ' ';
+    return FALSE;
+}
 static BOOL CALLBACK boxes(HWND window, LPARAM unused)
 {
     char klass[32], title[200];
     int i, known = 0;
+    HWND edit;
     if (!IsWindowVisible(window))
         return TRUE;
     GetClassNameA(window, klass, sizeof klass);
     if (lstrcmpA(klass, "#32770"))
         return TRUE;
     GetWindowTextA(window, title, sizeof title);
-    if (!lstrcmpA(title, "StartRun")) {
+    /* The Run dialog has a field; a box of the shell can carry its caption. */
+    edit = 0;
+    EnumChildWindows(window, edit_of, (LPARAM)&edit);
+    if (!lstrcmpA(title, "StartRun") && edit) {
         run_dialog = window;
         if (run_pending) {
-            HWND edit = 0;
-            EnumChildWindows(window, edit_of, (LPARAM)&edit);
-            if (edit)
-                SetWindowTextA(edit, run_text);
+            SetWindowTextA(edit, run_text);
             run_pending = 0;
             run_clicked = GetTickCount();
             PostMessageA(window, WM_COMMAND, IDOK, (LPARAM)GetDlgItem(window, IDOK));
@@ -107,8 +137,13 @@ static BOOL CALLBACK boxes(HWND window, LPARAM unused)
     for (i = 0; i < seen_count; i++)
         known = known || seen[i] == window;
     if (!known) {
+        char line[700];
+        struct text found = { "", 0 };
         if (seen_count < 64)
             seen[seen_count++] = window;
+        EnumChildWindows(window, text_of, (LPARAM)&found);
+        wsprintfA(line, "BOX %s / %s\r\n", title, found.text);
+        put(line);
         PostMessageA(window, WM_COMMAND, IDCANCEL, 0);
     } else {
         PostMessageA(window, WM_COMMAND, IDOK, 0);
@@ -215,6 +250,62 @@ static void measure(const char *label, const char *target, int which)
     put(line);
     Sleep(300);
 }
+/* The file functions for a path under base: a drive or a folder that does
+   not exist. */
+static void files(const char *label, const char *base)
+{
+    char line[900], part[300], path[MAX_PATH], full[MAX_PATH], *name;
+    DWORD r, e, a, b, c, d;
+    HANDLE h;
+    WIN32_FIND_DATAA found;
+    OFSTRUCT of;
+#define PATH(leaf) (wsprintfA(path, "%s\\%s", base, leaf), path)
+#define STEP(tag, call) do { SetLastError(0); r = (DWORD)(call); e = GetLastError(); \
+        wsprintfA(part, "|" tag " %lx/%lu", r, e); lstrcatA(line, part); } while (0)
+    wsprintfA(line, "%s", label);
+    SetLastError(0);
+    h = CreateFileA(PATH("NOFILE.TXT"), GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0);
+    e = GetLastError();
+    wsprintfA(part, "|CFO %ld/%lu", h == INVALID_HANDLE_VALUE ? -1L : 1L, e);
+    lstrcatA(line, part);
+    if (h != INVALID_HANDLE_VALUE)
+        CloseHandle(h);
+    SetLastError(0);
+    h = CreateFileA(PATH("NEW.TXT"), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+    e = GetLastError();
+    wsprintfA(part, "|CFC %ld/%lu", h == INVALID_HANDLE_VALUE ? -1L : 1L, e);
+    lstrcatA(line, part);
+    if (h != INVALID_HANDLE_VALUE)
+        CloseHandle(h);
+    STEP("GFA", GetFileAttributesA(PATH("NOFILE.TXT")));
+    STEP("GFAR", GetFileAttributesA(PATH("")));
+    SetLastError(0);
+    h = FindFirstFileA(PATH("*.*"), &found);
+    e = GetLastError();
+    wsprintfA(part, "|FFF %ld/%lu", h == INVALID_HANDLE_VALUE ? -1L : 1L, e);
+    lstrcatA(line, part);
+    if (h != INVALID_HANDLE_VALUE)
+        FindClose(h);
+    STEP("SCD", SetCurrentDirectoryA(PATH("")));
+    SetCurrentDirectoryA("C:\\");
+    STEP("GDFS", GetDiskFreeSpaceA(PATH(""), &a, &b, &c, &d));
+    STEP("CD", CreateDirectoryA(PATH("NEWDIR"), 0));
+    STEP("DF", DeleteFileA(PATH("NOFILE.TXT")));
+    STEP("GFPN", GetFullPathNameA(PATH("NOFILE.TXT"), sizeof full, full, &name));
+    STEP("GVI", GetVolumeInformationA(PATH(""), 0, 0, 0, 0, 0, 0, 0));
+    ZeroMemory(&of, sizeof of);
+    SetLastError(0);
+    r = (DWORD)OpenFile(PATH("NOFILE.TXT"), &of, OF_EXIST);
+    e = GetLastError();
+    wsprintfA(part, "|OF %ld/%lu,%u", (long)(HFILE)r, e, of.nErrCode);
+    lstrcatA(line, part);
+    wsprintfA(part, "|GDT %u", GetDriveTypeA(PATH("")));
+    lstrcatA(line, part);
+#undef PATH
+#undef STEP
+    lstrcatA(line, "\r\n");
+    put(line);
+}
 typedef int(WINAPI *RunFileDlgProc)(HWND, HICON, LPCSTR, LPCSTR, LPCSTR, UINT);
 static void run(const char *command)
 {
@@ -263,6 +354,7 @@ void mainCRTStartup(void)
     InitializeCriticalSection(&put_lock);
     CreateDirectoryA("C:\\SE", 0);
     out = CreateFileA("C:\\SE\\RESULT.TXT", GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, 0, 0);
+    serial = CreateFileA("COM1", GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
     CloseHandle(CreateThread(0, 0, watcher, 0, 0, 0));
     file("C:\\SE\\TEXT.EXE", "This is a text file, no program.\r\n", 34);
     file("C:\\SE\\EMPTY.EXE", "", 0);
@@ -292,11 +384,18 @@ void mainCRTStartup(void)
     CloseHandle(locked);
     measure("missing-dll", "C:\\SE\\MISSDLL.EXE", ALL);
     measure("missing-export", "C:\\SE\\MISSEXP.EXE", ALL);
+    measure("missing-drive", "Q:\\NOFILE.EXE", ALL);
+    measure("missing-drive-folder", "Q:\\NODIR\\NOFILE.EXE", ALL);
     measure("program", "C:\\SE\\QUIET.EXE quiet", WE | CP);
+    files("files-drive", "Q:");
+    files("files-folder", "C:\\SE\\NODIR");
     run("C:\\SE\\NODIR\\NOFILE.EXE");
+    run("Q:\\NOFILE.EXE");
     run("C:\\SE\\TEXT.EXE");
     run("C:\\SE\\MISSEXP.EXE");
     put("done\r\n");
+    Sleep(2000);
+    put("MEASURE_DONE\r\n");
     CloseHandle(out);
     ExitProcess(0);
 }
