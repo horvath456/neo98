@@ -187,6 +187,7 @@ struct RedrawEnvironment
                 w->frame_update_pending = true;
                 w->frame_update.Add(touched);
                 w->wait_paint_observed = false;
+                ++w->frame_serial;
             }
             if ((flags & Win98RedrawWindow::Invalidate) && frame && ControlContent(*w) &&
                 p.left < p.right && p.top < p.bottom &&

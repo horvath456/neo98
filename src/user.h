@@ -396,6 +396,9 @@ bool AncestorNeedsPaint(HWND);
 bool OrderUnchanged(HWND, HWND after);
 bool GetUpdateRect(HWND, Gdi::RECT *);
 bool TakeFramePaint(HWND);
+// A program took a window DC of the window: it draws on its own frame,
+// which the composition then keeps (user.cpp, own_frame).
+void NoteOwnFrame(HWND);
 void InvalidateFrame(HWND);
 bool TakeInternalPaint(HWND);
 bool NeedsErase(HWND);

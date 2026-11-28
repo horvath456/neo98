@@ -169,6 +169,15 @@ struct Window {
     // A callback-driven control paints its initial frame on its owning thread
     // during PaintControlSurface.
     bool frame_owed = false;
+    // A window that draws on its own frame (it took a window DC: GetWindowDC,
+    // GetDCEx with DCX_WINDOW) keeps the frame pixels it last saw: the
+    // composition paints its frame again only when what the frame shows or
+    // where the window can be seen has changed, and then owes it WM_NCPAINT
+    // (PaintWindow). frame_signature and frame_visible are what the frame on
+    // the screen was painted for; frame_serial counts RDW_FRAME and frame
+    // invalidations.
+    bool own_frame = false;
+    unsigned frame_signature = 0, frame_visible = 0, frame_serial = 0;
     bool frame_message_owed = true;
     bool frame_update_pending = false;
     // RDW_FRAME can mark client-only rectangles too. Keep that area so
@@ -1635,6 +1644,56 @@ struct SurfaceTarget {
     SurfaceTarget(HWND h) : previous(screen) { if (host_window_surfaces) screen = HostFrameDC(h); }
     ~SurfaceTarget() { screen = previous; }
 };
+// What the frame of a window shows (PaintFrame): its style, size and parts,
+// the title, the icon, active or not, the caption buttons, the system icon
+// selected, the menu bar's items, the scroll bars, the system colours and
+// the frame invalidations.
+static unsigned FrameSignature(HWND h, const Window &w)
+{
+    unsigned hash = 2166136261u;
+    auto mix = [&](unsigned value) { for (unsigned i = 0; i < 4; ++i) { hash ^= (value >> (i * 8)) & 255; hash *= 16777619u; } };
+    auto rect = [&](const Gdi::RECT &r) { mix(unsigned(r.left)); mix(unsigned(r.top)); mix(unsigned(r.right)); mix(unsigned(r.bottom)); };
+    mix(w.style); mix(w.extended); mix(unsigned(w.width)); mix(unsigned(w.height)); mix(w.nonclient_flags);
+    rect(w.client); rect(w.caption); rect(w.menu_bar);
+    mix((w.style & 0x40000000u) ? w.frame_on : foreground == h); mix(w.enabled);
+    mix(w.icon_small); mix(w.icon_large); mix(w.icon_drag); mix(SystemIconSelected(h));
+    mix(w.pressed_hit); mix(w.pressed_inside); mix(w.button_slots);
+    for (unsigned i = 0; i < w.button_slots && i < 4; ++i) { mix(w.button_slot[i].state); rect(w.button_slot[i].cell); }
+    for (const char *t = w.title; *t; ++t) mix(unsigned(char(*t)));
+    mix(w.menu); mix(w.menu_items);
+    if (const auto *m = (w.nonclient_flags & 1) ? FindMenu(w.menu) : nullptr)
+        for (unsigned i = 0; i < m->count && i < w.menu_items; ++i)
+        {
+            mix(m->items[i].state); mix(m->items[i].type); mix(m->items[i].bitmap); mix(m->items[i].data);
+            for (const char *t = MenuText(m->items[i]); *t; ++t) mix(unsigned(char(*t)));
+            rect(w.menu_item[i]);
+        }
+    if (w.scroll_allocated)
+    {
+        const auto *bytes = reinterpret_cast<const unsigned char *>(&w.scroll);
+        for (unsigned i = 0; i < sizeof w.scroll; ++i) mix(bytes[i]);
+    }
+    const unsigned *colors = Win98Frame::SystemColors();
+    for (unsigned i = 0; i < Win98Frame::ColorCount; ++i) mix(colors[i]);
+    mix(MetricFont(0x502)); mix(MetricFont(0x503)); mix(MetricFont(0x501));
+    mix(w.frame_serial);
+    return hash | 1;
+}
+// Where the window can be seen, relative to its own corner: a window that
+// moves takes its pixels along (the copy of the geometry reconciliation),
+// so only a part of it that comes into view needs its frame painted again.
+static unsigned VisibleSignature(const RectList &visible, Gdi::POINT origin)
+{
+    unsigned hash = 2166136261u;
+    for (unsigned i = 0; i < visible.n; ++i)
+    {
+        const int v[4] = {visible.r[i].left - origin.x, visible.r[i].top - origin.y,
+                          visible.r[i].right - origin.x, visible.r[i].bottom - origin.y};
+        for (unsigned j = 0; j < 4; ++j)
+            for (unsigned k = 0; k < 4; ++k) { hash ^= (unsigned(v[j]) >> (k * 8)) & 255; hash *= 16777619u; }
+    }
+    return hash | 1;
+}
 // The frame alone, clipped to the window's visible region.
 static void PaintVisibleFrame(HWND h, Window &w)
 {
@@ -1650,10 +1709,35 @@ static void PaintVisibleFrame(HWND h, Window &w)
         {
             Gdi::ExcludeClipRect(screen, area.left, area.top, area.right, area.bottom);
             PaintFrame(h, w, p);
+            // A frame painted for the window (WM_NCPAINT, WM_NCACTIVATE)
+            // is the one the composition keeps.
+            w.frame_signature = FrameSignature(h, w);
+            w.frame_visible = VisibleSignature(*visible, p);
         }
         Gdi::RestoreDC(screen, save);
     }
     delete visible;
+}
+static void MarkOwnFrame(HWND h)
+{
+    auto *w = Find(h);
+    if (!w || h == Desktop || w->own_frame) return;
+    // Only a frame that is more than the client: a window with nothing
+    // around its client area has nothing USER would paint there.
+    if (!ClientLeft(*w) && !ClientTop(*w) && w->client.right == w->width && w->client.bottom == w->height) return;
+    w->own_frame = true;
+    w->frame_signature = w->frame_visible = 0;
+}
+// DefWindowProc of WM_NCPAINT and WM_NCACTIVATE for a window that draws on
+// its own frame: the frame is painted now, in the window's thread, and it is
+// the frame the composition keeps. Any other window gets its frame from the
+// composition, as before.
+static void DefaultFramePaint(HWND h)
+{
+    auto *w = Find(h);
+    if (!w || !w->own_frame || !ShowsTree(h) || rendering) return;
+    PaintVisibleFrame(h, *w);
+    dirty = true;
 }
 // Overlapping siblings share pixels if either lacks WS_CLIPSIBLINGS; the last
 // paint wins. A group box is excluded because it leaves its interior
@@ -1747,7 +1831,27 @@ void PaintWindow(HWND h, Window &w)
             if (frame_save)
             {
                 Gdi::ExcludeClipRect(screen, area.left, area.top, area.right, area.bottom);
-                PaintFrame(h, w, p);
+                // A window that draws on its own frame keeps what it drew
+                // until the frame has to be painted again: something it
+                // shows changed or the window became visible elsewhere.
+                // Then USER paints it and owes the window WM_NCPAINT, which
+                // the window answers with its own drawing, as on Windows.
+                bool paint = true;
+                if (w.own_frame)
+                {
+                    const unsigned signature = FrameSignature(h, w), seen = VisibleSignature(*visible, p);
+                    if (signature == w.frame_signature && seen == w.frame_visible) paint = false;
+                    else
+                    {
+                        w.frame_signature = signature;
+                        w.frame_visible = seen;
+                        w.frame_message_owed = true;
+                        w.frame_update_pending = true;
+                        w.frame_update.Add({-ClientLeft(w), -ClientTop(w), w.width - ClientLeft(w), w.height - ClientTop(w)});
+                        w.wait_paint_observed = false;
+                    }
+                }
+                if (paint) PaintFrame(h, w, p);
                 Gdi::RestoreDC(screen, frame_save);
             }
             PaintNativeClient(h, w, p, client, area);
@@ -4369,6 +4473,7 @@ unsigned EraseToken(HWND h){auto *w=Find(h);return w?w->erase_serial:0;}
 void Erased(HWND h,unsigned token){auto *w=Find(h);if(w&&token==w->erase_serial)w->erase_pending=false;}
 void KeepErase(HWND h){if(auto *w=Find(h)){w->erase_pending=true;++w->erase_serial;}}
 unsigned Background(HWND h){auto *w=Find(h);return w?(w->class_record?class_store.HandleValue(class_store.Read16(Win98Classes::Body(class_store,w->class_record)+16)):w->background):0;}
+void NoteOwnFrame(HWND h) { MarkOwnFrame(h); }
 bool TakeFramePaint(HWND h)
 {
     auto *w=Find(h);if(!w || !w->frame_message_owed)return false;
@@ -4388,6 +4493,7 @@ void InvalidateFrame(HWND h)
     w->frame_update_pending = true;
     w->frame_update.Add({-ClientLeft(*w),-ClientTop(*w),w->width-ClientLeft(*w),w->height-ClientTop(*w)});
     w->wait_paint_observed = false;
+    ++w->frame_serial;
     if (ControlContent(*w)) { w->frame_owed = true; w->needs_paint = true; }
     dirty = true;
 }
@@ -4683,8 +4789,10 @@ unsigned DefaultMessage(HWND h, unsigned msg, unsigned wp, unsigned lp)
             w->frame_on = wp != 0;
             dirty = true;
         }
+        DefaultFramePaint(h);
         return 1;
     }
+    if (msg == 0x85) { DefaultFramePaint(h); return 0; }
     if (msg == 0x81 || msg == 0x11 || msg == 0x13) return 1; // WM_NCCREATE, WM_QUERYENDSESSION, WM_QUERYOPEN
     if (msg == 0x2e || msg == 0x2f) return ~0u; // USER: default listbox key/character handling.
     if (msg == 0x112)

@@ -78,6 +78,7 @@ unsigned Application::WindowDeviceContext(unsigned hwnd, unsigned region, unsign
         if (style & 0x04000000) flags |= DcxClipSiblings;
         if (User::ClassAccess(hwnd, -26, 0, 2) & 0x80) flags |= DcxParentClip;
     }
+    if (flags & 1) User::NoteOwnFrame(hwnd); // DCX_WINDOW
     const auto dc = User::GetDCEx(hwnd,flags);
     if (!dc) return 0;
     // The visible region follows the window's own WS_CLIPCHILDREN and
