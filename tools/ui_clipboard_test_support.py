@@ -54,18 +54,26 @@ def machine(out):
     drive = out / 'c'
     if drive.exists():
         raise RuntimeError('Remove the previous private machine before retrying: ' + str(drive))
-    source = (ROOT / 'build/win98-c').resolve()
+    # The pristine copy of the drive NEO98_WIN98_ROOT names (build/win98-c
+    # without it), as every other host test starts; the user's drive itself
+    # is never the source.
+    import win98_c
+    source = win98_c.use_pristine()
     subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(source), str(drive)], check=True)
-    shutil.copyfile(ROOT / 'build/win98-c.registry', out / 'c.registry')
+    (drive / win98_c.PRISTINE_MANIFEST).unlink(missing_ok=True)
+    if win98_c.journal(source).is_file():
+        shutil.copyfile(win98_c.journal(source), out / 'c.registry')
     try:
         yield drive
     finally:
         shutil.rmtree(drive)
 
 
-def host(out, drive, exe, steps='', seconds=30, extra=()):
+def host(out, drive, exe, steps='', seconds=30, extra=(), deadline=None):
+    # `deadline` bounds the whole run in seconds of the clock; the script's
+    # own times stop while a wait= step waits, the deadline does not.
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
-               NEO98_HOST_DEADLINE=str(seconds + 15), NEO98_HOST_PASTEBOARD='unique',
+               NEO98_HOST_DEADLINE=str(deadline or seconds + 15), NEO98_HOST_PASTEBOARD='unique',
                NEO98_HOST_INPUT=steps + f';{seconds}:menu=quit',
                NEO98_SETTINGS_DIR=str(out / 'settings'), NEO98_LOG_DIR=str(out / 'logs'))
     # Linux seamless windows need the X11 window and shape providers. SDL's
@@ -81,7 +89,7 @@ def host(out, drive, exe, steps='', seconds=30, extra=()):
     with (out / 'host.log').open('w') as log:
         p = subprocess.Popen(command, env=env, cwd=out, stdout=log, stderr=subprocess.STDOUT)
         try:
-            code = p.wait(timeout=seconds + 60)
+            code = p.wait(timeout=(deadline or seconds + 15) + 45)
         except subprocess.TimeoutExpired:
             p.terminate()
             p.wait(timeout=20)
