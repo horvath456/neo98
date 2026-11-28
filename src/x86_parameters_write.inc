@@ -294,7 +294,24 @@ unsigned Application::SystemParametersWrite(const unsigned *a)
         bool WriteProfileText(unsigned identifier, const char *value) override
         {
             const auto *entry = FindKey(identifier);
-            return entry && app.WriteSystemProfile(entry->section, entry->key, value ? value : "");
+            if (!entry)
+                return false;
+            const char *text = value ? value : "";
+            // The pattern and the wallpaper are kept in the registry as well,
+            // HKCU\Control Panel\Desktop, where Display Properties reads
+            // them back (the Background page of DESKCP16 asks RegQueryValueEx
+            // only) and where a clean installation keeps Wallpaper and
+            // TileWallpaper beside the [Desktop] section of WIN.INI.
+            if (!strcmp(entry->section, "Desktop") && (identifier == 0x02 || identifier == 0x43))
+            {
+                auto &registry = app.registry.store;
+                unsigned key = Registry::Missing;
+                bool created = false;
+                if (registry.Open(registry.roots[1], "Control Panel\\Desktop", true, key, created) ||
+                    registry.Set(key, entry->key, 1, text, unsigned(strlen(text)) + 1))
+                    return false;
+            }
+            return app.WriteSystemProfile(entry->section, entry->key, text);
         }
         bool SectionString(unsigned identifier, char *out, unsigned size) override
         {

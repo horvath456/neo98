@@ -16,6 +16,16 @@
 //                                Minimize as items that send the system
 //                                command; a minimized window restores itself
 //                                after a second
+//   EVSND.EXE box KIND TYPE [quiet]
+//                                a message box captioned BoxTest of the type
+//                                TYPE through MessageBoxA (KIND a),
+//                                MessageBoxExA (x), MessageBoxW (w) or
+//                                MessageBoxIndirectA (i, whose MB_USERICON
+//                                is IDI_APPLICATION); quiet turns the beep
+//                                off first; then two seconds of quiet
+//   EVSND.EXE kbeep              Beep of KERNEL32, then two seconds of quiet
+//   EVSND.EXE fault              a write to address zero, for the box of
+//                                KERNEL32 that ends the program
 // TYPE is decimal.
 #include <windows.h>
 #include <mmsystem.h>
@@ -86,6 +96,41 @@ void mainCRTStartup(void)
             RegCloseKey(handle);
         }
     }
+    else if ((rest = after(command, "box")) != 0)
+    {
+        const char kind = *rest;
+        UINT type = 0;
+        rest += kind ? 1 : 0;
+        while (*rest == ' ')
+            ++rest;
+        while (*rest >= '0' && *rest <= '9')
+            type = type * 10 + (*rest++ - '0');
+        if (after(command, "quiet"))
+            SystemParametersInfoA(SPI_SETBEEP, 0, 0, 0);
+        if (kind == 'x')
+            MessageBoxExA(0, "A box of MessageBoxExA", "BoxTest", type, 0);
+        else if (kind == 'w')
+            MessageBoxW(0, L"A box of MessageBoxW", L"BoxTest", type);
+        else if (kind == 'i')
+        {
+            MSGBOXPARAMSA box = {sizeof box};
+            box.lpszText = "A box of MessageBoxIndirectA";
+            box.lpszCaption = "BoxTest";
+            box.dwStyle = type;
+            box.lpszIcon = IDI_APPLICATION;
+            MessageBoxIndirectA(&box);
+        }
+        else
+            MessageBoxA(0, "A box of MessageBoxA", "BoxTest", type);
+        Sleep(2000);
+    }
+    else if (after(command, "kbeep"))
+    {
+        Beep(440, 100);
+        Sleep(2000);
+    }
+    else if (after(command, "fault"))
+        *(volatile int *)0 = 1;
     else if ((rest = after(command, "beep")) != 0 || (rest = after(command, "quiet")) != 0)
     {
         UINT type = 0;

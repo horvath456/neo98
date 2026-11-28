@@ -142,6 +142,7 @@ void Application::LoadUserStartSettings()
     }
     LoadWindowMetrics();
     LoadControlPanelSettings();
+    LoadSoundMapperSettings();
     key = Registry::Missing;
     value = nullptr;
     if (registry.Open(registry.roots[2], "Software\\Microsoft\\Plus!\\Setup", false, key, created) ||

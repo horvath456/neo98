@@ -1019,6 +1019,7 @@ private:
     AtomTable *atoms = nullptr;
     unsigned AtomApi(ApiName, const unsigned *);
     AtomTable &SystemAtoms(bool registration);
+    static const unsigned char *AtomUpperCase();
     unsigned GlobalAtomSearch(unsigned name, bool add);
     unsigned GlobalAtomDelete(unsigned atom);
     unsigned GlobalAtomText(const char *);
@@ -2155,7 +2156,15 @@ private:
         Win16LocalHandle,
         Win16LocalSizeOf,
         Win16LocalLargestFree,
-        Win16LocalHeapSize
+        Win16LocalHeapSize,
+        // The local atoms of the segment (src/win98_atoms.h), as KRNL386
+        // keeps them there: InitAtomTable(a); FindAtom (a 0) or AddAtom
+        // (a 1) of the name at linear address b, or with b zero of the
+        // integer atom c; DeleteAtom(a); GetAtomName(a) into b, c bytes.
+        Win16LocalAtomTable,
+        Win16LocalAtomSearch,
+        Win16LocalAtomDelete,
+        Win16LocalAtomName
     };
     unsigned Win16LocalOperation(unsigned kind, unsigned a, unsigned b = 0, unsigned c = 0);
     bool Win16Printf(const Win16Frame &frame, unsigned &result, unsigned &words);
@@ -3338,6 +3347,9 @@ private:
     void WaveOutNotify(void *,unsigned,unsigned);
     unsigned WaveFormatOf(unsigned,Sound::Format &);
     unsigned WaveOutCapabilities(unsigned,unsigned);
+    void LoadSoundMapperSettings(); // src/x86_wave_out.cpp
+    void SaveMixerLevels();         // src/x86_mixer.cpp
+    void LoadMixerLevels();
     unsigned PreferredWaveOutDevice(unsigned &);
     unsigned MappedMidiOutDevice();
     unsigned PlaySoundWorker(unsigned,unsigned,unsigned);

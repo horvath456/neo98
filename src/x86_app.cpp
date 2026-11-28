@@ -2156,18 +2156,21 @@ unsigned Application::AllocateThreadIdentity()
 // host backed all of it for every program, a calculator like a game.
 // ReturnZeroPages hands the pages that hold nothing but zeros back; they read
 // as zero as before and cost memory when something is written to them. The
-// storage comes from the host directly, so that those pages can go back and
-// the whole object does when the process ends.
+// storage is whole pages of the allocator, so that those pages can go back
+// and the whole object does when the process ends. It is a block of the
+// allocator, not a mapping of its own: a saved state knows the blocks of the
+// allocator (tools/host_state_alloc_linux.cpp) and saves a process object
+// with every live child, and a loaded state gives such an object back as a
+// block of the allocator, which the end of the process then frees as any.
 #if defined(__linux__)
+static constexpr size_t ProcessBytes = (sizeof(Application) + 4095) & ~size_t(4095);
 void *Application::ProcessStorage()
 {
-    void *storage = mmap(nullptr, sizeof(Application), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    return storage == MAP_FAILED ? nullptr : storage;
+    return aligned_alloc(4096, ProcessBytes);
 }
 void Application::FreeProcessStorage(void *storage)
 {
-    if (storage)
-        munmap(storage, sizeof(Application));
+    free(storage);
     // What the process had on the heap of the host is free now but stays
     // with the host process, in pages between blocks that live on. The end
     // of a process is rare and the place to hand them back.

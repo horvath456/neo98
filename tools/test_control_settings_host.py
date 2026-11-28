@@ -24,6 +24,9 @@ private copy of drive C:, with the picture of the desktop in memory:
          the guest
   menu   a popup menu is painted in COLOR_MENU, its selected item in
          COLOR_HIGHLIGHT, as SetSysColors has just set them
+  pattern SPI_SETDESKPATTERN with SPIF_UPDATEINIFILE keeps the pattern in
+         HKCU\\Control Panel\\Desktop, where Display Properties reads it
+         back, and in [Desktop] of WIN.INI; a new session finds both
 
     build/analysis-venv/bin/python tools/test_control_settings_host.py [--no-build] [--keep] [--kms KMS]
 """
@@ -151,6 +154,12 @@ def main():
         session('menu', ['0:wait=ControlSettings', '0:idle=500', '0:alt=4d', '0:wait=60,52,c80a1e',
                          '0:wait=60,90,0ac81e', '0.2:key=51'])
         menu_log = logs[at]
+        # Display Properties, Background: the pattern, set and read back in
+        # a new session.
+        session('putpattern')
+        put_pattern = win98_c.path('C:\\PATTERN.TXT', drive).read_text(errors='replace')
+        session('pattern')
+        got_pattern = win98_c.path('C:\\PATTERN.TXT', drive).read_text(errors='replace')
     finally:
         (WORK / 'log.txt').write_text('\n'.join(logs))
         if not args.keep:
@@ -164,8 +173,12 @@ def main():
         return {name: (found.get(name), wanted) for name, wanted in EXPECTED.items() if found.get(name) != wanted}
 
     refused = [name for name in SETTERS if result['SET'].get('set ' + name) != 1]
+    pattern = 'registry pattern=170 85 170 85 170 85 170 85'
     checks = {
         f'the sessions ran without a stop: {codes} {stops[:1]}': codes == [0, 0] and not stops,
+        'SPI_SETDESKPATTERN keeps the pattern in HKCU\\Control Panel\\Desktop and in WIN.INI, '
+        f'also in a new session: {got_pattern.split()}': 'set pattern=1' in put_pattern and pattern in got_pattern
+            and 'profile pattern=170 85 170 85 170 85 170 85' in got_pattern,
         f'every set action answers TRUE: {refused}': bool(result['SET']) and not refused,
         'SPI_SETKEYBOARDSPEED with SPIF_SENDCHANGE broadcasts WM_SETTINGCHANGE with its action: '
         f'{result["SET"].get("changes after keyboard speed")} {result["SET"].get("change was")}':

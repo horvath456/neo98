@@ -121,6 +121,14 @@ unsigned Application::BuildMessageBox(const Win98MessageBox::Parameters&p,const 
  if(measured&&button_valid&&in.dialog_base_x&&in.dialog_base_y)frame.layout=Win98MessageBoxLayout::Calculate(provider,in);
  Gdi::SelectObject(dc,old);User::ReleaseDC(0,dc);
  if(!frame.layout.valid||state==Failed||state==Exited){if(state!=Failed)last_error=50;return 0;}
+ // USER sounds the box when its template is ready, before the dialog is
+ // made: the event of its icon (bits 4 to 7 of the type: the default sound,
+ // the hand, the question, the exclamation, the asterisk), none for a
+ // program's own icon (MB_USERICON) or a value above the asterisk. It hands
+ // the event to the play routine itself, not to MessageBeep, so the box
+ // sounds also while the beep is off, and an event without a file is quiet,
+ // not the speaker.
+ if(!(p.style&0x80)&&((p.style&0xf0)>>4)<5)PlaySoundEvent(0x91+((p.style&0xf0)>>4));
  const auto&r=frame.layout.absolute_outer;
  unsigned klass=String("#32770"),caption_string=String(title);
  unsigned style=(p.style&0x3000)==0x1000?0x80c80347:0x80c801c5;

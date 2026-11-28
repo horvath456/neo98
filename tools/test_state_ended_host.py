@@ -17,9 +17,10 @@ neo98-host (wstate=save) and loads the state in a new host process
             open. The finished thread keeps no depth of callbacks
             (Application::Run), or the writer looks for the registers of
             marks that are gone
-  explorer  the shell of Windows 98 with My Computer open, saved after
-            Notepad was started from Start > Run and closed again; after the
-            load the Start menu opens
+  explorer  the shell with My Computer open, saved after Notepad was
+            started from Start > Run and closed again, while the shell's
+            child processes (MPREXE, the spooler) live on; after the load
+            the Start menu opens
 
 The host needs an X server for its GTK menu bar:
 
@@ -37,6 +38,7 @@ import json
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -101,6 +103,17 @@ def refusal(text):
 
 def loaded(text):
     return re.search(r'^NEO98 HOST state loaded \S+ ms=[\d.]+ end-pointers=0$', text, re.M) is not None
+
+
+def kernel_version(drive):
+    """(major, minor) of the file version of the drive's KERNEL32.DLL."""
+    path = win98_c.path('C:\\WINDOWS\\SYSTEM\\KERNEL32.DLL', drive)
+    data = path.read_bytes() if path else b''
+    at = data.find(struct.pack('<I', 0xFEEF04BD))
+    if at < 0:
+        return (4, 10)
+    high = struct.unpack_from('<I', data, at + 8)[0]
+    return (high >> 16, high & 0xffff)
 
 
 def visible(text, cls, title=None):
@@ -189,10 +202,12 @@ def main():
               and 'state save failed' not in before and not failures(before))
         check('explorer: My Computer and the taskbar stand after the load',
               loaded(after) and visible(after, 'CabinetWClass', 'My Computer') and visible(after, 'Shell_TrayWnd'))
-        # The Start menu of Windows 98 is a band in a BaseBar window.
+        # The Start menu of Windows 98 is a band in a BaseBar window, that
+        # of Windows 95 (KERNEL32 4.00) a popup menu.
+        menu = 'BaseBar' if kernel_version(pristine) >= (4, 10) else '#32768'
         menu_before, _, menu_after = after.partition('NEO98 HOST input click 20,590')
-        check('explorer: the Start menu of the loaded shell opens',
-              not visible(menu_before, 'BaseBar') and visible(menu_after, 'BaseBar') and not failures(after))
+        check(f'explorer: the Start menu of the loaded shell opens ({menu})',
+              not visible(menu_before, menu) and visible(menu_after, menu) and not failures(after))
 
     (WORK / 'results.json').write_text(json.dumps(results, indent=1) + '\n')
     print(f'Logs in {WORK}', flush=True)

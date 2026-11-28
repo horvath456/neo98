@@ -10,8 +10,9 @@ of the Run key, among them WELCOME.EXE. That takes minutes in a test runner,
 and it happens again in every test that starts the shell over an empty
 writable C: with an empty journal.
 
-This module runs that first logon once, with the original programs, and keeps
-what it left behind:
+This module runs that first logon once, with the original programs in
+neo98-host, the host every one of these tests starts, and keeps what it left
+behind:
 
     build/first-logon/drive-c the files the logon wrote to C:
     build/first-logon/session.registry setup's journal plus the logon's changes
@@ -40,15 +41,14 @@ import neo98  # noqa: E402
 import win98_c  # noqa: E402
 
 # The first logon is the 33 per-user INF sections and a dozen programs; the
-# optimised runner needs about a minute for it on an idle machine.
+# optimised host needs about a minute for it on an idle machine.
 LIMIT_S = 900
-SCRIPT = '''# The taskbar appears when RunOnce and Active Setup are through.
-window Shell_TrayWnd
-# The programs of the Run key and the Internet Connection Wizard's desktop
-# stub settle.
-wait 20000
-stop
-'''
+# The taskbar appears when RunOnce and Active Setup are through; the programs
+# of the Run key and the Internet Connection Wizard's desktop stub settle in
+# the 20 seconds after it, and the host then quits, which keeps the journal.
+# One wait of the host's script gives up after 240 seconds; three of them
+# give the logon the time it had before.
+STEPS = '0:wait=Shell_TrayWnd;0:wait=Shell_TrayWnd;0:wait=Shell_TrayWnd;20:menu=quit'
 
 
 def directory():
@@ -66,8 +66,8 @@ def stamp():
 
 
 def build(out):
-    from native_app import build_fast
-    runner = build_fast('probe_application.cpp', 'probe-smoke')
+    from native_app import build_host
+    host = build_host()
     drive, registry = out / 'drive-c', out / 'session.registry'
     shutil.rmtree(drive, ignore_errors=True)
     drive.mkdir(parents=True)
@@ -77,23 +77,23 @@ def build(out):
         shutil.copyfile(journal, registry)
     else:
         registry.unlink(missing_ok=True)
-    script = out / 'logon.txt'
-    script.write_text(SCRIPT)
-    env = neo98.tool_environment()
-    env['SDL_VIDEODRIVER'] = 'dummy'
+    env = dict(neo98.tool_environment(), SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy', NEO98_HOST_INPUT=STEPS,
+               NEO98_HOST_DEADLINE=str(LIMIT_S), NEO98_SETTINGS_DIR=str(out / 'settings'),
+               NEO98_LOG_DIR=str(out / 'logs'))
+    for key in ('NEO98_HOST_ATTACHED', 'NEO98_HOST_MENU', 'NEO98_TRACE_CALLS_FROM', 'NEO98_TRACE_PAINT'):
+        env.pop(key, None)
     result = subprocess.run(
-        [str(runner), str(win98_c.FOLDER / 'WINDOWS/EXPLORER.EXE'),
-         str(ROOT / 'build/generated/notepad-fixedsys.fnt'), '--system-tree',
-         '--exe', 'C:\\WINDOWS\\EXPLORER.EXE', '--drive-c', str(drive), '--registry', str(registry),
-         '--time-limit', str(LIMIT_S), '--no-idle-stop', '--click-deadline', str(LIMIT_S * 1000),
-         '--click-script', str(script)],
-        env=env, capture_output=True, text=True, timeout=LIMIT_S + 300)
-    (out / 'logon.log').write_text(result.stdout + result.stderr)
-    stop = re.search(r'^PROBE_STOP reason=(\S+)', result.stdout, re.M)
-    if not stop or stop[1] != 'script' or 'PROBE_SCRIPT_FAILED' in result.stdout:
-        raise SystemExit(f'first logon did not reach the end of its script '
-                         f'({stop[1] if stop else "no stop line"}); see {out / "logon.log"}')
-    processes = len(re.findall(r'^CreateProcess application', result.stdout, re.M))
+        [str(host), '-', str(ROOT / 'build/generated/notepad-fixedsys.fnt'),
+         '--system-tree', str(win98_c.FOLDER), '--drive-c', str(drive), '--registry', str(registry),
+         '--desktop', '800x600', '--exe', 'C:\\WINDOWS\\EXPLORER.EXE', '--quiet',
+         '--crash-report-dir', str(out / 'reports')],
+        cwd=ROOT, env=env, capture_output=True, text=True, errors='replace', timeout=LIMIT_S + 300)
+    text = result.stdout + result.stderr
+    (out / 'logon.log').write_text(text)
+    if result.returncode or 'input wait=Shell_TrayWnd reached' not in text:
+        raise SystemExit(f'first logon did not bring up the taskbar and end (exit {result.returncode}); '
+                         f'see {out / "logon.log"}')
+    processes = len(re.findall(r'CreateProcess application', text))
     (out / 'stamp.json').write_text(json.dumps({'stamp': stamp(), 'processes': processes}) + '\n')
     return processes
 

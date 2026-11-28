@@ -61,10 +61,16 @@ template<class E> U DateFormat(E&e,const Time&t,const char*format,Output&o){
 // picture the user has set for the user's locale: KERNEL32 hands it out
 // first and leaves out the picture of the locale that equals it (compared
 // as lstrcmp does), so the list of a program begins with the one in use.
+// One loop and one call of the callback: the call into the program is the
+// single reviewed site of src/state_rules/frames.calls.
 template<class E> U Enumerate(E&e,const char*const*formats,U count,const char*own=nullptr){
     U result=0;
-    if(own){if(!e.Callback(own,result))return 0;if(result!=1)return 1;}
-    for(U i=0;i<count;++i){if(own&&!strcmp(own,formats[i]))continue;if(!e.Callback(formats[i],result))return 0;if(result!=1)return 1;}
+    for(U i=own?0:1;i<=count;++i){
+        const char*value=i?formats[i-1]:own;
+        if(i&&own&&!strcmp(own,value))continue;
+        if(!e.Callback(value,result))return 0;
+        if(result!=1)return 1;
+    }
     return 1;
 }
 }

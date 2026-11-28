@@ -5,8 +5,10 @@
 // errors. Neo98 provides master, wave, and synthesizer volume controls
 // through Sound::Mixer and src/win98_mixer.h.
 #include "win98_mixer.h"
+#include "neo98_hardware.h"
 #include "sound.h"
 #include "x86_app.h"
+#include <stdio.h>
 #include <string.h>
 // The recording destination follows the wave input device.
 bool Win98Mixer::RecordingPresent() { return Sound::Microphone::Present(); }
@@ -78,6 +80,58 @@ void Application::MixerSetControlPair(const void *record, unsigned value)
     }
     if (control.group == M::Master) sound.SetMasterVolume(value);
     else sound.SetGroupVolume(control.group, value);
+}
+
+// A driver keeps the levels of its mixer over a restart of Windows, in the
+// key of its device, and sets them again when it starts: the volume the
+// multimedia page or the Volume Control set is the volume after the next
+// start. This driver keeps every control as its identifier and its value
+// pair in the binary value "Mixer" of its software key
+// (Services\Class\MEDIA\0000, Neo98Hardware::SoundDriver).
+namespace
+{
+constexpr char MixerKey[] = "System\\CurrentControlSet\\Services\\Class\\";
+}
+void Application::SaveMixerLevels()
+{
+    unsigned count = 0;
+    const M::ControlRecord *controls = M::Controls(count);
+    unsigned char levels[32 * 8] = {};
+    if (count > 32) count = 32;
+    for (unsigned i = 0; i < count; ++i)
+    {
+        const unsigned id = controls[i].id, pair = MixerControlPair(&controls[i]);
+        memcpy(levels + i * 8, &id, 4);
+        memcpy(levels + i * 8 + 4, &pair, 4);
+    }
+    char path[96];
+    snprintf(path, sizeof path, "%s%s", MixerKey, Neo98Hardware::SoundDriver);
+    unsigned node = 0;
+    bool created = false;
+    if (!registry.store.Open(registry.store.roots[2], path, true, node, created))
+        registry.store.Set(node, "Mixer", 3, levels, count * 8);
+}
+void Application::LoadMixerLevels()
+{
+    char path[96];
+    snprintf(path, sizeof path, "%s%s", MixerKey, Neo98Hardware::SoundDriver);
+    unsigned node = 0;
+    bool created = false;
+    const Registry::Value *value = nullptr;
+    if (registry.store.Open(registry.store.roots[2], path, false, node, created) ||
+        registry.store.Query(node, "Mixer", value) || !value || !value->data || value->type != 3)
+        return;
+    unsigned count = 0;
+    const M::ControlRecord *controls = M::Controls(count);
+    for (unsigned at = 0; at + 8 <= value->size; at += 8)
+    {
+        unsigned id = 0, pair = 0;
+        memcpy(&id, value->data + at, 4);
+        memcpy(&pair, value->data + at + 4, 4);
+        for (unsigned i = 0; i < count; ++i)
+            if (controls[i].id == id)
+                MixerSetControlPair(&controls[i], pair);
+    }
 }
 
 // A control changed, so every mixer this process has open hears about it. A
@@ -321,6 +375,7 @@ unsigned Application::MixerApi(ApiName name, const unsigned *a)
             value = M::VolumePair(left, right);
         }
         MixerSetControlPair(control, value);
+        SaveMixerLevels();
         MixerControlChanged(control->id);
         return M::NoError;
     }
