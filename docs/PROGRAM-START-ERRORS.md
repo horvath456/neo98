@@ -53,6 +53,21 @@ and stops the run when it is called.
 | a document whose program is missing | the dialog "Program Not Found", which asks where the program is |
 | a missing import | KERNEL32's box, then the file, an empty line and "A device attached to the system is not functioning." |
 
+## From a 16-bit program
+
+A 16-bit program starts others through SHELL's `ShellExecute` (File
+Manager's Run does) or KERNEL's `WinExec`. Both find a bare name ("calc")
+as Windows does, in the current directory, the Windows and System
+directories and along PATH, and both take a full path.
+
+File Manager's Run seemed to start nothing ("cannot find the specified
+file"): its dialog puts the selected file into the Command Line field, and
+the dialog manager gives the first field the focus the way it always does,
+with its whole text selected, so what the user types replaces the file.
+Neo98 gave that first focus without the selection, and the typed name went
+in before the file ("calcC:\"). Measured in Windows 95 OSR2 and Windows 98
+SE: the field's text is selected from its first to its last character.
+
 ## Not the same in Neo98
 
 - A drive letter that does not exist: Windows answers "path not found" (3)
@@ -67,3 +82,7 @@ and stops the run when it is called.
 `tools/test_start_errors_host.py` runs the fixture: every row of the
 table, and the Run dialog for a missing folder, a file that is no program
 and a missing import, whose messages the log of the run holds.
+`tools/test_start_win16_host.py` starts Calculator from a 16-bit program by
+its name and by its path through `ShellExecute` and `WinExec`;
+`tools/test_winfile_run_host.py` opens File Manager's Run and checks the
+selection of its field and that a typed character replaces the text.
