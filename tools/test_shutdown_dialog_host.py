@@ -20,6 +20,17 @@ checks read the screenshots:
   the Start menu shows under it,
 - Cancel takes the dimmed window away.
 
+Each version has its own dialog 0x428 (tools/shutdown_dialog_fixture.c
+measured both under QEMU). Windows 98 SE: 211 x 139 dialog units, OK,
+Cancel and Help; USER centres it in the work area and WM_INITDIALOG
+shrinks it from below. Windows 95 OSR2: 227 x 121 units, a question with
+four choices and Yes, No and Help; SHELL32 hides "log on as a different
+user" where there is no network logon, shrinks the dialog and centres it on
+the screen, not in the work area (in Windows 95 at 640 x 480: 146,129 to
+493,351 with all four choices). The test asks the drive's KERNEL32 which
+version it runs and checks that version's caption and presses its button 2
+(Cancel, No).
+
 The placement core in src/win98_indirect_dialog.h is checked on its own with a small native program.
 
     build/analysis-venv/bin/python tools/test_shutdown_dialog_host.py [--no-build]
@@ -119,6 +130,12 @@ def main():
     drive_c = out / 'drive-c'
     shutil.rmtree(drive_c, ignore_errors=True)
     subprocess.run(['cp', *(['-c'] if __import__('sys').platform == 'darwin' else ['--reflink=auto']), '-R', str(win98_c.FOLDER.resolve()), str(drive_c)], check=True)
+    # Windows 95's dialog: 347 pixels wide, centred on the 800 x 600 screen
+    # (226 to 573), 201 high without the choice of another user (top 199)
+    # and 222 with it (top 189); its caption covers row 205 in both. Its
+    # button No lies at 397..475, 361..384 or 372..395.
+    windows95 = win98_c.kernel_version(drive_c) < (4, 10)
+    caption_row, button = (205, (436, 375)) if windows95 else (166, (423, 310))
     registry = out / 'plain-desktop.registry'
     write_plain_desktop_registry(registry)
     for name in ('menu.ppm', 'dialog.ppm', 'cancel.ppm'):
@@ -136,8 +153,8 @@ def main():
     steps = ['0:wait=Shell_TrayWnd', '0:idle=200', '1:click=25,587', '1:idle=1000',
              f'2:shot={out / "menu.ppm"}', '2.5:move=95,557', '3:down=95,557',
              '3.3:up=95,557', '3.3:wait=#32770|Shut Down Windows', '3.3:idle=1000',
-             f'5:shot={out / "dialog.ppm"}', '6:move=423,310', '7:down=423,310',
-             '7.3:up=423,310', '7.3:idle=1500', f'8:shot={out / "cancel.ppm"}', '9:menu=quit']
+             f'5:shot={out / "dialog.ppm"}', f'6:move={button[0]},{button[1]}', f'7:down={button[0]},{button[1]}',
+             f'7.3:up={button[0]},{button[1]}', '7.3:idle=1500', f'8:shot={out / "cancel.ppm"}', '9:menu=quit']
     env = dict(os.environ, SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
                NEO98_HOST_INPUT=';'.join(steps))
     env.pop('NEO98_HOST_ATTACHED', None)
@@ -167,16 +184,22 @@ def main():
         def blue(value):
             r, b = int(value[:2], 16), int(value[4:], 16)
             return r <= 0x10 and b >= 0x80 and b - r >= 0x70
-        check('caption of the dialog in the middle of the work area',
-              blue(at(dialog, 300, 166)) and blue(at(dialog, 245, 166))
-              and not blue(at(dialog, 236, 166)))
+        if windows95:
+            check('caption of the dialog in the middle of the work area',
+                  blue(at(dialog, 300, caption_row)) and blue(at(dialog, 230, caption_row))
+                  and blue(at(dialog, 568, caption_row)) and not blue(at(dialog, 223, caption_row))
+                  and not blue(at(dialog, 577, caption_row)))
+        else:
+            check('caption of the dialog in the middle of the work area',
+                  blue(at(dialog, 300, 166)) and blue(at(dialog, 245, 166))
+                  and not blue(at(dialog, 236, 166)))
         check('dialog face is not dimmed', at(dialog, 250, 320) == 'c0c0c0' and at(dialog, 251, 320) == 'c0c0c0')
         check('desktop dimmed', halftone(dialog, 600, 100) and halftone(dialog, 100, 540))
         check('taskbar dimmed', halftone(dialog, 400, 590))
         check('no Start menu under the dimming', at(dialog, 100, 300) in ('008080', '000000')
               and at(dialog, 101, 300) in ('008080', '000000'))
         check('Cancel takes the dimming away', not halftone(cancel, 600, 100) and not halftone(cancel, 400, 590)
-              and at(cancel, 300, 208) != '000080')
+              and at(cancel, 300, 208 if not windows95 else caption_row) != '000080')
     check('host ended', result.returncode == 0)
     report = {'log': str(log_path), 'exit_code': result.returncode, 'steps': steps, 'checks': checks}
     (out / 'results.json').write_text(json.dumps(report, indent=2) + '\n')
