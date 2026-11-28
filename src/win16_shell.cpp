@@ -166,7 +166,9 @@ bool Application::Win16ShellCall(unsigned ordinal, const Win16Frame &frame, unsi
         words = 10;
         const unsigned a[] = {frame.Word(9),    frame.Pointer(7), frame.Pointer(5),
                               frame.Pointer(3), frame.Pointer(1), frame.Word(0)};
+        last_child_process = 0;
         result = Api("ShellExecuteA", a);
+        Win16RememberStart(result);
         return true;
     }
     case 34: // ExtractIcon(instance, file, index)

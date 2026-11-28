@@ -93,9 +93,44 @@ and stops the run when it is called.
 ## From a 16-bit program
 
 A 16-bit program starts others through SHELL's `ShellExecute` (File
-Manager's Run does) or KERNEL's `WinExec`. Both find a bare name ("calc")
-as Windows does, in the current directory, the Windows and System
-directories and along PATH, and both take a full path.
+Manager's Run does), KERNEL's `WinExec` or `LoadModule`. All find a bare
+name ("calc") as Windows does, in the current directory, the Windows and
+System directories and along PATH, and all take a full path.
+
+What they answer, measured in Windows 95 OSR2 and Windows 98 SE with the
+same 16-bit program (`tools/start_answers_win16_fixture.asm`):
+
+| | `WinExec` | `LoadModule` | `ShellExecute` |
+| --- | --- | --- | --- |
+| a 16-bit program | its instance | its instance | 42 |
+| a 32-bit program | an instance | an instance | an instance |
+| a file on a missing drive, or in a missing folder | 3 | 3 | 2 |
+| a file that does not exist | 2 | 2 | 2 |
+
+The instance of a 16-bit program is the one its `InitTask` hands it.
+`ShellExecute` is SHELL32's: it waits for the new program's input and
+answers the instance KERNEL32 keeps for its process, or 42 when there is
+none, and a 16-bit program started by a 16-bit one has not run yet. For a
+32-bit program Windows answers the instance of the 16-bit module it keeps
+for every process: `GetWindowWord(GWW_HINSTANCE)` of its windows answers
+the same from a 16-bit program, and `GetModuleUsage` of it is 1 while the
+program runs and 0 after; a 16-bit program can wait for the end of what
+it started that way. `KRNL386`'s `LoadModule` opens the program by its
+path, so a missing folder or drive is "path not found", where the 32-bit
+`WinExec` says "file not found".
+
+A 32-bit program that starts a 16-bit one gets its instance from
+`WinExec` and `ShellExecute` too, and 32 from `LoadModule` (which answers
+32 for every program that started). Windows' `LoadModule` appends the
+command tail of its parameter block through its terminating zero, whatever
+its count says.
+
+Neo98 answers the instance of a 16-bit program as Windows does (it reads
+it from the new program's task database). A 32-bit program has no 16-bit
+module here: `WinExec`, `LoadModule` and `ShellExecute` of a 16-bit
+program answer a word of their own for it (above 32, never 42, one per
+process), and `GetModuleUsage` of that word is 1 while the program runs
+and 0 after.
 
 File Manager's Run seemed to start nothing ("cannot find the specified
 file"): its dialog puts the selected file into the Command Line field, and
@@ -107,19 +142,28 @@ SE: the field's text is selected from its first to its last character.
 
 ## Not the same in Neo98
 
-- A program that started: Windows 95 and 98 answer the 16-bit instance or
-  task of the new program from `ShellExecute` and `WinExec`, Neo98 another
-  number above 32.
+- A 32-bit program started by a 16-bit one: Windows answers the instance
+  of the program's 16-bit module, which `GetWindowWord(GWW_HINSTANCE)` of
+  its windows answers too; Neo98 answers a word of its own, and
+  `GWW_HINSTANCE` of such a window is 0 for a 16-bit program. A 32-bit
+  program started by a 32-bit one gets that word from `WinExec`, the image
+  base from `ShellExecute`.
+- Values are local to a process: the instance of a 16-bit program another
+  one started can be the same number as the starter's own instance.
 
 ## Tests
 
 `tools/test_start_errors_host.py` runs the fixture: every row of the
-table, the file functions for a missing drive and a missing folder, and
-the Run dialog for a missing folder, a missing drive, a file that is no
-program and a missing import, whose messages the log of the run holds.
+table, the file functions for a missing drive and a missing folder, a
+16-bit program started by a 32-bit one, and the Run dialog for a missing
+folder, a missing drive, a file that is no program and a missing import,
+whose messages the log of the run holds.
 `tools/test_start_win16_host.py` starts Calculator from a 16-bit program by
-its name and by its path through `ShellExecute` and `WinExec`;
-`tools/test_winfile_run_host.py` opens File Manager's Run and checks the
-selection of its field and that a typed character replaces the text. The
-fixture writes its lines to COM1 as well, so the same program runs in the
-real Windows under QEMU.
+its name and by its path through `ShellExecute` and `WinExec`, then runs
+`tools/start_answers_win16_fixture.asm`: the answers of the three ways for
+a 16-bit and a 32-bit program, `GetModuleUsage` of them, the errors for a
+missing drive, folder and file, `OpenFile` and the DOS calls on a missing
+drive. `tools/test_winfile_run_host.py` opens File Manager's Run and checks
+the selection of its field and that a typed character replaces the text.
+The fixtures write their lines to COM1 as well, so the same programs run in
+the real Windows under QEMU.

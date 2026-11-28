@@ -21,7 +21,9 @@
  * comes up and writes its caption and text ("BOX caption / text"). The
  * programs it starts are copies of itself: QUIET.EXE ends at once,
  * MISSEXP.EXE imports a name KERNEL32 does not export, MISSDLL.EXE a DLL
- * that does not exist.
+ * that does not exist; and C:\SE\CHILD16.EXE, a 16-bit program that writes
+ * its instance and task (the "child16-" lines: the answer of WinExec,
+ * ShellExecute and LoadModule beside them).
  *
  * Every line goes to COM1 as well when it opens, and the last is
  * MEASURE_DONE: the same program measures the real Windows under QEMU.
@@ -306,6 +308,37 @@ static void files(const char *label, const char *base)
     lstrcatA(line, "\r\n");
     put(line);
 }
+/* A 16-bit program started by this 32-bit one (CHILD16.EXE of
+   tools/start_answers_win16_fixture.asm, "k" makes it the child): the
+   answer, and the instance and task the child writes into C:\S16\CHILD.BIN. */
+static void child16(const char *label, int how)
+{
+    char line[200];
+    WORD words[2] = { 0, 0 };
+    DWORD r = 0, n = 0, start;
+    HANDLE h;
+    DeleteFileA("C:\\S16\\CHILD.BIN");
+    if (how == WE)
+        r = WinExec("C:\\SE\\CHILD16.EXE k", SW_SHOWMINNOACTIVE);
+    else if (how == SE)
+        r = (DWORD)ShellExecuteA(0, "open", "C:\\SE\\CHILD16.EXE", "k", "C:\\SE", SW_SHOWMINNOACTIVE);
+    else {
+        WORD show[2] = { 2, SW_SHOWMINNOACTIVE };
+        struct { LPVOID env; LPSTR cmd; LPVOID show; DWORD reserved; } params = { 0, "\002 k\r", show, 0 };
+        r = LoadModule("C:\\SE\\CHILD16.EXE", &params);
+    }
+    for (start = GetTickCount(); GetTickCount() - start < 20000; Sleep(100)) {
+        h = CreateFileA("C:\\S16\\CHILD.BIN", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
+        if (h == INVALID_HANDLE_VALUE)
+            continue;
+        ReadFile(h, words, 4, &n, 0);
+        CloseHandle(h);
+        if (n == 4)
+            break;
+    }
+    wsprintfA(line, "%s|answer %lx|instance %x|task %x\r\n", label, r, words[0], words[1]);
+    put(line);
+}
 typedef int(WINAPI *RunFileDlgProc)(HWND, HICON, LPCSTR, LPCSTR, LPCSTR, UINT);
 static void run(const char *command)
 {
@@ -387,6 +420,10 @@ void mainCRTStartup(void)
     measure("missing-drive", "Q:\\NOFILE.EXE", ALL);
     measure("missing-drive-folder", "Q:\\NODIR\\NOFILE.EXE", ALL);
     measure("program", "C:\\SE\\QUIET.EXE quiet", WE | CP);
+    CreateDirectoryA("C:\\S16", 0);
+    child16("child16-winexec", WE);
+    child16("child16-shellexecute", SE);
+    child16("child16-loadmodule", LM);
     files("files-drive", "Q:");
     files("files-folder", "C:\\SE\\NODIR");
     run("C:\\SE\\NODIR\\NOFILE.EXE");

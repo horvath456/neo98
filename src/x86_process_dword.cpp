@@ -35,16 +35,19 @@ unsigned Application::ProcessDwordApi(const unsigned *a)
                 value = database;
                 return true;
             }
-            // Field -48 returns the task's Win16 hInstance. Windows returns
-            // zero when a process has no task data, but SHELL32 treats values
-            // of 32 or less as failure when opening folders. Use the process
-            // image base as its instance: nonzero, above 32 and unique per
-            // process. Fields -56 and -44 use the same task database but
-            // remain unsupported here.
+            // Field -48 returns the task's Win16 hInstance. For the process
+            // of a 16-bit program that is the instance of its program, which
+            // SHELL32's ShellExecute hands on after CreateProcess (42 when it
+            // is zero); Windows 95 and 98 answer it so. A 32-bit process has
+            // no task data here, and SHELL32 treats values of 32 or less as
+            // failure when opening folders: its image base stands in, nonzero
+            // and above 32. Fields -56 and -44 use the same task database
+            // but remain unsupported here.
             if (field == Win98ProcessDword::TaskSlot1c)
             {
                 auto *other = static_cast<Application *>(User::ProcessContextOf(database));
-                value = (other ? other : &app)->image.Base();
+                auto *target = other ? other : &app;
+                value = target->Win16Process() ? target->Win16InstanceHandle() : target->image.Base();
                 return true;
             }
             // Field -44 is the Windows version the program was made for, as

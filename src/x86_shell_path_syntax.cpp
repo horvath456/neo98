@@ -129,8 +129,15 @@ struct Application::ShellExecuteEnvironment:ShellCommandEnvironment {
   U result=app.ProcessApi("CreateProcessA",launch),launch_error=app.last_error;
   if(result){
    U process=app.Read32(frame+880),thread=app.Read32(frame+884);const U close_thread[]={thread};app.ThreadApi("CloseHandle",close_thread);
+   // SHELL32 waits for the input of the new program when a 16-bit program
+   // asked, and answers the instance KERNEL32 keeps for it (or 42 when it
+   // has none); a 16-bit program gets a word of it (SHELL.20). A 16-bit
+   // program it started has not run when the wait ends.
+   if(app.Win16Process()){
+    bool win16=false;info[8]=app.Win16ShellAnswer(app.Read32(frame+888),win16);
+    if(!win16){const U wait[]={process,10000};app.WaitForInputIdleApi(wait);}
+   }else info[8]=33; // Successful ShellExecute status; not an HMODULE in this process.
    if(info[1]&0x40)info[14]=process;else {const U close_process[]={process};app.ThreadApi("CloseHandle",close_process);}
-   info[8]=33; // Successful ShellExecute status; not an HMODULE in this process.
   }else info[8]=Win98ShellExecute::ShellError(launch_error);
   app.Free(frame);app.last_error=result?0:launch_error;return result;
  }

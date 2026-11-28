@@ -20,7 +20,11 @@ struct Application::LegacyProcessEnvironment {
  };
  bool ProbeRead(unsigned p,unsigned &v){return probe.Read8(p,v);}
  bool ProbeWrite(unsigned p){unsigned value;return probe.Read8(p,value)&&probe.Write8(p,value);}
- unsigned Read8(unsigned p){if(p>=0xf1000000&&p<0xf1000044)return reinterpret_cast<const unsigned char*>(app.startup_info)[p-0xf1000000];unsigned char c=0;app.Read(p,&c,1);return c;}
+ // The task database of a 16-bit child lies in its own process: Finish
+ // reads it through SelectorAddress, which copies it to here.
+ Application *win16_child=nullptr;unsigned char task_database[256]={};
+ unsigned Read8(unsigned p){if(p>=0xf1000000&&p<0xf1000044)return reinterpret_cast<const unsigned char*>(app.startup_info)[p-0xf1000000];
+  if(p>=0xf2000000&&p<0xf2000000+sizeof task_database)return task_database[p-0xf2000000];unsigned char c=0;app.Read(p,&c,1);return c;}
  unsigned Read16(unsigned p){return Read8(p)|(Read8(p+1)<<8);}
  unsigned Read32(unsigned p){return Read16(p)|(Read16(p+2)<<16);}
  void Write8(unsigned p,unsigned v){unsigned char c=v;app.Store(p,&c,1);}
@@ -42,7 +46,11 @@ struct Application::LegacyProcessEnvironment {
  // port's own bookkeeping (WinExec of a program that ended at once left
  // ERROR_INVALID_HANDLE behind).
  unsigned Finish(unsigned kind,unsigned created,unsigned info){if(auto*s=app.ProcessFileState())app.threads[app.current_thread].file_api_flags=s->thread_flags;ReleaseMode();const unsigned before=app.last_error;const unsigned result=Win98ProcessLegacy::Finish(*this,kind,created,info);if(created)app.last_error=before;return result;}
- unsigned Allocate(unsigned bytes){if(++allocations>1&&bytes<minimum_command){app.last_error=87;return 0;}if(!bytes||bytes>32768){app.last_error=8;return 0;}return app.Allocate(bytes);}
+ // The command of LoadModule: KERNEL32 allocates for the count of the tail
+ // and appends the tail through its zero, which can be longer ("\002 k\r"
+ // has three characters); Windows starts the program. The block gets the
+ // room the append needs.
+ unsigned Allocate(unsigned bytes){if(++allocations>1&&bytes<minimum_command)bytes=minimum_command;if(!bytes||bytes>32768){app.last_error=8;return 0;}return app.Allocate(bytes);}
  void Free(unsigned p){app.Free(p);}
  void Close(unsigned h){if((h&0xff000000)==0x40000000)app.FileApi("CloseHandle",&h);else app.ThreadApi("CloseHandle",&h);}
  unsigned Open(unsigned name){unsigned a[]={name,0x80000000,3,0,3,0x80,0};return app.FileApi("CreateFileA",a);}
@@ -58,9 +66,17 @@ struct Application::LegacyProcessEnvironment {
   }
   if(!found){app.last_error=2;return 0;}unsigned length=strlen(path);if(length>=capacity)return length+1;app.Store(out,path,length+1);return length;
  }
- unsigned ThreadTask(unsigned tid){for(auto&c:children)if(c.used&&c.tid==tid)return c.tid&65535;app.last_error=6;return 0;}
+ // A 16-bit child has a task of its own, the selector of its task database;
+ // a 32-bit one has none here, and a word of its process stands in for the
+ // instance Windows answers (Win32InstanceStandIn).
+ unsigned ThreadTask(unsigned tid){for(auto&c:children)if(c.used&&c.tid==tid){
+   if(c.app&&!c.done&&c.app->Win16Process()&&c.app->Win16TaskSelector()){win16_child=c.app;return c.app->Win16TaskSelector();}
+   return Win32InstanceStandIn(c.pid);}
+  app.last_error=6;return 0;}
  unsigned ReferenceProcess(unsigned h,unsigned,unsigned){auto*handle=app.FindKernelHandle(h);if(!handle||handle->kind!=6)return 0;app.ReferenceChild(handle->object);return handle->object+1;}
- unsigned ProcessFlags(unsigned){return 0;} // Native PE32 children have no Win16 process flag.
+ // Bit 8 of the process flags: a Win16 process, which Finish does not wait
+ // for. Windows 95 and 98 answer its instance at once.
+ unsigned ProcessFlags(unsigned token){auto&c=children[token-1];return c.app&&c.app->Win16Process()?8u:0u;}
  void DereferenceProcess(unsigned token){app.ReleaseChild(token-1);}
  unsigned WaitThread(unsigned tid){
   // asks USER to wait at most 10000 ms. This provider observes an
@@ -89,8 +105,11 @@ struct Application::LegacyProcessEnvironment {
    if(app.state==Failed||app.state==Exited)return ~0u;
   }
  }
- bool SelectorExists(unsigned){return false;} // No Win16 task-selector objects on this PE32 path.
- unsigned SelectorAddress(unsigned){app.last_error=50;return 0;}
+ bool SelectorExists(unsigned selector){return win16_child&&selector==win16_child->Win16TaskSelector();}
+ unsigned SelectorAddress(unsigned){
+  const unsigned at=win16_child->Win16Linear(win16_child->Win16TaskSelector(),0);
+  if(!at||!win16_child->Read(at,task_database,sizeof task_database)){app.last_error=50;return 0;}
+  return 0xf2000000u;}
 };
 unsigned Application::LegacyProcessApi(ApiName name,const unsigned*a){
  LegacyProcessEnvironment e(*this);
@@ -106,7 +125,10 @@ unsigned Application::LegacyProcessApi(ApiName name,const unsigned*a){
   if(block[2]){unsigned short show[2];if(!e.probe.Span(block[2],show,4)){last_error=998;return 0;}
    if(show[0]==2&&block[1]){unsigned n;if(!e.ProbeRead(block[1],n)){last_error=998;return 0;}
     if(n>127){last_error=87;return 0;}
-    if(n){char tail[128],file[260];if(!e.probe.Text(block[1]+1,tail,n+1)||!e.probe.Text(a[0],file,sizeof file))return 0;e.minimum_command=strlen(file)+strlen(tail)+2;}
+    // KERNEL32 appends the tail through its zero, whatever the count says:
+    // "\002 k\r" is " k\r". A tail probed only as long as its count found no
+    // zero, and a LoadModule with such a tail answered 0.
+    if(n){char tail[128],file[260];if(!e.probe.Text(block[1]+1,tail,sizeof tail)||!e.probe.Text(a[0],file,sizeof file))return 0;e.minimum_command=strlen(file)+strlen(tail)+2;}
    }
   }
   return Win98ProcessLegacy::LoadModule(e,a[0],a[1]);
