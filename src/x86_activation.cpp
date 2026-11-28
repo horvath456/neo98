@@ -1063,13 +1063,17 @@ unsigned Application::ContextMenuOfFrame(unsigned hwnd, unsigned lp)
 // button, lParam the point of the click. USER's DefWindowProc: nothing for a
 // disabled window; otherwise the system menu with Maximize as its default
 // item, Restore for a minimized or maximized window, tracked with the right
-// button too at the point. For lParam -1 USER asks the shell hook for the
-// rectangle of the button (HSHELL_GETMINRECT) and opens the menu along it;
-// without a shell hook that answers, as here, it opens nothing.
+// button too at the point. lParam -1 comes from the keyboard: USER asks the
+// shell hook for the rectangle of the window's button (HSHELL_GETMINRECT,
+// ShellMinRect in src/x86_shell.cpp) and opens the menu at its top left
+// corner, beside it and not over it (TPM_VERTICAL, the button excluded);
+// with no shell hook it opens nothing. A taskbar without a button for the
+// window leaves the rectangle as it was, which in USER is what its stack
+// held there; here it stays empty and nothing opens either.
 unsigned Application::PopupSystemMenu(unsigned hwnd, unsigned lp)
 {
     const unsigned style = User::Style(hwnd);
-    if ((style & 0x08000000u) || lp == 0xffffffffu)
+    if (style & 0x08000000u)
         return 0;
     const unsigned arguments[] = {hwnd, 0};
     const unsigned menu = Api("GetSystemMenu", arguments);
@@ -1077,7 +1081,16 @@ unsigned Application::PopupSystemMenu(unsigned hwnd, unsigned lp)
         return 0;
     User::PrepareSystemMenu(hwnd);
     User::SetMenuDefault(menu, style & 0x21000000u ? 0xf120 : 0xf030, false);
-    User::TrackPopup(menu, 0x202, (short)(lp & 0xffff), (short)(lp >> 16), hwnd);
+    if (lp == 0xffffffffu)
+    {
+        Gdi::RECT button = {};
+        if (!ShellMinRect(hwnd, button) || !User::IsWindow(hwnd) ||
+            (button.left == button.right && button.top == button.bottom))
+            return 0;
+        User::TrackPopup(menu, 0x240, button.left, button.top, hwnd, &button);
+    }
+    else
+        User::TrackPopup(menu, 0x202, (short)(lp & 0xffff), (short)(lp >> 16), hwnd);
     PlayMenuSounds();
     return 0;
 }

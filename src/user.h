@@ -122,6 +122,7 @@ unsigned SetWindowIcon(HWND, bool large, unsigned icon);
 bool TakeSizeMove(HWND);
 using ShellEvent = void (*)(void *, unsigned code, HWND, unsigned parameter);
 void SetShellHookOwner(void *context);
+void *ShellHookOwner(); // the process that registered SHELL's hook, or null
 void SetShellEvents(void *, ShellEvent);
 using ShellPosition = void (*)(void *, HWND);
 using ShellMessage = void (*)(void *, HWND, unsigned, unsigned, unsigned);

@@ -2449,6 +2449,7 @@ bool DestroyWindow(HWND h)
 }
 void SetShellEvents(void *context, ShellEvent event) { shell_context = context; shell_event = event; }
 void SetShellHookOwner(void *context) { shell_hook_context = context; }
+void *ShellHookOwner() { return shell_hook_context; }
 void ConstrainShellPosition(HWND h,unsigned &after,unsigned &flags) {
     if(const auto*w=Find(h))Win98ShellRegistration::ConstrainPosition(w->nonclient_flags,after,flags);
 }

@@ -1014,6 +1014,7 @@ private:
     void StartPasswordList();
     unsigned RegisterShell(unsigned hwnd, unsigned flags);
     void ShellEvent(unsigned code, unsigned hwnd, unsigned parameter);
+    bool ShellMinRect(unsigned hwnd, Gdi::RECT &rect);
     struct AtomTable;
     AtomTable *atoms = nullptr;
     unsigned AtomApi(ApiName, const unsigned *);

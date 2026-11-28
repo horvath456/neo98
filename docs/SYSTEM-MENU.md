@@ -35,10 +35,26 @@ menu has Close) and tracks it at the point with the right button as well
 `TPM_RIGHTBUTTON`). The message was not answered at all.
 
 With `lParam` -1, from the keyboard, USER asks the shell hook for the
-rectangle of the window's button (`HSHELL_GETMINRECT`) and opens the menu
-along it; when no shell hook answers, it opens nothing. Neo98's shell hook
-only notifies (`NotifyShell` in `src/user.cpp`) and answers no rectangle, so
-the keyboard form opens nothing.
+rectangle of the window's button (`HSHELL_GETMINRECT`, the window in
+`wParam` and a `RECT` in `lParam`) and tracks the menu at the rectangle's
+top left corner with `TPM_VERTICAL` and the rectangle excluded, in the
+16-bit `TPMPARAMS`: the menu opens above or below the button, its left edge
+on the button's, never over it. With no shell hook installed it opens
+nothing. SHELL's hook (`Win98Shell::Send` in `src/win98_shell.h`) sends its
+registered `SHELLHOOK` message with code 5 and a `SHELLHOOKINFO` (the window,
+then the rectangle as four words) to the windows that registered, and
+Explorer's taskbar fills in its button in screen coordinates, cut to what
+shows of its band; for a window without a button it leaves the rectangle as
+it was.
+
+The taskbar answers on its own thread in Explorer's process while the
+window's thread waits, so the info lives in Explorer's memory and the hook
+sends across the processes (`Application::ShellMinRect` in
+`src/x86_shell.cpp`, with `SendCrossProcessRaw`, as `WM_GETMINMAXINFO` is
+sent). Neo98 opened nothing for -1 before: its hook could only post to
+another process, and no rectangle came back. Where the taskbar has no button
+for the window, USER tracks at whatever its stack held in the rectangle;
+Neo98 keeps it empty and opens nothing.
 
 ## A maximized MDI child
 
@@ -58,6 +74,11 @@ the frame `WM_COMMAND`, which `DefFrameProc` hands to the child as
 `WM_SYSCOMMAND`. A double click on the icon is the Close of that menu.
 
 ## Tests
+
+`tools/test_taskbar_system_menu_host.py`: a window
+(`tools/taskbar_menu_fixture.c`) sends itself 0313h with -1, started by
+Explorer (the menu stands on its button, above the taskbar) and alone (no
+menu).
 
 `tools/test_system_menu_icon_host.py`: a window
 (`tools/system_menu_icon_fixture.c`) gets presses and a double click on its
