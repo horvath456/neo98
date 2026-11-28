@@ -6,7 +6,9 @@
  * title of the window (tools/test_session_hooks_dos_host.py). WH_CBT writes
  * creation, activation and focus, WH_CALLWNDPROC WM_SETFOCUS and
  * WM_INITDIALOG, WH_GETMESSAGE clicks and keys, each for the windows of the
- * MS-DOS window and its property sheet only.
+ * MS-DOS window and its property sheet only. When the MS-DOS window is
+ * activated, WH_CBT puts a procedure of the DLL before the window's own;
+ * it writes WM_SETFOCUS and the keys that pass through it.
  */
 #include <windows.h>
 void *memset(void *p,int c,unsigned n){unsigned char*q=p;while(n--)*q++=(unsigned char)c;return p;}
@@ -35,8 +37,27 @@ static int interesting(HWND w)
     return !lstrcmpiA(klass, "tty") || !lstrcmpA(klass, "#32770") || !lstrcmpiA(klass, "Edit") ||
            !lstrcmpiA(klass, "ComboBox") || !lstrcmpiA(klass, "SysTabControl32");
 }
+/* A procedure put before that of the MS-DOS window when it is activated,
+   as a shell's hook does it to dress the window: it notes WM_SETFOCUS and
+   the keys and hands everything to the window's own procedure. */
+static WNDPROC tty_procedure;
+static HWND subclassed;
+static LRESULT CALLBACK Subclass(HWND w, UINT message, WPARAM wp, LPARAM lp)
+{
+    if (message == WM_SETFOCUS || message == WM_CHAR)
+        log_line("SUBCLASS", w, message);
+    return CallWindowProcA(tty_procedure, w, message, wp, lp);
+}
 __declspec(dllexport) LRESULT CALLBACK CbtProc(int code, WPARAM w, LPARAM l)
 {
+    if (code == HCBT_ACTIVATE && !subclassed) {
+        char klass[16] = "";
+        GetClassNameA((HWND)w, klass, sizeof klass);
+        if (!lstrcmpiA(klass, "tty")) {
+            subclassed = (HWND)w;
+            tty_procedure = (WNDPROC)SetWindowLongA((HWND)w, GWL_WNDPROC, (LONG)Subclass);
+        }
+    }
     if (code == HCBT_CREATEWND || code == HCBT_ACTIVATE || code == HCBT_SETFOCUS)
         if (interesting((HWND)w))
             log_line(code == HCBT_CREATEWND ? "CBT-CREATE" : code == HCBT_ACTIVATE ? "CBT-ACTIVATE" : "CBT-FOCUS",

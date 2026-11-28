@@ -15,7 +15,11 @@ The port ran the hooks in no process without an x86 processor, and the DOS
 process has none until it loads an x86 module: no hook was called for the
 window, and none for the sheet, also after COMCTL32 had brought the
 processor. Now the hook DLL itself is the first x86 module of the DOS
-process, and the loop of the window runs WH_GETMESSAGE.
+process, and the loop of the window runs WH_GETMESSAGE. A procedure the
+hook puts before the window's own (SetWindowLongA when the window is
+activated) gets the window's messages and hands them on with
+CallWindowProcA; the port ran the procedure of the window as x86 code
+there, and the process ended with too deep a nesting of callbacks.
 
 tools/session_hook_dos_fixture.c (HOOKRUN.EXE) with
 tools/session_hook_dos_dll_fixture.c (HOOKMEAS.DLL), on a copy of the
@@ -103,6 +107,8 @@ def main():
             here(events('CBT-ACTIVATE', '#32770', 'MS-DOS Prompt Properties')) and here(events('CBT-FOCUS', 'Edit')),
         'WH_GETMESSAGE: the keys typed into the field':
             here(events('GETMSG', 'Edit', None, '100')) and here(events('GETMSG', 'Edit', None, '102')),
+        "a procedure the hook put before the window's own gets its messages and hands them on":
+            here(events('SUBCLASS', 'tty', 'MS-DOS Prompt', '102')) and here(events('CBT-ACTIVATE', '#32770')),
     }
     for name, passed in checks.items():
         print('ok  ' if passed else 'FAIL', name, flush=True)

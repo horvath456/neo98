@@ -5280,6 +5280,9 @@ unsigned Application::Call(unsigned procedure, const unsigned *arguments, unsign
         return Win16CallPascal(Win16MarkPointer(procedure), push, 2, ~0u) & 0xffff;
     }
     if(procedure==0x71000006&&count==4)return ComboBoxMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
+    // The procedure of the MS-DOS window (the tty class of src/x86_dos_vm.cpp),
+    // as a subclass a hook put before it calls it with CallWindowProcA.
+    if(procedure==0x71000040&&count==4&&dos_vm)return DosVmWindowMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
     if(procedure==0x71000102&&count==4)return TooltipMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
     if(procedure==0x71000108&&count==4)return TrackbarMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
     if(procedure==0x71000109&&count==4)return UpDownMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
