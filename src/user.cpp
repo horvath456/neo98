@@ -1553,13 +1553,17 @@ void PaintControlContent(HWND h, Window &w, Gdi::HDC dc)
                 // break. One TextOut, centred vertically, cut a paragraph off at
                 // both ends of its control (the start dialog of Kaggz).
                 // SS_CENTERIMAGE keeps the single centred line below.
+                // SS_EDITCONTROL adds DT_EDITCONTROL, except to
+                // SS_LEFTNOWORDWRAP: a message box's text breaks and ends
+                // its lines as the box measured them.
                 const unsigned type=w.style&0x1f;
                 if((type<=2||type==0xc)&&!(w.style&0x200)){
                     unsigned ignored=0;
                     Win98DrawTextGdi::Environment layout{ignored,dc};
                     Win98DrawText::Rect area={Win98DrawText::W(p.x),Win98DrawText::W(p.y),
                                               Win98DrawText::W(p.x+client.right),Win98DrawText::W(p.y+client.bottom)};
-                    const unsigned flags=(type==1?1u:type==2?2u:0u)|0x40u|(type==0xc?0u:0x10u)|((w.style&0x80)?0x800u:0u);
+                    const unsigned flags=(type==1?1u:type==2?2u:0u)|0x40u|(type==0xc?0u:0x10u)|((w.style&0x80)?0x800u:0u)|
+                                         (type!=0xc&&(w.style&0x2000)?0x2000u:0u);
                     Gdi::SetBkMode(dc,Gdi::TRANSPARENT);
                     Gdi::IntersectClipRect(dc,area.left,area.top,area.right,area.bottom);
                     const unsigned length=Length(w.title);
