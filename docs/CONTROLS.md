@@ -99,3 +99,22 @@ CBT hook and, from such a timer, `EnumChildWindows`, `GetDlgItem` and
 `GetDlgItemText` find; `tools/test_message_box_children_host.py` compares
 every line with the same program in Windows 98 SE (Windows 95 OSR2 answers
 the same).
+
+## The entries of a directory listing
+
+`LB_DIR` (and `CB_DIR`, `DlgDirList`) puts each file and directory into the
+list through USER's insertion with the flag of `LB_ADDSTRINGLOWER`: the
+entries show in lower case, "readme.txt" and "[windows]"; the drives,
+"[-c-]", come at the end. A sorted list box compares an entry in brackets
+as greater than one without, whatever the letters say, so the files come
+first, then the directories and drives. `LB_ADDFILE` adds one file the
+same way: USER looks the name up as DOS does (files of any attribute, no
+directory) and answers `LB_ERR` when there is none. The four messages
+`LB_INSERTSTRINGUPPER`, `LB_INSERTSTRINGLOWER`, `LB_ADDSTRINGUPPER` and
+`LB_ADDSTRINGLOWER` (1AAh to 1ADh) are the insertion with the case flag for
+a window of a 4.0 module. Neo98 listed the names as the drive spells them,
+sorted brackets among the letters, and ended the list box on `LB_ADDFILE`
+("unsupported listbox message") (`src/x86_listbox.cpp`,
+`src/x86_dlgdir.cpp`). Measured in Windows 95 OSR2 and Windows 98 SE with
+`tools/cross_process_lists_fixture.c`.
+

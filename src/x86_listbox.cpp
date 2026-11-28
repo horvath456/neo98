@@ -549,6 +549,21 @@ unsigned Application::ListBoxMessage(unsigned hwnd, unsigned message, unsigned w
     // back through LB_ADDSTRING, so the sort style decides the order.
     case 0x18d:
         return ListBoxDirectory(hwnd, wp, lp);
+    // LB_ADDFILE: one file of a directory listing, in src/x86_dlgdir.cpp.
+    case 0x196:
+        return ListBoxAddFile(hwnd, lp);
+    // LB_INSERTSTRINGUPPER, LB_INSERTSTRINGLOWER, LB_ADDSTRINGUPPER and
+    // LB_ADDSTRINGLOWER: USER's insertion with the flag that turns the copy
+    // of the string to upper or lower case (AnsiUpper, AnsiLower). The
+    // entries of a directory listing go in with the lower one. A window of
+    // a module older than 4.0 answers 0.
+    case 0x1aa:
+    case 0x1ab:
+    case 0x1ac:
+    case 0x1ad:
+        if (!User::ModernWindow(hwnd))
+            return 0;
+        [[fallthrough]];
     case 0x180:
     case 0x181:
     {
@@ -565,16 +580,31 @@ unsigned Application::ListBoxMessage(unsigned hwnd, unsigned message, unsigned w
             text = new char[n + 1];
             memcpy(text, source, n + 1);
             data = 0;
+            if (message >= 0x1aa && n)
+                if (const unsigned copy = Allocate(n + 1))
+                {
+                    Store(copy, text, n + 1);
+                    const unsigned arguments[] = {copy, n};
+                    Api(message == 0x1aa || message == 0x1ac ? "CharUpperBuffA" : "CharLowerBuffA", arguments);
+                    Read(copy, text, n);
+                    Free(copy);
+                }
         }
+        const bool add = message == 0x180 || message == 0x1ac || message == 0x1ad;
         unsigned index = wp == ~0u || wp > b.count ? b.count : wp;
-        if (message == 0x180)
+        if (add)
         {
             index = b.count;
             if (b.style & 2)
                 for (index = 0; index < b.count; ++index)
                 {
                     int order = 0;
-                    if (b.Strings())
+                    // USER's comparison of a sorted list: an entry
+                    // in brackets (a directory, a drive) comes after one
+                    // without, whatever the letters say.
+                    if (b.Strings() && (text[0] == '[') != (b.text[index][0] == '['))
+                        order = text[0] == '[' ? 1 : -1;
+                    else if (b.Strings())
                     {
                         const unsigned char *a = (const unsigned char *)text,
                                             *c = (const unsigned char *)b.text[index];

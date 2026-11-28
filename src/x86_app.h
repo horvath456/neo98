@@ -1380,6 +1380,8 @@ private:
     unsigned MdiApi(ApiName, const unsigned *);
     // src/x86_dlgdir.cpp: DlgDirListA and the LB_DIR / CB_DIR enumeration.
     unsigned ListBoxDirectory(unsigned hwnd, unsigned attributes, unsigned pattern);
+    unsigned ListBoxAddFile(unsigned hwnd, unsigned name);
+    unsigned AddDirectoryEntry(const char *label);
     unsigned DlgDirApi(ApiName, const unsigned *);
     // src/x86_user_draw_state.cpp: DrawState, GrayString and the tabbed text.
     bool DrawStateBlit(unsigned hdc, unsigned brush, unsigned mono, int x, int y, int cx, int cy);
