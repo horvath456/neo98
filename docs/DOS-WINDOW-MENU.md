@@ -46,7 +46,11 @@ In Neo98 the MS-DOS window (`src/x86_dos_vm.cpp`) builds the same menu from
 the same module (`DosVmSystemMenu`), sets its items on `WM_INITMENU`
 (`DosVmMenuStates`) and takes the commands with `WM_SYSCOMMAND`
 (`DosVmSystemCommand`), through the same actions as the buttons of the strip.
-Before, the window had USER's system menu only.
+Before, the window had USER's system menu only. Its titles ("Mark - ",
+"Scroll - ", "Finished - ", the name of the program that runs) go through
+`SetWindowText` as WINOLDAP's do (`DosVmTitle`), so `WM_SETTEXT` passes the
+window's procedure, and a procedure put before the window's own sees each
+new title. Before, Neo98 set the text without the message.
 
 `tools/test_dos_system_menu_host.py` compares the menu and the commands with
 Windows. Two things differ there and are not compared: Windows calls the

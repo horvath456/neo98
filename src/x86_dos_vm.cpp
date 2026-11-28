@@ -674,7 +674,14 @@ void Application::DosVmTitle()
     }
     if (!strcmp(text, d.shown_title) || !d.window) return;
     snprintf(d.shown_title, sizeof d.shown_title, "%s", text);
-    User::SetWindowText(d.window, text);
+    // WINOLDAP sets it with SetWindowText: WM_SETTEXT goes through the
+    // window's procedure, so a program that subclassed the window (a shell
+    // that draws the caption itself) sees the new title.
+    const unsigned title = String(text);
+    if (!title) { User::SetWindowText(d.window, text); return; }
+    const unsigned arguments[] = {d.window, title};
+    Api("SetWindowTextA", arguments);
+    Free(title);
 }
 
 // The button images: bitmap 4 of WINOA386.MOD, RLE4 with a 16 colour
