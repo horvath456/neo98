@@ -37,6 +37,11 @@ What the commands do, measured in Windows 95 OSR2 and Windows 98 SE with
 - Paste types the clipboard's text into the program.
 - Properties opens the window's property sheet ("MS-DOS Prompt Properties").
 
+Alt+Space opens the menu, as the menu key of any window, unless the Misc
+page of the properties leaves the key to the program (`KBD_NOALTSPACE`,
+80h). Neo98 gave the key to the program, so where the window's caption has no
+system menu box, the menu could not be reached.
+
 In Neo98 the MS-DOS window (`src/x86_dos_vm.cpp`) builds the same menu from
 the same module (`DosVmSystemMenu`), sets its items on `WM_INITMENU`
 (`DosVmMenuStates`) and takes the commands with `WM_SYSCOMMAND`

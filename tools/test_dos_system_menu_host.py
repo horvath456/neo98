@@ -24,7 +24,10 @@ machine. Not compared:
   system and ignores the posted clicks, so in Windows the clipboard stays
   empty; here the block holds the prompt;
 - what follows the "exit" pasted: Windows keeps the window as "Finished -",
-  Neo98 closes it; either shows that the paste reached the program.
+  Neo98 closes it; either shows that the paste reached the program;
+- Alt+Space, which opens the system menu unless the Misc page leaves the key
+  to the program: the fixture posts it, which is no measure of Windows, and
+  only Neo98's answer is checked.
 
     build/analysis-venv/bin/python tools/test_dos_system_menu_host.py [--no-build]
 """
@@ -126,6 +129,10 @@ def main():
         same = mine is not None and compared(key, mine) == value
         label = f'{key}: as in Windows'
         checks[label if same else f'{label}\n      got      {mine}\n      expected {value}'] = same
+    # Alt+Space: WINOLDAP keeps the key for the system menu unless the Misc
+    # page leaves it to the program. Posted keys are no measure of what
+    # Windows does with the key of the keyboard, so this is Neo98's own check.
+    checks[f'Alt+Space opens the system menu ({got.get("altspace.menu")})'] = got.get('altspace.menu') == '1'
     clipboard = got.get('clipboard', '')
     checks[f'Mark and Enter copy the block with the prompt: {clipboard}'] = clipboard.startswith('"C:\\WINDOWS>')
     pasted = got.get('pasted.closed') == '1' or got.get('pasted', '').startswith('"Finished - ')

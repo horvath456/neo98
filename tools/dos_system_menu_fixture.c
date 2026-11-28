@@ -13,7 +13,8 @@
  *   check after each); Mark (the window's title) and Escape; Mark again
  *   with a block dragged over two lines and Enter, which copies it (the
  *   titles and the text on the clipboard); Scroll and Escape; Properties
- *   (the title of the window that opens, then closed again); and Paste of
+ *   (the title of the window that opens, then closed again); Alt+Space
+ *   posted as WM_SYSKEYDOWN (whether a menu window shows); and Paste of
  *   "exit" and a carriage return from the clipboard, which ends COMMAND.COM
  *   (whether the window closed, else its title).
  *
@@ -277,6 +278,22 @@ void mainCRTStartup(void)
             addf("%d", !IsWindow(sheet) || !IsWindowVisible(sheet));
             flush();
         }
+        /* Alt+Space: the system menu opens (a menu window shows); then
+           WM_CANCELMODE to the window ends it. */
+        SetForegroundWindow(tty);
+        wait(500);
+        PostMessageA(tty, WM_SYSKEYDOWN, VK_SPACE, 0x20390001);
+        PostMessageA(tty, WM_SYSKEYUP, VK_SPACE, 0xe0390001);
+        wait(1500);
+        {
+            HWND popup = FindWindowA("#32768", 0);
+            begin("altspace.menu");
+            addf("%d", popup != 0 && IsWindowVisible(popup));
+            flush();
+        }
+        PostMessageA(tty, WM_CANCELMODE, 0, 0);
+        wait(1000);
+        title("altspace.after", tty);
         /* Paste "exit" and Enter. */
         if (OpenClipboard(0))
         {

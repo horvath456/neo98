@@ -192,6 +192,9 @@ struct Application::DosVmState
     // the mouse marks text instead of reaching DOS) and the exclusive mouse
     // (MSE_EXCLUSIVE: the window captures the pointer on a click).
     bool warn_close = true, alt_enter = true, quickedit = false, exclusive = false, captured = false;
+    // Alt+Space opens the system menu unless the Misc page leaves it to the
+    // program (KBD_NOALTSPACE).
+    bool alt_space = true;
     // The text mode in a window, the way WINOLDAP draws it: the character
     // cells in a raster size of the WOAFont (FNT 2.0 resources), the size of
     // the Font page (FNT group: flags, cx at +8, cy at +0xa) or, for Auto,
@@ -1377,11 +1380,11 @@ void Application::DosVmScale()
 
 // The Misc page as the window applies it, at the start and after every
 // Apply: always suspend (TSK_BACKGROUND 0x2 clear), the question on close
-// (TSK_NOWARNTERMINATE 0x10), Alt+Enter left to the program
-// (KBD_NOALTENTER 0x100), QuickEdit (MSE_WINDOWENABLE 0x1 clear) and the
-// exclusive mouse (MSE_EXCLUSIVE 0x2). The other shortcut keys of the page,
-// Alt+Tab, Ctrl+Esc and the rest, are the desktop's to take; the window
-// never sees them either way.
+// (TSK_NOWARNTERMINATE 0x10), Alt+Enter and Alt+Space left to the program
+// (KBD_NOALTENTER 0x100, KBD_NOALTSPACE 0x80), QuickEdit (MSE_WINDOWENABLE
+// 0x1 clear) and the exclusive mouse (MSE_EXCLUSIVE 0x2). The other
+// shortcut keys of the page, Alt+Tab, Ctrl+Esc and the rest, are the
+// desktop's to take; the window never sees them either way.
 void Application::DosVmLiveSettings(Win98PifMgr::Record &record)
 {
     auto &d = *dos_vm;
@@ -1394,6 +1397,7 @@ void Application::DosVmLiveSettings(Win98PifMgr::Record &record)
     d.background = (task & 0x2) != 0;
     d.warn_close = !(task & 0x10);
     d.alt_enter = !(keys & 0x100);
+    d.alt_space = !(keys & 0x80);
     d.quickedit = !(mouse & 0x1);
     d.exclusive = (mouse & 0x2) != 0;
     d.launch.fast_paste = (keys & 0x1) != 0;
@@ -2817,6 +2821,15 @@ unsigned Application::DosVmWindowMessage(unsigned hwnd, unsigned message, unsign
         {
             if (message == 0x0104) DosVmFullscreen(!d->fullscreen);
             if (message == 0x0104 || message == 0x0105) return 0;
+        }
+        // Alt+Space opens the window's system menu, WINOLDAP's items in it,
+        // as the menu key of any window does, unless the Misc page leaves
+        // the key to the program.
+        if (d && d->alt_space && !d->fullscreen && wp == 0x20 && (lp & (1u << 29)) &&
+            (message == 0x0104 || message == 0x0105))
+        {
+            if (message == 0x0104) return DefaultWindowMessage(hwnd, 0x112, 0xf100, ' ');
+            return 0;
         }
         // QuickEdit: Enter copies a marked block, the way the console does.
         if (d && d->quickedit && d->selected && wp == 0x0d && message == 0x0100)
