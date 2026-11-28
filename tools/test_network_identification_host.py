@@ -18,12 +18,24 @@ DI_NEEDRESTART on the first component (NETDI's PSN_APPLY), and after the
 commit NETDI asks to restart (RestartDialog, EW_RESTARTWINDOWS). An OK
 without a change asks nothing.
 
-neo98-kms over one private copy of drive C:, RUNDLL32 with NETCPL.CPL:
+"Primary Network Logon" of the page Configuration shows the client whose
+class key has Ndi\\Default, "Windows Logon" without one, and OK stores that
+choice in HKLM\\Network\\Logon (PrimaryProvider, LMLogon). The drive's mark
+and its PrimaryProvider name the same client; the port took the mark away on
+every drive and so turned a Windows 95 with Client for Microsoft Networks
+into Windows Logon at the first OK (docs/NETWORK-APPLET.md).
 
+neo98-kms over one private copy of drive C:, RUNDLL32 with NETCPL.CPL, and
+tools/network_logon_fixture.c, which reads the registry and the box:
+
+  at the first start the box shows the client PrimaryProvider names, or
+  Windows Logon for an empty one
   the description changed and OK: no disk question of SETUPX, a file copied
   from the cabinets, the description stored, the restart question
   OK without a change: no disk question, no restart question, the applet
   ends
+  after both: the box shows the same, PrimaryProvider and LMLogon are as
+  they were (an LMLogon the drive did not have is written as zero)
 
     build/analysis-venv/bin/python tools/test_network_identification_host.py [--no-build] [--keep] [--kms KMS]
 """
@@ -31,6 +43,11 @@ import sys as _sys
 from test_support import skip as _skip
 if _sys.platform != 'linux':
     _skip('this test requires the Linux host')
+if __name__ == '__main__':
+    import shutil as _shutil
+    if not _shutil.which('i686-w64-mingw32-gcc'):  # the fixture is built with it; docs/BUILDING.md
+        print('SKIP: needs i686-w64-mingw32-gcc')
+        _sys.exit(77)
 import argparse
 import os
 import shutil
@@ -92,26 +109,39 @@ def main():
     subprocess.run(['cp', '-a', '--reflink=auto', str(pristine), str(drive)], check=True)
     if win98_c.journal(pristine).is_file():
         shutil.copy2(win98_c.journal(pristine), win98_c.journal(drive))
+    subprocess.run(['i686-w64-mingw32-gcc', '-Os', str(ROOT / 'tools/network_logon_fixture.c'), '-nostartfiles',
+                    '-nostdlib', '-Wl,-e,_mainCRTStartup', '-mwindows', '-luser32', '-lkernel32', '-ladvapi32',
+                    '-o', str(drive / 'NETLOGON.EXE')], check=True)
     logs = []
 
-    def session(name, steps):
+    def session(name, steps, exe='C:\\WINDOWS\\RUNDLL32.EXE', command=COMMAND):
         env = dict(os.environ, SDL_AUDIODRIVER='dummy', NEO98_KEYMAP='US', NEO98_KMS_OUTPUT='image:800x600',
                    NEO98_HOST_INPUT=';'.join(steps))
         for variable in ('DISPLAY', 'WAYLAND_DISPLAY', 'NEO98_KMS_CARD'):
             env.pop(variable, None)
         result = subprocess.run([str(args.kms), '--drive-c', str(drive), '--desktop', '800x600', '--verbose',
-                                 '--exe', 'C:\\WINDOWS\\RUNDLL32.EXE', '--command', COMMAND,
+                                 '--exe', exe, '--command', command,
                                  '--time-limit', '60'], cwd=ROOT, env=env, capture_output=True, text=True,
                                 errors='replace', timeout=150)
         text = result.stdout + result.stderr
         logs.append(f'---- {name}: {result.returncode}\n{text}')
         return result.returncode, text
 
+    def logon(name):
+        """What tools/network_logon_fixture.c read: the registry and the box."""
+        written = win98_c.path('C:\\NETLOGON.TXT', drive)
+        if written:
+            written.unlink()
+        session(name, (), 'C:\\NETLOGON.EXE', 'NETLOGON.EXE read')
+        written = win98_c.path('C:\\NETLOGON.TXT', drive)
+        return dict(line.split('=', 1) for line in (written.read_text().splitlines() if written else ()) if '=' in line)
+
     def system_files():
         folder = win98_c.path('C:\\WINDOWS', drive)
         return {p: p.stat().st_mtime for p in folder.rglob('*') if p.is_file()}
 
     try:
+        first = logon('the logon at the first start')
         before = system_files()
         started = time.time()
         changed_code, changed = session('the description changed', [
@@ -125,6 +155,7 @@ def main():
         comment = values.get(('hkey_local_machine\\system\\currentcontrolset\\services\\vxd\\vnetsup', 'comment'), b'')
         same_code, same = session('OK without a change', [
             '0:wait=#32770|Network', '0:idle=2500', '1:key=0d'])
+        last = logon('the logon after both')
     finally:
         (WORK / 'log.txt').write_text('\n'.join(logs))
         if not args.keep:
@@ -142,6 +173,20 @@ def main():
         'and the applet ends after No': changed_code == 0,
         'OK without a change: no disk question': disk not in same,
         'no restart question, the applet ends': f'MessageBox caption={RESTART}' not in same and same_code == 0,
+        f'at the first start the box shows {first.get("logon")!r}, the client PrimaryProvider '
+        f'{first.get("primary")!r} names: {first.get("expected")!r} (marked: {first.get("marked")!r})':
+            bool(first.get('logon')) and first.get('logon') == first.get('expected'),
+        f'after both the box shows {last.get("logon")!r}': bool(last.get('logon')) and
+            last.get('logon') == first.get('logon'),
+        f'PrimaryProvider and LMLogon as they were: {first.get("primary")!r} {first.get("lmlogon")!r}, after '
+        f'{last.get("primary")!r} {last.get("lmlogon")!r}':
+            'primary' in first and last.get('primary') == first.get('primary') and
+            (last.get('lmlogon') == first.get('lmlogon') or
+             # NETDI writes LMLogon itself; the port's network setup of
+             # Windows 98 adds the client without it, and zero is what an
+             # absent value means (no logon to a Windows NT domain).
+             (first.get('lmlogon') == '(none)' and last.get('lmlogon', '').strip('0') == '' and
+              bool(last.get('lmlogon')))),
     }
     failed = [name for name, passed in checks.items() if not passed]
     for name, passed in checks.items():

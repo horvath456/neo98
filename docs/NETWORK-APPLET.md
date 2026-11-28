@@ -35,6 +35,26 @@ DI_NEEDRESTART on the first component. A changed computer name, workgroup
 or description therefore ends with "You must restart your computer before
 the new settings will take effect"; an OK without a change asks nothing.
 
+## The primary network logon
+
+The page Configuration fills "Primary Network Logon" from NETDI's
+components: every client is listed, and the one selected is the client
+whose class key (`Services\Class\NetClient\NNNN`) has the key
+`Ndi\Default`, which NETDI's loader marks as the default of its type;
+without such a client "Windows Logon" is selected. NETDI does not read
+`HKLM\Network\Logon` "PrimaryProvider" for this. OK writes the choice back:
+PrimaryProvider as the client's `Ndi` "NetworkProvider", empty for Windows
+Logon, and "LMLogon". A Windows 95 with Client for Microsoft Networks has
+both, the mark on its class key and PrimaryProvider "Microsoft Network".
+
+The import of the hives (`src/registry_hives.h`) took the mark of
+`NetClient\0000` away on every drive. That belongs to the port's network
+setup of Windows 98, which makes Windows Logon the primary logon (an empty
+PrimaryProvider) in place of Microsoft Family Logon
+(`tools/network_setup.py`). On a drive without that setup the box showed
+Windows Logon and the first OK stored it. The mark is now removed only
+together with that setup.
+
 ## What went wrong in the port
 
 The SETUPX of Windows 95 keeps the names of its copy queue as local atoms
@@ -58,7 +78,10 @@ the hives does (`src/registry_persist.cpp`,
 
 ## Test
 
-`tools/test_network_identification_host.py`: the description changed and
-OK (no disk question of SETUPX, files copied from the cabinets, the
-description stored, the restart question), then, in a new start on the same
-drive, OK without a change (no disk question, no restart question).
+`tools/test_network_identification_host.py`: at the first start the box
+shows the client PrimaryProvider names (Windows Logon for an empty one,
+read by `tools/network_logon_fixture.c`); the description changed and OK
+(no disk question of SETUPX, files copied from the cabinets, the description
+stored, the restart question); in a new start on the same drive OK without
+a change (no disk question, no restart question); then the box shows the
+same and PrimaryProvider and LMLogon are as they were.

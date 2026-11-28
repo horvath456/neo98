@@ -615,7 +615,15 @@ class Import
         Display();
         Hardware();
         Merge();
-        Remove(0, Text("System\\CurrentControlSet\\Services\\Class\\NetClient\\0000\\Ndi\\Default"));
+        // NETDI's page Configuration selects in "Primary Network Logon" the
+        // client whose class key has Ndi\Default, "Windows Logon" without
+        // one. The network setup above makes Windows Logon the primary logon
+        // (an empty PrimaryProvider), so the mark of the client Setup made
+        // primary goes with it (tools/network_setup.py, removals). Without
+        // that setup the hives keep their own primary logon, mark and
+        // PrimaryProvider together.
+        if (network)
+            Remove(0, Text("System\\CurrentControlSet\\Services\\Class\\NetClient\\0000\\Ndi\\Default"));
         HardwareRemovals();
         if (arena.failed || keys.failed || values.failed || made.failed || groups.failed || group_values.failed ||
             trees[0].keys.failed || trees[1].keys.failed || trees[0].values.failed || trees[1].values.failed)
