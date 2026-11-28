@@ -22,6 +22,32 @@ struct Environment
     }
     unsigned Upper(unsigned c) const { return c >= 128 ? upper[c - 128] : c >= 'a' && c <= 'z' ? c - 32 : c; }
 };
+// Whether `p` is the payload of a busy fixed block of the local heap whose
+// control block the word at 6 points to, large enough for the atom entry its
+// length byte describes. The physical chain is walked, so an interior word
+// that resembles a block header does not pass. The control block and the
+// atom table (the word at 8) are not entries.
+inline bool HeapEntry(const Environment &e, unsigned p)
+{
+    const unsigned control = e.Word(6);
+    if (!control || p < 4 || (p & 3) || p == control || p == e.Word(8))
+        return false;
+    const unsigned tail = e.Word(control + 10);
+    unsigned block = e.Word(e.Word(control + 6) + 2);
+    for (unsigned steps = 0; block < tail && steps < 16384; ++steps)
+    {
+        const unsigned next = e.Word(block + 2);
+        if (next <= block || next > tail)
+            return false;
+        if (block + 4 == p)
+            return (e.Word(block) & 3) == 1 && next - block >= 12 && e.Byte(p + 4) &&
+                   e.Byte(p + 4) + 10 <= next - block;
+        if (block + 4 > p)
+            return false;
+        block = next;
+    }
+    return false;
+}
 inline unsigned Integer(unsigned value)
 {
     value &= 65535;

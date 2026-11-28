@@ -46,25 +46,7 @@ struct Application::AtomTable final : Win98Atoms::Environment
     }
     bool Valid(unsigned p) const override
     {
-        if (p < 0x1004 || p >= 0xfff0 || (p & 3) || p == Word(6) || p == Word(8))
-            return false;
-        // Validate membership in the actual physical block chain. An interior
-        // word that resembles a heap header must not become an atom handle.
-        const unsigned control = Word(6), tail = Word(control + 10);
-        unsigned block = Word(Word(control + 6) + 2);
-        for (unsigned steps = 0; block < tail && steps < 16384; ++steps)
-        {
-            const unsigned next = Word(block + 2);
-            if (next <= block || next > tail)
-                return false;
-            if (block + 4 == p)
-                return (Word(block) & 3) == 1 && next - block >= 12 && Byte(p + 4) &&
-                       Byte(p + 4) + 10 <= next - block;
-            if (block + 4 > p)
-                return false;
-            block = next;
-        }
-        return false;
+        return p >= 0x1004 && p < 0xfff0 && Win98Atoms::HeapEntry(*this, p);
     }
     void Free(unsigned p) override
     {
@@ -72,6 +54,12 @@ struct Application::AtomTable final : Win98Atoms::Environment
             Win98LocalHeap::Free(heap, p);
     }
 };
+// The upper case of the atom tables for the characters from 80h, KRNL386's
+// table; the local atoms of 16-bit data segments use it too (src/ne_loader.cpp).
+const unsigned char *Application::AtomUpperCase()
+{
+    return OriginalAtomUpper;
+}
 Application::AtomTable &Application::SystemAtoms(bool registration)
 {
     // Original USER selects distinct segment heaps for Global* and registration.

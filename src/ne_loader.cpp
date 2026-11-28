@@ -16,6 +16,7 @@
 // The KRNL386 contracts are in win98_ne_task.h.
 #include "dll_routes.h"
 #include "jit_memory.h"
+#include "win98_atoms.h"
 #include "win98_local_heap.h"
 #include "win98_ne_image.h"
 #include "win98_ne_task.h"
@@ -3348,44 +3349,34 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
                      : 0;
         return true;
     }
-    // Atom gates adapt arguments to the shared implementation in
-    // src/x86_atoms.cpp. InitAtomTable, DeleteAtom and GetAtomHandle take one
-    // word; AddAtom and FindAtom take a far pointer; GetAtomName takes eight
-    // bytes. A pointer with selector zero represents an integer atom whose
-    // value is its offset.
-    case 68: // InitAtomTable(size)
-    {
+    // The local atoms live in the segment in DS, as KRNL386 keeps them
+    // (Win16LocalOperation, src/win98_atoms.h). InitAtomTable, DeleteAtom and
+    // GetAtomHandle take one word; AddAtom and FindAtom take a far pointer;
+    // GetAtomName takes eight bytes. A pointer with selector zero is an
+    // integer atom whose value is its offset.
+    case 68: // InitAtomTable(size): the near pointer of the table
         words = 1;
-        const unsigned a[] = {frame.Word(0)};
-        result = Api("InitAtomTable", a) & 0xffff;
+        result = Win16LocalOperation(Win16LocalAtomTable, frame.Word(0));
         return true;
-    }
     case 69: // FindAtom(name)
     case 70: // AddAtom(name)
     {
         words = 2;
-        const unsigned a[] = {frame.Word(1) ? frame.Pointer(0) : frame.Word(0)};
-        result = Api(ordinal == 70 ? "AddAtomA" : "FindAtomA", a) & 0xffff;
+        const unsigned name = frame.Word(1) ? frame.Pointer(0) : 0u;
+        result = Win16LocalOperation(Win16LocalAtomSearch, ordinal == 70, name, frame.Word(1) ? 0u : frame.Word(0));
         return true;
     }
-    case 71: // DeleteAtom(atom)
-    {
+    case 71: // DeleteAtom(atom): zero, or the atom when it is not there
         words = 1;
-        const unsigned a[] = {frame.Word(0)};
-        result = Api("DeleteAtom", a) & 0xffff;
+        result = Win16LocalOperation(Win16LocalAtomDelete, frame.Word(0));
         return true;
-    }
     case 72: // GetAtomName(atom, buffer, size)
-    {
         words = 4;
-        const unsigned a[] = {frame.Word(3), frame.Pointer(1), frame.Word(0)};
-        result = Api("GetAtomNameA", a) & 0xffff;
+        result = Win16LocalOperation(Win16LocalAtomName, frame.Word(3), frame.Pointer(1), frame.Word(0));
         return true;
-    }
-    case 73: // GetAtomHandle(atom): shift string atoms left by two bits.
-             // Return zero for integer atoms. The native atom table is shared
-             // rather than stored in the task's data segment, so this value
-             // identifies its node rather than a pointer in DS.
+    case 73: // GetAtomHandle(atom): the near pointer of a string atom's
+             // entry in DS, the atom shifted left by two; zero for an
+             // integer atom. KRNL386 checks nothing more.
         words = 1;
         result = frame.Word(0) >= 0xc000 ? (frame.Word(0) << 2) & 0xffff : 0u;
         return true;
@@ -5390,6 +5381,27 @@ struct LocalStaging final : Win98LocalHeap::Environment
         code = value;
     }
 };
+// The local atoms of KRNL386 in the staged segment: the word at 8 points to
+// the table, each entry is a fixed block of the segment's local heap, and an
+// atom is the near pointer of its entry shifted right by two. Programs read
+// the name at that pointer plus five themselves (GetAtomHandle); SETUPX
+// keeps the file names of its copy queue so and copies them out of its own
+// segment.
+struct LocalAtoms final : Win98Atoms::Environment
+{
+    LocalStaging &heap;
+    LocalAtoms(LocalStaging &staging, const unsigned char *upper) : Environment(staging.bytes, upper), heap(staging) {}
+    unsigned Allocate(unsigned flags, unsigned size) override
+    {
+        return heap.W(6) ? Win98LocalHeap::Allocate(heap, flags, size) : 0u;
+    }
+    void Free(unsigned p) override
+    {
+        if (Valid(p))
+            Win98LocalHeap::Free(heap, p);
+    }
+    bool Valid(unsigned p) const override { return Win98Atoms::HeapEntry(*this, p); }
+};
 } // namespace
 // One operation on the local heap of the segment in DS, for a gate that needs
 // a block there without a 16-bit caller having asked for one. `kind` is the
@@ -5400,6 +5412,13 @@ unsigned Application::Win16LocalOperation(unsigned kind, unsigned a, unsigned b,
     const unsigned base = Win16Linear(selector, 0), bytes = Win16Limit(selector) + 1;
     if (!base || bytes > 65536)
         return 0;
+    // The name of an atom is read before the segment is staged; it may lie
+    // in the segment itself. KRNL386 takes up to 255 characters.
+    unsigned char text[257] = {}, name[256] = {};
+    if (kind == Win16LocalAtomSearch && b)
+        for (unsigned i = 0; i < 256 && Read(b + i, text + i, 1) && text[i]; ++i)
+        {
+        }
     auto staging = new LocalStaging;
     // VB also builds local heaps in dynamically allocated global blocks.
     // The default notification may grow those segments, not just DGROUP.
@@ -5446,6 +5465,22 @@ unsigned Application::Win16LocalOperation(unsigned kind, unsigned a, unsigned b,
         // Windows 98 writes the size of the heap into the word at heap+38.
         result = staging->W(staging->W(6) + 38);
         break;
+    case Win16LocalAtomTable:
+    case Win16LocalAtomSearch:
+    case Win16LocalAtomDelete:
+    case Win16LocalAtomName:
+    {
+        LocalAtoms atoms(*staging, AtomUpperCase());
+        if (kind == Win16LocalAtomTable)
+            result = Win98Atoms::Initialize(atoms, a);
+        else if (kind == Win16LocalAtomSearch)
+            result = b ? Win98Atoms::Search(atoms, text, a) : Win98Atoms::Integer(c);
+        else if (kind == Win16LocalAtomDelete)
+            result = Win98Atoms::Delete(atoms, a);
+        else
+            result = Win98Atoms::Name(atoms, a, name, c);
+        break;
+    }
     default: break;
     }
     bool failed = staging->failed;
@@ -5457,6 +5492,10 @@ unsigned Application::Win16LocalOperation(unsigned kind, unsigned a, unsigned b,
     }
     if (!failed && !Store(destination, staging->bytes, length)) failed = true;
     delete staging;
+    // The buffer of GetAtomName may lie in the segment too, so it is written
+    // after the segment: the name and its terminating zero.
+    if (kind == Win16LocalAtomName && b && (c & 65535) && !failed)
+        Store(b, name, (result < 255 ? result : 255u) + 1);
     return failed ? 0u : result;
 }
 bool Application::Win16LocalCall(unsigned ordinal, const Win16Frame &frame, unsigned &result,
