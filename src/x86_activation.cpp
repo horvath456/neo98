@@ -1075,6 +1075,13 @@ unsigned Application::PopupSystemMenu(unsigned hwnd, unsigned lp)
     const unsigned style = User::Style(hwnd);
     if (style & 0x08000000u)
         return 0;
+    // Before either form USER compares the window's queue with the
+    // foreground queue: a window of another queue is made the foreground
+    // window by the routine of SetForegroundWindow, and when that answers
+    // zero nothing opens. The taskbar's request thus brings the window to
+    // the front before its menu shows.
+    if (User::WindowThread(hwnd) != User::ForegroundQueue() && (!SetForegroundApi(hwnd) || !User::IsWindow(hwnd)))
+        return 0;
     const unsigned arguments[] = {hwnd, 0};
     const unsigned menu = Api("GetSystemMenu", arguments);
     if (!menu || !User::IsWindow(hwnd))
