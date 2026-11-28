@@ -42,9 +42,14 @@ On OK, Regional Settings writes the chosen locale as `Locale`
 `HKCU\Control Panel\International`, calls `InvalidateNLSCache` and asks
 for a restart. It writes nothing else: every value then comes from the new
 locale, the first day of the week (`LOCALE_IFIRSTDAYOFWEEK`, 0 for
-Monday), the dates, numbers and money. A value the user set before (a
-short date, say) stays under the key and is answered for the new locale
-as well, until the user changes it.
+Monday), the dates, numbers and money. A value the user set before with
+`SetLocaleInfoA` (a currency symbol, say) stays under the key and is
+answered for the new locale as well, until the user changes it.
+
+`SetLocaleInfoA` writes the registry and is answered at once. A value a
+program writes into the registry by itself is not: Windows 95 and 98 go on
+answering the old one in that session, also after `InvalidateNLSCache`.
+Neo98 reads the registry for every answer and answers it at once.
 
 KERNEL32 keeps the user's locale in its shared data, so
 `InvalidateNLSCache` in one process empties it for all of them: a program
@@ -52,19 +57,21 @@ that is running asks `GetUserDefaultLCID` and gets the new locale at once.
 Neo98 counts the calls of `InvalidateNLSCache` for the whole session, and a
 process that sees a count it has not seen reads the locale again.
 
-For German (Austrian), with a short date `M/d/yyyy` set before:
+For German (Austrian), with a currency symbol `US$` set before:
 
 | Asked | Windows 95 and 98 answer |
 | --- | --- |
 | `GetUserDefaultLCID` | `0C07` |
-| short date | `M/d/yyyy` (the user's) |
+| short date | `dd.MM.yy` |
 | long date | `dddd, dd. MMMM yyyy`: "Samstag, 28. November 2026" |
 | first day of the week | 0, Monday |
-| currency, decimal, thousands | the schilling (the bytes F6 53 of code page 1252), `,`, `.` |
+| currency, decimal, thousands | `US$` (the user's), `,`, `.`: "-US$ 1.234.567,89" |
 | time format | `HH:mm:ss` |
 
 ## Not the same in Neo98
 
+- A value written into the registry by a program is answered at once (see
+  above).
 - `LOCALE_SCOUNTRY` answers nothing: Windows takes the country's name out
   of a string table of KERNEL32 Neo98 does not read.
 - `EnumSystemCodePagesA` hands out a list of its own, not the code pages of

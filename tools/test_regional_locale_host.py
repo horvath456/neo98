@@ -24,10 +24,10 @@ copy of drive C:
           the callback with a value in AddLocales; ERROR_INVALID_FLAGS and
           ERROR_INVALID_PARAMETER; Monday in Russian and the currency of
           Greece in code pages 1251 and 1253 where Windows has them
-  choose  a short date stored while English (United States) is the
+  choose  a currency symbol set while English (United States) is the
           locale, then INTL.CPL:
           "German (Austrian)" chosen on the first page, OK, No to the
-          restart; Windows stores the locale and keeps the short date, and
+          restart; Windows stores the locale and keeps the symbol, and
           every other value follows the new locale: Monday first, the
           schilling,
           the separators, the long date
@@ -60,15 +60,15 @@ import win98_c  # noqa: E402
 
 BINARY = ROOT / 'build/native-app/neo98-kms'
 WORK = ROOT / 'build/regional-locale'
-# What Windows answers for German (Austrian) with a short date the user set
-# before: the stored short date wins, the rest is the locale's.
+# What Windows answers for German (Austrian) with a currency symbol the user
+# set before: the user's symbol wins, the rest is the locale's.
 AUSTRIAN = {
-    'user locale': '0c07', 'answer short date': 'M/d/yyyy', 'answer long date': 'dddd, dd. MMMM yyyy',
-    'answer first day': '0', 'answer currency': '\xf6S', 'answer decimal': ',', 'answer thousand': '.',
+    'user locale': '0c07', 'answer short date': 'dd.MM.yy', 'answer long date': 'dddd, dd. MMMM yyyy',
+    'answer first day': '0', 'answer currency': 'US$', 'answer decimal': ',', 'answer thousand': '.',
     'answer time format': 'HH:mm:ss', 'answer language': 'German (Austrian)', 'answer date separator': '.',
-    'formatted short date': '11/28/2026', 'formatted long date': 'Samstag, 28. November 2026',
-    'formatted number': '-1.234.567,89', 'formatted currency': '-\xf6S 1.234.567,89'.encode('cp1252').hex(),
-    'stored Locale': '00000C07', 'stored sShortDate': 'M/d/yyyy',
+    'formatted short date': '28.11.26', 'formatted long date': 'Samstag, 28. November 2026',
+    'formatted number': '-1.234.567,89', 'formatted currency': '-US$ 1.234.567,89'.encode('cp1252').hex(),
+    'stored Locale': '00000C07', 'stored sCurrency': 'US$',
 }
 
 
@@ -142,8 +142,8 @@ def main():
                                              'restart your computer' in logs[1]),
         # Regional Settings stores the locale alone; KERNEL32 answers every
         # other value out of the new locale, unless the user set it.
-        'stored: the locale and the short date set before, no value of the new locale':
-            not set(chosen.get('stored names', '').split()) & {'sLongDate', 'iFirstDayOfWeek', 'sCurrency', 'sDecimal',
+        'stored: the locale and the currency set before, no value of the new locale':
+            not set(chosen.get('stored names', '').split()) & {'sLongDate', 'iFirstDayOfWeek', 'sShortDate', 'sDecimal',
                                                                'sThousand', 'sTimeFormat', 'sLanguage', 'sCountry'},
     }
     for name, expected in AUSTRIAN.items():

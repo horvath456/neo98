@@ -4,7 +4,7 @@
  * The first page of Regional Settings and what follows from it
  * (tools/test_regional_locale_host.py). REGLOC.EXE list writes what
  * EnumSystemLocalesA hands out beside what the registry holds;
- * REGLOC.EXE choose stores a short date for the user's locale, opens
+ * REGLOC.EXE choose sets a currency symbol for the user's locale, opens
  * INTL.CPL, selects German (Austrian), 0C07, in the list of the first page and
  * presses OK, answers the question about the restart with No, and writes
  * what is stored and what the locale functions answer; REGLOC.EXE after
@@ -273,18 +273,11 @@ static void choose(void)
 {
     DWORD start;
     int index = -1;
-    /* A short date of the user's, stored while English (United States) is
-       the locale: the value SetLocaleInfoA leaves under the key in Windows,
-       without the ones it derives from it (those are the locale's own). */
-    {
-        HKEY key;
-        DWORD done = !RegCreateKeyA(HKEY_CURRENT_USER, "Control Panel\\International", &key);
-        if (done) {
-            done = !RegSetValueExA(key, "sShortDate", 0, REG_SZ, (const BYTE *)"M/d/yyyy", 9);
-            RegCloseKey(key);
-        }
-        number("set short date", done);
-    }
+    /* A currency symbol of the user's, set while English (United States) is
+       the locale. KERNEL32 stores it under the key and answers it from then
+       on; a value written into the registry by itself it would not answer
+       before the next start of Windows. */
+    number("set currency", SetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_SCURRENCY, "US$"));
     WinExec("RUNDLL32.EXE SHELL32.DLL,Control_RunDLL INTL.CPL", SW_SHOWNORMAL);
     for (start = GetTickCount(); !sheet && GetTickCount() - start < 60000;) {
         Sleep(200);
@@ -293,8 +286,14 @@ static void choose(void)
     number("sheet", sheet != 0);
     if (!sheet)
         return;
-    Sleep(1500);
-    EnumChildWindows(sheet, combo, 0);
+    /* The first page fills its list after it shows. */
+    for (start = GetTickCount(); GetTickCount() - start < 60000; Sleep(250)) {
+        locale_list = 0;
+        EnumChildWindows(sheet, combo, 0);
+        if (locale_list && SendMessageA(locale_list, CB_GETCOUNT, 0, 0) > 1)
+            break;
+    }
+    Sleep(500);
     /* The entry of German (Austrian), 0C07, found without a pointer of this
        process going to the other one: the list holds the installed locales
        by their names, sorted when the box sorts, else in the order of the
