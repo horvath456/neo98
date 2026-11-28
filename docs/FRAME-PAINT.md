@@ -54,7 +54,24 @@ Windows (`ThreadFrame`):
 The port's own controls (edit, list box, combo box, scroll bar, buttons,
 labels, the common controls) keep their frames from the composition or from
 the port on their thread, and so does a minimized window, which the
-composition draws as its caption bar.
+composition draws as its caption bar. An edit control without scroll bars
+whose window procedure a program put in front of the port's (a subclass, or
+a class of the program's own on the EDIT) is the exception: its thread
+paints its frame as a program's window does (`SubclassedEdit`,
+`ThreadFrame`). Such an edit gets
+no `WM_PAINT` from the queue here, so the `WM_NCPAINT` it is owed comes when
+its thread looks for messages and finds none, or only paint, in the same
+service that runs the colour and owner-draw callbacks of the port's
+controls (`ServeControlPaints`), with the region as `wParam` or 1. The
+program's procedure hands it on, `DefWindowProc` paints the border, and what
+the program draws over it through `GetWindowDC` stays until the frame has to
+be painted again, as on Windows: measured in Windows 95 OSR2 and Windows 98
+SE with `tools/edit_frame_fixture.c` (an edit framed in red by its subclass
+after `WM_NCPAINT`: red after its first paint, after a popup over it went
+away and after `RDW_FRAME`; a `WM_NCPAINT` for each of these and none for
+new text or the focus), `tools/test_edit_frame_host.py`, 16 checks. Before,
+the composition painted that frame over the red one, and the subclass got
+one `WM_NCPAINT` only, for `RDW_FRAME`.
 
 `tools/test_own_caption_host.py` (`tools/own_caption_fixture.c`): a window
 that fills its caption after `DefWindowProc` keeps it when its client area is
@@ -83,15 +100,35 @@ moving window takes its frame along and is painted no more. What the
 composition still does for such a frame is a hash of a few hundred bytes
 (`FrameSignature`).
 
+For the subclassed edit, the same kind of measurement: a popup of 120 by 60
+pixels moves by a pixel every 10 ms across the edit's frame (400 steps), three
+runs each on a machine under heavy load (a load average of 70 on 16 cores),
+totals of the whole run of about eight seconds:
+
+| | frame paints (`user_frame`) | USER's render time | `WM_NCPAINT` to the edit |
+| --- | --- | --- | --- |
+| the composition paints the edit's frame | 214 | 78 to 141 ms | 0 |
+| the edit's thread paints its frame | 214 | 68 to 86 ms | 200, one per two steps |
+
+The render time is within the noise of that machine; the frame is painted
+as often, now in the edit's thread.
+
 ## What is left
 
-- The port's own controls (see above) get no `WM_NCPAINT` for the frame the
-  composition paints; a program that subclasses an edit control to draw its
-  border keeps it only until the next composition.
+- The port's other controls (see above) get no `WM_NCPAINT` for the frame
+  the composition paints; a program that subclasses a list box, a combo box,
+  a button or an edit with scroll bars to draw its border keeps it only until
+  the next composition. The list box paints its frame on its thread as well
+  (`PaintControlSurface`) and needs both paths to give way; the scroll bars
+  of an edit would need the paint served inside the loop that tracks their
+  thumb.
 - USER of Windows paints the scroll bars, the pressed caption buttons and
   the selected item of the menu bar at once, in the calling thread, without
   `WM_NCPAINT`; here they owe the window a `WM_NCPAINT` for its whole frame,
   painted when its thread next paints.
-- Windows sends a window of another thread `WM_SYNCPAINT` when `SetWindowPos`
-  uncovers it, so it paints its frame even while it only answers sent
-  messages; here that frame waits for the thread's next `WM_PAINT`.
+- Windows posts a window of another thread `WM_SYNCPAINT` (88h) when
+  `SetWindowPos` leaves it frame or erase work: USER of Windows 98 looks
+  whether one is already in the window's queue, posts it otherwise and marks
+  the window, and goes on with the children; `DefWindowProc` then sends the
+  `WM_NCPAINT` and the `WM_ERASEBKGND`. Here that frame waits for the
+  thread's next `WM_PAINT`.

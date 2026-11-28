@@ -48,6 +48,7 @@
 #include "win98_frame_control.h"
 #include "win98_rect.h"
 #include "win98_send_message.h"
+#include "win98_win16_controls.h"
 #include "win98_kernel.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -3673,6 +3674,10 @@ void Application::BindUserProviders()
             return static_cast<Application *>(p)->SendFromNative(parent, message, dc, child);
         });
     User::SetGuestPaint(this, [](void *p, unsigned hwnd) { static_cast<Application *>(p)->SendFromNative(hwnd, 0xf, 0, 0); });
+    User::SetGuestFrame(this, [](void *p, unsigned hwnd) {
+        auto *app = static_cast<Application *>(p);
+        if (const unsigned region = User::TakeFramePaint(hwnd)) { app->SendFromNative(hwnd, 0x85, region, 0); User::DropFramePaint(region); }
+    });
 }
 bool Application::Start(const void *exe, unsigned length, const unsigned char *font, unsigned font_length,
                         const char *name, const char *command)

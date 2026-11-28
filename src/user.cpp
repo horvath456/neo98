@@ -326,6 +326,7 @@ HWND mouse_track_target=0;
 unsigned mouse_track_hit=0;
 void *control_context = nullptr; OwnerDraw owner_draw = nullptr; ControlColor control_color = nullptr;
 void *guest_paint_context = nullptr; GuestPaint guest_paint = nullptr;
+void *guest_frame_context = nullptr; GuestPaint guest_frame = nullptr;
 void *common_context=nullptr;CommonDraw common_draw=nullptr;
 void *caret_context=nullptr;CaretDraw caret_draw=nullptr;CaretDestroy caret_destroy=nullptr;
 void *caret_bracket_context=nullptr;CaretBracket caret_bracket=nullptr;
@@ -598,9 +599,19 @@ bool GuestProcedure(const Window &w) { return w.procedure && (w.procedure & 0xff
 // box, scroll bar, buttons, labels, the common controls) are drawn by the
 // composition or on their thread by the port, and so is a minimized window,
 // which the composition draws as its caption bar.
+// An EDIT whose window procedure a program put in front of the port's (a
+// subclass, or a class of the program's own on the EDIT) paints its frame in
+// its thread as well: the program's procedure gets WM_NCPAINT, hands it on,
+// DefWindowProc paints the border, and what the program draws over it
+// through its window DC stays until the frame has to be painted again. Such
+// an edit gets no WM_PAINT from the queue here; the WM_NCPAINT it is owed
+// comes when its thread looks for messages (ServeControlPaints). An edit
+// with scroll bars keeps its frame from the composition: its thumb moves
+// while the thread may be in a tracking loop that serves no paint.
+static bool SubclassedEdit(const Window &w) { return w.edit && GuestProcedure(w) && !(w.style & 0x00300000u); }
 static bool ThreadFrame(HWND h, const Window &w)
 {
-    return h != 0xff && w.thread && Custom(w) && !(w.style & 0x20000000u);
+    return h != 0xff && w.thread && (Custom(w) || SubclassedEdit(w)) && !(w.style & 0x20000000u);
 }
 // Whether the caption shows active. A frame its thread paints follows the
 // frame-on bit, which DefWindowProc of WM_NCACTIVATE sets before it paints,
@@ -1198,8 +1209,53 @@ Win98ButtonLayout::Metrics ButtonMetrics()
 // A check box or radio button keeps its caption in place while it is pressed;
 // its paint passes no pressed state, only the push paint does
 
+// A BS_MULTILINE caption (a text button only: an image button draws no
+// text). USER measures it with DrawText, DT_CALCRECT, DT_WORDBREAK and
+// DT_EDITCONTROL, in the content rectangle less SM_CXEDGE at both sides and
+// SM_CYBORDER above and below; the block it answers, its widest line by its
+// lines, is placed like a single line (Caption) and handed to DrawState as a
+// DST_COMPLEX picture whose callback draws the text again with DT_WORDBREAK
+// and DT_EDITCONTROL in a rectangle of that size. A caption that needs more
+// lines than the button has room for overhangs it at both ends, centred, and
+// the client clip cuts it, as in Windows.
+static bool MultilineButton(const Window &w)
+{
+    const unsigned kind=w.style&15;
+    return (w.style&0x2000)&&!(w.style&0xc0)&&kind!=7&&kind!=11&&w.title[0];
+}
+static void MeasureMultiline(const Window &w,Gdi::HDC dc,const Win98ButtonLayout::Rect &content,Gdi::SIZE &text)
+{
+    const auto m=ButtonMetrics();
+    const unsigned length=Length(w.title);
+    unsigned ignored=0;
+    Win98DrawTextGdi::Environment layout{ignored,dc};
+    Win98DrawText::Rect r={content.left+m.edge_x,content.top+m.border_y,content.right-m.edge_x,content.bottom-m.border_y};
+    if(length<8192)Win98DrawText::Layout(layout,w.title,length,false,r,0x2410,nullptr);
+    text={r.right-r.left,r.bottom-r.top};
+}
+// The lines of the block. The callback of Windows 98 aligns them with the
+// horizontal bits of the button (BS_CENTER DT_CENTER, BS_RIGHT DT_RIGHT, a
+// centred push button's lines centred); the vertical bits it looks for are
+// never there, so the lines start at the top of the block. The callback of
+// Windows 95 reads both from the empty byte and draws every line from the
+// left of the block.
+static bool multiline_lines_left = false;
+static void DrawMultiline(const Window &w,Gdi::HDC dc,int x,int y,const Gdi::SIZE &text)
+{
+    const unsigned horizontal=Win98ButtonLayout::Alignment(w.style)&3;
+    unsigned flags=0x2010;
+    if(!multiline_lines_left)flags|=horizontal==3?1u:horizontal==2?2u:0u;
+    unsigned ignored=0;
+    Win98DrawTextGdi::Environment layout{ignored,dc};
+    Win98DrawText::Rect area={x,y,x+text.cx,y+text.cy+1};
+    const int saved=Gdi::SaveDC(dc);
+    if(!saved)return;
+    Gdi::IntersectClipRect(dc,area.left,area.top,area.right,area.bottom);
+    Win98DrawText::Layout(layout,w.title,Length(w.title),false,area,flags,nullptr);
+    Gdi::RestoreDC(dc,saved);
+}
 Win98ButtonLayout::Rect ButtonCaption(const Window &w,Gdi::HDC dc,const Gdi::RECT &client,
-                                      const Gdi::SIZE &text,int &x,int &y)
+                                      Gdi::SIZE &text,int &x,int &y)
 {
     const auto m=ButtonMetrics();
     const bool win40=(w.nonclient_flags&0x00400000)!=0;
@@ -1207,6 +1263,7 @@ Win98ButtonLayout::Rect ButtonCaption(const Window &w,Gdi::HDC dc,const Gdi::REC
     if(win40)Gdi::GetTextExtentPoint32A(dc,"0",1,&zero);
     const auto content=Win98ButtonLayout::Content(w.style,win40,{client.left,client.top,client.right,client.bottom},
                                                   zero.cx,m);
+    if(MultilineButton(w))MeasureMultiline(w,dc,content,text);
     Win98ButtonLayout::Caption(w.style,content,text.cx,text.cy+1,
                                w.pressed&&Win98ButtonLayout::PushKind(w.style),m,x,y);
     return content;
@@ -1368,7 +1425,9 @@ void PaintControlContent(HWND h, Window &w, Gdi::HDC dc)
             // DST_PREFIXTEXT and DrawText underline
             // the letter after '&'. The DrawText output
             // routine does that for a caption up to its 256-byte buffer.
+            const bool multiline=w.button&&MultilineButton(w);
             auto caption=[&](int cx,int cy){
+                if(multiline){DrawMultiline(w,dc,cx,cy,text);return;}
                 const unsigned length=Length(w.title);bool tab=false;
                 for(unsigned i=0;i<length;++i)tab|=w.title[i]=='\t';
                 if((w.button||!(w.style&0x80))&&length&&length<=256&&!tab){
@@ -1504,13 +1563,17 @@ void PaintControlContent(HWND h, Window &w, Gdi::HDC dc)
                 // break. One TextOut, centred vertically, cut a paragraph off at
                 // both ends of its control (the start dialog of Kaggz).
                 // SS_CENTERIMAGE keeps the single centred line below.
+                // SS_EDITCONTROL adds DT_EDITCONTROL, except to
+                // SS_LEFTNOWORDWRAP: a message box's text breaks and ends
+                // its lines as the box measured them.
                 const unsigned type=w.style&0x1f;
                 if((type<=2||type==0xc)&&!(w.style&0x200)){
                     unsigned ignored=0;
                     Win98DrawTextGdi::Environment layout{ignored,dc};
                     Win98DrawText::Rect area={Win98DrawText::W(p.x),Win98DrawText::W(p.y),
                                               Win98DrawText::W(p.x+client.right),Win98DrawText::W(p.y+client.bottom)};
-                    const unsigned flags=(type==1?1u:type==2?2u:0u)|0x40u|(type==0xc?0u:0x10u)|((w.style&0x80)?0x800u:0u);
+                    const unsigned flags=(type==1?1u:type==2?2u:0u)|0x40u|(type==0xc?0u:0x10u)|((w.style&0x80)?0x800u:0u)|
+                                         (type!=0xc&&(w.style&0x2000)?0x2000u:0u);
                     Gdi::SetBkMode(dc,Gdi::TRANSPARENT);
                     Gdi::IntersectClipRect(dc,area.left,area.top,area.right,area.bottom);
                     const unsigned length=Length(w.title);
@@ -2193,7 +2256,7 @@ void Shutdown()
     if (system_font) Gdi::DeleteObject(system_font); system_font = 0;
     delete[] published_frame; published_frame = nullptr;
     ReleaseScreen(); queued = focus = open_menu = press_owner = 0;for(auto&slot:capture_slots)slot={};capture_globals={};automatic_capture=false;capture_serial=0; class_store.Reset();
-    control_context=nullptr;owner_draw=nullptr;control_color=nullptr;guest_paint_context=nullptr;guest_paint=nullptr;rendering=false;
+    control_context=nullptr;owner_draw=nullptr;control_color=nullptr;guest_paint_context=nullptr;guest_paint=nullptr;guest_frame_context=nullptr;guest_frame=nullptr;rendering=false;
     common_context=nullptr;common_draw=nullptr;
     last_click_window = last_click_time = 0;
     SetMetadataProvider(nullptr,nullptr,nullptr);standalone_metadata={};processed_position=metadata_queue_marker=0;
@@ -2606,6 +2669,7 @@ void SetExtendedStyle(HWND h,unsigned style){if(auto *w=Find(h)){if(h==Desktop)r
  const auto old=w->extended;w->extended=style;NormalizeEdge(*w);Layout(h);Metrics(*w);dirty=true;if((old^style)&8)OrderWindow(h,0,w->ready);ShellVisibility(h,*w);}}
 void SetControlCallbacks(void *p,OwnerDraw draw,ControlColor color){control_context=p;owner_draw=draw;control_color=color;}
 void SetGuestPaint(void *p,GuestPaint paint){guest_paint_context=p;guest_paint=paint;}
+void SetGuestFrame(void *p,GuestPaint paint){guest_frame_context=p;guest_frame=paint;}
 bool Rendering(){return rendering;}
 Win98Dialog::Node DialogNode(HWND h) {
     auto *w=Find(h);if(!w)return {};
@@ -5280,6 +5344,7 @@ unsigned GetDoubleClickTime() { return double_click_time; }
 static int check_cell = 13;
 int CheckCell() { return check_cell; }
 void SetCheckCell(int pixels) { check_cell = pixels < 13 ? 13 : pixels > 64 ? 64 : pixels; dirty = true; }
+void SetMultilineButtonLinesLeft(bool left) { multiline_lines_left = left; dirty = true; }
 void SetDoubleClickTime(unsigned time) { double_click_time = !time ? 500 : time > 5000 ? 5000 : time; }
 unsigned PhysicalMouseButtons() { return mouse_buttons; }
 bool PhysicalKeyDown(unsigned key) { return input.Down(key); }
@@ -6565,6 +6630,16 @@ unsigned ServeControlPaints()
             AskEditColors(h);
             continue;
         }
+        // The WM_NCPAINT a subclassed EDIT is owed (ThreadFrame), on its
+        // thread and through its window procedure.
+        if (w && SubclassedEdit(*w) && guest_frame && w->frame_message_owed && w->frame_update_pending &&
+            (!active_thread || w->thread == active_thread) && (!active_process || w->process == active_process) &&
+            ThreadFrame(h, *w) && IsVisible(h) && !Locked(h) && RedrawChain(h))
+        {
+            guest_frame(CallbackContext(guest_frame_context, h), h);
+            ++painted;
+            continue;
+        }
         if (!w || !ControlContent(*w)) continue;
         if (!w->redraw) continue;
         // STATIC exposes its update region as WM_PAINT to the application's
@@ -6787,7 +6862,7 @@ void HandFallbacksOn(void *gone, void *heir)
     if (!gone) return;
     void **fallbacks[] = {&metadata_context, &default_icon_context, &icon_size_context, &scroll_brush_context,
                           &edit_notify_context, &edit_word_context, &property_context, &control_context,
-                          &guest_paint_context, &common_context, &caret_context, &caret_bracket_context,
+                          &guest_paint_context, &guest_frame_context, &common_context, &caret_context, &caret_bracket_context,
                           &clipboard_context, &menu_context, &menu_owner_context, &frame_context, &cursor_context,
                           &capture_context, &win_event_context};
     for (void **fallback : fallbacks)

@@ -1395,6 +1395,8 @@ private:
     unsigned MdiApi(ApiName, const unsigned *);
     // src/x86_dlgdir.cpp: DlgDirListA and the LB_DIR / CB_DIR enumeration.
     unsigned ListBoxDirectory(unsigned hwnd, unsigned attributes, unsigned pattern);
+    unsigned ListBoxAddFile(unsigned hwnd, unsigned name);
+    unsigned AddDirectoryEntry(const char *label);
     unsigned DlgDirApi(ApiName, const unsigned *);
     // src/x86_user_draw_state.cpp: DrawState, GrayString and the tabbed text.
     bool DrawStateBlit(unsigned hdc, unsigned brush, unsigned mono, int x, int y, int cx, int cy);
@@ -1951,6 +1953,12 @@ private:
     void DosVmScale();
     void DosVmFullscreen(bool on);
     bool DosVmLoadToolbar();
+    unsigned char *DosVmWoaModule(unsigned &size);
+    void DosVmSystemMenu();
+    void DosVmMenuStates();
+    void DosVmToggleToolbar();
+    void DosVmSystemCommand(unsigned command);
+    void DosVmToolbarCommand(unsigned button, unsigned tail);
     void DosVmPaintToolbar(unsigned dc, int width);
     void DosVmToolbarClick(int x, int y);
     void DosVmReloadSettings();

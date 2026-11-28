@@ -1033,7 +1033,22 @@ unsigned Application::RunModal(unsigned hwnd, bool recorded)
         {
             User::TranslateMessage(&message);
             GiveTail(pushed ? TailRecord : TailNone);
-            Send(message.hwnd, message.message, message.wparam, message.lparam);
+            // USER's loop dispatches the message: a timer with a procedure
+            // (SetTimer's TIMERPROC, USER's own for a flashing caption and
+            // the mouse hover) calls it instead of the window, and the timer
+            // of a thread has no window at all. Sent to the window, such a
+            // tick was lost while a dialog or message box was open.
+            if (message.message == 0x118 && message.lparam == User::MouseHoverTimerProcedure)
+                User::DispatchMouseHoverTimer(message.hwnd, message.wparam);
+            else if (message.message == 0x113 && message.lparam == FlashTimerProcedure)
+                FlashTick(message.hwnd);
+            else if (message.message == 0x113 && message.lparam)
+            {
+                unsigned args[] = {message.hwnd, message.message, message.wparam, TickCount()};
+                Call(message.lparam, args, 4);
+            }
+            else
+                Send(message.hwnd, message.message, message.wparam, message.lparam);
         }
         dialog = FindDialog(hwnd);
         if (!dialog) break;

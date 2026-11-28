@@ -52,6 +52,7 @@ var User::(anonymous namespace)::common_draw host # compiled provider installed 
 var User::(anonymous namespace)::owner_draw host # compiled provider installed before loading saved contexts
 var User::(anonymous namespace)::control_color host # compiled provider installed before loading saved contexts
 var User::(anonymous namespace)::guest_paint host # compiled provider installed before loading saved contexts
+var User::(anonymous namespace)::guest_frame host # compiled provider installed before loading saved contexts
 var User::(anonymous namespace)::clipboard_text host # compiled provider installed before loading saved contexts
 var User::(anonymous namespace)::clipboard_destroy host # compiled provider installed before loading saved contexts
 

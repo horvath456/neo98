@@ -177,6 +177,9 @@ struct Application::DosVmState
     // Copy puts the block on the clipboard. Background: the machine runs
     // while the window is behind another (TSK_BACKGROUND of the PIF).
     bool marking = false, selecting = false, selected = false, background = true, paused = false;
+    // Scroll of the system menu: the keys move the view, not the program,
+    // until Escape or Enter.
+    bool scrolling = false;
     int sel_x0 = 0, sel_y0 = 0, sel_x1 = 0, sel_y1 = 0; // cells
     unsigned text_columns = 0, text_rows = 0;
     unsigned sound = 0; // the mixer source of the machine's sound
@@ -189,6 +192,9 @@ struct Application::DosVmState
     // the mouse marks text instead of reaching DOS) and the exclusive mouse
     // (MSE_EXCLUSIVE: the window captures the pointer on a click).
     bool warn_close = true, alt_enter = true, quickedit = false, exclusive = false, captured = false;
+    // Alt+Space opens the system menu unless the Misc page leaves it to the
+    // program (KBD_NOALTSPACE).
+    bool alt_space = true;
     // The text mode in a window, the way WINOLDAP draws it: the character
     // cells in a raster size of the WOAFont (FNT 2.0 resources), the size of
     // the Font page (FNT group: flags, cx at +8, cy at +0xa) or, for Auto,
@@ -658,24 +664,48 @@ void Application::DosVmTitle()
              (!d.launch.command[0] || !SamePrefix(d.running, Leaf(d.launch.command), strlen(d.running))))
         snprintf(text, sizeof text, "%s - %s", d.title, d.running);
     else snprintf(text, sizeof text, "%s", d.title);
+    // Mark and Scroll of the system menu put their name in front, as
+    // WINOLDAP does ("Mark - MS-DOS Prompt", "Scroll - MS-DOS Prompt").
+    if (!d.finished && (d.marking || d.scrolling))
+    {
+        char mode[sizeof text];
+        snprintf(mode, sizeof mode, "%s - %s", d.scrolling ? "Scroll" : "Mark", text);
+        memcpy(text, mode, sizeof text);
+    }
     if (!strcmp(text, d.shown_title) || !d.window) return;
     snprintf(d.shown_title, sizeof d.shown_title, "%s", text);
-    User::SetWindowText(d.window, text);
+    // WINOLDAP sets it with SetWindowText: WM_SETTEXT goes through the
+    // window's procedure, so a program that subclassed the window (a shell
+    // that draws the caption itself) sees the new title.
+    const unsigned title = String(text);
+    if (!title) { User::SetWindowText(d.window, text); return; }
+    const unsigned arguments[] = {d.window, title};
+    Api("SetWindowTextA", arguments);
+    Free(title);
 }
 
 // The button images: bitmap 4 of WINOA386.MOD, RLE4 with a 16 colour
 // palette, composed on the button face colour into 128x16 XRGB pixels.
 // Without the module, or without the bitmap, the window has no toolbar.
-bool Application::DosVmLoadToolbar()
+unsigned char *Application::DosVmWoaModule(unsigned &size)
 {
-    auto &d = *dos_vm;
-    if (!d.toolbar || d.toolbar_images) return d.toolbar_images != nullptr;
-    unsigned handle = 0, status = 0, size = 0, done = 0;
-    if (files.Open("C:\\WINDOWS\\SYSTEM\\WINOA386.MOD", 1, 3, 3, 0x80, handle, status)) return false;
+    unsigned handle = 0, status = 0, done = 0;
+    size = 0;
+    if (files.Open("C:\\WINDOWS\\SYSTEM\\WINOA386.MOD", 1, 3, 3, 0x80, handle, status)) return nullptr;
     unsigned char *module = nullptr;
     bool ok = !files.Size(handle, size) && size >= 64 && size <= (1u << 20);
     if (ok) { module = new unsigned char[size]; ok = module && !files.Read(handle, module, size, done) && done == size; }
     files.Close(handle);
+    if (!ok) { delete[] module; return nullptr; }
+    return module;
+}
+bool Application::DosVmLoadToolbar()
+{
+    auto &d = *dos_vm;
+    if (!d.toolbar || d.toolbar_images) return d.toolbar_images != nullptr;
+    unsigned size = 0;
+    unsigned char *module = DosVmWoaModule(size);
+    bool ok = module != nullptr;
     unsigned offset = 0, bytes = 0, error = 0;
     Win98Ne::Image image;
     if (ok) ok = image.Parse(module, size, error) && image.ResourceAt(0x8002, 0x8004, nullptr, offset, bytes) && bytes >= 40 + 64;
@@ -725,6 +755,130 @@ bool Application::DosVmLoadToolbar()
     return d.toolbar_images != nullptr;
 }
 
+// A string of WINOA386.MOD (the string tables of the module).
+static bool WoaString(const Win98Ne::Image &image, const unsigned char *module, unsigned id, char *out, unsigned capacity)
+{
+    unsigned offset = 0, bytes = 0;
+    out[0] = 0;
+    if (!image.ResourceAt(0x8006, 0x8000 | ((id >> 4) + 1), nullptr, offset, bytes)) return false;
+    const unsigned char *p = module + offset, *end = p + bytes;
+    for (unsigned i = 0; i < (id & 15) && p < end; ++i) p += 1 + *p;
+    if (p >= end || !*p || p + 1 + *p > end || *p >= capacity) return false;
+    memcpy(out, p + 1, *p);
+    out[*p] = 0;
+    return true;
+}
+
+// The system menu WINOLDAP gives the window when it makes it: "&Close" of
+// its own strings in place of USER's (without Alt+F4, which goes to the DOS
+// program), then the Edit popup of its menu 500 (Mark E002h, Copy E000h,
+// Paste E001h, Scroll E004h), "&Toolbar" (E00Eh, checked while the strip
+// shows), a separator and "&Properties" (E005h), every text from
+// WINOA386.MOD. Measured in Windows 95 OSR2 and Windows 98 SE.
+void Application::DosVmSystemMenu()
+{
+    auto &d = *dos_vm;
+    unsigned size = 0, error = 0;
+    unsigned char *module = DosVmWoaModule(size);
+    Win98Ne::Image image;
+    if (!module || !image.Parse(module, size, error)) { delete[] module; return; }
+    const unsigned get[] = {d.window, 0};
+    const unsigned menu = Api("GetSystemMenu", get);
+    char text[256];
+    auto string = [&](const char *value) { return String(value); };
+    if (menu && WoaString(image, module, 0xf060, text, sizeof text))
+    {
+        const unsigned label = string(text);
+        const unsigned modify[] = {menu, 0xf060, 0, 0xf060, label};
+        if (label) Api("ModifyMenuA", modify);
+        Free(label);
+    }
+    unsigned offset = 0, bytes = 0;
+    const unsigned popup = Api("CreatePopupMenu", get);
+    if (menu && popup && image.ResourceAt(0x8004, 0x81f4, nullptr, offset, bytes) && bytes > 4)
+    {
+        // A menu template of Windows 3: a header of two words, then per
+        // item its flags, its id and its text; MF_END (80h) ends it.
+        const unsigned char *p = module + offset + 4, *end = module + offset + bytes;
+        while (p + 4 <= end)
+        {
+            const unsigned flags = p[0] | p[1] << 8, id = p[2] | p[3] << 8;
+            p += 4;
+            const unsigned char *zero = p;
+            while (zero < end && *zero) ++zero;
+            if (zero >= end) break;
+            const unsigned label = string(reinterpret_cast<const char *>(p));
+            const unsigned append[] = {popup, flags & ~0x80u, id, label};
+            if (label) Api("AppendMenuA", append);
+            Free(label);
+            p = zero + 1;
+            if (flags & 0x80) break;
+        }
+        if (WoaString(image, module, 0xe009, text, sizeof text))
+        {
+            const unsigned label = string(text);
+            const unsigned append[] = {menu, 0x10, popup, label}; // MF_POPUP
+            if (label) Api("AppendMenuA", append);
+            Free(label);
+        }
+    }
+    if (menu && WoaString(image, module, 0xe00e, text, sizeof text))
+    {
+        const unsigned label = string(text);
+        const unsigned append[] = {menu, d.Strip() ? 8u : 0u, 0xe00e, label}; // MF_CHECKED
+        if (label) Api("AppendMenuA", append);
+        Free(label);
+    }
+    if (menu && WoaString(image, module, 0xe005, text, sizeof text))
+    {
+        const unsigned separator[] = {menu, 0x800, 0, 0};
+        Api("AppendMenuA", separator);
+        const unsigned label = string(text);
+        const unsigned append[] = {menu, 0, 0xe005, label};
+        if (label) Api("AppendMenuA", append);
+        Free(label);
+    }
+    delete[] module;
+}
+
+// Before the system menu opens, WINOLDAP sets its items: Copy only with a
+// marked block, Paste only with text on the clipboard and the window in a
+// text mode, Mark only in a text mode, Scroll only while the window shows
+// less than the screen (here it always shows the whole of it), Toolbar
+// checked while the strip shows.
+void Application::DosVmMenuStates()
+{
+    auto &d = *dos_vm;
+    const unsigned get[] = {d.window, 0};
+    const unsigned menu = Api("GetSystemMenu", get);
+    if (!menu) return;
+    const bool text = d.text_columns && d.text_rows;
+    const unsigned format[] = {1};
+    const bool clipboard = Api("IsClipboardFormatAvailable", format) != 0;
+    auto enable = [&](unsigned id, bool on) { const unsigned a[] = {menu, id, on ? 0u : 1u}; Api("EnableMenuItem", a); };
+    enable(0xe000, d.selected);
+    enable(0xe001, clipboard && text);
+    enable(0xe002, text);
+    enable(0xe004, false);
+    const unsigned check[] = {menu, 0xe00e, d.Strip() ? 8u : 0u};
+    Api("CheckMenuItem", check);
+}
+
+// The toolbar on and off from the system menu: the strip shows or goes and
+// the window keeps its client area for the picture (WINOLDAP flips
+// the WIN_TOOLBAR bit of its settings in memory; the PIF stays as it is).
+void Application::DosVmToggleToolbar()
+{
+    auto &d = *dos_vm;
+    d.toolbar = !d.Strip();
+    if (d.toolbar) DosVmLoadToolbar();
+    d.client_width = d.client_height = 0; // the frame fits the strip again
+    DosVmScale();
+    DosVmFontBox();
+    DosVmMenuStates();
+    if (d.window) User::InvalidateRect(d.window, nullptr, false);
+}
+
 // The window: created through the same path a program's CreateWindowExA
 // takes, so USER sees an ordinary top-level window of this thread.
 bool Application::DosVmCreateWindow()
@@ -768,6 +922,7 @@ bool Application::DosVmCreateWindow()
     Free(klass);
     Free(title);
     if (!d.window) { Fail("The MS-DOS window could not be created"); return false; }
+    DosVmSystemMenu();
     // The icon the shell shows for the PIF: PIFMGR.DLL at the PIF's index,
     // index 0 the MS-DOS icon, through the same extraction the shell uses.
     // ExtractIconEx packs the small size into the high word.
@@ -1232,11 +1387,11 @@ void Application::DosVmScale()
 
 // The Misc page as the window applies it, at the start and after every
 // Apply: always suspend (TSK_BACKGROUND 0x2 clear), the question on close
-// (TSK_NOWARNTERMINATE 0x10), Alt+Enter left to the program
-// (KBD_NOALTENTER 0x100), QuickEdit (MSE_WINDOWENABLE 0x1 clear) and the
-// exclusive mouse (MSE_EXCLUSIVE 0x2). The other shortcut keys of the page,
-// Alt+Tab, Ctrl+Esc and the rest, are the desktop's to take; the window
-// never sees them either way.
+// (TSK_NOWARNTERMINATE 0x10), Alt+Enter and Alt+Space left to the program
+// (KBD_NOALTENTER 0x100, KBD_NOALTSPACE 0x80), QuickEdit (MSE_WINDOWENABLE
+// 0x1 clear) and the exclusive mouse (MSE_EXCLUSIVE 0x2). The other
+// shortcut keys of the page, Alt+Tab, Ctrl+Esc and the rest, are the
+// desktop's to take; the window never sees them either way.
 void Application::DosVmLiveSettings(Win98PifMgr::Record &record)
 {
     auto &d = *dos_vm;
@@ -1249,6 +1404,7 @@ void Application::DosVmLiveSettings(Win98PifMgr::Record &record)
     d.background = (task & 0x2) != 0;
     d.warn_close = !(task & 0x10);
     d.alt_enter = !(keys & 0x100);
+    d.alt_space = !(keys & 0x80);
     d.quickedit = !(mouse & 0x1);
     d.exclusive = (mouse & 0x2) != 0;
     d.launch.fast_paste = (keys & 0x1) != 0;
@@ -2383,6 +2539,20 @@ void Application::DosVmToolbarClick(int x, int y)
                 snprintf(text, sizeof text, "DOSVM toolbar button=%s", ToolbarButtons[i].name);
                 log(text);
             }
+            DosVmToolbarCommand(i, tail);
+            return;
+        }
+        left += ButtonWidth;
+    }
+}
+
+// The command of a button of the strip (ToolbarButtons), also reached from
+// the system menu (DosVmSystemCommand).
+void Application::DosVmToolbarCommand(unsigned i, unsigned tail)
+{
+    auto &d = *dos_vm;
+    {
+        {
             switch (i)
             {
             case 0: // Mark
@@ -2424,10 +2594,42 @@ void Application::DosVmToolbarClick(int x, int y)
             }
             // A modal sheet can return while destruction unwinds this fiber
             // after FreeDosVm. Reacquire the owner before touching its window.
+            if (dos_vm)
+            {
+                if (i == 0) dos_vm->scrolling = false;
+                DosVmTitle();
+            }
             if (dos_vm && dos_vm->window) User::InvalidateRect(dos_vm->window, nullptr, false);
             return;
         }
-        left += ButtonWidth;
+    }
+}
+
+// WM_SYSCOMMAND of WINOLDAP's items (the table of commands of its 16-bit
+// module): Mark (E002h, E003h the button), Copy (E000h), Paste (E001h),
+// Scroll (E004h), Font (E00Ah), Toolbar (E00Eh), Full screen (E00Fh),
+// Background (E011h), Properties (E005h, E00Dh the button).
+void Application::DosVmSystemCommand(unsigned command)
+{
+    const unsigned tail = TakeTail();
+    auto &d = *dos_vm;
+    switch (command)
+    {
+    case 0xe002: case 0xe003: DosVmToolbarCommand(0, tail); break;
+    case 0xe000: DosVmToolbarCommand(1, tail); break;
+    case 0xe001: DosVmToolbarCommand(2, tail); break;
+    case 0xe00f: DosVmToolbarCommand(3, tail); break;
+    case 0xe005: case 0xe00d: DosVmToolbarCommand(4, tail); break;
+    case 0xe011: DosVmToolbarCommand(5, tail); break;
+    case 0xe00a: DosVmToolbarCommand(6, tail); break;
+    case 0xe004:
+        d.scrolling = true;
+        d.marking = d.selecting = d.selected = false;
+        DosVmScale();
+        DosVmTitle();
+        break;
+    case 0xe00e: DosVmToggleToolbar(); break;
+    default: break;
     }
 }
 
@@ -2580,9 +2782,43 @@ unsigned Application::DosVmWindowMessage(unsigned hwnd, unsigned message, unsign
             }
         }
         return DefaultWindowMessage(hwnd, message, wp, lp);
+    case 0x0112: // WM_SYSCOMMAND: the items of WINOLDAP, the rest to USER
+        if (d && (wp & 0xffff) >= 0xe000 && (wp & 0xffff) <= 0xe01f)
+        {
+            GiveTail(tail);
+            DosVmSystemCommand(wp & 0xffff);
+            return 0;
+        }
+        return DefaultWindowMessage(hwnd, message, wp, lp);
+    case 0x0116: // WM_INITMENU: the system menu is about to open
+        if (d && d->window) DosVmMenuStates();
+        return DefaultWindowMessage(hwnd, message, wp, lp);
     case 0x0100: case 0x0101: case 0x0104: case 0x0105: // WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP
     {
         const bool down = message == 0x0100 || message == 0x0104;
+        // Mark and Scroll keep the keys from the program: Escape ends
+        // either, Enter copies a marked block (Copy, "Enter" in the menu)
+        // and ends Mark, the others move the view or the block.
+        if (d && (d->marking || d->scrolling) && (message == 0x0100 || message == 0x0101))
+        {
+            if (message == 0x0100 && wp == 0x1b)
+            {
+                d->marking = d->scrolling = d->selecting = d->selected = false;
+                DosVmScale();
+                DosVmTitle();
+            }
+            else if (message == 0x0100 && wp == 0x0d && d->marking)
+            {
+                DosVmCopySelection();
+                DosVmTitle();
+            }
+            else if (message == 0x0100 && wp == 0x0d)
+            {
+                d->scrolling = false;
+                DosVmTitle();
+            }
+            return 0;
+        }
         const unsigned scan = (lp >> 16) & 0xff;
         const bool extended = (lp >> 24) & 1;
         // Alt+Enter switches between the window and the full screen, as
@@ -2592,6 +2828,15 @@ unsigned Application::DosVmWindowMessage(unsigned hwnd, unsigned message, unsign
         {
             if (message == 0x0104) DosVmFullscreen(!d->fullscreen);
             if (message == 0x0104 || message == 0x0105) return 0;
+        }
+        // Alt+Space opens the window's system menu, WINOLDAP's items in it,
+        // as the menu key of any window does, unless the Misc page leaves
+        // the key to the program.
+        if (d && d->alt_space && !d->fullscreen && wp == 0x20 && (lp & (1u << 29)) &&
+            (message == 0x0104 || message == 0x0105))
+        {
+            if (message == 0x0104) return DefaultWindowMessage(hwnd, 0x112, 0xf100, ' ');
+            return 0;
         }
         // QuickEdit: Enter copies a marked block, the way the console does.
         if (d && d->quickedit && d->selected && wp == 0x0d && message == 0x0100)

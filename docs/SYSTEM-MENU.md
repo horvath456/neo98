@@ -28,11 +28,20 @@ because the first press had left no menu loop in the way.
 A right click on a window's button in the taskbar makes Explorer send the
 window message 0313h with `SendMessageCallback`, `lParam` the point of the
 click on the screen. `DefWindowProc` answers it: nothing for a disabled
-window; otherwise it prepares the system menu, makes Maximize its default
+window; then, for both forms of the message, it compares the window's queue
+with the foreground queue, and a window of another queue is made the
+foreground window by the routine of `SetForegroundWindow` (when that answers
+zero, nothing opens); otherwise it prepares the system menu, makes Maximize its default
 item (Restore for a minimized or maximized window, where the caption's own
 menu has Close) and tracks it at the point with the right button as well
 (`TrackPopupMenuEx` with the flags of the system menu and
-`TPM_RIGHTBUTTON`). The message was not answered at all.
+`TPM_RIGHTBUTTON`). The message was not answered at all, and then, until
+the foreground step was added, the menu opened over a window that stayed in
+the background, neither foreground nor active. Measured in Windows 95 OSR2
+and Windows 98 SE: a window of another process brought to the front by
+either form, its menu opening while it is the foreground window
+(`tools/popup_menu_foreground_fixture.c`,
+`tools/test_popup_menu_foreground_host.py`).
 
 With `lParam` -1, from the keyboard, USER asks the shell hook for the
 rectangle of the window's button (`HSHELL_GETMINRECT`, the window in

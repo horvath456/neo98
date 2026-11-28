@@ -222,6 +222,7 @@ void SetCommonDraw(void *,CommonDraw);
 void SetControlCallbacks(void *,OwnerDraw,ControlColor);
 using GuestPaint = void (*)(void *, HWND);
 void SetGuestPaint(void *,GuestPaint);   // WM_PAINT through a program's procedure of a STATIC
+void SetGuestFrame(void *,GuestPaint);   // the owed WM_NCPAINT of a subclassed EDIT
 bool PaintLabel(HWND,Gdi::HDC);           // the STATIC class procedure's WM_PAINT
 bool PaintButton(HWND,Gdi::HDC);          // synchronous BUTTON drawing, with its color callback
 bool Rendering();
@@ -612,6 +613,11 @@ void SetDoubleClickTime(unsigned);
 // CheckBoxesFollowFontSize (docs/FONT-SIZE.md).
 int CheckCell();
 void SetCheckCell(int pixels);
+// The lines of a BS_MULTILINE caption follow the button's horizontal
+// alignment inside their block, as in Windows 98; with `left` they all start
+// at the left of the block, as Windows 95 draws them (src/user.cpp,
+// DrawMultiline; docs/CONTROLS.md).
+void SetMultilineButtonLinesLeft(bool left);
 // Hardware state is captured immediately; routing may run later on a GUI fiber.
 struct InputPacket
 {

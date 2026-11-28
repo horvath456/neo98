@@ -28,6 +28,20 @@ constexpr unsigned MessageListReset = 0x184, MessageComboReset = 0x14b;
 constexpr unsigned MessageComboDirectory = 0x145;
 } // namespace
 
+// The text of an entry of a directory listing: USER inserts a file or a
+// directory with the flag of LB_ADDSTRINGLOWER, so it shows in lower case
+// (AnsiLower), "readme.txt" and "[windows]".
+unsigned Application::AddDirectoryEntry(const char *label)
+{
+    const unsigned text = String(label);
+    if (text && *label)
+    {
+        const unsigned arguments[] = {text, unsigned(strlen(label))};
+        Api("CharLowerBuffA", arguments);
+    }
+    return text;
+}
+
 // USER. wParam is the DDL mask, lParam the file pattern. The entries
 // go in through LB_ADDSTRING, so a sorted listbox sorts them itself, exactly
 // as Windows 98 leaves the decision to the listbox style. The drives follow with
@@ -81,7 +95,7 @@ unsigned Application::ListBoxDirectory(unsigned hwnd, unsigned attributes, unsig
                 char label[264];
                 if (directory) snprintf(label, sizeof label, "[%s]", name);
                 else { memcpy(label, name, strlen(name) + 1); }
-                const unsigned text = String(label);
+                const unsigned text = AddDirectoryEntry(label);
                 const unsigned result = text ? Send(hwnd, MessageAddString, 0, text) : ~1u;
                 if (text) Free(text);
                 // Windows 98 stops on LB_ERRSPACE and only on that.
@@ -116,6 +130,46 @@ unsigned Application::ListBoxDirectory(unsigned hwnd, unsigned attributes, unsig
     // of the last one it added, so an empty box answers LB_ERR.
     const unsigned count = Send(hwnd, MessageGetCount, 0, 0);
     return count == ~0u ? ~0u : count - 1;
+}
+
+// LB_ADDFILE: USER of Windows 98 looks the name up as DOS does (find
+// first, attributes 0Fh: files, read-only, hidden and system ones, no
+// directory) and answers LB_ERR without such a file. A file found goes in
+// by its short name, the way LB_DIR writes an entry, through the insertion
+// of LB_ADDSTRING: at its place in a sorted list box, else at the end. The
+// answer is its index, or LB_ERRSPACE. The list then draws itself anew.
+unsigned Application::ListBoxAddFile(unsigned hwnd, unsigned name)
+{
+    const char *text = name ? ReadString(name) : nullptr;
+    if (!text || !*text || strlen(text) > 0x80) return ~0u;
+    const unsigned scratch = Allocate(640);
+    if (!scratch) { last_error = 8; return ~1u; }
+    const unsigned find_data = scratch + 256;
+    Store(scratch, text, strlen(text) + 1);
+    const unsigned arguments[] = {scratch, find_data};
+    unsigned search = FileApi("FindFirstFileA", arguments);
+    unsigned result = ~0u;
+    while (search != ~0u)
+    {
+        unsigned entry = 0;
+        char label[264] = {}, alias[14] = {};
+        if (!Read(find_data, &entry, 4) || !Read(find_data + 44, label, 260) || !Read(find_data + 304, alias, 14)) break;
+        if (!(entry & DdlDirectory))
+        {
+            alias[13] = 0;
+            if (alias[0]) memcpy(label, alias, strlen(alias) + 1);
+            const unsigned string = AddDirectoryEntry(label);
+            result = string ? Send(hwnd, MessageAddString, 0, string) : ~1u;
+            if (string) Free(string);
+            break;
+        }
+        const unsigned next[] = {search, find_data};
+        if (!FileApi("FindNextFileA", next)) break;
+    }
+    if (search != ~0u) FileApi("FindClose", &search);
+    Free(scratch);
+    if (User::IsWindow(hwnd)) User::InvalidateRect(hwnd, nullptr, true);
+    return result;
 }
 
 // USER, shared by DlgDirList and DlgDirListComboBox. The last argument
