@@ -98,7 +98,7 @@ const char *Application::LocaleValue(unsigned locale,unsigned field){
 unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
     if(!InitializeNls())return 0;
     const auto bad=[&](unsigned error){last_error=error;return 0u;};
-    const auto valid_page=[](unsigned page){return page==1252||page==437||page==850||page==866||page==65000||page==65001;};
+    const auto valid_page=[this](unsigned page){return ValidCodePage(page);};
     const auto locale=[&](unsigned value){return Win98SystemLocale::ResolveLocale(value,system_locale.system,[this]{return UserDefaultLocale();});};
     const auto emit=[&](const char *value,unsigned out,unsigned capacity){
         unsigned size=strlen(value)+1;if(!capacity)return size;
@@ -175,11 +175,30 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
         Free(buffer);return 1;
     }
     API_CASE("EnumSystemCodePagesA"){
+        // KERNEL32 reads the code pages out of the registry: the values of
+        // Nls\CodePage in the order the registry keeps them, each whose name
+        // has at most four characters and begins with a digit (ACP, OEMCP and
+        // the pages of five digits stay out). CP_INSTALLED (1) wants the name
+        // of a file as the data, CP_SUPPORTED (2) takes the empty ones too.
+        // An answer other than TRUE from the callback ends the enumeration.
         if(!a[0])return bad(87);if(a[1]!=1&&a[1]!=2)return bad(1004);
-        const unsigned buffer=Allocate(32);if(!buffer)return bad(8);
-        const unsigned numbers[]={437,850,866,1252,65000,65001};
-        for(unsigned i=0;i<6u;++i){char value[32];snprintf(value,sizeof value,"%u",numbers[i]);Store(buffer,value,strlen(value)+1);if(!Call(a[0],&buffer,1)||state==Failed||state==Exited)break;}
-        Free(buffer);return state!=Failed&&state!=Exited;
+        const bool installed=a[1]==1;
+        unsigned key;bool created=false;
+        if(registry.store.Open(registry.store.roots[2],"SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage",false,key,created))return bad(1009);
+        // RegEnumValueA into buffers of 256 bytes for the name and the data.
+        const unsigned buffer=Allocate(256);if(!buffer)return bad(8);
+        for(unsigned index=0;;++index){
+            const Registry::Value *value=nullptr;
+            if(registry.store.EnumValue(key,index,value))break;
+            const size_t length=strlen(value->name);
+            if(length>=256||value->size>256){Free(buffer);return bad(1009);}
+            if(length>=5||value->name[0]<'0'||value->name[0]>'9'||(installed&&(!value->size||!value->data[0])))continue;
+            Store(buffer,value->name,length+1);
+            const unsigned answer=Call(a[0],&buffer,1);
+            if(state==Failed||state==Exited){Free(buffer);return 0;}
+            if(answer!=1)break;
+        }
+        Free(buffer);return 1;
     }
     API_CASE("VerLanguageNameA"){
         const char *text="Language Neutral";

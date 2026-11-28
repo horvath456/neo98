@@ -17,6 +17,7 @@
 #include "win98_crt_locale.h"
 #include "win98_wstrings.h"
 #include "x86_app.h"
+#include <stdio.h>
 #include <string.h>
 namespace X86
 {
@@ -103,7 +104,7 @@ struct Application::NlsEnvironment final : Win98Nls::Environment
                                                  {OriginalCodePage866, sizeof OriginalCodePage866}};
         unsigned index = page == 1252 ? 0 : page == 437 ? 1 : page == 850 ? 2 : page == 866 ? 3 : 4;
         if (index == 4)
-            return nullptr;
+            return app.DriveCodePage(page);
         if (!tables[index].Valid())
         {
             app.Fail("Invalid original Win98 NLS table");
@@ -112,6 +113,79 @@ struct Application::NlsEnvironment final : Win98Nls::Environment
         return &tables[index];
     }
 };
+// The data of a code page's value under Nls\CodePage: the name of its file
+// ("cp_1250.nls"), the value named by the page in decimal. A page without a
+// value or with an empty one (Windows 95 lists 1250 so) has none.
+bool Application::CodePageFile(unsigned page, char *out, unsigned capacity)
+{
+    unsigned node;
+    bool created = false;
+    const Registry::Value *value = nullptr;
+    char name[16];
+    snprintf(name, sizeof name, "%u", page);
+    if (registry.store.Open(registry.store.roots[2], "SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage", false, node,
+                            created) ||
+        registry.store.Query(node, name, value) || value->type != 1 || !value->size || !value->data[0] ||
+        value->data[value->size - 1] || value->size > capacity)
+        return false;
+    memcpy(out, value->data, value->size);
+    return true;
+}
+// The table of a code page other than the four this port carries. KERNEL32
+// opens the file the registry names in the System directory and maps it;
+// here its bytes are read once for the session. A file that is missing or
+// is no table of a code page gives none.
+const Win98Nls::Table *Application::DriveCodePage(unsigned page)
+{
+    struct Loaded
+    {
+        unsigned page;
+        Win98Nls::Table table;
+    };
+    static Loaded loaded[32];
+    static unsigned count;
+    for (unsigned i = 0; i < count; ++i)
+        if (loaded[i].page == page)
+            return loaded[i].table.data ? &loaded[i].table : nullptr;
+    char file[128], path[160];
+    if (!CodePageFile(page, file, sizeof file) || count == sizeof loaded / sizeof loaded[0])
+        return nullptr;
+    snprintf(path, sizeof path, "C:\\WINDOWS\\SYSTEM\\%s", file);
+    Loaded record{page, {}};
+    unsigned handle = 0, status = 0, size = 0, done = 0;
+    if (!files.Open(path, 1, 1, 3, 0, handle, status))
+    {
+        unsigned char *bytes = !files.Size(handle, size) && size ? new unsigned char[size] : nullptr;
+        if (bytes && !files.Read(handle, bytes, size, done) && done == size)
+        {
+            record.table = {bytes, size};
+            if (!record.table.Valid())
+            {
+                delete[] bytes;
+                record.table = {};
+            }
+        }
+        else
+            delete[] bytes;
+        files.Close(handle);
+    }
+    loaded[count++] = record;
+    return record.table.data ? &loaded[count - 1].table : nullptr;
+}
+// KERNEL32's IsValidCodePage: the ANSI and the OEM code page of the system,
+// 65000 and 65001, and every page whose table loads from the file its value
+// under Nls\CodePage names. A page Windows lists without a file (866 in
+// Windows 95) is not valid, though this port carries its table.
+bool Application::ValidCodePage(unsigned page)
+{
+    if (page == system_locale.ansi || page == system_locale.oem || page == 65000 || page == 65001)
+        return true;
+    char file[128];
+    if (!CodePageFile(page, file, sizeof file))
+        return false;
+    NlsEnvironment data(*this);
+    return data.CodePage(page) != nullptr;
+}
 unsigned Application::NlsApi(unsigned ordinal, const unsigned *args)
 {
     if (!InitializeNls())

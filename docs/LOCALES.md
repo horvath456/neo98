@@ -27,6 +27,26 @@ European and American ones of code page 1252), Windows 98 SE 74 (also
 those of code pages 1250, 1251, 1253, 1254 and 1257). The first page of
 Regional Settings lists exactly the installed ones.
 
+## Code pages
+
+`EnumSystemCodePagesA` takes the code pages out of the registry too: the
+values of `HKLM\System\CurrentControlSet\Control\Nls\CodePage` in the
+registry's order, each whose name has at most four characters and begins
+with a digit (`ACP`, `OEMCP` and the pages of five digits, such as 20866,
+stay out). With `CP_INSTALLED` only those with the name of a file as their
+data count, with `CP_SUPPORTED` the empty ones too; an answer other than
+`TRUE` ends the enumeration. Windows 95 OSR2 in English lists 25 pages and
+installs 1252, 437 and 850; Windows 98 SE lists and installs 15.
+
+`IsValidCodePage` takes the ANSI and the OEM code page of the system, and
+every page whose table loads from the file its value names in the System
+directory: 20866 and the pages of ISO 8859 that have files are valid,
+866 in Windows 95 is not (it has a file and no name in the registry).
+Windows 98 also takes 65000 and 65001 (UTF-7 and UTF-8), Windows 95 does
+not. Neo98 carries the tables of 1252, 437, 850 and 866 and reads every
+other one from its file on the drive, so a page `IsValidCodePage` takes can
+be converted with.
+
 ## The texts of a locale
 
 `GetLocaleInfoA` answers the texts of a locale in that locale's own ANSI
@@ -76,8 +96,6 @@ For German (Austrian), with a currency symbol `US$` set before:
   above).
 - `LOCALE_SCOUNTRY` answers nothing: Windows takes the country's name out
   of a string table of KERNEL32 Neo98 does not read.
-- `EnumSystemCodePagesA` hands out a list of its own, not the code pages of
-  `Nls\Codepage`.
 - Windows 98 answers `IsValidLocale(..., LCID_INSTALLED)` with 0 for ten
   Spanish locales of America whose names the registry has (Panama to
   Paraguay); Neo98 answers 1, as for the other named ones.

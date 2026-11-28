@@ -38,6 +38,7 @@
 namespace PcVga { struct Device; }
 namespace Gpu { class Backend; struct Surface; }
 namespace MachineState { struct Machine; }
+namespace Win98Nls { struct Table; }
 namespace OpenGL { class Context; struct Picture; }
 namespace Win98MessageBox {struct Parameters;struct Buttons;}
 namespace Sound {struct Format;}
@@ -2751,6 +2752,12 @@ private:
     unsigned ExceptionApi(ApiName, const unsigned *);
     unsigned LocaleInfo(const unsigned *);
     unsigned NlsExtendedApi(ApiName,const unsigned *);
+    // The code pages of the installation, as KERNEL32 knows them: the file a
+    // page's value under Nls\CodePage names, its table out of the System
+    // directory, and IsValidCodePage.
+    bool CodePageFile(unsigned page, char *out, unsigned capacity);
+    const Win98Nls::Table *DriveCodePage(unsigned page);
+    bool ValidCodePage(unsigned page);
     const char *LocaleValue(unsigned,unsigned);
     const char *LocaleOverride(unsigned,unsigned);
     unsigned DateTimeFormatApi(ApiName, const unsigned *);
