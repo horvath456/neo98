@@ -185,13 +185,16 @@ void Application::SyncSessionHooks()
         Win98Hooks::Remove(e, mirror.local);
         mirror = {};
     }
-    // A process without a Win32 processor (the DOS machine) loads no Win32
-    // DLL. The process of a 16-bit program does: USER looks for the
-    // hook's module in the current process whatever its kind and, when it is
-    // not there, loads it by name with KERNEL.452 and calls the
-    // procedure at its place in the new image. Here the module is loaded on
-    // the flat stack of the thread, as LoadLibraryEx32W does it.
-    const bool able = HasProcessor() && state != Failed && state != Exited;
+    // USER looks for the hook's module in the current process whatever its
+    // kind and, when it is not there, loads it by name with KERNEL.452 and
+    // calls the procedure at its place in the new image. That holds for the
+    // process of a 16-bit program, where the module is loaded on the flat
+    // stack of the thread, as LoadLibraryEx32W does it, and for the MS-DOS
+    // window: in Windows 95 and 98 the hooks of the session are called for it
+    // and for its property sheet in the process of its WINOLDAP task. Here the
+    // DOS process has run native code only; the first x86 module it loads,
+    // the hook's, brings its processor (Application::AttachProcessor).
+    const bool able = (HasProcessor() || dos_vm) && state != Failed && state != Exited;
     for (unsigned i = 0; able && i < 16; ++i)
     {
         // By value: loading a module runs guest code, and the table may change.

@@ -2048,6 +2048,10 @@ void Application::RunDosVmLoop()
             if (current_thread == InputThread() && InputPending()) DrainInput();
             User::Message message = {};
             if (!User::PeekMessage(&message, 0, 0, 0, true, true)) break;
+            // WINOLDAP takes its messages with GetMessage, so the
+            // WH_GETMESSAGE hooks of the session see the keys of the window.
+            MessageHook(3, 0, 1, message);
+            if (state == Failed || state == Exited) break;
             if (message.message == 0x12) break; // WM_QUIT: nobody posts it here, but a hook could
             if (log && trace_calls && dispatched < 64)
             {
