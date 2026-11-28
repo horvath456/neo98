@@ -165,6 +165,14 @@ int main(int argc, char **argv)
     if (failures) fputs(debug_output.c_str(), stderr);
     assert(!failures);
     assert(!Sound::Microphone::OpenStreams());
+    // A process the guest started still runs when the fixture has ended. End
+    // it as a session of the host does (tools/linux_session.h) and as the
+    // shell runners do: its process object would outlive the runner, and
+    // LeakSanitizer would fail the run after every check had passed.
+    X86::Application::TerminateChildren(0);
+    for (unsigned i = 0; i < 64 && X86::Application::LiveChildren(); ++i)
+        X86::Application::PumpChildren(8);
+    assert(!X86::Application::LiveChildren());
     bool found = false;
     printf("DirectSoundCapture guest %s PASS calls=%u peak=%u crossings=%u received=%llu\n", kind, app.ApiCalls(),
            observation("stereo16_peak", found), observation("stereo16_crossings", found),
