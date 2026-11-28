@@ -292,16 +292,12 @@ void run_windows_test(U module)
         check(GetWindowThreadProcessId(child, 0) == worker_id, 2059);
         ++children;
     }
-    // The original builds a dialog template: USER appends one control
-    // entry per child, with class 0x80 for each button (USER) and class
-    // 0x82 for the message text (USER). The icon static at USER is
-    // skipped without an icon style (branch at USER), so the original
-    // MB_YESNO box here would have two buttons and one STATIC. The
-    // implementation stops before that template encoding and paints the text in
-    // the frame itself, so it creates only the buttons. This check is about
-    // thread ownership; the missing STATIC is a known gap of the port, see
-    //
-    check(children == 2, 2060);
+    // USER builds the box from a dialog template: one control per button
+    // and a STATIC for the message text; the STATIC of the icon is left out
+    // without an icon style. This MB_YESNO box therefore has two buttons and
+    // one STATIC, all of the worker's thread (docs/CONTROLS.md, the children
+    // of a message box).
+    check(children == 3, 2060);
     visits = 0;
     check(EnumThreadWindows(worker_id, collect, 0x9898) == 7 && visits == 2 && visited[0] == box &&
               visited[1] == worker_window,
