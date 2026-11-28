@@ -35,7 +35,11 @@ guest has pages. The process object itself is 5.2 MB of tables with room
 for the worst case (128 threads, 16384 regions of virtual memory). After its
 construction, `Application::ReturnZeroPages` hands every page of it that
 holds only zeros back to the host; such a page reads as zero as before and is
-backed again when something is written to it. 1 MB of the object stays.
+backed again when something is written to it. 1 MB of the object stays. The
+object is a block of whole pages from the allocator (`aligned_alloc`), not a
+mapping of its own: a saved state knows the blocks of the allocator and so
+saves a machine while child processes run, and a loaded state gives their
+objects back as such blocks.
 
 **The end of a process returns everything.** The object goes back whole, the
 file of private pages is closed, and the heap of the host is trimmed
