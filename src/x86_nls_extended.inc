@@ -281,9 +281,14 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
         if(date)if(const char *set=LocaleOverride(lcid,(type&11)==2?0x20:(type&11)==8?0x1006:0x1f))
             if(*set&&strlen(set)<sizeof own)strcpy(own,set);
         unsigned buffer=Allocate(256);if(!buffer)return bad(8);
-        const auto hand=[&](const char *value){Store(buffer,value,strlen(value)+1);const unsigned args[]={buffer,1};return Call(a[0],args,extended?2:1)&&state!=Failed&&state!=Exited;};
-        if(!*own||hand(own))
-            for(unsigned i=0;i<count;++i){if(*own&&!strcmp(own,values[i]))continue;if(!hand(values[i]))break;}
+        // The user's picture, then the list without it, in one loop with one
+        // call into the program (src/state_rules/frames.calls counts it).
+        for(unsigned i=*own?0:1;i<=count;++i){
+            const char *value=i?values[i-1]:own;
+            if(i&&*own&&!strcmp(own,value))continue;
+            Store(buffer,value,strlen(value)+1);const unsigned args[]={buffer,1};
+            if(!Call(a[0],args,extended?2:1)||state==Failed||state==Exited)break;
+        }
         Free(buffer);return state!=Failed&&state!=Exited;
     }
     if(API_IS(name,"GetCalendarInfoA")||API_IS(name,"SetCalendarInfoA")){
