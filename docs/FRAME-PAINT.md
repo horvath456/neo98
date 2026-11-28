@@ -69,13 +69,13 @@ window that answers `WM_NCPAINT` and `WM_NCACTIVATE` itself has no frame.
 
 Measured with `NEO98_RENDER_PROFILE=1` over four seconds of a window of 300
 by 200 pixels that moves by a pixel every 10 ms across the caption of a
-larger window behind it (73 steps on a busy machine), with and without a
-caption of its own:
+larger window behind it (72 or 73 steps), with and without a caption of
+its own, three runs each:
 
 | | frame paints | USER's render time | `WM_NCPAINT` to the window behind |
 | --- | --- | --- | --- |
-| the composition paints every frame | 146 | 41 to 55 ms | 2 |
-| the window's thread paints its frame | 76 | 17 ms | 74, one per step |
+| the composition paints every frame | 144 to 147 | 30 to 55 ms | 2 |
+| the window's thread paints its frame | 76 or 77 | 13 to 17 ms | 73 or 74, one per step |
 
 The window behind gets a `WM_NCPAINT` with the strip of its caption that each
 step uncovers, as on Windows, and paints just that strip in its thread; the
