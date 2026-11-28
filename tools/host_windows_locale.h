@@ -8,16 +8,23 @@ inline const char *keep(std::string text) { localeStrings.push_back(std::move(te
 // The texts of the format lists stand apart, so the retained strings above
 // keep their order and with it their names in a saved state.
 inline std::deque<std::string> formatStrings;
-inline unsigned narrow(unsigned c) {
-    auto half = [](unsigned at) { return at + 1 < sizeof OriginalCodePage1252 ? unsigned(OriginalCodePage1252[at]) | unsigned(OriginalCodePage1252[at + 1]) << 8 : 0u; };
+// A character of Unicode in a single-byte code page, through the table of
+// its CP_*.NLS file from Unicode to the code page.
+inline unsigned narrowWith(const unsigned char *table, size_t size, unsigned c) {
+    auto half = [&](unsigned at) { return at + 1 < size ? unsigned(table[at]) | unsigned(table[at + 1]) << 8 : 0u; };
     unsigned base = (half(20) | half(22) << 16) * 2;
     unsigned first = half(base + (c >> 8) * 2), second = half(base + (first + ((c >> 4) & 15)) * 2);
     return half(base + (second + (c & 15)) * 2) & 255;
 }
+inline unsigned narrow(unsigned c) { return narrowWith(OriginalCodePage1252, sizeof OriginalCodePage1252, c); }
+// The code page the texts of a locale record are read in: KERNEL32 hands the
+// texts of a locale out in the locale's own ANSI code page. Null is 1252.
+inline const Bytes *localePage = nullptr;
 inline std::string localeText(Reader &r, unsigned at) {
     std::string text;
     for (unsigned i = 0; i < 4096 && r.ok; ++i, at += 2) {
-        unsigned c = r.get(at, 2); if (!c) return text; text.push_back(char(narrow(c)));
+        unsigned c = r.get(at, 2); if (!c) return text;
+        text.push_back(char(localePage ? narrowWith(localePage->data(), localePage->size(), c) : narrow(c)));
     }
     r.ok = false; return {};
 }
@@ -131,17 +138,29 @@ inline unsigned field(Reader &r, unsigned base, unsigned type) {
     default: r.ok = false; return 0;
     }
 }
-inline bool loadLocale(const Bytes &data, const Bytes &crt) {
+// `page(number)` is the CP_*.NLS file of a code page of the installation, or
+// null when Windows has no such file: Windows 95 installs the tables of its
+// own language group only, Windows 98 those of the languages setup offers.
+// A locale whose ANSI code page has no table there has no data either:
+// GetLocaleInfoA answers nothing for it, as on Windows (a Western Windows 95
+// for Russian, say), and Regional Settings does not offer it.
+template <class Page> inline bool loadLocale(const Bytes &data, const Bytes &crt, Page page) {
     Reader r{data}, c{crt};
     unsigned count = r.get(0, 4), calendars = r.get(4, 4), directory = r.get(8, 4) * 2;
     if (count > 1024 || calendars > 256) return false;
     for (unsigned i = 0; i < count && r.ok; ++i) {
         unsigned lcid = r.get(12 + i * 8, 4), base = r.get(16 + i * 8, 4) * 2;
+        localePage = nullptr;
         std::string standard = localeText(r, field(r, base, 0x1009));
         unsigned number = 0;
         for (char digit : standard) { if (digit < '0' || digit > '9') return false; number = number * 10 + digit - '0'; }
         OriginalLocaleCalendars.push_back({lcid, number, r.get(base + 2 * r.get(base + 0x3c, 2), 2)});
-        if (localeText(r, field(r, base, 0x1004)) != "1252") continue;
+        const std::string ansi = localeText(r, field(r, base, 0x1004));
+        unsigned code_page = 0;
+        for (char digit : ansi) { if (digit < '0' || digit > '9') return false; code_page = code_page * 10 + digit - '0'; }
+        const Bytes *table = code_page == 1252 ? nullptr : page(code_page);
+        if (code_page != 1252 && !table) continue;
+        localePage = table;
         LocaleData entry{lcid, {}};
         for (unsigned j = 0; j < sizeof OriginalLocaleTypes / sizeof *OriginalLocaleTypes; ++j)
             entry.values[j] = keep(localeText(r, field(r, base, OriginalLocaleTypes[j])));
@@ -163,6 +182,7 @@ inline bool loadLocale(const Bytes &data, const Bytes &crt) {
         }
         OriginalLocaleFormats.push_back(formats);
     }
+    localePage = nullptr;
     for (unsigned i = 0; i < calendars && r.ok; ++i) {
         unsigned number = r.get(directory + i * 4, 2), base = directory + 2 * r.get(directory + i * 4 + 2, 2);
         OriginalCalendars.push_back({number, keep(localeText(r, base + 2 * r.get(base + 6, 2)))});
