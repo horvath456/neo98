@@ -92,6 +92,13 @@ struct Application::Win16Machine
     unsigned gates[512] = {};
     unsigned gate_count = 0;
     unsigned task = 0, prefix = 0, stack_selector = 0, instance_handle = 0;
+    // What WinExec, LoadModule and ShellExecute answered this task for the
+    // programs it started, with their processes. GetModuleUsage of such an
+    // answer is 1 while the program runs and 0 after it ended, as in
+    // Windows, where the answer is the instance of the new program's module.
+    struct Started { unsigned value = 0, process = 0; };
+    Started started[8] = {};
+    unsigned started_next = 0;
     // The thread that runs the task. A task word is the selector of its task
     // database; the message queue of USER belongs to this thread
     // (Win16TaskThread).

@@ -9,7 +9,9 @@ record of LOCALE.NLS, for every locale of code page 1252.
 
 tools/locale_formats_fixture.c asks for the German and the English lists and
 for those of the system locale; the exit code names the first step that
-failed.
+failed. The lists are those of the installed version: Windows 95 OSR2 has
+no yyyy-MM-dd among the short dates and no year-month format (measured
+under QEMU), and the fixture asks GetVersion which one runs.
 
     build/analysis-venv/bin/python tools/test_locale_formats_host.py [host binary]
 """
@@ -24,7 +26,7 @@ sys.path.insert(0, str(ROOT))
 import neo98
 IMPORTS = {
     'KERNEL32': {'ExitProcess': 4, 'EnumTimeFormatsA': 12, 'EnumDateFormatsA': 12, 'EnumCalendarInfoA': 16,
-                 'GetSystemDefaultLCID': 0, 'GetLastError': 0},
+                 'GetSystemDefaultLCID': 0, 'GetLastError': 0, 'GetVersion': 0},
 }
 
 

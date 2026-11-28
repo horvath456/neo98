@@ -84,21 +84,27 @@ const char *Application::LocaleOverride(unsigned locale,unsigned field){
     return nullptr;
 }
 const char *Application::LocaleValue(unsigned locale,unsigned field){
-    if(!Win98Locale::SystemInfo(locale,1))return nullptr;
-    if(const char *set=LocaleOverride(locale,field))return set;
-    // LOCALE_SLANGUAGE: GetLocaleInfoA Windows 98 takes the name out of
-    // KERNEL32's own string table, the LANGID as the string number,
-    // the table VerLanguageNameA reads as well.
-    if((field&0x1fffffffu)==2){
-        for(const auto &entry:KernelLanguageNames)if(entry.id==(locale&0xffff))return entry.text;
+    // LOCALE_SLANGUAGE and LOCALE_SCOUNTRY: KERNEL32 takes the names out of
+    // its own resources, the language out of its string table (the LANGID as
+    // the string number, the table VerLanguageNameA reads as well), the
+    // country out of its RCDATA named by the LANGID. They come for every
+    // locale LOCALE.NLS has, also when its code page has no table and every
+    // other value is missing (Hebrew in Windows 98, Russian in Windows 95).
+    const unsigned type=field&0x1fffffffu;
+    if(type==2||type==6){
+        const unsigned id=!locale||locale==9||locale==0x400||locale==0x800?0x409:locale;
+        if(std::find(OriginalLocaleIds.begin(),OriginalLocaleIds.end(),id)==OriginalLocaleIds.end())return nullptr;
+        for(const auto &entry:type==2?OriginalLanguageNames:OriginalCountryNames)if(entry.id==(id&0xffff))return entry.text;
         return nullptr;
     }
+    if(!Win98Locale::SystemInfo(locale,1))return nullptr;
+    if(const char *set=LocaleOverride(locale,field))return set;
     return Win98Locale::SystemInfo(locale,field);
 }
 unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
     if(!InitializeNls())return 0;
     const auto bad=[&](unsigned error){last_error=error;return 0u;};
-    const auto valid_page=[](unsigned page){return page==1252||page==437||page==850||page==866||page==65000||page==65001;};
+    const auto valid_page=[this](unsigned page){return ValidCodePage(page);};
     const auto locale=[&](unsigned value){return Win98SystemLocale::ResolveLocale(value,system_locale.system,[this]{return UserDefaultLocale();});};
     const auto emit=[&](const char *value,unsigned out,unsigned capacity){
         unsigned size=strlen(value)+1;if(!capacity)return size;
@@ -110,26 +116,33 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
     API_CASE("ConvertDefaultLocale")return locale(a[0]);
     API_CASE("IsValidCodePage")return valid_page(a[0]);
     API_CASE("IsValidLocale"){
-        // KERNEL32: this API does not resolve neutral/default LCIDs.
-        // LCID_SUPPORTED accepts an empty registered value; LCID_INSTALLED
-        // requires the installed name. also rejects the default
-        // value's alias. Cached original locale data precedes the registry.
+        // KERNEL32: the flags are LCID_INSTALLED (1) or LCID_SUPPORTED (2),
+        // and the high bits of the LCID are clear; neutral and default LCIDs
+        // are not resolved. A locale LOCALE.NLS has is supported, and it is
+        // installed when the table of its ANSI code page loads (Hebrew is
+        // supported, not installed, in Windows 98). Any other locale is asked
+        // of the registry, Nls\Locale and then Nls\AddLocales: the key needs
+        // a default value, the locale's value must differ from it, and an
+        // installed one has a name as its data.
         if((a[1]!=1&&a[1]!=2)||(a[0]&0xfff00000u))return bad(1004);
-        if(a[0]&&a[0]!=9&&a[0]!=0x400&&a[0]!=0x800&&Win98Locale::SystemInfo(a[0],1))return 1;
+        if(std::find(OriginalLocaleIds.begin(),OriginalLocaleIds.end(),a[0])!=OriginalLocaleIds.end()){
+            if(a[1]==2)return 1;
+            const char *page=Win98Locale::SystemInfo(a[0],0x1004);
+            return page&&ValidCodePage(Win98SystemLocale::ParseDecimal(page))?1u:0u;
+        }
         char name[16];snprintf(name,sizeof name,"%08x",a[0]);
         const char *paths[]={Win98SystemLocale::MachinePath(),"SYSTEM\\CurrentControlSet\\Control\\Nls\\AddLocales"};
         for(const char *path:paths){
             unsigned node;bool created=false;
             if(registry.store.Open(registry.store.roots[2],path,false,node,created))return bad(1009);
             const Registry::Value *value=nullptr,*fallback=nullptr;
-            if(registry.store.Query(node,name,value)||value->type!=1||!value->size||value->data[value->size-1])continue;
-            const char *text=reinterpret_cast<const char*>(value->data);
-            if(a[1]==1&&!text[0])continue;
-            if(!registry.store.Query(node,"",fallback)&&fallback->type==1&&fallback->size&&
-               !fallback->data[fallback->size-1]&&!strcmp(text,reinterpret_cast<const char*>(fallback->data)))continue;
+            const auto text=[](const Registry::Value *v){return v->type==1&&v->size&&!v->data[v->size-1]?reinterpret_cast<const char*>(v->data):nullptr;};
+            if(registry.store.Query(node,"",fallback)||!text(fallback))continue;
+            if(registry.store.Query(node,name,value)||!text(value))continue;
+            if(!strcmp(text(value),text(fallback))||(a[1]==1&&!text(value)[0]))continue;
             return 1;
         }
-        return bad(123);
+        return 0;
     }
     API_CASE("GetCPInfoExA"){
         const unsigned page=a[0]==0?system_locale.ansi:a[0]==1?system_locale.oem:a[0];
@@ -175,15 +188,34 @@ unsigned Application::NlsExtendedApi(ApiName name,const unsigned *a){
         Free(buffer);return 1;
     }
     API_CASE("EnumSystemCodePagesA"){
+        // KERNEL32 reads the code pages out of the registry: the values of
+        // Nls\CodePage in the order the registry keeps them, each whose name
+        // has at most four characters and begins with a digit (ACP, OEMCP and
+        // the pages of five digits stay out). CP_INSTALLED (1) wants the name
+        // of a file as the data, CP_SUPPORTED (2) takes the empty ones too.
+        // An answer other than TRUE from the callback ends the enumeration.
         if(!a[0])return bad(87);if(a[1]!=1&&a[1]!=2)return bad(1004);
-        const unsigned buffer=Allocate(32);if(!buffer)return bad(8);
-        const unsigned numbers[]={437,850,866,1252,65000,65001};
-        for(unsigned i=0;i<6u;++i){char value[32];snprintf(value,sizeof value,"%u",numbers[i]);Store(buffer,value,strlen(value)+1);if(!Call(a[0],&buffer,1)||state==Failed||state==Exited)break;}
-        Free(buffer);return state!=Failed&&state!=Exited;
+        const bool installed=a[1]==1;
+        unsigned key;bool created=false;
+        if(registry.store.Open(registry.store.roots[2],"SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage",false,key,created))return bad(1009);
+        // RegEnumValueA into buffers of 256 bytes for the name and the data.
+        const unsigned buffer=Allocate(256);if(!buffer)return bad(8);
+        for(unsigned index=0;;++index){
+            const Registry::Value *value=nullptr;
+            if(registry.store.EnumValue(key,index,value))break;
+            const size_t length=strlen(value->name);
+            if(length>=256||value->size>256){Free(buffer);return bad(1009);}
+            if(length>=5||value->name[0]<'0'||value->name[0]>'9'||(installed&&(!value->size||!value->data[0])))continue;
+            Store(buffer,value->name,length+1);
+            const unsigned answer=Call(a[0],&buffer,1);
+            if(state==Failed||state==Exited){Free(buffer);return 0;}
+            if(answer!=1)break;
+        }
+        Free(buffer);return 1;
     }
     API_CASE("VerLanguageNameA"){
         const char *text="Language Neutral";
-        for(const auto &entry:KernelLanguageNames)if(entry.id==(a[0]&65535)){text=entry.text;break;}
+        for(const auto &entry:OriginalLanguageNames)if(entry.id==(a[0]&65535)){text=entry.text;break;}
         if(!a[2])return 0;if(!virtual_memory.Access(a[1],a[2],true))return bad(87);
         unsigned n=strlen(text);if(n>=a[2])n=a[2]-1;Store(a[1],text,n);unsigned char zero=0;Store(a[1]+n,&zero,1);return n;
     }

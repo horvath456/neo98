@@ -59,6 +59,24 @@ struct Reader {
         ok = false; return 0;
     }
     Bytes peData(unsigned address, unsigned size) { return slice(rva(address, size), size); }
+    // The numeric identifiers of the resources of one type (named ones, as
+    // KERNEL32's SORT_ entries, are left out).
+    std::vector<unsigned> peResourceIds(unsigned type) {
+        std::vector<unsigned> ids;
+        unsigned pe = get(60, 4), base = rva(get(pe + 24 + 112, 4), 16);
+        unsigned count = get(base + 12, 2) + get(base + 14, 2);
+        for (unsigned i = 0; i < count && i < 4096 && ok; ++i) {
+            if (get(base + 16 + i * 8, 4) != type) continue;
+            const unsigned value = get(base + 20 + i * 8, 4);
+            if (!(value & 0x80000000)) { ok = false; break; }
+            const unsigned dir = base + (value & 0x7fffffff), n = get(dir + 12, 2) + get(dir + 14, 2);
+            for (unsigned j = 0; j < n && j < 4096 && ok; ++j) {
+                const unsigned key = get(dir + 16 + j * 8, 4);
+                if (!(key & 0x80000000)) ids.push_back(key);
+            }
+        }
+        return ids;
+    }
     Bytes peResource(unsigned type, unsigned id, unsigned &language) {
         unsigned pe = get(60, 4), base = rva(get(pe + 24 + 112, 4), 16);
         unsigned dir = base, found = language;
@@ -214,6 +232,8 @@ template<class Read> bool Load(Read read, std::string &error) {
     std::memset(Win98MessageTable::Data, 0, sizeof Win98MessageTable::Data);
     std::memcpy(Win98MessageTable::Data, messages.data(), messages.size());
     Win98MessageTable::Bytes = unsigned(messages.size()); Win98MessageTable::Language = language;
+    if (!loadKernelNames(kernel) || OriginalLanguageNames.empty() || OriginalCountryNames.empty())
+        return invalid("KERNEL32.DLL names");
     if (
         !copy(OriginalComputerAnsiHigh, kernel.peData(0x5a480, 128)) ||
         !copy(OriginalComputerOemBytes, kernel.peData(0x5a500, 160)) || !kernel.ok) return invalid("KERNEL32.DLL");

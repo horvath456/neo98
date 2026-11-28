@@ -38,6 +38,7 @@
 namespace PcVga { struct Device; }
 namespace Gpu { class Backend; struct Surface; }
 namespace MachineState { struct Machine; }
+namespace Win98Nls { struct Table; }
 namespace OpenGL { class Context; struct Picture; }
 namespace Win98MessageBox {struct Parameters;struct Buttons;}
 namespace Sound {struct Format;}
@@ -399,6 +400,20 @@ class Application final : private Pe32::AddressSpace
     // Every child the session ever started, including the ones whose record
     // is already gone because they finished and their handles closed.
     static unsigned children_started;
+    // The process the last successful CreateProcess of this one started.
+    unsigned last_child_process = 0;
+    unsigned Win16ShellAnswer(unsigned process, bool &win16);
+    // What WinExec and ShellExecute answer for a 32-bit program that started.
+    // Windows answers the instance of the 16-bit module it keeps for every
+    // process; this port has none and takes a word per process instead, above
+    // 32, not 42 and apart from the low selectors of a 16-bit program.
+    static unsigned Win32InstanceStandIn(unsigned process) { return 0xe007u | ((process & 0x1ffu) << 3); }
+    unsigned Win16StartError(const char *command);
+    // The selector of the task database of a 16-bit program's process, or 0,
+    // and the instance of its program.
+    unsigned Win16TaskSelector() const;
+    unsigned Win16InstanceHandle() const;
+    void Win16RememberStart(unsigned answer);
 public:
     static unsigned ChildrenStarted();
     // The state of a waitable process object, for a runner that names what a
@@ -2737,6 +2752,12 @@ private:
     unsigned ExceptionApi(ApiName, const unsigned *);
     unsigned LocaleInfo(const unsigned *);
     unsigned NlsExtendedApi(ApiName,const unsigned *);
+    // The code pages of the installation, as KERNEL32 knows them: the file a
+    // page's value under Nls\CodePage names, its table out of the System
+    // directory, and IsValidCodePage.
+    bool CodePageFile(unsigned page, char *out, unsigned capacity);
+    const Win98Nls::Table *DriveCodePage(unsigned page);
+    bool ValidCodePage(unsigned page);
     const char *LocaleValue(unsigned,unsigned);
     const char *LocaleOverride(unsigned,unsigned);
     unsigned DateTimeFormatApi(ApiName, const unsigned *);

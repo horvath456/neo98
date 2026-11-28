@@ -384,39 +384,23 @@ def sound_segment():
 
 
 def build(segment=None, data=None, name='FIXTURE', modules=('KERNEL', 'USER'), library=False,
-          exports=(), entry=0, resources=()):
+          exports=(), entry=0, resources=(), stack=0x0400):
     """A program, or with `library` a DLL. `exports` are (name, offset) pairs
     of the code segment, exported by ordinal 1, 2,... through the resident
     name table; `entry` is the offset of the entry point (LibMain).
     `resources` are (type, identifier, bytes) triples with integer type and
-    identifier; their data follows the data segment."""
+    identifier; their data follows the data segment. `stack` is the size of
+    the stack: a program that calls into KERNEL32 in the real Windows (the
+    file functions, WinExec, ShellExecute) needs several kilobytes."""
     code, relocations = (segment or code_segment)()
     data = data if data is not None else bytes(64)
     align = 4
     header = bytearray(64)
+    # The tables in the order of the linker: segments, resources, resident
+    # names, module references, imported names and the entry table last.
+    # KERNEL reads the header through the end of the entry table, so a table
+    # behind it is not loaded in Windows.
     tables = bytearray()
-    # Entry table: one bundle of fixed entries in segment one, or empty.
-    entry_offset = 64
-    if exports:
-        tables += bytes([len(exports), 1])
-        for _, offset in exports:
-            tables += b'\x01' + struct.pack('<H', offset)  # exported
-    tables += b'\x00'
-    resident_offset = 64 + len(tables)
-    tables += counted(name) + struct.pack('<H', 0)
-    for ordinal, (export, _) in enumerate(exports, 1):
-        tables += counted(export) + struct.pack('<H', ordinal)
-    tables += b'\x00'
-    imported_offset = 64 + len(tables)
-    names = {}
-    imported = bytearray(b'\x00')
-    for module in modules:
-        names[module] = len(imported)
-        imported += counted(module)
-    imported += b'\x00'
-    tables += imported
-    module_offset = 64 + len(tables)
-    tables += b''.join(struct.pack('<H', names[module]) for module in modules)
     segment_offset = 64 + len(tables)
     tables += bytes(16)
     # The resource table: the alignment shift, one TYPEINFO per type with its
@@ -425,28 +409,61 @@ def build(segment=None, data=None, name='FIXTURE', modules=('KERNEL', 'USER'), l
     kinds = {}
     for kind, identifier, blob in resources:
         kinds.setdefault(kind, []).append((identifier, bytes(blob)))
-    resource_offset = 64 + len(tables) if resources else resident_offset
+    resource_offset = 64 + len(tables)
     if resources:
         tables += bytes(2 + sum(8 + 12 * len(items) for items in kinds.values()) + 3)
+    resident_offset = 64 + len(tables)
+    if not resources:
+        resource_offset = resident_offset
+    tables += counted(name) + struct.pack('<H', 0)
+    for ordinal, (export, _) in enumerate(exports, 1):
+        tables += counted(export) + struct.pack('<H', ordinal)
+    tables += b'\x00'
+    names = {}
+    imported = bytearray(b'\x00')
+    for module in modules:
+        names[module] = len(imported)
+        imported += counted(module)
+    imported += b'\x00'
+    module_offset = 64 + len(tables)
+    tables += b''.join(struct.pack('<H', names[module]) for module in modules)
+    imported_offset = 64 + len(tables)
+    tables += imported
+    # Entry table: one bundle of fixed entries in segment one, or empty.
+    entry_offset = 64 + len(tables)
+    entries = bytearray()
+    if exports:
+        entries += bytes([len(exports), 1])
+        for _, offset in exports:
+            entries += b'\x01' + struct.pack('<H', offset)  # exported
+    entries += b'\x00'
+    tables += entries
+    # The old header: Windows takes the file for a new executable only with a
+    # relocation table offset of 40h, and a header of four paragraphs.
     head = bytearray(64)
     head[0:2] = b'MZ'
+    head[0x02:0x06] = struct.pack('<HH', 64, 1)
+    head[0x08:0x0a] = struct.pack('<H', 4)
+    head[0x18:0x1a] = struct.pack('<H', 0x40)
     head[0x3c:0x40] = struct.pack('<I', 64)
     body_start = 64 + 64 + len(tables)
     first = (body_start + 15) // 16 * 16
     code_sector = first // (1 << align)
     data_sector = (first + ((len(code) + len(relocations) + 15) // 16 * 16)) // (1 << align)
     segments = struct.pack('<HHHH', code_sector, len(code), 0x0100, len(code))
-    segments += struct.pack('<HHHH', data_sector, len(data), 0x0001, 0x0100)
+    # The automatic data segment holds at least its data: the local heap and
+    # the stack follow the minimum allocation.
+    segments += struct.pack('<HHHH', data_sector, len(data), 0x0001, max(len(data), 0x0100))
     tables[segment_offset - 64:segment_offset - 64 + 16] = segments
     header[0:2] = b'NE'
     header[2] = 5
     header[3] = 10
     header[0x04:0x06] = struct.pack('<H', entry_offset)
-    header[0x06:0x08] = struct.pack('<H', 1)
+    header[0x06:0x08] = struct.pack('<H', len(entries))
     header[0x0c:0x0e] = struct.pack('<H', 0x8001 if library else 0x0302)
     header[0x0e:0x10] = struct.pack('<H', 2)       # automatic data segment
     header[0x10:0x12] = struct.pack('<H', 0x0100)  # heap
-    header[0x12:0x14] = struct.pack('<H', 0x0400)  # stack
+    header[0x12:0x14] = struct.pack('<H', stack)  # stack
     header[0x14:0x18] = struct.pack('<HH', entry, 1)   # entry IP:CS
     header[0x18:0x1c] = struct.pack('<HH', 0, 0 if library else 2)   # stack SP:SS
     header[0x1c:0x1e] = struct.pack('<H', 2)
@@ -478,12 +495,12 @@ def build(segment=None, data=None, name='FIXTURE', modules=('KERNEL', 'USER'), l
     return bytes(image)
 
 
-def assemble(source, program, name, environment=None, modules=('KERNEL', 'USER'), resources=()):
+def assemble(source, program, name, environment=None, modules=('KERNEL', 'USER'), resources=(), stack=0x0400):
     """The New Executable of a nasm source that writes three flat parts behind
     a header of their sizes: code, data and the relocation records of the far
     calls (offset of the pointer, module, ordinal); tools/layer_win16_fixture.asm.
-    `modules` names the modules the records count from one; `resources` go
-    to build."""
+    `modules` names the modules the records count from one; `resources` and
+    `stack` go to build."""
     import subprocess
     from pathlib import Path
     program = Path(program)
@@ -499,7 +516,7 @@ def assemble(source, program, name, environment=None, modules=('KERNEL', 'USER')
         code.append(0x90)
     records = b''.join(struct.pack('<BBHHH', 3, 1, *struct.unpack_from('<HHH', fixes, i * 6)) for i in range(count))
     program.write_bytes(build(lambda: (bytes(code), struct.pack('<H', count) + records), data, name, tuple(modules),
-                              resources=resources))
+                              resources=resources, stack=stack))
     return program
 
 

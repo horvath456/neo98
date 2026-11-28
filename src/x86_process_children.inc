@@ -105,6 +105,16 @@ bool Application::ForeignProcessSignaled(unsigned identity){
 }
 unsigned Application::ChildExitCode(unsigned i,bool thread){return thread?children[i].thread_result:children[i].result;}
 unsigned Application::ChildProcessIdentity(unsigned i){return i<ChildCapacity?children[i].pid:0;}
+// What SHELL32's ShellExecute answers a 16-bit program for a program that
+// started: after the wait for its input it asks KERNEL32 for the instance of
+// the new process (GetProcessDword, -48) and answers 42 when there is none.
+// A 16-bit program started by a 16-bit one has not run yet and has none,
+// measured in Windows 95. A 32-bit one gets the stand-in WinExec answers for
+// it as well (Win32InstanceStandIn).
+unsigned Application::Win16ShellAnswer(unsigned process,bool &win16){
+    win16=false;
+    for(auto &c:children)if(c.used&&c.pid==process){if(c.app&&c.app->Win16Process()){win16=true;return 42;}break;}
+    return Win32InstanceStandIn(process);}
 // KERNEL32 OpenProcess looks the process object up by its identity
 // and rejects anything that is not a process. Only live children and this
 // process itself exist here.
@@ -569,6 +579,7 @@ unsigned Application::LaunchChild(const unsigned *a,const char *override_applica
         ++record.references; // the debugger retains the exit event after handles close
     }
     ++children_started;
+    last_child_process=record.pid;
     const unsigned process=NewKernelHandle(6,slot),thread=NewKernelHandle(7,slot);
     // Slots and output were reserved/probed before Start; no provider yields.
     if(!process||!thread){if(process){unsigned close[]={process};ThreadApi("CloseHandle",close);}record.app=nullptr;record.done=true;if(!record.references)record={};return discard(8);}

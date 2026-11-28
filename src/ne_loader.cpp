@@ -1717,6 +1717,65 @@ static const char *Win16CommandTail(const char *command)
     return p;
 }
 
+// KRNL386's LoadModule opens the program by its path, so a folder or a drive
+// that does not exist is "path not found" (3) for WinExec and LoadModule of a
+// 16-bit program, measured in Windows 95; the 32-bit WinExec below them
+// answers 2 for both. A bare name is searched and stays "file not found".
+unsigned Application::Win16StartError(const char *command)
+{
+    char token[260] = {};
+    const char *p = command;
+    while (*p == ' ' || *p == '\t')
+        ++p;
+    unsigned n = 0;
+    if (*p == '"')
+        for (++p; *p && *p != '"' && n < 259;)
+            token[n++] = *p++;
+    else
+        while (*p && *p != ' ' && *p != '\t' && n < 259)
+            token[n++] = *p++;
+    char folder[260] = {};
+    char *slash = strrchr(token, '\\'), *other = strrchr(token, '/');
+    if (other > slash)
+        slash = other;
+    if (slash)
+    {
+        // The root keeps its backslash: "C:\X.EXE" is in "C:\".
+        const unsigned keep = unsigned(slash - token) + (slash == token || (slash == token + 2 && token[1] == ':'));
+        memcpy(folder, token, keep);
+    }
+    else if (token[0] && token[1] == ':')
+        snprintf(folder, sizeof folder, "%c:.", token[0]);
+    else
+        return 2;
+    char full[260];
+    unsigned node = 0;
+    if (files.FullPath(folder, full) || files.store.Lookup(full, node) || !(files.store.Get(node)->attributes & 0x10))
+        return 3;
+    return 2;
+}
+
+unsigned Application::Win16TaskSelector() const
+{
+    return win16.state ? win16.state->task : 0;
+}
+
+unsigned Application::Win16InstanceHandle() const
+{
+    return win16.state ? win16.state->instance_handle : 0;
+}
+
+// An answer above 32 for a program this task started, kept for
+// GetModuleUsage (KERNEL.48). 42 is SHELL32's answer for a program it has no
+// instance of, no handle.
+void Application::Win16RememberStart(unsigned answer)
+{
+    if (answer <= 32 || answer == 42 || !last_child_process || !win16.state)
+        return;
+    auto &machine = *win16.state;
+    machine.started[machine.started_next++ % 8] = {answer & 0xffff, last_child_process};
+}
+
 bool Application::Win16Task(Win16Module &module, const char *command)
 {
     auto &machine = *win16.state;
@@ -3270,6 +3329,17 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
             result = Win16SystemModuleName(handle) ? 1u : 0u;
             return true;
         }
+        // A program this task started: in use while its process runs.
+        for (unsigned i = 0; i < 8; ++i)
+        {
+            const auto &start = machine.started[(machine.started_next + 7 - i) % 8];
+            if (start.process && start.value == handle)
+            {
+                bool live = false;
+                result = FindProcessIdentity(start.process, live) && live ? 1u : 0u;
+                return true;
+            }
+        }
         for (unsigned i = 0; i < machine.module_count; ++i)
             if (machine.modules[i].handle == handle)
                 result = machine.modules[i].references;
@@ -3676,7 +3746,14 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
         words = 3;
         const unsigned command = frame.Pointer(1);
         const unsigned a[] = {command, frame.Word(0)};
+        last_child_process = 0;
         result = command ? Api("WinExec", a) : 0;
+        if (command)
+        {
+            if (result == 2)
+                result = Win16StartError(ReadString(command));
+            Win16RememberStart(result);
+        }
         if (log && trace_calls)
         {
             char text[320];
@@ -4464,8 +4541,12 @@ bool Application::Win16KernelCall(unsigned ordinal, const Win16Frame &frame, uns
         const unsigned text = String(line);
         if (!text) { result = 8; return true; }
         const unsigned a[] = {text, show};
+        last_child_process = 0;
         result = Api("WinExec", a);
         Free(text);
+        if (result == 2)
+            result = Win16StartError(line);
+        Win16RememberStart(result);
         return state != Failed;
     }
     case 320: // IsTask(hTask), : the handle of a task that lives. A
@@ -6263,7 +6344,10 @@ bool Application::Win16DosFind(bool first, unsigned dta, unsigned &error)
         const unsigned handle = Api("FindFirstFileA", a);
         if (!handle || handle == 0xffffffffu)
         {
-            error = 2; // ERROR_FILE_NOT_FOUND, the answer of 4Eh with no match
+            // ERROR_FILE_NOT_FOUND, the answer of 4Eh with no match; a folder
+            // or a drive that does not exist is "path not found" (3), as in
+            // Windows 95 and 98.
+            error = last_error == 3 ? 3u : 2u;
             return false;
         }
         machine.find_handle = handle;
@@ -6606,7 +6690,7 @@ bool Application::Win16DosLongName(unsigned ax, unsigned &result, unsigned flags
             const unsigned a[] = {source};
             const unsigned attributes = Api("GetFileAttributesA", a);
             if (attributes == 0xffffffffu)
-                return answer(2);
+                return answer(last_error == 3 ? 3u : 2u); // a missing folder or drive: path not found
             Register(Reg::Ecx, attributes & 0xffff);
             return answer(0);
         }
@@ -6621,6 +6705,9 @@ bool Application::Win16DosLongName(unsigned ax, unsigned &result, unsigned flags
     {
         const unsigned at = Win16Linear(Register(Reg::Ds), Register(Reg::Esi) & 0xffff);
         const unsigned drive = Register(Reg::Edx) & 0xff;
+        // A drive that does not exist: ERROR_INVALID_DRIVE, as 47h.
+        if (drive && !files.store.Drive((char)('A' + drive - 1)))
+            return answer(15);
         char directory[260] = {};
         files.Directory(drive ? (char)('A' + drive - 1) : 'C', directory);
         const char *tail = directory;
@@ -6848,9 +6935,11 @@ bool Application::Win16DosCall(unsigned &result)
             else
                 break;
         }
-        // The DOS contract: carry set and the error number in AX.
+        // The DOS contract: carry set and the error number in AX:
+        // ERROR_FILE_NOT_FOUND, or ERROR_PATH_NOT_FOUND for a folder or a
+        // drive that does not exist.
         Register(Reg::Eflags, flags | 1u);
-        result = 2; // ERROR_FILE_NOT_FOUND
+        result = last_error == 3 ? 3u : 2u;
         machine.RememberDosError(result);
         return true;
     }
@@ -7418,6 +7507,15 @@ bool Application::Win16DosCall(unsigned &result)
     {
         const unsigned at = Win16Linear(Register(Reg::Ds), Register(Reg::Esi) & 0xffff);
         const unsigned drive = Register(Reg::Edx) & 0xff;
+        // A drive that does not exist: carry and ERROR_INVALID_DRIVE (15),
+        // measured in Windows 95.
+        if (drive && !files.store.Drive((char)('A' + drive - 1)))
+        {
+            Register(Reg::Eflags, flags | 1u);
+            result = 15;
+            machine.RememberDosError(result);
+            return true;
+        }
         char directory[260] = {};
         files.Directory(drive ? (char)('A' + drive - 1) : files.current[0], directory);
         const char *tail = directory;

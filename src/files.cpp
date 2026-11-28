@@ -701,9 +701,12 @@ U Store::Lookup(const char *path, U &node) const
 {
     if (!path || path[1] != ':' || path[2] != '\\')
         return 3;
+    // A path on a drive that does not exist is a path that is not found, as
+    // the file functions of Windows 95 and 98 answer; only the calls that
+    // take a drive (GetDiskFreeSpace, the IOCTLs of DOS) say "invalid drive".
     const U drive = Fold((unsigned char)path[0]) - 'A';
     if (drive >= 26 || volumes[drive].root == Invalid)
-        return 15;
+        return 3;
     // An empty CD-ROM drive: ERROR_NOT_READY, for the root as for any path.
     if (!volumes[drive].present)
         return 21;
@@ -1292,7 +1295,7 @@ U Session::FullPath(const char *path, char (&out)[260]) const
     {
         letter = char(Fold((unsigned char)p[0]));
         if (!store.Drive(letter))
-            return 15;
+            return 3; // ERROR_PATH_NOT_FOUND, as Store::Lookup
         p += 2;
         slash = *p == '\\' || *p == '/';
     }

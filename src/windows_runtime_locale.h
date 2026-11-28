@@ -6,6 +6,15 @@ struct MultimediaMessage { unsigned id; const char *text; };
 inline std::vector<MultimediaMessage> OriginalMultimediaMessages;
 struct LocaleData { unsigned locale; const char *values[105]; };
 inline std::vector<LocaleData> OriginalLocaleData;
+// Every locale LOCALE.NLS has a record of, also one whose code page has no
+// table among the files of Windows (OriginalLocaleData leaves those out).
+inline std::vector<unsigned> OriginalLocaleIds;
+// KERNEL32's names of the languages (its string table from 1024 up) and of
+// the countries (its RCDATA resources), both by language identifier, as the
+// installation has them: GetLocaleInfoA answers them for LOCALE_SLANGUAGE
+// and LOCALE_SCOUNTRY, VerLanguageNameA the first.
+struct KernelName { unsigned id; const char *text; };
+inline std::vector<KernelName> OriginalLanguageNames, OriginalCountryNames;
 struct Calendar { unsigned id; const char *maximum; };
 inline std::vector<Calendar> OriginalCalendars;
 struct CalendarEra { unsigned calendar, year, month, day; const char *name; };

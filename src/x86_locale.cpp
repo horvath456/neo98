@@ -11,6 +11,8 @@
 #include "x86_app.h"
 #include "win98_datetime_format.h"
 #include "win98_kernel_nls_names.h"
+#include "windows_runtime_locale.h"
+#include <algorithm>
 #include <string.h>
 #include <stdio.h>
 namespace X86
@@ -198,7 +200,15 @@ unsigned Application::LocaleInfo(const unsigned *a)
         last_error = 1004;
         return 0;
     }
-    const unsigned n = numeric ? sizeof number : strlen(value) + 1;
+    // LOCALE_SCOUNTRY: Windows 95 and 98 convert the country's resource with
+    // one zero more than its text and count both: "United States" answers 15.
+    char country[300] = {};
+    if (type == 6 && !numeric)
+    {
+        snprintf(country, sizeof country - 1, "%s", value);
+        value = country;
+    }
+    const unsigned n = numeric ? sizeof number : strlen(value) + (type == 6 ? 2 : 1);
     if (!a[3])
         return n;
     if (a[3] < n)
