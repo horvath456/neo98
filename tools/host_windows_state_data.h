@@ -24,6 +24,9 @@ inline void RegisterStateData() {
     vector("eras", OriginalCalendarEras);
     vector("locale-calendars", OriginalLocaleCalendars);
     vector("locale-formats", OriginalLocaleFormats);
+    vector("locale-ids", OriginalLocaleIds);
+    vector("language-names", OriginalLanguageNames);
+    vector("country-names", OriginalCountryNames);
     size_t index = 0;
     for (const auto &text : localeStrings)
         visit(("text/" + std::to_string(index++)).c_str(), text.c_str(), text.size() + 1);

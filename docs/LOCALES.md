@@ -27,6 +27,24 @@ European and American ones of code page 1252), Windows 98 SE 74 (also
 those of code pages 1250, 1251, 1253, 1254 and 1257). The first page of
 Regional Settings lists exactly the installed ones.
 
+`IsValidLocale` asks LOCALE.NLS first: a locale it has a record of is
+supported, and installed when the table of its ANSI code page loads
+(Hebrew is supported and not installed in Windows 98, Russian in Windows
+95). Any other locale is asked of the registry, `Nls\Locale` and then
+`Nls\AddLocales`: the key needs a default value, the locale's value must
+differ from it, and an installed one has a name as its data. The flags
+are `LCID_INSTALLED` or `LCID_SUPPORTED` alone, and the high twelve bits
+of the LCID clear (else `ERROR_INVALID_FLAGS`); neutral and default LCIDs
+are not resolved and are not valid.
+
+KERNEL32 keeps the locales a process has loaded in a table that fills: once
+a process has loaded 48 locales (Windows 95) or about 64 (Windows 98),
+`GetLocaleInfoA` answers nothing for a new one and `IsValidLocale` refuses
+it as installed, whichever it is. A program that walks all locales sees the
+last ones refused (in Windows 98 the Spanish locales of America from
+Panama or Colombia on, depending on what was asked before); asked first,
+in a new process, they are valid. Neo98 has no such limit.
+
 ## Code pages
 
 `EnumSystemCodePagesA` takes the code pages out of the registry too: the
@@ -54,8 +72,24 @@ code page: Monday in Russian comes as bytes of code page 1251, the currency
 of Greece in 1253. A locale whose code page has no table among the files of
 Windows (`CP_1251.NLS` and so on in `C:\WINDOWS\SYSTEM`) has no data at
 all: in Windows 95, which installs code page 1252 alone, `GetLocaleInfoA`
-answers nothing for Russian or Greek. The name of a locale
-(`LOCALE_SLANGUAGE`) comes from KERNEL32's own string table.
+answers nothing for Russian or Greek.
+
+Two names come from KERNEL32's own resources, by the language of the
+locale, and so for every locale LOCALE.NLS has, also one without the table
+of its code page: the language (`LOCALE_SLANGUAGE`) from its string table,
+the country (`LOCALE_SCOUNTRY`) from its RCDATA resources. Each Windows has
+its own: "English (British)" in Windows 95, "English (United Kingdom)" in
+Windows 98. Of the country `GetLocaleInfoA` counts one zero more than the
+text has: "United States" answers 15 and writes two zeros. Neo98 reads both
+tables out of the installation's KERNEL32.DLL when it starts;
+`VerLanguageNameA` reads the same string table.
+
+| `GetLocaleInfoA` | Windows 95 | Windows 98 |
+| --- | --- | --- |
+| `LOCALE_SLANGUAGE` of 0809 | "English (British)", 18 | "English (United Kingdom)", 25 |
+| `LOCALE_SCOUNTRY` of 0409 | "United States", 15 | "United States", 15 |
+| Russian, 0419 | the two names, nothing else | everything |
+| Hebrew, 040D | | the two names, nothing else |
 
 ## Choosing a locale
 
@@ -94,13 +128,19 @@ For German (Austrian), with a currency symbol `US$` set before:
 
 - A value written into the registry by a program is answered at once (see
   above).
-- `LOCALE_SCOUNTRY` answers nothing: Windows takes the country's name out
-  of a string table of KERNEL32 Neo98 does not read.
-- Windows 98 answers `IsValidLocale(..., LCID_INSTALLED)` with 0 for ten
-  Spanish locales of America whose names the registry has (Panama to
-  Paraguay); Neo98 answers 1, as for the other named ones.
+- The table of loaded locales has no limit (see "Which locales there
+  are").
+- Windows 95 answers `IsValidLocale(041D, LCID_INSTALLED)` (Swedish) with 0
+  though it has the locale's data and its code page; Neo98 answers 1. The
+  reason is not found.
 
 ## Tests
+
+`tools/test_nls_lists_host.py` runs `tools/nls_lists_fixture.c`, the
+program measured in Windows 95 OSR2 and Windows 98 SE: the code page lists
+and `IsValidCodePage`, `IsValidLocale` of locales asked first in a new
+process, and the names of locales of both kinds, each against what the
+installed version answers.
 
 `tools/test_regional_locale_host.py` runs `tools/regional_locale_fixture.c`
 in three sessions: the enumeration against the registry, the texts of

@@ -112,6 +112,21 @@ def _aliases(directory: Path) -> dict[str, str]:
     return out
 
 
+def kernel_version(folder: Path | None = None) -> tuple[int, int]:
+    """(major, minor) of the file version of the folder's KERNEL32.DLL, from
+    its VS_FIXEDFILEINFO: (4, 0) for Windows 95, (4, 10) for Windows 98. A
+    test that expects what one version does asks this for the drive it runs
+    on."""
+    import struct
+    found = path('C:\\WINDOWS\\SYSTEM\\KERNEL32.DLL', folder)
+    data = found.read_bytes() if found else b''
+    at = data.find(struct.pack('<I', 0xFEEF04BD))
+    if at < 0:
+        return (4, 10)
+    high = struct.unpack_from('<I', data, at + 8)[0]
+    return (high >> 16, high & 0xffff)
+
+
 def path(guest: str, folder: Path | None = None) -> Path | None:
     """The host path of one entry of the folder, or None when it is missing.
 

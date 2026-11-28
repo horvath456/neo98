@@ -144,12 +144,45 @@ inline unsigned field(Reader &r, unsigned base, unsigned type) {
 // A locale whose ANSI code page has no table there has no data either:
 // GetLocaleInfoA answers nothing for it, as on Windows (a Western Windows 95
 // for Russian, say), and Regional Settings does not offer it.
+// The names of languages and countries out of KERNEL32: the string table from
+// 1024 up and the RCDATA resources named by a language identifier, each a
+// text of UTF-16 characters, here in code page 1252 (the names are those of
+// the installation's language).
+inline bool loadKernelNames(Reader &kernel) {
+    auto text = [](const Bytes &utf16, size_t at, size_t chars) {
+        std::string out;
+        for (size_t i = 0; i < chars && at + 2 * i + 1 < utf16.size(); ++i) {
+            const unsigned c = utf16[at + 2 * i] | utf16[at + 2 * i + 1] << 8;
+            if (!c) break;
+            out.push_back(char(narrow(c)));
+        }
+        return out;
+    };
+    for (unsigned block : kernel.peResourceIds(6)) {
+        unsigned language = 0x409;
+        const Bytes strings = kernel.peResource(6, block, language);
+        size_t at = 0;
+        for (unsigned i = 0; i < 16 && at + 2 <= strings.size(); ++i) {
+            const size_t n = strings[at] | strings[at + 1] << 8;
+            const unsigned id = (block - 1) * 16 + i;
+            if (n && id >= 1024) OriginalLanguageNames.push_back({id, keep(text(strings, at + 2, n))});
+            at += 2 + 2 * n;
+        }
+    }
+    for (unsigned id : kernel.peResourceIds(10)) {
+        unsigned language = 0x409;
+        const Bytes name = kernel.peResource(10, id, language);
+        OriginalCountryNames.push_back({id, keep(text(name, 0, name.size() / 2))});
+    }
+    return kernel.ok;
+}
 template <class Page> inline bool loadLocale(const Bytes &data, const Bytes &crt, Page page) {
     Reader r{data}, c{crt};
     unsigned count = r.get(0, 4), calendars = r.get(4, 4), directory = r.get(8, 4) * 2;
     if (count > 1024 || calendars > 256) return false;
     for (unsigned i = 0; i < count && r.ok; ++i) {
         unsigned lcid = r.get(12 + i * 8, 4), base = r.get(16 + i * 8, 4) * 2;
+        OriginalLocaleIds.push_back(lcid);
         localePage = nullptr;
         std::string standard = localeText(r, field(r, base, 0x1009));
         unsigned number = 0;
