@@ -46,9 +46,19 @@ them ([WIN16-ATOMS.md](WIN16-ATOMS.md)). The SETUPX of Windows 98 uses no
 atoms and copied from the cabinets before as well. Both versions now copy
 from the cabinets and ask to restart after a change, as described above.
 
+The commit copies each network instance value by value (RegEnumValue, then
+RegSetValueEx with the length of the text plus one). A value the change
+journal of the drive held without its terminator, written so by a tool that
+prepared the drive, was handed out without one; the copy ran past its end,
+the new instance's Driver named no class key, and the next start of the
+applet found NetBEUI and the client gone and called the network incomplete.
+The journal's replay now gives such text its terminator, as the import of
+the hives does (`src/registry_persist.cpp`,
+`tools/test_registry_hives_native.py`).
+
 ## Test
 
 `tools/test_network_identification_host.py`: the description changed and
 OK (no disk question of SETUPX, files copied from the cabinets, the
-description stored, the restart question), then OK without a change (no
-disk question, no restart question).
+description stored, the restart question), then, in a new start on the same
+drive, OK without a change (no disk question, no restart question).

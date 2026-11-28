@@ -35,6 +35,67 @@ static unsigned keys_seen = 0, values_seen = 0, differences = 0;
 
 // Comparing two importers alone can miss the same defect in both. These
 // lookups must reach the original hive through Win98's predefined aliases.
+// A journal written by a tool that prepared the drive may hold text without
+// its terminator; the replay gives it one, as the hive import does, and leaves
+// other types alone.
+struct MemoryJournal final : Registry::Storage
+{
+    std::vector<unsigned char> bytes;
+    unsigned Size() override { return (unsigned)bytes.size(); }
+    bool Load(unsigned char *buffer, unsigned size) override
+    {
+        if (size > bytes.size()) return false;
+        memcpy(buffer, bytes.data(), size);
+        return true;
+    }
+    bool Save(const unsigned char *, unsigned) override { return true; }
+    void Text(const char *text)
+    {
+        const unsigned n = (unsigned)strlen(text);
+        bytes.push_back((unsigned char)n);
+        bytes.push_back((unsigned char)(n >> 8));
+        bytes.insert(bytes.end(), text, text + n);
+    }
+    void Value(const char *path, const char *name, unsigned type, const void *data, unsigned size)
+    {
+        bytes.push_back(3);
+        Text(path);
+        Text(name);
+        for (unsigned v : {type, size})
+            for (unsigned i = 0; i < 4; ++i) bytes.push_back((unsigned char)(v >> (8 * i)));
+        bytes.insert(bytes.end(), (const unsigned char *)data, (const unsigned char *)data + size);
+    }
+};
+static bool journal_text(const Registry::Hives &hives)
+{
+    MemoryJournal journal;
+    journal.bytes.assign((const unsigned char *)"NEO98REG1", (const unsigned char *)"NEO98REG1" + 9);
+    const char *key = "HKEY_LOCAL_MACHINE\\Enum\\Network\\NETBEUI\\0000";
+    journal.Value(key, "Driver", 1, "NetTrans\\0000", 13);
+    journal.Value(key, "Expand", 2, "%windir%", 8);
+    journal.Value(key, "Ended", 1, "ended", 6);
+    const unsigned char binary[3] = {1, 2, 3};
+    journal.Value(key, "Binary", 3, binary, 3);
+    Registry::StartFrom(&hives);
+    Registry::Store store;
+    Registry::StartFrom(nullptr);
+    Registry::Attach(&journal);
+    const unsigned restored = Registry::Restore(store);
+    Registry::Attach(nullptr);
+    unsigned instance = 0;
+    bool created = false, okay = !restored && !store.Open(store.roots[2], "Enum\\Network\\NETBEUI\\0000", false, instance, created);
+    struct Expect { const char *name; unsigned size; const char *data; } expected[] = {
+        {"Driver", 14, "NetTrans\\0000"}, {"Expand", 9, "%windir%"}, {"Ended", 6, "ended"}, {"Binary", 3, "\1\2\3"}};
+    for (const auto &e : expected)
+    {
+        const Registry::Value *value = nullptr;
+        const bool found = okay && !store.Query(instance, e.name, value) && value;
+        const bool good = found && value->size == e.size && !memcmp(value->data, e.data, e.size);
+        printf("journal %s: %s size=%u (want %u)\n", e.name, good ? "ok" : "FAIL", found ? value->size : 0u, e.size);
+        okay = okay && good;
+    }
+    return okay;
+}
 static bool aliases(Registry::Store &store, const char *label)
 {
     unsigned classes = 0, profile = 0, direct = 0, alias = 0;
@@ -193,6 +254,7 @@ int main(int argc, char **argv)
         Registry::StartFrom(nullptr);
         printf("without INF: error=%u network=%u keys=%u\n", plain.import_error, plain.start.network ? 1u : 0u, plain.start.keys);
         okay = okay && !plain.import_error && !plain.start.network && plain.start.keys && plain.start.keys < decoded.start.keys;
+        okay = journal_text(hives) && okay;
     }
     FILE *out = fopen(argv[5], "wb");
     if (!out) { fprintf(stderr, "cannot write %s\n", argv[5]); return 2; }

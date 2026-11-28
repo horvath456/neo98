@@ -19,6 +19,9 @@ Python import:
 4. HKCR resolves the original Explorer desktop COM class to BROWSEUI.DLL
    without a replay journal. An empty alias made SHCreateDesktop fail before
    SHLWAPI tried to copy a resource string to address 0x2e8.
+5. Text a replay journal holds without its terminator (a tool that
+   prepared the drive wrote it so) gets one when the journal is replayed;
+   other types are left as they are.
 
     build/analysis-venv/bin/python tools/test_registry_hives_native.py
 

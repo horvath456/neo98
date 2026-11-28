@@ -336,8 +336,25 @@ U Restore(Store &store)
                         break;
                     const unsigned char *data = cursor.at;
                     cursor.at += size_field;
+                    // Text a tool that prepared the drive wrote without its
+                    // terminator gets one: the store keeps one, as for the
+                    // hives (Store::ImportHives), and VMM measures REG_SZ
+                    // itself. NETDI copies the values of a network instance
+                    // with lstrlen + 1 and ran past the end of such a value.
+                    U stored = size_field;
+                    unsigned char *ended = nullptr;
+                    if ((type == 1 || type == 2 || type == 7) && (!size_field || data[size_field - 1]) &&
+                        size_field < 65536 && (ended = new (std::nothrow) unsigned char[size_field + 1]))
+                    {
+                        if (size_field)
+                            memcpy(ended, data, size_field);
+                        ended[size_field] = 0;
+                        data = ended;
+                        stored = size_field + 1;
+                    }
                     if (!store.Open(anchor, rest, true, key, created))
-                        store.Set(key, name, type, size_field ? data : nullptr, size_field);
+                        store.Set(key, name, type, stored ? data : nullptr, stored);
+                    delete[] ended;
                 }
                 else if (kind == 4)
                 {
