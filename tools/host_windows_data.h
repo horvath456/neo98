@@ -376,7 +376,18 @@ template<class Read> bool Load(Read read, std::string &error) {
     if (!copy(OriginalPropertySheetAssets::CaptionFormat, value) || !cap.ok || !comctl.ok) return invalid("COMCTL32.DLL caption");
     Bytes locale, crt;
     if (!file("LOCALE.NLS", locale) || !file("MSVCRT.DLL", crt)) return false;
-    if (!loadLocale(locale, crt)) return invalid("LOCALE.NLS / MSVCRT.DLL");
+    // The tables of the other code pages of the installation, for the
+    // locales that use them; only while the locales are read.
+    std::deque<Bytes> pages;
+    const auto page = [&](unsigned number) -> const Bytes * {
+        Bytes table;
+        const std::string path = "C:\\WINDOWS\\SYSTEM\\CP_" + std::to_string(number) + ".NLS";
+        if (!read(path.c_str(), table) || table.size() < 64) return nullptr;
+        identify(table);
+        pages.push_back(std::move(table));
+        return &pages.back();
+    };
+    if (!loadLocale(locale, crt, page)) return invalid("LOCALE.NLS / MSVCRT.DLL");
     if (!file("COMDLG32.DLL", data)) return false;
     for (const char *name : {"VGAFIX.FON", "SSERIFE.FON", "MARLETT.TTF"}) {
         std::string path = std::string("C:\\WINDOWS\\FONTS\\") + name;

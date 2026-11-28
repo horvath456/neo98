@@ -246,6 +246,14 @@ unsigned Application::ComboBoxMessage(unsigned hwnd,unsigned message,unsigned wp
   return Win98ComboBox::Message(*b,s,message,wp,lp);
  }
  switch(message){
+ // USER: a combo box hands its state on to its edit field and its list
+ // (WM_ENABLE), so a box that is disabled has a disabled field, drawn as
+ // one and taking no input. Made disabled, it gives them WS_DISABLED at once
+ // (Win98ComboBox::EditStyle, ListStyle).
+ case 0xa:{const unsigned state=wp?1u:0u;
+  if(b->edit){const unsigned a[]={b->edit,state};Api("EnableWindow",a);}
+  if(b->list){const unsigned a[]={b->list,state};Api("EnableWindow",a);}
+  b->Invalidate();return 0;}
  // The combobox keeps its own no-redraw flag for WM_SETREDRAW; WS_VISIBLE stays.
  case 0xb:User::SetControlRedraw(hwnd,wp!=0);return 0;
  case 5:{if(!b->layout&&!b->building){Gdi::RECT r{};User::GetClientRect(hwnd,&r);s.width=r.right-r.left;b->Layout();}return 0;}

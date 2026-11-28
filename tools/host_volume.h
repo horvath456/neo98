@@ -1002,8 +1002,31 @@ class Drive final : public Volume::Backend
         for (const auto &name : present)
         {
             bool known = false;
-            for (const auto &record : folder.records)
-                known = known || (!record.pin && Same(record.name, name));
+            for (auto &record : folder.records)
+            {
+                if (record.pin || !Same(record.name, name))
+                    continue;
+                known = true;
+                // A file put in by hand under the name of an entry the guest
+                // removed: the file is the entry now, made anew where the
+                // one of the drive below was removed. The tombstone only
+                // stood for the removal; it must not hide what came later.
+                if (record.tombstone)
+                {
+                    record.tombstone = record.opaque = false;
+                    record.replaced = true;
+                    record.alias.clear();
+                    struct stat child;
+                    if (!stat((host + "/" + ToHost(name)).c_str(), &child))
+                    {
+                        record.attributes = S_ISDIR(child.st_mode) ? 16u : ((child.st_mode & 0222) ? 32u : 33u);
+                        U date = 0, time = 0;
+                        Encode(child.st_mtime, date, time);
+                        record.created = Files::TimeStamp{date, time, 0};
+                    }
+                    folder.dirty = true;
+                }
+            }
             if (known)
                 continue;
             Record record;
@@ -1669,6 +1692,12 @@ class Layered final : public Volume::Backend
         bool below = false;
         struct timespec changed = {};
         ino_t inode = 0;
+        // The folder of the directory in the layer, likewise: whether it was
+        // there, its inode and when its entries last changed. A program of
+        // the host may put files into the layer's folder as well.
+        bool above = false;
+        struct timespec above_changed = {};
+        ino_t above_inode = 0;
     };
     // Where a guest path lands: the key of the view of its directory, its
     // entry there (or -1), and its path below the root in long names.
@@ -1914,7 +1943,30 @@ class Layered final : public Volume::Backend
         if (!pins.empty() && Start())
             for (const size_t i : pins)
                 upper.Pin(relative, view.items[i].name, view.items[i].alias);
+        // After the pins, which write the layer's sidecar themselves.
+        struct stat info;
+        if (!stat(AbovePath(relative).c_str(), &info) && S_ISDIR(info.st_mode))
+        {
+            view.above = true;
+            view.above_changed = Drive::Changed(info);
+            view.above_inode = info.st_ino;
+        }
         return &views.emplace(key, std::move(view)).first->second;
+    }
+    // The folder of the directory `relative` (long names) in the layer.
+    std::string AbovePath(const std::string &relative) const
+    {
+        std::string host = root, part;
+        for (size_t at = 0; at <= relative.size(); ++at)
+            if (at == relative.size() || relative[at] == '\\')
+            {
+                if (!part.empty())
+                    host += "/" + ToHost(part);
+                part.clear();
+            }
+            else
+                part += relative[at];
+        return host;
     }
     // Walks a guest path through the directories as the machine sees them.
     // False when a directory on the way does not exist.
@@ -1992,14 +2044,36 @@ class Layered final : public Volume::Backend
     bool Stale(const std::string &key)
     {
         const auto known = views.find(key);
-        if (known == views.end() || !known->second.below)
+        if (known == views.end())
             return false;
+        const View &view = known->second;
         struct stat info;
-        const bool there = !stat(lower->HostPath(known->second.relative).c_str(), &info);
+        bool below_changed = false;
+        if (view.below)
+        {
+            const bool there = !stat(lower->HostPath(view.relative).c_str(), &info);
+            const struct timespec changed = there ? Drive::Changed(info) : timespec{};
+            below_changed = !there || info.st_ino != view.inode || changed.tv_sec != view.changed.tv_sec ||
+                            changed.tv_nsec != view.changed.tv_nsec;
+        }
+        // The layer's own folder changes only through this provider, unless
+        // a program of the host writes into it: then what the layer read of
+        // that folder goes too.
+        const bool there = !stat(AbovePath(view.relative).c_str(), &info) && S_ISDIR(info.st_mode);
         const struct timespec changed = there ? Drive::Changed(info) : timespec{};
-        if (there && info.st_ino == known->second.inode && changed.tv_sec == known->second.changed.tv_sec &&
-            changed.tv_nsec == known->second.changed.tv_nsec)
+        const bool above_changed = there != view.above ||
+                                   (there && (info.st_ino != view.above_inode ||
+                                              changed.tv_sec != view.above_changed.tv_sec ||
+                                              changed.tv_nsec != view.above_changed.tv_nsec));
+        if (!below_changed && !above_changed)
             return false;
+        if (above_changed)
+        {
+            if (!started && there)
+                Start();
+            else if (started)
+                upper.Forget(view.relative);
+        }
         Dropped(key);
         return true;
     }

@@ -162,6 +162,11 @@ struct Application::NlsSystem
     // EXPLORER held them, and after about 90 processes (the Active Setup
     // stubs of a first start) HeapCreate had no session block left.
     static bool session_ready;
+    // KERNEL32 keeps the user's locale in its shared data: InvalidateNLSCache
+    // in one process (Regional Settings after a new locale) empties it for
+    // every process. Each call counts here; a process that sees a count it
+    // has not seen reads the locale again.
+    static unsigned cache_generation;
     static Win98SystemLocale::State session_state;
     static Page session_pages[4];
     static Locale session_locale;
@@ -443,6 +448,7 @@ struct Application::NlsSystem
     }
 };
 bool Application::NlsSystem::session_ready = false;
+unsigned Application::NlsSystem::cache_generation = 0;
 Win98SystemLocale::State Application::NlsSystem::session_state;
 Application::NlsSystem::Page Application::NlsSystem::session_pages[4];
 Application::NlsSystem::Locale Application::NlsSystem::session_locale;
@@ -508,6 +514,11 @@ unsigned Application::UserDefaultLocale()
         void FreeLocale(char *text) { system.Free(system.app.system_locale.heap, 0, text); }
         unsigned SystemLocale() { return Win98SystemLocale::GetSystem(system.app.system_locale); }
     } e{*nls_system};
+    if (default_locale.generation != NlsSystem::cache_generation)
+    {
+        Win98SystemLocale::Invalidate(system_locale);
+        default_locale.generation = NlsSystem::cache_generation;
+    }
     default_locale.user = system_locale.user;
     const unsigned result = Win98DefaultLocale::GetUser(e, default_locale);
     system_locale.user = default_locale.user;
@@ -533,6 +544,7 @@ unsigned Application::DefaultLocaleApi(ApiName name)
     {
         const unsigned result = Win98SystemLocale::Invalidate(system_locale);
         default_locale.user = system_locale.user;
+        default_locale.generation = ++NlsSystem::cache_generation;
         return result;
     }
     default:

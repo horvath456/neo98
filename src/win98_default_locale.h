@@ -4,7 +4,9 @@
 namespace Win98DefaultLocale
 {
 using U = unsigned;
-struct State { U user = 0; };
+// `generation`: the count of InvalidateNLSCache calls of the session this
+// process has seen (src/x86_nls.cpp).
+struct State { U user = 0, generation = 0; };
 // Registry text, hexadecimal conversion, optional heap
 // ownership, and the machine's configured default remain explicit providers.
 template <class E> void Initialize(E &e, State &state)

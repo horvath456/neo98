@@ -3276,7 +3276,26 @@ bool Application::NativeProcedure(const char *dll, const char *name, unsigned or
     }
     if (Equal(dll, "COMCTL32.DLL") && !name && ordinal >= 233 && ordinal <= 236)
         item.argc = (ordinal & 1) ? 3 : 2;
-    if (!allow_missing && item.argc == 0xffffffff)
+    // A program that imports a name the original DLL does not export at all
+    // does not start on Windows: the binder of KERNEL32 shows "The X.EXE file
+    // is linked to missing export" and CreateProcess fails with
+    // ERROR_GEN_FAILURE (RecordMissingExport in src/x86_modules.cpp). An
+    // export of the original this port does not implement is bound all the
+    // same and stops the run at its first call. The alias table of the
+    // export contract is the whole export directory of each original.
+    const auto unknown = [&] {
+        bool contract = false;
+        for (const auto &alias : ExportContractAliases)
+        {
+            if (!Equal(alias.dll, dll))
+                continue;
+            contract = true;
+            if (name ? alias.name && !strcmp(alias.name, name) : alias.ordinal == ordinal)
+                return false;
+        }
+        return contract;
+    };
+    if (item.argc == 0xffffffff && (!allow_missing || unknown()))
     {
         if (!a.stub_mode)
         {
@@ -5264,6 +5283,9 @@ unsigned Application::Call(unsigned procedure, const unsigned *arguments, unsign
         return Win16CallPascal(Win16MarkPointer(procedure), push, 2, ~0u) & 0xffff;
     }
     if(procedure==0x71000006&&count==4)return ComboBoxMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
+    // The procedure of the MS-DOS window (the tty class of src/x86_dos_vm.cpp),
+    // as a subclass a hook put before it calls it with CallWindowProcA.
+    if(procedure==0x71000040&&count==4&&dos_vm)return DosVmWindowMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
     if(procedure==0x71000102&&count==4)return TooltipMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
     if(procedure==0x71000108&&count==4)return TrackbarMessage(arguments[0],arguments[1],arguments[2],arguments[3]);
     if(procedure==0x71000109&&count==4)return UpDownMessage(arguments[0],arguments[1],arguments[2],arguments[3]);

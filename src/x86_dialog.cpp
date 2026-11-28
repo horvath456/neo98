@@ -501,8 +501,12 @@ unsigned Application::FinishDialogInit(unsigned hwnd, unsigned first, bool visib
         // Profile" of SYSDM.CPL hides its combo box and shows an edit
         // control): the focus goes to the first tab stop there is now.
         first = User::NextDialogItem(hwnd, 0, false);
+        // USER gives it the focus the way the dialog manager always does
+        // (DlgSetFocus): an edit field first gets its whole text selected,
+        // so what the user types replaces the text the dialog put there
+        // (File Manager's Run with the selected file in its field).
         if (first)
-            SetFocus(first);
+            DialogSetFocus(first);
     }
     // EndDialog out of WM_INITDIALOG is the documented way to refuse a dialog.
     if (visible && User::IsWindow(hwnd) && FindDialog(hwnd) && !FindDialog(hwnd)->ended)

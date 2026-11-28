@@ -77,7 +77,9 @@ the Mac (`tools/host_menu.mm`), GTK on Linux (`tools/host_gtk_linux.h`).
 
 Drive C: and any other drive is a normal folder on the host. The registry
 starts from the hives in `C:\WINDOWS`, and Neo98 writes changes into a
-journal file next to the drive instead of rewriting the hives. A date and
+journal file next to the drive instead of rewriting the hives. Programs of
+the host may write into a drive's folder while Windows runs;
+[docs/HOST-DRIVES.md](docs/HOST-DRIVES.md) says how Windows sees that. A date and
 time set in Windows is kept the same way, as the distance to the host's clock
 in a small file next to the drive (`tools/clock_file.h`); the host's own
 clock is never set.
