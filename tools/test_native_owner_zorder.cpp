@@ -4,6 +4,14 @@
 // after the owner is raised, and must stay behind a WS_EX_TOPMOST window.
 #include "gdi.h"
 #include "user.h"
+#ifdef NEO98_RUNTIME_CONTENT
+// Built as the hosts are, USER takes its first font out of the installed
+// catalogue, which an application reads when it starts.
+#define private public
+#include "x86_app.h"
+#undef private
+#include "runner_windows_data.h"
+#endif
 #include <cassert>
 #include <cstdio>
 static unsigned failures = 0;
@@ -38,6 +46,13 @@ static unsigned Order(User::HWND *out, unsigned capacity)
 }
 int main()
 {
+#ifdef NEO98_RUNTIME_CONTENT
+    if (!RunnerWindowsData::Load()) return 1;
+    {
+        X86::Application fonts(nullptr);
+        fonts.LoadInstalledFonts();
+    }
+#endif
     assert(User::Initialize());
     assert(User::RegisterClass("ZOrderSheet", 1, 0, 0));
     // The property sheet the Date/Time applet shows: a top-level frame with a
@@ -57,10 +72,11 @@ int main()
 
     // The dropped list: a top-level WS_POPUP owned by the control, created
     // hidden, sized like the applet's open month list at 60,130..135,307.
+    // Windows makes the top-level window of a child its owner: the sheet.
     const auto list = User::CreateWindow("BUTTON", "List", 0x80000000u, 60, 130, 75, 177, control, 0, 0);
     assert(list);
     User::CompleteCreation(list);
-    check(!User::Parent(list) && User::Owner(list) == control, "list is an owned popup");
+    check(!User::Parent(list) && User::Owner(list) == sheet, "list is an owned popup");
     check(!User::IsVisible(list), "list starts hidden");
 
     // The sheet is activated after the control was created, which is what put
@@ -72,6 +88,9 @@ int main()
 
     assert(User::ShowWindow(list, 5) == false);
     check(User::IsVisible(list), "list shown");
+    // A button paints on its thread, at the message wait (ServeControlPaints),
+    // not in the composition.
+    User::ServeControlPaints();
     User::Render();
     check(Pixel(90, 200) == 0xc0c0c0, "popup paints over its owner");
     check(Pixel(90, 290) == 0xc0c0c0, "popup paints outside its owner");
@@ -81,6 +100,7 @@ int main()
     check(User::OrderWindow(sheet, 0), "sheet raised again");
     count = Order(order, 8);
     check(count == 2 && order[0] == list && order[1] == sheet, "raise keeps the group order");
+    User::ServeControlPaints();
     User::Render();
     check(Pixel(90, 200) == 0xc0c0c0, "popup still painted after the raise");
 

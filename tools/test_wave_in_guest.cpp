@@ -13,6 +13,9 @@
 #undef private
 #include "../src/sound.h"
 #include "system_tree_host.h"
+#ifdef NEO98_RUNTIME_CONTENT
+#include "runner_windows_data.h"
+#endif
 #include <cassert>
 #include <chrono>
 #include <cstdio>
@@ -40,7 +43,12 @@ int main(int argc, char **argv)
     const char *variable = getenv("NEO98_TEST_MICROPHONE");
     assert(variable && !strcmp(variable, kind));
     auto exe = load(argv[1]), font = load(argv[2]);
+#ifdef NEO98_RUNTIME_CONTENT
+    // The tables of src/ out of setup's drive C:, which is mounted as well.
+    if (!RunnerWindowsData::Load()) return 1;
+#else
     assert(SystemTreeHost::Mount());
+#endif
     // No output provider: the mixer keeps its own clock and plays nothing.
     static short capture[4410 * 2];
     Sound::SetCapture(capture, sizeof capture / (2 * sizeof(short)));

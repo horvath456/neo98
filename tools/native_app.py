@@ -370,21 +370,31 @@ def unicorn_link(library):
     return [str(library), '-Wl,-rpath,' + str(Path(library).parent)]
 
 
-def runtime_objects():
-    """Compile the shared runtime once; objects follow `sources`, fiber first."""
+def runtime_objects(content=False):
+    """Compile the shared runtime once; objects follow `sources`, fiber first.
+
+    content: compiled as the hosts are (tools/runner_windows.py FLAGS), so
+    the tables come from setup's drive C: when the runner starts
+    (tools/runner_windows_data.h) instead of the headers of build/generated
+    that only the import tools of the private repository make. A runner
+    linked against these objects loads them before it starts a guest."""
     from native_build import compile_objects
     arm64_table()
     out = ROOT / 'build/native-app'
     out.mkdir(exist_ok=True)
+    if content:
+        import runner_windows
     return compile_objects(ROOT,
         [fiber_source(), *[ROOT / 'src' / f'{s}.cpp' for s in runtime_sources()]],
-        FLAGS, neo98.tool_environment(), out / 'object-cache')
+        [*FLAGS, *runner_windows.FLAGS] if content else FLAGS, neo98.tool_environment(),
+        out / ('object-cache-content' if content else 'object-cache'))
 
 
-def object_directory():
-    """The runtime objects under the <source>.cpp.o names the guests link against."""
-    objects = runtime_objects()
-    directory = ROOT / 'build/native-app/objects'
+def object_directory(content=False):
+    """The runtime objects under the <source>.cpp.o names the guests link
+    against; content as runtime_objects."""
+    objects = runtime_objects(content)
+    directory = ROOT / ('build/native-app/objects-content' if content else 'build/native-app/objects')
     directory.mkdir(parents=True, exist_ok=True)
     for name, artifact in zip([fiber_source().name + '.o'] + [f'{s}.cpp.o' for s in runtime_sources()], objects):
         link = directory / name
