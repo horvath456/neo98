@@ -2,8 +2,11 @@
 // EnumTimeFormats, EnumDateFormats and EnumCalendarInfo answer from the
 // record of the locale they are asked about, not from English (United
 // States) alone. The expected lists are those of LOCALE.NLS of Windows 98 SE
-// for German (Germany) and English (United States). The exit code names the
-// first step that failed.
+// for German (Germany) and English (United States), and on Windows 95 (the
+// version 4.0 GetVersion answers) those Windows 95 OSR2 answered under QEMU:
+// the short dates without yyyy-MM-dd, and no year-month format at all
+// (DATE_YEARMONTH and CAL_SYEARMONTH are ERROR_INVALID_FLAGS there). The
+// exit code names the first step that failed.
 typedef unsigned U;
 #define API __declspec(dllimport) __stdcall
 API U EnumTimeFormatsA(void *, U, U);
@@ -11,6 +14,7 @@ API U EnumDateFormatsA(void *, U, U);
 API U EnumCalendarInfoA(void *, U, U, U);
 API U GetSystemDefaultLCID(void);
 API U GetLastError(void);
+API U GetVersion(void);
 API void ExitProcess(U);
 
 static const char *const *expected;
@@ -48,22 +52,32 @@ static const char *const english_short[] = {"M/d/yy", "M/d/yyyy", "MM/dd/yy", "M
 static const char *const english_long[] = {"dddd, MMMM dd, yyyy", "MMMM dd, yyyy", "dddd, dd MMMM, yyyy", "dd MMMM, yyyy", 0};
 static const char *const english_month[] = {"MMMM, yyyy", 0};
 static const char *const english_monday[] = {"Monday", 0};
+static const char *const german_short_95[] = {"dd.MM.yy", "d.MM.yy", "d.M.yy", "d.M.yyyy", 0};
+static const char *const english_short_95[] = {"M/d/yy", "M/d/yyyy", "MM/dd/yy", "MM/dd/yyyy", "yy/MM/dd", "dd-MMM-yy", 0};
+
+// Windows 95 refuses the year-month lists.
+static int refused(U ok)
+{
+    return !ok && GetLastError() == 1004;
+}
 
 void mainCRTStartup(void)
 {
+    const int windows95 = ((GetVersion() >> 8) & 255) == 0;
     if (!TIMES(0x407, german_times)) ExitProcess(2);
-    if (!DATES(0x407, 1, german_short)) ExitProcess(3);
+    if (!DATES(0x407, 1, windows95 ? german_short_95 : german_short)) ExitProcess(3);
     if (!DATES(0x407, 2, german_long)) ExitProcess(4);
-    if (!DATES(0x407, 8, german_month)) ExitProcess(5);
-    if (!CALENDAR(0x407, 5, german_short)) ExitProcess(6);
+    if (windows95 ? !refused(EnumDateFormatsA(each, 0x407, 8)) : !DATES(0x407, 8, german_month)) ExitProcess(5);
+    if (!CALENDAR(0x407, 5, windows95 ? german_short_95 : german_short)) ExitProcess(6);
     if (!CALENDAR(0x407, 6, german_long)) ExitProcess(7);
     if (!CALENDAR(0x407, 7, german_monday)) ExitProcess(8);
     if (!CALENDAR(0x407, 23, german_march)) ExitProcess(9);
-    if (!CALENDAR(0x407, 47, german_month)) ExitProcess(10);
+    if (windows95 ? !refused(EnumCalendarInfoA(each, 0x407, 1, 47)) : !CALENDAR(0x407, 47, german_month))
+        ExitProcess(10);
     if (!TIMES(0x409, english_times)) ExitProcess(11);
-    if (!DATES(0x409, 1, english_short)) ExitProcess(12);
+    if (!DATES(0x409, 1, windows95 ? english_short_95 : english_short)) ExitProcess(12);
     if (!DATES(0x409, 2, english_long)) ExitProcess(13);
-    if (!DATES(0x409, 8, english_month)) ExitProcess(14);
+    if (windows95 ? !refused(EnumDateFormatsA(each, 0x409, 8)) : !DATES(0x409, 8, english_month)) ExitProcess(14);
     if (!CALENDAR(0x409, 7, english_monday)) ExitProcess(15);
     // LOCALE_SYSTEM_DEFAULT is the locale of the installation.
     const int german = GetSystemDefaultLCID() == 0x407;
