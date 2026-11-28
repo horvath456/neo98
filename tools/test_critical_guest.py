@@ -65,14 +65,19 @@ def main():
                     '-fno-stack-protector', '-c', ROOT / 'tools/critical_guest_fixture.c', '-o', obj], env)
     run('fixture-link', ['lld-link', '/entry:mainCRTStartup', '/subsystem:console', '/timestamp:0',
                          '/nodefaultlib', '/machine:x86', '/out:' + str(exe), obj, *libraries], env)
-    objects = Path(native_app.object_directory())
+    # The runtime is compiled as the hosts are: the tables of src/ come from
+    # setup's drive C: when the runner starts (tools/runner_windows.py), and
+    # the system font is the drive's Fixedsys.
+    import runner_windows
+    windows, font = runner_windows.prepare(OUT)
+    env = {**env, **windows}
+    objects = Path(native_app.object_directory(content=True))
     names = [('fiber_x86_64.S' if __import__('platform').machine() == 'x86_64' else 'fiber_aarch64.S')] + [n + '.cpp' for n in native_app.runtime_sources()]
     library = native_app.unicorn_library()
     binary = OUT / 'test-critical-guest'
     run('runner-link', ['clang++', '-std=c++17', '-O1', '-g', '-fsanitize=address,undefined',
-                        *native_app.engine_flags(), ROOT / 'tools/test_critical_guest.cpp', *[objects / (n + '.o') for n in names], *native_app.engine_link_extra(),
+                        *native_app.engine_flags(), *runner_windows.FLAGS, ROOT / 'tools/test_critical_guest.cpp', *[objects / (n + '.o') for n in names], *native_app.engine_link_extra(),
                         *native_app.unicorn_link(library), '-o', binary], env)
-    font = ROOT / 'build/generated/notepad-fixedsys.fnt'
     results, problems = {}, []
     for mode in ('fast', 'slow'):
         p = run('guest-' + mode, [binary, exe, font, mode], env, check=False)

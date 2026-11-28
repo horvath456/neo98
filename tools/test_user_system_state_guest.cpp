@@ -3,6 +3,10 @@
 // reports its exit code; zero means every check passed.
 #include "../src/x86_app.h"
 #include "system_tree_host.h"
+#ifdef NEO98_RUNTIME_CONTENT
+#include "runner_windows_data.h"
+#include "host_registry.h"
+#endif
 #include <cassert>
 #include <chrono>
 #include <thread>
@@ -26,7 +30,15 @@ int main(int argc, char **argv)
 {
     assert(argc == 3);
     auto exe = load(argv[1]), font = load(argv[2]);
+#ifdef NEO98_RUNTIME_CONTENT
+    // The tables of src/ out of setup's drive C:, which is mounted as well.
+    if (!RunnerWindowsData::Load()) return 1;
+    // The values it reads come from the registry, which a host reads from the
+    // hives of drive C: (tools/host_registry.h) since it holds no image of one.
+    if (!HostRegistry::Start(stderr)) return 1;
+#else
     assert(SystemTreeHost::Mount());
+#endif
     X86::Application app(nullptr);
     assert(app.Start(exe.data(), exe.size(), font.data(), font.size(), "STATE.EXE"));
     for (unsigned i = 0; i < 100000 && app.Status() != X86::Application::Exited &&

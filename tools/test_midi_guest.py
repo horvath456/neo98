@@ -57,16 +57,23 @@ RUN = args.source_root.resolve()
 OUT = (args.out or neo98.output_directory('midi')).resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 sys.path.insert(0, str(RUN / 'tools'))
+import runner_windows  # noqa: E402
+# The runtime is compiled as the hosts are: the tables of src/ come from
+# setup's drive C: when the runner starts (tools/runner_windows.py), and the
+# system font is the drive's Fixedsys.
 if args.objects:
     OBJECTS = args.objects.resolve()
 else:
     import native_app
-    OBJECTS = Path(native_app.object_directory())
+    OBJECTS = Path(native_app.object_directory(content=True))
 
 sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
 env = neo98.tool_environment()
 env['UBSAN_OPTIONS'] = 'halt_on_error=1:print_stacktrace=1'
-FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags()]
+FLAGS = ['-std=c++17', '-O1', '-g', '-fsanitize=address,undefined', *_native_app().engine_flags(),
+         *runner_windows.FLAGS]
+windows, font = runner_windows.prepare(OUT)
+env.update(windows)
 
 
 def run(name, command):
@@ -107,7 +114,6 @@ for name in (['sound_mixer', 'sound_synth', 'x86_midi_out', 'x86_mm_timer'] if a
 library = ROOT / 'build/analysis-venv/lib/python3.14/site-packages/unicorn/lib/libunicorn.2.dylib'
 binary = OUT / 'test-midi'
 run('guest-link', ['clang++', *FLAGS, RUN / 'tools/test_midi_guest.cpp', *objects, *_engine_link_extra(), *_native_app().unicorn_link(library), '-o', binary])
-font = ROOT / 'build/generated/notepad-fixedsys.fnt'
 result = run('guest', [binary, exe, font])
 print(result)
 (OUT / 'results.json').write_text(json.dumps({
