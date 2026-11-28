@@ -40,6 +40,8 @@ unsigned Application::WindowTextDefault(unsigned hwnd,unsigned message,unsigned 
   const char*text=lp?ReadString(lp):"";if(state==Failed)return ~0u;
   if(strlen(text)>=User::TitleCapacity){last_error=8;return ~0u;}
   if(!User::SetCaptionText(hwnd,text))return ~0u;
+  // USER redraws the caption with the new text here, in the window's thread.
+  User::PaintThreadFrame(hwnd);
   // EVENT_OBJECT_NAMECHANGE after the caption has its text.
   if(User::WinEventListening())WinEventNotify(0x800c,hwnd,0,0,false);
   return 1;

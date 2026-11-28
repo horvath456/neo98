@@ -1,66 +1,97 @@
 # Who paints a window's frame
 
 On Windows a frame is painted through the window: when its frame has to be
-painted (it is shown, activated, sized, its title or menu bar changes, a
-part of it comes into view), the window gets `WM_NCPAINT` with the region,
-in its own thread, and `DefWindowProc` paints the frame; `WM_NCACTIVATE`
-paints the caption the same way. A window that paints over its frame after
-`DefWindowProc` (through `GetWindowDC` or `GetDCEx` with `DCX_WINDOW`) keeps
-what it painted until the frame has to be painted again, and then draws it
-again on the next `WM_NCPAINT`. A window that does not hand `WM_NCPAINT` on
-keeps its old frame.
+painted (it is shown, a part of it comes into view, it is invalidated with
+`RDW_FRAME`, `SWP_FRAMECHANGED` changes it), the window gets `WM_NCPAINT`
+in its own thread, with its update region in screen coordinates as `wParam`
+(1 when the whole window is to be painted), and `DefWindowProc` paints the
+frame within that region. `WM_NCACTIVATE` paints the caption the same way,
+and so do `WM_SETTEXT` and `WM_SETICON` in `DefWindowProc`. A window that
+paints over its frame after `DefWindowProc` (through `GetWindowDC`, or
+`GetDCEx` with `DCX_WINDOW` and the region) keeps what it painted until the
+frame has to be painted again, and then draws it again on the next
+`WM_NCPAINT`. A window that answers `WM_NCPAINT` and `WM_NCACTIVATE` without
+`DefWindowProc` has no frame at all: what was on the screen stays there.
 
-Neo98 composes the screen itself (`Render`, `PaintWindow` in `src/user.cpp`):
-every composition painted every frame (`PaintFrame`), outside any message,
-and `WM_NCPAINT` came only from `BeginPaint` for a frame that was owed. A
-program's own caption was gone with the next composition.
+Neo98 composes the screen itself (`Render`, `PaintWindow` in `src/user.cpp`).
+Every composition painted every frame (`PaintFrame`) outside any message, and
+`WM_NCPAINT` came only from `BeginPaint` for a frame that was owed, always
+with 1. A program's own caption was gone with the next composition, and a
+window without `DefWindowProc` for its frame had one anyway.
 
-## What Neo98 does now
+## What Neo98 does
 
-A window that has taken a window DC of itself (`NoteOwnFrame`, from
-`GetWindowDC` and `GetDCEx` with `DCX_WINDOW`) draws on its own frame, and
-for it the frame works as on Windows:
+The frame of a window of a program's class (one that gets `WM_PAINT` from its
+queue, `Custom` in `src/user.cpp`) is painted by the window's thread, as on
+Windows (`ThreadFrame`):
 
-- The composition keeps the frame pixels that are there. It paints the frame
-  again only when what the frame shows has changed (`FrameSignature`: style,
-  size and parts, title, icon, active or not, caption buttons, the selected
-  system icon, the items of the menu bar, the scroll bars, the system colours
-  and fonts, `RDW_FRAME` and frame invalidations) or when the window can be
-  seen in a different shape, measured from its own corner (a window that
-  moves takes its pixels along; a part that comes into view needs paint).
-- When it does paint that frame, the window is owed `WM_NCPAINT` (wParam 1,
-  the whole window), which its next `BeginPaint` sends, so the window draws
-  its own parts again.
-- `DefWindowProc` of `WM_NCPAINT` and `WM_NCACTIVATE` paints the frame at
-  once, in the window's thread, and that is the frame the composition
-  keeps.
+- The composition never paints such a frame; it keeps the pixels that are
+  there. A window that moves takes its pixels along (the copy of the
+  geometry reconciliation, `SettleGeometry`).
+- What comes into view of a window and was not carried along goes into its
+  update region: the client part as before, the frame part now as well
+  (`ExposeFrame`), and the window is owed `WM_NCPAINT`.
+- A change of what the frame shows that `DefWindowProc` did not paint
+  itself (its size, style and parts, the menu bar, the scroll bars, the
+  caption buttons pressed, the system colours and fonts: `FrameSignature`)
+  owes `WM_NCPAINT` for the whole frame, as `SWP_FRAMECHANGED` and
+  `DrawMenuBar` do on Windows. `RDW_FRAME` and `RedrawWindow` owe it for
+  the region they name.
+- `WM_NCPAINT` comes from `BeginPaint`, `UpdateWindow`, `RedrawWindow` with
+  `RDW_UPDATENOW`, `GetUpdateRect` and `GetUpdateRgn` with erasing, and
+  `SetWindowPos`, as before. Its `wParam` is the window's update region,
+  frame and client, in screen coordinates (`TakeFramePaint`), or 1 when that
+  region is the whole window; the region is deleted after the message
+  (`DropFramePaint`) unless the window gave it to `GetDCEx`, which deletes it
+  with its DC.
+- `DefWindowProc` of `WM_NCPAINT` paints the frame clipped to that region and
+  to the visible region (`DefaultFramePaint`); of `WM_NCACTIVATE`, `WM_SETTEXT`
+  and `WM_SETICON` the whole frame. The caption of such a window shows active
+  by the frame-on bit, which `WM_NCACTIVATE` sets, as on Windows
+  (`CaptionActive`); a top-level window that the composition paints shows it
+  by being the foreground window, as before.
 
-Every other window gets its frame from the composition as before.
+The port's own controls (edit, list box, combo box, scroll bar, buttons,
+labels, the common controls) keep their frames from the composition or from
+the port on their thread, and so does a minimized window, which the
+composition draws as its caption bar.
 
 `tools/test_own_caption_host.py` (`tools/own_caption_fixture.c`): a window
-that fills its caption after `DefWindowProc` keeps it when its client area
-is painted again, when a popup covers part of it and takes the activation,
-and when the popup goes: 0 of 4 checks before, 4 of 4 now.
+that fills its caption after `DefWindowProc` keeps it when its client area is
+painted again, when a popup covers part of it with and without the
+activation, and when the popup goes; its first `WM_NCPAINT` carries 1, the one
+after the popup the region the popup uncovered in screen coordinates; before
+`DefWindowProc` the uncovered part of the caption still shows the popup; a
+window that answers `WM_NCPAINT` and `WM_NCACTIVATE` itself has no frame.
+2 of 9 checks with the composition painting every frame, 9 of 9 now.
 
 ## What it costs
 
-Measured with `NEO98_RENDER_PROFILE=1` over five seconds of a window that
-moves by a pixel every 10 ms, on a busy machine: a window that paints its
-own caption is composed 89 times as before, and its frame is painted once
-instead of 89 times (USER's render time 20 ms in all, against 30); a window
-that does not is unchanged (89 compositions, 30 ms). The signatures are
-hashes of a few hundred bytes per composition of such a window.
+Measured with `NEO98_RENDER_PROFILE=1` over four seconds of a window of 300
+by 200 pixels that moves by a pixel every 10 ms across the caption of a
+larger window behind it (73 steps on a busy machine), with and without a
+caption of its own:
+
+| | frame paints | USER's render time | `WM_NCPAINT` to the window behind |
+| --- | --- | --- | --- |
+| the composition paints every frame | 146 | 41 to 55 ms | 2 |
+| the window's thread paints its frame | 76 | 17 ms | 74, one per step |
+
+The window behind gets a `WM_NCPAINT` with the strip of its caption that each
+step uncovers, as on Windows, and paints just that strip in its thread; the
+moving window takes its frame along and is painted no more. What the
+composition still does for such a frame is a hash of a few hundred bytes
+(`FrameSignature`).
 
 ## What is left
 
-- Windows that never took a window DC still have their frames painted by
-  the composition without a `WM_NCPAINT`; a window that answers
-  `WM_NCPAINT` without calling `DefWindowProc` and without drawing through a
-  window DC (to have no frame drawn at all) still gets the frame.
-- When the composition paints an own frame again, it paints it before the
-  window's `WM_NCPAINT` and `DefWindowProc` paints it once more; Windows
-  paints it only in `DefWindowProc`. A program that draws only part of its
-  caption sees USER's caption for one composition in between.
-- `WM_NCPAINT` carries 1 (the whole frame), not the region that needs paint.
-- A frame the composition keeps is not repainted for a change the
-  signature does not know of; what it knows is listed above.
+- The port's own controls (see above) get no `WM_NCPAINT` for the frame the
+  composition paints; a program that subclasses an edit control to draw its
+  border keeps it only until the next composition.
+- USER of Windows paints the scroll bars, the pressed caption buttons and
+  the selected item of the menu bar at once, in the calling thread, without
+  `WM_NCPAINT`; here they owe the window a `WM_NCPAINT` for its whole frame,
+  painted when its thread next paints.
+- Windows sends a window of another thread `WM_SYNCPAINT` when `SetWindowPos`
+  uncovers it, so it paints its frame even while it only answers sent
+  messages; here that frame waits for the thread's next `WM_PAINT`.

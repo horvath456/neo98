@@ -373,12 +373,13 @@ unsigned Application::PositionWindows(unsigned count, unsigned (*positions)[7],u
             if (n.dropped || !User::IsWindow(n.hwnd) || (n.flags & 0x18e7) == 0x1807) continue;
             // An iconic window has no client update rectangle, but its
             // changed frame is still painted before WINDOWPOSCHANGED.
-            if ((n.flags & 0xa008u) == 0x8000u &&
-                (User::Style(n.hwnd) & 0x30000000u) == 0x30000000u && User::TakeFramePaint(n.hwnd))
-            {
-                PositionSend(n.hwnd, 0x85, 1, 0);
-                if (!User::IsWindow(n.hwnd) || state == Failed || state == Exited) continue;
-            }
+            if ((n.flags & 0xa008u) == 0x8000u && (User::Style(n.hwnd) & 0x30000000u) == 0x30000000u)
+                if (const unsigned region = User::TakeFramePaint(n.hwnd))
+                {
+                    PositionSend(n.hwnd, 0x85, region, 0);
+                    User::DropFramePaint(region);
+                    if (!User::IsWindow(n.hwnd) || state == Failed || state == Exited) continue;
+                }
             if ((n.flags & 0x2028u) == 0x20u && (n.flags & 0x1803u) == 0x1803u &&
                 memcmp(&n.old_window, &n.old_client, sizeof n.old_window) && n.hwnd != region_window &&
                 !User::AncestorNeedsPaint(n.hwnd))
@@ -386,9 +387,11 @@ unsigned Application::PositionWindows(unsigned count, unsigned (*positions)[7],u
                 // The unchanged frame is erased before WINDOWPOSCHANGED,
                 // including an empty client clip. DEFERERASE leaves only
                 // the frame pending for the later BeginPaint instead.
-                if ((n.flags & 0x1803u) == 0x1803u && User::TakeFramePaint(n.hwnd))
+                const unsigned region = (n.flags & 0x1803u) == 0x1803u ? User::TakeFramePaint(n.hwnd) : 0;
+                if (region)
                 {
-                    PositionSend(n.hwnd, 0x85, 1, 0);
+                    PositionSend(n.hwnd, 0x85, region, 0);
+                    User::DropFramePaint(region);
                     if (!User::IsWindow(n.hwnd) || state == Failed || state == Exited) continue;
                     const unsigned token = User::EraseToken(n.hwnd);
                     if (const auto dc = User::GetUpdateDC(n.hwnd))
@@ -403,8 +406,9 @@ unsigned Application::PositionWindows(unsigned count, unsigned (*positions)[7],u
                 if (!User::IsWindow(n.hwnd) || state == Failed || state == Exited) continue;
             }
             if(n.hwnd==region_window&&!(n.flags&8)){
-                User::TakeFramePaint(n.hwnd);
-                PositionSend(n.hwnd,0x85,1,0);
+                const unsigned region=User::TakeFramePaint(n.hwnd);
+                PositionSend(n.hwnd,0x85,region?region:1,0);
+                User::DropFramePaint(region);
                 RedrawImmediate(n.hwnd,2,4);
                 if(!User::IsWindow(n.hwnd)||state==Failed||state==Exited)continue;
             }

@@ -396,10 +396,14 @@ void ClipAncestorUpdates(HWND);
 bool AncestorNeedsPaint(HWND);
 bool OrderUnchanged(HWND, HWND after);
 bool GetUpdateRect(HWND, Gdi::RECT *);
-bool TakeFramePaint(HWND);
-// A program took a window DC of the window: it draws on its own frame,
-// which the composition then keeps (user.cpp, own_frame).
-void NoteOwnFrame(HWND);
+// The wParam of the WM_NCPAINT the window is owed (0: none, 1: the whole
+// window, else a region in screen coordinates), taken off the window; after
+// the message DropFramePaint deletes the region.
+unsigned TakeFramePaint(HWND);
+void DropFramePaint(unsigned parameter);
+// DefWindowProc of WM_SETTEXT and WM_SETICON: a frame the window's thread
+// paints is painted at once, as USER redraws the caption there.
+void PaintThreadFrame(HWND);
 void InvalidateFrame(HWND);
 bool TakeInternalPaint(HWND);
 bool NeedsErase(HWND);

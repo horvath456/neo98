@@ -197,8 +197,9 @@ void PaintCaption(HWND h, const Window &w, Gdi::POINT p)
 {
     const auto title = At(w.caption, p);
     // A top-level caption is active with its window; a child's caption (an
-    // MDI child) with its frame-on bit, which WM_NCACTIVATE sets.
-    const bool active = (w.style & 0x40000000u) ? w.frame_on : foreground == h;
+    // MDI child) and a frame its thread paints with the frame-on bit, which
+    // WM_NCACTIVATE sets (CaptionActive).
+    const bool active = CaptionActive(h, w);
     const unsigned *colors = Win98Frame::SystemColors();
     const int save = Gdi::SaveDC(screen);
     if (!save) { dirty = true; return; }

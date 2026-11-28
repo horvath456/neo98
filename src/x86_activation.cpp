@@ -1629,6 +1629,8 @@ unsigned Application::DefaultWindowMessage(unsigned hwnd, unsigned message, unsi
             if (const unsigned small = ImageApi("CopyImage", copy))
                 User::SetWindowIcon(hwnd, false, small);
         }
+        // USER redraws the caption with the new icon.
+        User::PaintThreadFrame(hwnd);
         return previous;
     }
     if (message == 0x7f) // WM_GETICON: ICON_SMALL 0 / ICON_BIG 1 / ICON_SMALL2 2

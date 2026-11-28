@@ -78,7 +78,6 @@ unsigned Application::WindowDeviceContext(unsigned hwnd, unsigned region, unsign
         if (style & 0x04000000) flags |= DcxClipSiblings;
         if (User::ClassAccess(hwnd, -26, 0, 2) & 0x80) flags |= DcxParentClip;
     }
-    if (flags & 1) User::NoteOwnFrame(hwnd); // DCX_WINDOW
     const auto dc = User::GetDCEx(hwnd,flags);
     if (!dc) return 0;
     // The visible region follows the window's own WS_CLIPCHILDREN and
@@ -145,8 +144,8 @@ unsigned Application::UpdateRegionApi(ApiName name, const unsigned *a)
             last_error = 87;
             return 0;
         }
-        if (a[2] && User::GetUpdateRect(a[0], nullptr) && User::TakeFramePaint(a[0]))
-            CallWindow(a[0], 0x85, 1, 0);
+        if (a[2] && User::GetUpdateRect(a[0], nullptr))
+            if (const unsigned region = User::TakeFramePaint(a[0])) { CallWindow(a[0], 0x85, region, 0); User::DropFramePaint(region); }
         if (a[2] && User::GetUpdateRect(a[0], nullptr) && User::NeedsErase(a[0]))
         {
             const unsigned token = User::EraseToken(a[0]);

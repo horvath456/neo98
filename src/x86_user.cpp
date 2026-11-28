@@ -528,12 +528,20 @@ unsigned Application::EraseBackground(unsigned hwnd, unsigned dc)
 // they read their arguments and write PAINTSTRUCT back, so they share this
 // body. Rebuilding it on the 16-bit side is what lost the erase for a Win16
 // window once.
+// The WM_NCPAINT BeginPaint sends first, when the window owes one: with
+// its update region (src/user.cpp, TakeFramePaint). A style change leaves
+// frame work for the next invalidated paint; RDW_INTERNALPAINT alone does
+// not make that nonclient work due. The port's own window procedures that
+// paint with User::BeginPaint call it as well.
+void Application::SendFramePaint(unsigned hwnd)
+{
+    if (User::GetUpdateRect(hwnd, nullptr))
+        if (const unsigned region = User::TakeFramePaint(hwnd)) { CallWindow(hwnd, 0x85, region, 0); User::DropFramePaint(region); }
+}
 unsigned Application::BeginPaintWindow(unsigned hwnd, User::Paint &paint)
 {
     paint = User::Paint{};
-    // A style change leaves frame work for the next invalidated paint.
-    // RDW_INTERNALPAINT alone does not make that nonclient work due.
-    if (User::GetUpdateRect(hwnd, nullptr) && User::TakeFramePaint(hwnd)) CallWindow(hwnd, 0x85, 1, 0);
+    SendFramePaint(hwnd);
     if (!User::IsWindow(hwnd)) return 0;
     const bool erase_requested = User::NeedsErase(hwnd);
     const auto dc = User::BeginPaint(hwnd, paint);
@@ -608,8 +616,8 @@ void Application::RedrawImmediate(unsigned hwnd, unsigned kind, unsigned paramet
     // child erase survives until its ancestor's painting has been handled.
     if (kind == 2 && !descendant && User::AncestorNeedsPaint(hwnd))
         return;
-    if (kind == 2 && User::GetUpdateRect(hwnd, nullptr) && User::TakeFramePaint(hwnd))
-        CallWindow(hwnd, 0x85, 1, 0);
+    if (kind == 2 && User::GetUpdateRect(hwnd, nullptr))
+        if (const unsigned region = User::TakeFramePaint(hwnd)) { CallWindow(hwnd, 0x85, region, 0); User::DropFramePaint(region); }
     // UPDATENOW enters WM_PAINT first; BeginPaint sends the frame and erase.
     if (kind == 2 && User::GetUpdateRect(hwnd, nullptr) && User::NeedsErase(hwnd))
     {
@@ -690,8 +698,8 @@ unsigned Application::PaintApi(ApiName name, const unsigned *a)
     }
     if (API_IS(name,"GetUpdateRect"))
     {
-        if (a[2] && User::GetUpdateRect(a[0], nullptr) && User::TakeFramePaint(a[0]))
-            CallWindow(a[0], 0x85, 1, 0);
+        if (a[2] && User::GetUpdateRect(a[0], nullptr))
+            if (const unsigned region = User::TakeFramePaint(a[0])) { CallWindow(a[0], 0x85, region, 0); User::DropFramePaint(region); }
         if (a[2] && User::GetUpdateRect(a[0], nullptr) && User::NeedsErase(a[0]))
         {
             unsigned token = User::EraseToken(a[0]);

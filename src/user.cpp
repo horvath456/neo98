@@ -169,15 +169,15 @@ struct Window {
     // A callback-driven control paints its initial frame on its owning thread
     // during PaintControlSurface.
     bool frame_owed = false;
-    // A window that draws on its own frame (it took a window DC: GetWindowDC,
-    // GetDCEx with DCX_WINDOW) keeps the frame pixels it last saw: the
-    // composition paints its frame again only when what the frame shows or
-    // where the window can be seen has changed, and then owes it WM_NCPAINT
-    // (PaintWindow). frame_signature and frame_visible are what the frame on
-    // the screen was painted for; frame_serial counts RDW_FRAME and frame
-    // invalidations.
-    bool own_frame = false;
-    unsigned frame_signature = 0, frame_visible = 0, frame_serial = 0;
+    // The frame of a window whose thread paints it (ThreadFrame) is painted
+    // only by DefWindowProc of WM_NCPAINT and WM_NCACTIVATE, as on Windows:
+    // the composition keeps its pixels and owes the window WM_NCPAINT when
+    // a part of it comes into view (the settle) or what it shows changes
+    // (PaintWindow). frame_signature is what the frame on the screen was
+    // painted for; frame_full marks the whole window as owed, which
+    // WM_NCPAINT passes as 1.
+    bool frame_full = false;
+    unsigned frame_signature = 0;
     bool frame_message_owed = true;
     bool frame_update_pending = false;
     // RDW_FRAME can mark client-only rectangles too. Keep that area so
@@ -440,16 +440,17 @@ bool WithinWindow(HWND root,HWND h)
     return false;
 }
 bool Locked(HWND h){return WithinWindow(locked_window,h);}
-// Unlocking with NULL invalidates the accumulated area. USER-owned frames,
-// controls and desktop background remain pending during the lock and are
-// drawn on the next paint pass.
+// Unlocking with NULL invalidates the accumulated area, frames with it
+// (RDW_FRAME): a frame its window's thread paints was not painted during the
+// lock. USER-owned controls and the desktop background remain pending during
+// the lock and are drawn on the next paint pass.
 void RepaintLockedWindow(HWND)
 {
     const unsigned count = lock_sums;
     lock_sums = 0;
     for (unsigned i = 0; i < count; ++i) {
         const Gdi::RECT r = lock_sum[i];
-        RedrawWindow(Desktop, &r, 0, 0x85, nullptr, nullptr);
+        RedrawWindow(Desktop, &r, 0, 0x485, nullptr, nullptr);
     }
     dirty=true;
 }
@@ -591,6 +592,58 @@ bool ControlContent(const Window &w) { return w.button || w.label || (w.common &
 // A window procedure of the program instead of the port's class procedure
 // (the tokens at 71000000h, x86_app.h NativeProcedure).
 bool GuestProcedure(const Window &w) { return w.procedure && (w.procedure & 0xffff0000u) != 0x71000000u; }
+// Whose frame the window's own thread paints, through WM_NCPAINT and
+// DefWindowProc, as on Windows: a window of a program's class (one that gets
+// WM_PAINT from its queue). The port's own controls (edit, list box, combo
+// box, scroll bar, buttons, labels, the common controls) are drawn by the
+// composition or on their thread by the port, and so is a minimized window,
+// which the composition draws as its caption bar.
+static bool ThreadFrame(HWND h, const Window &w)
+{
+    return h != 0xff && w.thread && Custom(w) && !(w.style & 0x20000000u);
+}
+// Whether the caption shows active. A frame its thread paints follows the
+// frame-on bit, which DefWindowProc of WM_NCACTIVATE sets before it paints,
+// as on Windows; so does a child's caption (an MDI child). The composition
+// paints other top-level captions active with their window.
+static bool CaptionActive(HWND h, const Window &w)
+{
+    return ((w.style & 0x40000000u) || ThreadFrame(h, w)) ? w.frame_on : foreground == h;
+}
+// The window owes WM_NCPAINT for its frame: the whole of it (full), which
+// WM_NCPAINT passes as 1, or the parts already in frame_update.
+static void OweFrame(Window &w, bool full)
+{
+    if (full)
+    {
+        w.frame_full = true;
+        w.frame_update.Add({-w.client.left, -w.client.top, w.width - w.client.left, w.height - w.client.top});
+    }
+    w.frame_message_owed = true;
+    w.frame_update_pending = true;
+    w.wait_paint_observed = false;
+}
+// A part of the window that came into view and was not carried along by a
+// move (SettleGeometry): its frame part goes into the update region of the
+// frame, as on Windows, in client coordinates; exposed and client are in
+// screen coordinates.
+static void ExposeFrame(Window &w, const Gdi::RECT *exposed, unsigned count, const Gdi::RECT &client)
+{
+    bool any = false;
+    for (unsigned i = 0; i < count; ++i)
+    {
+        RectRegion part;
+        part.Append(exposed[i]);
+        part.Subtract(client);
+        for (unsigned k = 0; k < part.count; ++k)
+        {
+            const auto &r = part.rectangles[k];
+            w.frame_update.Add({r.left - client.left, r.top - client.top, r.right - client.left, r.bottom - client.top});
+            any = true;
+        }
+    }
+    if (any) OweFrame(w, false);
+}
 Gdi::POINT Origin(const Window &w,unsigned depth=0);
 void FreeWindowDCs(Window &w);
 // Paint tracing is enabled with NEO98_TRACE_PAINT.
@@ -1655,7 +1708,7 @@ static unsigned FrameSignature(HWND h, const Window &w)
     auto rect = [&](const Gdi::RECT &r) { mix(unsigned(r.left)); mix(unsigned(r.top)); mix(unsigned(r.right)); mix(unsigned(r.bottom)); };
     mix(w.style); mix(w.extended); mix(unsigned(w.width)); mix(unsigned(w.height)); mix(w.nonclient_flags);
     rect(w.client); rect(w.caption); rect(w.menu_bar);
-    mix((w.style & 0x40000000u) ? w.frame_on : foreground == h); mix(w.enabled);
+    mix(CaptionActive(h, w)); mix(w.enabled);
     mix(w.icon_small); mix(w.icon_large); mix(w.icon_drag); mix(SystemIconSelected(h));
     mix(w.pressed_hit); mix(w.pressed_inside); mix(w.button_slots);
     for (unsigned i = 0; i < w.button_slots && i < 4; ++i) { mix(w.button_slot[i].state); rect(w.button_slot[i].cell); }
@@ -1676,26 +1729,11 @@ static unsigned FrameSignature(HWND h, const Window &w)
     const unsigned *colors = Win98Frame::SystemColors();
     for (unsigned i = 0; i < Win98Frame::ColorCount; ++i) mix(colors[i]);
     mix(MetricFont(0x502)); mix(MetricFont(0x503)); mix(MetricFont(0x501));
-    mix(w.frame_serial);
     return hash | 1;
 }
-// Where the window can be seen, relative to its own corner: a window that
-// moves takes its pixels along (the copy of the geometry reconciliation),
-// so only a part of it that comes into view needs its frame painted again.
-static unsigned VisibleSignature(const RectList &visible, Gdi::POINT origin)
-{
-    unsigned hash = 2166136261u;
-    for (unsigned i = 0; i < visible.n; ++i)
-    {
-        const int v[4] = {visible.r[i].left - origin.x, visible.r[i].top - origin.y,
-                          visible.r[i].right - origin.x, visible.r[i].bottom - origin.y};
-        for (unsigned j = 0; j < 4; ++j)
-            for (unsigned k = 0; k < 4; ++k) { hash ^= (unsigned(v[j]) >> (k * 8)) & 255; hash *= 16777619u; }
-    }
-    return hash | 1;
-}
-// The frame alone, clipped to the window's visible region.
-static void PaintVisibleFrame(HWND h, Window &w)
+// The frame alone, clipped to the window's visible region and to region (a
+// GDI region in screen coordinates; 0 or 1 for the whole frame).
+static void PaintVisibleFrame(HWND h, Window &w, unsigned region)
 {
     SurfaceTarget target(h);
     auto *visible = new RectList;
@@ -1705,38 +1743,34 @@ static void PaintVisibleFrame(HWND h, Window &w)
     {
         const auto p = Origin(w);
         const auto area = At(w.client, p);
-        if (Gdi::IntersectClipRegion(screen, visible->r, visible->n) && RegionClip(screen, w, 0, 0))
+        bool clipped = Gdi::IntersectClipRegion(screen, visible->r, visible->n) && RegionClip(screen, w, 0, 0);
+        if (clipped && region > 1)
+        {
+            Gdi::RegionRectanglesCopy parts;
+            clipped = parts.Read(region) && Gdi::IntersectClipRegion(screen, parts.rectangles, parts.count);
+        }
+        if (clipped)
         {
             Gdi::ExcludeClipRect(screen, area.left, area.top, area.right, area.bottom);
             PaintFrame(h, w, p);
             // A frame painted for the window (WM_NCPAINT, WM_NCACTIVATE)
             // is the one the composition keeps.
             w.frame_signature = FrameSignature(h, w);
-            w.frame_visible = VisibleSignature(*visible, p);
         }
         Gdi::RestoreDC(screen, save);
     }
     delete visible;
 }
-static void MarkOwnFrame(HWND h)
+// DefWindowProc of WM_NCPAINT (region its wParam) and WM_NCACTIVATE (the
+// whole frame) for a window whose thread paints its frame: the frame is
+// painted now, in that thread, and it is the frame the composition keeps.
+// Any other window gets its frame from the composition. A locked window
+// (LockWindowUpdate) draws nothing; its release invalidates the frame.
+static void DefaultFramePaint(HWND h, unsigned region)
 {
     auto *w = Find(h);
-    if (!w || h == Desktop || w->own_frame) return;
-    // Only a frame that is more than the client: a window with nothing
-    // around its client area has nothing USER would paint there.
-    if (!ClientLeft(*w) && !ClientTop(*w) && w->client.right == w->width && w->client.bottom == w->height) return;
-    w->own_frame = true;
-    w->frame_signature = w->frame_visible = 0;
-}
-// DefWindowProc of WM_NCPAINT and WM_NCACTIVATE for a window that draws on
-// its own frame: the frame is painted now, in the window's thread, and it is
-// the frame the composition keeps. Any other window gets its frame from the
-// composition, as before.
-static void DefaultFramePaint(HWND h)
-{
-    auto *w = Find(h);
-    if (!w || !w->own_frame || !ShowsTree(h) || rendering) return;
-    PaintVisibleFrame(h, *w);
+    if (!w || !ThreadFrame(h, *w) || !ShowsTree(h) || rendering || Locked(h)) return;
+    PaintVisibleFrame(h, *w, region);
     dirty = true;
 }
 // Overlapping siblings share pixels if either lacks WS_CLIPSIBLINGS; the last
@@ -1831,27 +1865,22 @@ void PaintWindow(HWND h, Window &w)
             if (frame_save)
             {
                 Gdi::ExcludeClipRect(screen, area.left, area.top, area.right, area.bottom);
-                // A window that draws on its own frame keeps what it drew
-                // until the frame has to be painted again: something it
-                // shows changed or the window became visible elsewhere.
-                // Then USER paints it and owes the window WM_NCPAINT, which
-                // the window answers with its own drawing, as on Windows.
-                bool paint = true;
-                if (w.own_frame)
+                // A window whose thread paints its frame keeps what was
+                // painted there: its DefWindowProc paints the frame on
+                // WM_NCPAINT, which the window is owed for the parts that
+                // came into view (SettleGeometry) and here for a change of
+                // what the frame shows, the whole frame. The window draws
+                // over it what it draws itself, as on Windows.
+                if (ThreadFrame(h, w))
                 {
-                    const unsigned signature = FrameSignature(h, w), seen = VisibleSignature(*visible, p);
-                    if (signature == w.frame_signature && seen == w.frame_visible) paint = false;
-                    else
+                    const unsigned signature = FrameSignature(h, w);
+                    if (signature != w.frame_signature)
                     {
                         w.frame_signature = signature;
-                        w.frame_visible = seen;
-                        w.frame_message_owed = true;
-                        w.frame_update_pending = true;
-                        w.frame_update.Add({-ClientLeft(w), -ClientTop(w), w.width - ClientLeft(w), w.height - ClientTop(w)});
-                        w.wait_paint_observed = false;
+                        OweFrame(w, true);
                     }
                 }
-                if (paint) PaintFrame(h, w, p);
+                else PaintFrame(h, w, p);
                 Gdi::RestoreDC(screen, frame_save);
             }
             PaintNativeClient(h, w, p, client, area);
@@ -4474,11 +4503,49 @@ unsigned EraseToken(HWND h){auto *w=Find(h);return w?w->erase_serial:0;}
 void Erased(HWND h,unsigned token){auto *w=Find(h);if(w&&token==w->erase_serial)w->erase_pending=false;}
 void KeepErase(HWND h){if(auto *w=Find(h)){w->erase_pending=true;++w->erase_serial;}}
 unsigned Background(HWND h){auto *w=Find(h);return w?(w->class_record?class_store.HandleValue(class_store.Read16(Win98Classes::Body(class_store,w->class_record)+16)):w->background):0;}
-void NoteOwnFrame(HWND h) { MarkOwnFrame(h); }
-bool TakeFramePaint(HWND h)
+void PaintThreadFrame(HWND h) { DefaultFramePaint(h, 1); }
+// The wParam of the WM_NCPAINT the window is owed, or 0 for none. Windows
+// passes the update region of the window in screen coordinates, frame and
+// client, and 1 when the whole window is to be painted. The region is the
+// caller's to delete after the message (DropFramePaint).
+unsigned TakeFramePaint(HWND h)
 {
-    auto *w=Find(h);if(!w || !w->frame_message_owed)return false;
-    w->frame_message_owed=false;w->frame_update_pending=false;w->frame_update.Clear();return true;
+    auto *w=Find(h);if(!w || !w->frame_message_owed)return 0;
+    unsigned parameter = 1;
+    if (!w->frame_full && w->frame_update.count)
+    {
+        RectRegion all = w->frame_update;
+        for (unsigned i = 0; i < w->update.count; ++i) all.Add(w->update.rectangles[i]);
+        RectRegion rest;
+        rest.Append({-ClientLeft(*w), -ClientTop(*w), w->width - ClientLeft(*w), w->height - ClientTop(*w)});
+        for (unsigned i = 0; i < all.count && rest.count; ++i) rest.Subtract(all.rectangles[i]);
+        if (rest.count)
+        {
+            const auto origin = Origin(*w);
+            const int x = origin.x + ClientLeft(*w), y = origin.y + ClientTop(*w);
+            if (const auto region = Gdi::CreateRegionRect(0, 0, 0, 0))
+            {
+                bool okay = true;
+                for (unsigned i = 0; i < all.count && okay; ++i)
+                {
+                    const auto &r = all.rectangles[i];
+                    const auto piece = Gdi::CreateRegionRect(r.left + x, r.top + y, r.right + x, r.bottom + y);
+                    okay = piece && Gdi::CombineRegions(region, region, piece, 2) != 0;
+                    if (piece) Gdi::DeleteObject(piece);
+                }
+                if (okay) parameter = region;
+                else Gdi::DeleteObject(region);
+            }
+        }
+    }
+    w->frame_message_owed=false;w->frame_full=false;w->frame_update_pending=false;w->frame_update.Clear();
+    return parameter;
+}
+// After WM_NCPAINT: the region USER made for it goes, unless the window gave
+// it to GetDCEx, which deleted it with its DC.
+void DropFramePaint(unsigned parameter)
+{
+    if (parameter > 1 && Gdi::GetObjectType(parameter) == 8) Gdi::DeleteObject(parameter);
 }
 void InvalidateFrame(HWND h)
 {
@@ -4490,11 +4557,7 @@ void InvalidateFrame(HWND h)
     if (!w || (!ShowsTree(h) && !iconic)) return;
     const auto client = Client(*w);
     if (!ClientLeft(*w) && !ClientTop(*w) && client.right == w->width && client.bottom == w->height) return;
-    w->frame_message_owed = true;
-    w->frame_update_pending = true;
-    w->frame_update.Add({-ClientLeft(*w),-ClientTop(*w),w->width-ClientLeft(*w),w->height-ClientTop(*w)});
-    w->wait_paint_observed = false;
-    ++w->frame_serial;
+    OweFrame(*w, true);
     if (ControlContent(*w)) { w->frame_owed = true; w->needs_paint = true; }
     dirty = true;
 }
@@ -4790,10 +4853,10 @@ unsigned DefaultMessage(HWND h, unsigned msg, unsigned wp, unsigned lp)
             w->frame_on = wp != 0;
             dirty = true;
         }
-        DefaultFramePaint(h);
+        DefaultFramePaint(h, 1);
         return 1;
     }
-    if (msg == 0x85) { DefaultFramePaint(h); return 0; }
+    if (msg == 0x85) { DefaultFramePaint(h, wp); return 0; }
     if (msg == 0x81 || msg == 0x11 || msg == 0x13) return 1; // WM_NCCREATE, WM_QUERYENDSESSION, WM_QUERYOPEN
     if (msg == 0x2e || msg == 0x2f) return ~0u; // USER: default listbox key/character handling.
     if (msg == 0x112)
@@ -6312,7 +6375,7 @@ void PaintControlSurface(HWND h)
     if (w->frame_owed)
     {
         w->frame_owed = false;
-        PaintVisibleFrame(h, *w);
+        PaintVisibleFrame(h, *w, 1);
         // The state this frame shows. The composition compares with it
         // (PaintWindow): a control that paints before its first composition
         // and whose frame changes after that, as the list of a combo box

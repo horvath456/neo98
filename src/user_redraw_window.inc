@@ -183,11 +183,8 @@ struct RedrawEnvironment
             // RDW_FRAME owes a frame message even for a client-only rectangle.
             if ((flags & Win98RedrawWindow::Invalidate) && frame)
             {
-                w->frame_message_owed = true;
-                w->frame_update_pending = true;
                 w->frame_update.Add(touched);
-                w->wait_paint_observed = false;
-                ++w->frame_serial;
+                OweFrame(*w, false);
             }
             if ((flags & Win98RedrawWindow::Invalidate) && frame && ControlContent(*w) &&
                 p.left < p.right && p.top < p.bottom &&
